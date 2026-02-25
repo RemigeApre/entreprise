@@ -1,0 +1,46 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme static {
+  --font-sans: 'Source Sans 3', 'Inter', sans-serif;
+  --font-serif: 'Playfair Display', 'Georgia', serif;
+}
+
+/* ===== Dark Academia Theme ===== */
+
+.font-heading {
+  font-family: var(--font-serif);
+  letter-spacing: -0.01em;
+}
+
+/* Warm backgrounds */
+.bg-academia {
+  background-color: oklch(0.97 0.005 80);
+}
+.dark .bg-academia {
+  background-color: oklch(0.17 0.01 60);
+}
+
+/* Subtle warm texture via CSS gradient */
+.bg-paper {
+  background-image:
+    radial-gradient(ellipse at 20% 50%, oklch(0.96 0.01 80 / 0.5), transparent 50%),
+    radial-gradient(ellipse at 80% 20%, oklch(0.95 0.015 50 / 0.3), transparent 50%);
+}
+.dark .bg-paper {
+  background-image:
+    radial-gradient(ellipse at 20% 50%, oklch(0.20 0.01 60 / 0.3), transparent 50%),
+    radial-gradient(ellipse at 80% 20%, oklch(0.18 0.015 40 / 0.2), transparent 50%);
+}
+
+/* Card warm hover */
+.card-hover-warm {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.card-hover-warm:hover {
+  box-shadow: 0 4px 24px oklch(0.75 0.08 70 / 0.15);
+  transform: translateY(-1px);
+}
+.dark .card-hover-warm:hover {
+  box-shadow: 0 4px 24px oklch(0.45 0.08 55 / 0.2);
+}
