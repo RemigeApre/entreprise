@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PlanningEntry, PlanningPeriode, PlanningType } from '~/utils/types'
-import { getMonday, addDays, formatDate } from '~/utils/dates'
+import { getMonday, addDays, formatDate, getWeekNumber } from '~/utils/dates'
 
 const { user, isDirecteur, hasSchoolDays, hasHourTracking } = useAuth()
 const { getEntries, createEntry, deleteEntry, getWorkedStats } = usePlanning()
@@ -9,6 +9,7 @@ const toast = useToast()
 const entries = ref<PlanningEntry[]>([])
 const loading = ref(false)
 const currentMonday = ref(getMonday(new Date()))
+const weekNumber = ref(getWeekNumber(new Date()))
 const stats = ref({ totalHours: 0, totalDays: 0, totalHalfDays: 0 })
 
 const contractStart = computed(() => user.value?.date_debut_contrat || null)
@@ -27,6 +28,7 @@ interface QuickAction {
 const quickActions = computed<QuickAction[]>(() => {
   const actions: QuickAction[] = [
     { key: 'travail', label: 'Travail', icon: 'i-lucide-briefcase', planningType: 'travail', motif: null, requiresMotif: false },
+    { key: 'teletravail', label: 'Teletravail', icon: 'i-lucide-house', planningType: 'travail', motif: 'Teletravail', requiresMotif: false },
     { key: 'conge_paye', label: 'Conge paye', icon: 'i-lucide-palm-tree', planningType: 'conge', motif: 'Conge paye', requiresMotif: false },
     { key: 'sans_solde', label: 'Sans solde', icon: 'i-lucide-wallet', planningType: 'conge', motif: 'Sans solde', requiresMotif: false },
     { key: 'arret_maladie', label: 'Arret maladie', icon: 'i-lucide-heart-pulse', planningType: 'absent', motif: 'Arret maladie', requiresMotif: false },
@@ -54,6 +56,7 @@ async function loadEntries(mondayStr: string) {
   if (!user.value) return
   loading.value = true
   currentMonday.value = new Date(mondayStr + 'T00:00:00')
+  weekNumber.value = getWeekNumber(currentMonday.value)
   try {
     const friday = formatDate(addDays(new Date(mondayStr + 'T00:00:00'), 4))
     entries.value = await getEntries(user.value.id, mondayStr, friday)
@@ -207,31 +210,15 @@ onMounted(() => {
 
 <template>
   <div>
-    <UDashboardNavbar title="Mon planning">
-      <template #right>
-        <div class="flex items-center gap-2">
-          <UButton
-            v-if="isDirecteur"
-            label="Gerer les plannings"
-            icon="i-lucide-calendar-cog"
-            color="neutral"
-            variant="ghost"
-            to="/planning/admin"
-          />
-          <UButton
-            label="Mes demandes"
-            icon="i-lucide-list"
-            color="neutral"
-            variant="ghost"
-            to="/planning/conges"
-          />
-        </div>
-      </template>
-    </UDashboardNavbar>
-
     <div class="p-4 sm:p-6 space-y-6">
-      <!-- Quick action buttons -->
-      <div class="flex flex-wrap items-center gap-2">
+      <!-- Header: centered title + week number -->
+      <div class="text-center">
+        <h1 class="text-xl font-semibold text-stone-900 dark:text-stone-100">Mon planning</h1>
+        <p class="text-sm text-stone-500 dark:text-stone-400 mt-0.5">Semaine {{ weekNumber }}</p>
+      </div>
+
+      <!-- Quick action buttons - centered -->
+      <div class="flex flex-wrap justify-center gap-2">
         <UButton
           v-for="action in quickActions"
           :key="action.key"
@@ -242,20 +229,39 @@ onMounted(() => {
           size="sm"
           @click="activeAction = action.key"
         />
-        <div class="ml-auto">
-          <UButton
-            label="Copier semaine precedente"
-            icon="i-lucide-copy"
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            :loading="copyLoading"
-            @click="handleCopyPreviousWeek"
-          />
-        </div>
       </div>
 
-      <!-- Mon planning -->
+      <!-- Navigation links -->
+      <div class="flex items-center justify-center gap-3 text-sm">
+        <UButton
+          v-if="isDirecteur"
+          label="Gerer les plannings"
+          icon="i-lucide-calendar-cog"
+          color="neutral"
+          variant="ghost"
+          size="xs"
+          to="/planning/admin"
+        />
+        <UButton
+          label="Mes demandes de conges"
+          icon="i-lucide-list"
+          color="neutral"
+          variant="ghost"
+          size="xs"
+          to="/planning/conges"
+        />
+        <UButton
+          label="Copier semaine precedente"
+          icon="i-lucide-copy"
+          color="neutral"
+          variant="ghost"
+          size="xs"
+          :loading="copyLoading"
+          @click="handleCopyPreviousWeek"
+        />
+      </div>
+
+      <!-- Mon planning + hours summary side by side -->
       <div class="flex gap-6">
         <div class="flex-1">
           <PlanningWeekView
@@ -281,6 +287,7 @@ onMounted(() => {
       <PlanningTeamPresence
         :monday="currentMonday"
         :current-user-id="user?.id"
+        :is-admin="isDirecteur"
       />
     </div>
 
@@ -288,8 +295,8 @@ onMounted(() => {
     <UModal :open="showMotifModal" @update:open="showMotifModal = $event">
       <template #content>
         <div class="p-6">
-          <h3 class="text-lg font-semibold text-stone-900 dark:text-white mb-4">Justification requise</h3>
-          <form @submit.prevent="handleMotifSubmit" class="space-y-4">
+          <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-4">Justification requise</h3>
+          <form class="space-y-4" @submit.prevent="handleMotifSubmit">
             <UFormField label="Motif">
               <UTextarea v-model="motifInput" placeholder="Indiquez le motif..." required />
             </UFormField>

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { PlanningEntry, UserProfile } from '~/utils/types'
 import { PLANNING_TYPES, PLANNING_COLORS } from '~/utils/constants'
-import { getWeekDays, formatDate, formatDateShortFr } from '~/utils/dates'
+import { getWeekDays, formatDate } from '~/utils/dates'
 
 const props = defineProps<{
   monday: Date
   currentUserId?: string
+  isAdmin?: boolean
 }>()
 
 const { getActiveUsers } = useUsers()
@@ -14,8 +15,18 @@ const { getTeamEntries } = usePlanning()
 const loading = ref(true)
 const teamMembers = ref<UserProfile[]>([])
 const entries = ref<PlanningEntry[]>([])
+const search = ref('')
 
 const weekDays = computed(() => getWeekDays(props.monday))
+
+const filteredMembers = computed(() => {
+  if (!search.value.trim()) return teamMembers.value
+  const q = search.value.toLowerCase()
+  return teamMembers.value.filter(u => {
+    const name = getMemberName(u).toLowerCase()
+    return name.includes(q)
+  })
+})
 
 async function load() {
   loading.value = true
@@ -44,18 +55,34 @@ function getMemberName(user: UserProfile) {
   return [user.first_name, user.last_name].filter(Boolean).join(' ') || user.email
 }
 
+function getDisplayKey(entry: PlanningEntry | undefined) {
+  if (!entry) return null
+  if (entry.type === 'travail' && entry.motif === 'Teletravail') return 'teletravail'
+  return entry.type
+}
+
 function getDotClasses(entry: PlanningEntry | undefined) {
   if (!entry) return 'bg-stone-200 dark:bg-stone-700'
-  return PLANNING_COLORS[entry.type]?.dot || 'bg-stone-400'
+  const key = getDisplayKey(entry)
+  return (key && PLANNING_COLORS[key]?.dot) || PLANNING_COLORS[entry.type]?.dot || 'bg-stone-400'
 }
 
 function getDotTooltip(entry: PlanningEntry | undefined) {
   if (!entry) return 'Non renseigne'
+  const key = getDisplayKey(entry)
+  if (key && PLANNING_TYPES[key as keyof typeof PLANNING_TYPES]) {
+    return PLANNING_TYPES[key as keyof typeof PLANNING_TYPES].label
+  }
   return PLANNING_TYPES[entry.type]?.label || entry.type
+}
+
+function getDayName(date: Date): string {
+  return date.toLocaleDateString('fr-FR', { weekday: 'short' })
 }
 
 const legendItems = [
   { label: 'Travail', dot: PLANNING_COLORS.travail.dot },
+  { label: 'Teletravail', dot: PLANNING_COLORS.teletravail.dot },
   { label: 'Ecole', dot: PLANNING_COLORS.ecole.dot },
   { label: 'Conge', dot: PLANNING_COLORS.conge.dot },
   { label: 'Absent', dot: PLANNING_COLORS.absent.dot },
@@ -70,15 +97,25 @@ onMounted(load)
 <template>
   <UCard>
     <template #header>
-      <h3 class="text-sm font-semibold">Presence de l'equipe</h3>
+      <div class="flex items-center justify-between gap-4">
+        <h3 class="text-sm font-semibold text-stone-900 dark:text-stone-100">Presence de l'equipe</h3>
+        <UInput
+          v-if="teamMembers.length > 3"
+          v-model="search"
+          placeholder="Rechercher..."
+          icon="i-lucide-search"
+          size="xs"
+          class="w-48"
+        />
+      </div>
     </template>
 
     <div v-if="loading" class="flex justify-center py-6">
-      <UIcon name="i-lucide-loader-2" class="size-5 animate-spin text-primary" />
+      <UIcon name="i-lucide-loader-2" class="size-5 animate-spin text-amber-500" />
     </div>
 
     <div v-else-if="!teamMembers.length" class="text-center py-4">
-      <p class="text-sm text-stone-500">Aucun autre collaborateur</p>
+      <p class="text-sm text-stone-500 dark:text-stone-400">Aucun autre collaborateur</p>
     </div>
 
     <div v-else class="overflow-x-auto">
@@ -94,25 +131,34 @@ onMounted(load)
               class="text-center pb-2 px-1 font-medium text-stone-500 dark:text-stone-400"
               colspan="2"
             >
-              {{ formatDateShortFr(day) }}
+              {{ getDayName(day) }}
             </th>
           </tr>
           <tr>
-            <th></th>
+            <th />
             <template v-for="day in weekDays" :key="'h-' + formatDate(day)">
-              <th class="text-center pb-1 px-0.5 text-[10px] text-stone-400 dark:text-stone-600 font-normal">AM</th>
-              <th class="text-center pb-1 px-0.5 text-[10px] text-stone-400 dark:text-stone-600 font-normal">PM</th>
+              <th class="text-center pb-1 px-0.5 text-[10px] text-stone-400 dark:text-stone-500 font-normal">AM</th>
+              <th class="text-center pb-1 px-0.5 text-[10px] text-stone-400 dark:text-stone-500 font-normal">PM</th>
             </template>
           </tr>
         </thead>
         <tbody>
           <tr
-            v-for="member in teamMembers"
+            v-for="member in filteredMembers"
             :key="member.id"
             class="border-t border-stone-100 dark:border-stone-800"
           >
-            <td class="py-2 pr-3 whitespace-nowrap text-stone-700 dark:text-stone-300">
-              {{ getMemberName(member) }}
+            <td class="py-2 pr-3 whitespace-nowrap">
+              <NuxtLink
+                v-if="isAdmin"
+                :to="`/planning/admin?user=${member.id}`"
+                class="text-stone-700 dark:text-stone-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
+              >
+                {{ getMemberName(member) }}
+              </NuxtLink>
+              <span v-else class="text-stone-700 dark:text-stone-300">
+                {{ getMemberName(member) }}
+              </span>
             </td>
             <template v-for="day in weekDays" :key="member.id + '-' + formatDate(day)">
               <td class="py-2 px-0.5 text-center">
@@ -135,6 +181,13 @@ onMounted(load)
           </tr>
         </tbody>
       </table>
+
+      <p
+        v-if="search && !filteredMembers.length"
+        class="text-center py-3 text-sm text-stone-500 dark:text-stone-400"
+      >
+        Aucun resultat pour "{{ search }}"
+      </p>
 
       <!-- Legend -->
       <div class="flex flex-wrap gap-3 mt-4 pt-3 border-t border-stone-100 dark:border-stone-800">

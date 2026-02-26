@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PlanningEntry } from '~/utils/types'
-import { getMonday, addDays, getWeekDays, formatDate, formatDateShortFr, isDateInContractPeriod } from '~/utils/dates'
+import { getMonday, addDays, getWeekDays, getWeekNumber, formatDate, isDateInContractPeriod } from '~/utils/dates'
 
 const props = defineProps<{
   entries: PlanningEntry[]
@@ -18,6 +18,8 @@ const emit = defineEmits<{
 const currentMonday = ref(getMonday(new Date()))
 const weekDays = computed(() => getWeekDays(currentMonday.value))
 
+const weekNumber = computed(() => getWeekNumber(currentMonday.value))
+
 const weekLabel = computed(() => {
   const start = weekDays.value[0]
   const end = weekDays.value[4]
@@ -25,6 +27,8 @@ const weekLabel = computed(() => {
   const endStr = end.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
   return `${startStr} - ${endStr}`
 })
+
+defineExpose({ weekNumber })
 
 function previousWeek() {
   currentMonday.value = addDays(currentMonday.value, -7)
@@ -68,6 +72,14 @@ function isToday(date: Date): boolean {
   return formatDate(date) === formatDate(new Date())
 }
 
+function getDayName(date: Date): string {
+  return date.toLocaleDateString('fr-FR', { weekday: 'short' })
+}
+
+function getDayNumber(date: Date): string {
+  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+}
+
 onMounted(() => {
   emit('weekChange', formatDate(currentMonday.value))
 })
@@ -75,58 +87,64 @@ onMounted(() => {
 
 <template>
   <div>
-    <!-- Week navigation -->
-    <div class="flex items-center justify-between mb-6">
-      <div class="flex items-center gap-2">
+    <!-- Navigation -->
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-1">
         <UButton
           icon="i-lucide-chevron-left"
           color="neutral"
           variant="ghost"
-          size="sm"
+          size="xs"
           @click="previousWeek"
         />
         <UButton
           label="Aujourd'hui"
           color="neutral"
-          variant="outline"
-          size="sm"
+          variant="soft"
+          size="xs"
           @click="goToToday"
         />
         <UButton
           icon="i-lucide-chevron-right"
           color="neutral"
           variant="ghost"
-          size="sm"
+          size="xs"
           @click="nextWeek"
         />
       </div>
-      <span class="text-sm font-medium text-stone-700 dark:text-stone-300">
+      <span class="text-sm text-stone-600 dark:text-stone-400">
         {{ weekLabel }}
       </span>
     </div>
 
-    <!-- Week grid -->
-    <div class="grid grid-cols-5 gap-3">
-      <!-- Day headers -->
+    <!-- Grid: row labels left + 5 day columns -->
+    <div class="grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] gap-x-2 gap-y-1.5">
+      <!-- Header row: empty cell + day names -->
+      <div />
       <div
         v-for="day in weekDays"
         :key="formatDate(day)"
-        class="text-center"
+        class="text-center pb-1"
       >
         <p
-          class="text-xs font-medium uppercase mb-1"
-          :class="isToday(day) ? 'text-primary font-bold' : 'text-stone-500 dark:text-stone-400'"
+          class="text-[11px] font-medium uppercase"
+          :class="isToday(day) ? 'text-amber-600 dark:text-amber-400' : 'text-stone-500 dark:text-stone-400'"
         >
-          {{ formatDateShortFr(day) }}
+          {{ getDayName(day) }}
+        </p>
+        <p
+          class="text-xs"
+          :class="isToday(day) ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-stone-400 dark:text-stone-500'"
+        >
+          {{ getDayNumber(day) }}
         </p>
       </div>
 
-      <!-- Matin slots -->
-      <div
-        v-for="day in weekDays"
-        :key="'am-' + formatDate(day)"
-      >
-        <p class="text-[10px] text-stone-400 dark:text-stone-600 mb-1 text-center">Matin</p>
+      <!-- Matin row -->
+      <div class="flex items-center pr-2">
+        <span class="text-[11px] font-medium text-stone-500 dark:text-stone-400 whitespace-nowrap">Matin</span>
+      </div>
+      <div v-for="day in weekDays" :key="'am-' + formatDate(day)">
         <PlanningDaySlot
           :entry="getEntry(day, 'matin')"
           periode="matin"
@@ -137,12 +155,11 @@ onMounted(() => {
         />
       </div>
 
-      <!-- Apres-midi slots -->
-      <div
-        v-for="day in weekDays"
-        :key="'pm-' + formatDate(day)"
-      >
-        <p class="text-[10px] text-stone-400 dark:text-stone-600 mb-1 text-center">Apres-midi</p>
+      <!-- Apres-midi row -->
+      <div class="flex items-center pr-2">
+        <span class="text-[11px] font-medium text-stone-500 dark:text-stone-400 whitespace-nowrap">Apres-midi</span>
+      </div>
+      <div v-for="day in weekDays" :key="'pm-' + formatDate(day)">
         <PlanningDaySlot
           :entry="getEntry(day, 'apres_midi')"
           periode="apres_midi"
