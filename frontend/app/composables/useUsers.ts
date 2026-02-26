@@ -60,6 +60,18 @@ export function useUsers() {
     return await $directus.request(updateUser(id, data)) as unknown as UserProfile
   }
 
+  async function getAdminUsers() {
+    const users = await $directus.request(readUsers({
+      filter: {
+        role: { name: { _in: ['Directeur', 'Administrator'] } },
+        actif: { _eq: true }
+      },
+      fields: ['id'],
+      limit: -1
+    }))
+    return users as unknown as UserProfile[]
+  }
+
   async function removeUser(id: string) {
     await $directus.request(deleteUser(id))
   }
@@ -67,6 +79,7 @@ export function useUsers() {
   return {
     getActiveUsers,
     getAllUsers,
+    getAdminUsers,
     getUserById,
     createNewUser,
     updateExistingUser,

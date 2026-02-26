@@ -43,11 +43,12 @@ export default defineNuxtConfig({
   runtimeConfig: {
     directusUrl: process.env.NUXT_DIRECTUS_URL || 'http://localhost:8055',
     public: {
-      directusUrl: process.env.NUXT_PUBLIC_DIRECTUS_URL || 'http://localhost/api'
+      directusUrl: process.env.NUXT_PUBLIC_DIRECTUS_URL || '/api'
     }
   },
 
   routeRules: {
+    '/api/**': { proxy: 'http://directus:8055/**' },
     '/': { prerender: true },
     '/recrutement': { prerender: false },
     '/dashboard/**': { ssr: false },

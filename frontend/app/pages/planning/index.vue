@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { PlanningEntry, PlanningPeriode, PlanningType } from '~/utils/types'
-import { getMonday, addDays, formatDate, getWeekNumber } from '~/utils/dates'
+import { getMonday, addDays, formatDate, getWeekNumber, isPastDate, formatDateFr } from '~/utils/dates'
 
 const { user, isDirecteur, hasSchoolDays, hasHourTracking } = useAuth()
 const { getEntries, createEntry, deleteEntry, getWorkedStats } = usePlanning()
+const { getAdminUsers } = useUsers()
+const { createBatch } = useNotifications()
 const toast = useToast()
 
 const entries = ref<PlanningEntry[]>([])
@@ -58,6 +60,50 @@ const showMotifModal = ref(false)
 const motifInput = ref('')
 const pendingSlot = ref<{ date: string, periode: PlanningPeriode } | null>(null)
 
+// --- Modification request modal (past dates, non-admin) ---
+const showModifModal = ref(false)
+const modifDescription = ref('')
+const modifSlot = ref<{ date: string, periode: PlanningPeriode, existingEntry?: PlanningEntry } | null>(null)
+const modifSending = ref(false)
+
+function isPastForUser(date: string): boolean {
+  return !isDirecteur.value && isPastDate(date)
+}
+
+function openModifRequest(date: string, periode: PlanningPeriode, existingEntry?: PlanningEntry) {
+  modifSlot.value = { date, periode, existingEntry }
+  modifDescription.value = ''
+  showModifModal.value = true
+}
+
+async function handleModifSubmit() {
+  if (!modifSlot.value || !modifDescription.value.trim() || !user.value) return
+  modifSending.value = true
+  try {
+    const admins = await getAdminUsers()
+    if (!admins.length) {
+      toast.add({ title: 'Aucun administrateur trouve', color: 'error' })
+      return
+    }
+
+    const dateLabel = formatDateFr(modifSlot.value.date + 'T00:00:00')
+    const periodeLabel = modifSlot.value.periode === 'matin' ? 'matin' : 'apres-midi'
+    const userName = [user.value.first_name, user.value.last_name].filter(Boolean).join(' ') || user.value.email
+
+    const message = `${userName} demande une modification pour le ${dateLabel} (${periodeLabel}) : ${modifDescription.value.trim()}`
+    const adminIds = admins.map(a => a.id)
+
+    await createBatch(adminIds, message, 'planning_modifie', `/planning/${user.value.id}`)
+    toast.add({ title: 'Demande envoyee a l\'administrateur', color: 'success' })
+    showModifModal.value = false
+    modifSlot.value = null
+  } catch {
+    toast.add({ title: 'Erreur lors de l\'envoi de la demande', color: 'error' })
+  } finally {
+    modifSending.value = false
+  }
+}
+
 // --- Load entries ---
 async function loadEntries(mondayStr: string) {
   if (!user.value) return
@@ -86,6 +132,12 @@ async function loadStats() {
 // --- Add entry ---
 async function handleAddEntry(date: string, periode: PlanningPeriode) {
   if (!user.value) return
+
+  if (isPastForUser(date)) {
+    openModifRequest(date, periode)
+    return
+  }
+
   const action = currentAction.value
 
   if (action.requiresMotif) {
@@ -133,6 +185,12 @@ async function doCreateEntry(date: string, periode: PlanningPeriode, type: Plann
 // --- Click existing entry ---
 async function handleClickEntry(entry: PlanningEntry) {
   if (!user.value) return
+
+  if (isPastForUser(entry.date)) {
+    openModifRequest(entry.date, entry.periode, entry)
+    return
+  }
+
   const action = currentAction.value
   const isSameType = entry.type === action.planningType && (entry.motif || null) === (action.motif || null)
 
@@ -172,8 +230,11 @@ async function handleCopyPreviousWeek() {
       return
     }
 
+    // Non-admins: only delete/create entries for today and future dates
     for (const existing of entries.value) {
-      await deleteEntry(existing.id)
+      if (!isPastForUser(existing.date)) {
+        await deleteEntry(existing.id)
+      }
     }
 
     let count = 0
@@ -182,6 +243,8 @@ async function handleCopyPreviousWeek() {
       const dayOfWeek = prevDate.getDay()
       const offset = dayOfWeek - 1
       const newDate = formatDate(addDays(currentMonday.value, offset))
+
+      if (isPastForUser(newDate)) continue
 
       await createEntry({
         utilisateur: user.value.id,
@@ -196,7 +259,11 @@ async function handleCopyPreviousWeek() {
     }
 
     await loadEntries(mondayStr)
-    toast.add({ title: `${count} entree(s) copiee(s)`, color: 'success' })
+    if (count > 0) {
+      toast.add({ title: `${count} entree(s) copiee(s)`, color: 'success' })
+    } else {
+      toast.add({ title: 'Aucune entree copiee (dates passees)', color: 'warning' })
+    }
     loadStats()
   } catch {
     toast.add({ title: 'Erreur lors de la copie', color: 'error' })
@@ -311,6 +378,51 @@ onMounted(() => {
             <div class="flex justify-end gap-2">
               <UButton label="Annuler" color="neutral" variant="ghost" @click="showMotifModal = false" />
               <UButton type="submit" label="Valider" :disabled="!motifInput.trim()" />
+            </div>
+          </form>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Modification request modal (past dates) -->
+    <UModal :open="showModifModal" @update:open="showModifModal = $event">
+      <template #content>
+        <div class="p-6">
+          <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-1">Demander une modification</h3>
+          <p class="text-sm text-stone-500 dark:text-stone-400 mb-4">
+            Cette date est passee. Decrivez la modification souhaitee, elle sera transmise a l'administrateur.
+          </p>
+
+          <div v-if="modifSlot" class="mb-4 p-3 rounded-lg bg-stone-50 dark:bg-stone-800/50 text-sm">
+            <p class="font-medium text-stone-900 dark:text-white">
+              {{ formatDateFr(modifSlot.date + 'T00:00:00') }}
+              <span class="text-stone-400 ml-1">({{ modifSlot.periode === 'matin' ? 'matin' : 'apres-midi' }})</span>
+            </p>
+            <p v-if="modifSlot.existingEntry" class="text-stone-500 dark:text-stone-400 mt-1">
+              Actuellement : {{ modifSlot.existingEntry.motif || modifSlot.existingEntry.type }}
+            </p>
+            <p v-else class="text-stone-500 dark:text-stone-400 mt-1">
+              Aucune entree actuellement
+            </p>
+          </div>
+
+          <form class="space-y-4" @submit.prevent="handleModifSubmit">
+            <UFormField label="Modification souhaitee">
+              <UTextarea
+                v-model="modifDescription"
+                placeholder="Ex: Ajouter une journee de travail, Supprimer cette entree, Changer en teletravail..."
+                required
+              />
+            </UFormField>
+            <div class="flex justify-end gap-2">
+              <UButton label="Annuler" color="neutral" variant="ghost" @click="showModifModal = false" />
+              <UButton
+                type="submit"
+                label="Envoyer la demande"
+                icon="i-lucide-send"
+                :loading="modifSending"
+                :disabled="!modifDescription.trim()"
+              />
             </div>
           </form>
         </div>
