@@ -46,6 +46,7 @@ const confirmPassword = ref('')
 const passwordSaving = ref(false)
 
 async function handlePasswordChange() {
+  if (!user.value) return
   if (!currentPassword.value) {
     toast.add({ title: 'Veuillez saisir votre mot de passe actuel', color: 'warning' })
     return
@@ -60,13 +61,18 @@ async function handlePasswordChange() {
   }
   passwordSaving.value = true
   try {
+    // Verifier le mot de passe actuel en tentant une connexion
+    await $directus.login({ email: user.value.email, password: currentPassword.value })
+    // Mettre a jour le mot de passe
     await $directus.request(updateMe({ password: newPassword.value }))
+    // Re-authentifier avec le nouveau mot de passe
+    await $directus.login({ email: user.value.email, password: newPassword.value })
     toast.add({ title: 'Mot de passe mis a jour avec succes', color: 'success' })
     currentPassword.value = ''
     newPassword.value = ''
     confirmPassword.value = ''
   } catch {
-    toast.add({ title: 'Erreur lors de la mise a jour du mot de passe', color: 'error' })
+    toast.add({ title: 'Mot de passe actuel incorrect ou erreur lors de la mise a jour', color: 'error' })
   } finally {
     passwordSaving.value = false
   }

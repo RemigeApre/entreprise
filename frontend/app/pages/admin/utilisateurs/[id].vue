@@ -63,6 +63,15 @@ function openPasswordModal() {
   showPasswordModal.value = true
 }
 
+async function copyPassword() {
+  try {
+    await navigator.clipboard.writeText(newPassword.value)
+    toast.add({ title: 'Mot de passe copie dans le presse-papiers', color: 'success' })
+  } catch {
+    toast.add({ title: 'Impossible de copier le mot de passe', color: 'warning' })
+  }
+}
+
 async function handlePasswordSubmit() {
   if (!newPassword.value || newPassword.value.length < 8) {
     toast.add({ title: 'Le mot de passe doit contenir au moins 8 caracteres', color: 'warning' })
@@ -422,7 +431,7 @@ function getUserName(u: UserProfile) {
               color="neutral"
               variant="ghost"
               size="sm"
-              @click="navigator.clipboard.writeText(newPassword)"
+              @click="copyPassword"
             />
           </div>
 
