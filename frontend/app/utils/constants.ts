@@ -34,40 +34,40 @@ export const PLANNING_TYPES = {
 
 export const PLANNING_COLORS: Record<string, { bg: string, text: string, border: string, dot: string }> = {
   travail: {
-    bg: 'bg-emerald-100 dark:bg-emerald-900/30',
-    text: 'text-emerald-700 dark:text-emerald-300',
-    border: 'border-emerald-300 dark:border-emerald-700',
+    bg: 'bg-emerald-100 dark:bg-emerald-900/40',
+    text: 'text-emerald-800 dark:text-emerald-200',
+    border: 'border-emerald-400 dark:border-emerald-600',
     dot: 'bg-emerald-500'
   },
   teletravail: {
-    bg: 'bg-teal-100 dark:bg-teal-900/30',
-    text: 'text-teal-700 dark:text-teal-300',
-    border: 'border-teal-300 dark:border-teal-700',
-    dot: 'bg-teal-500'
+    bg: 'bg-indigo-100 dark:bg-indigo-900/40',
+    text: 'text-indigo-800 dark:text-indigo-200',
+    border: 'border-indigo-400 dark:border-indigo-600',
+    dot: 'bg-indigo-500'
   },
   ecole: {
-    bg: 'bg-sky-100 dark:bg-sky-900/30',
-    text: 'text-sky-700 dark:text-sky-300',
-    border: 'border-sky-300 dark:border-sky-700',
+    bg: 'bg-sky-100 dark:bg-sky-900/40',
+    text: 'text-sky-800 dark:text-sky-200',
+    border: 'border-sky-400 dark:border-sky-600',
     dot: 'bg-sky-500'
   },
   conge: {
-    bg: 'bg-amber-100 dark:bg-amber-900/30',
-    text: 'text-amber-700 dark:text-amber-300',
-    border: 'border-amber-300 dark:border-amber-700',
-    dot: 'bg-amber-500'
+    bg: 'bg-orange-100 dark:bg-orange-900/40',
+    text: 'text-orange-800 dark:text-orange-200',
+    border: 'border-orange-400 dark:border-orange-600',
+    dot: 'bg-orange-500'
   },
   absent: {
-    bg: 'bg-red-100 dark:bg-red-900/30',
-    text: 'text-red-700 dark:text-red-300',
-    border: 'border-red-300 dark:border-red-700',
+    bg: 'bg-red-100 dark:bg-red-900/40',
+    text: 'text-red-800 dark:text-red-200',
+    border: 'border-red-400 dark:border-red-600',
     dot: 'bg-red-500'
   },
   ferie: {
-    bg: 'bg-stone-100 dark:bg-stone-800/50',
-    text: 'text-stone-500 dark:text-stone-400',
-    border: 'border-stone-300 dark:border-stone-700',
-    dot: 'bg-stone-400'
+    bg: 'bg-stone-200 dark:bg-stone-700/50',
+    text: 'text-stone-600 dark:text-stone-300',
+    border: 'border-stone-400 dark:border-stone-600',
+    dot: 'bg-stone-500'
   }
 }
 

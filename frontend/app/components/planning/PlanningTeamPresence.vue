@@ -164,7 +164,7 @@ onMounted(load)
               <td class="py-2 px-0.5 text-center">
                 <UTooltip :text="getDotTooltip(getEntry(member.id, day, 'matin'))">
                   <span
-                    class="inline-block size-3 rounded-full"
+                    class="inline-block size-3.5 rounded-full"
                     :class="getDotClasses(getEntry(member.id, day, 'matin'))"
                   />
                 </UTooltip>
@@ -172,7 +172,7 @@ onMounted(load)
               <td class="py-2 px-0.5 text-center">
                 <UTooltip :text="getDotTooltip(getEntry(member.id, day, 'apres_midi'))">
                   <span
-                    class="inline-block size-3 rounded-full"
+                    class="inline-block size-3.5 rounded-full"
                     :class="getDotClasses(getEntry(member.id, day, 'apres_midi'))"
                   />
                 </UTooltip>
@@ -196,7 +196,7 @@ onMounted(load)
           :key="item.label"
           class="flex items-center gap-1.5"
         >
-          <span class="inline-block size-2.5 rounded-full" :class="item.dot" />
+          <span class="inline-block size-3 rounded-full" :class="item.dot" />
           <span class="text-[11px] text-stone-500 dark:text-stone-400">{{ item.label }}</span>
         </div>
       </div>

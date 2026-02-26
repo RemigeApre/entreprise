@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PlanningEntry } from '~/utils/types'
-import { PLANNING_TYPES } from '~/utils/constants'
+import { PLANNING_TYPES, PLANNING_COLORS } from '~/utils/constants'
 import { getMonday, getWeekDays, formatDate, formatDateShortFr, addDays } from '~/utils/dates'
 
 const { user } = useAuth()
@@ -32,18 +32,26 @@ function isToday(date: Date): boolean {
   return formatDate(date) === formatDate(new Date())
 }
 
-const slotColors: Record<string, { bg: string, text: string }> = {
-  travail: { bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-600 dark:text-emerald-400' },
-  ecole: { bg: 'bg-sky-100 dark:bg-sky-900/30', text: 'text-sky-600 dark:text-sky-400' },
-  conge: { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-600 dark:text-amber-400' },
-  absent: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-600 dark:text-red-400' },
-  ferie: { bg: 'bg-stone-100 dark:bg-stone-800/50', text: 'text-stone-500 dark:text-stone-400' }
+function getDisplayKey(entry: PlanningEntry | undefined): string | null {
+  if (!entry) return null
+  if (entry.type === 'travail' && entry.motif === 'Teletravail') return 'teletravail'
+  return entry.type
 }
 
 function getSlotClasses(entry: PlanningEntry | undefined) {
   if (!entry) return 'bg-stone-50 dark:bg-stone-800/30 text-stone-300 dark:text-stone-600'
-  const c = slotColors[entry.type]
+  const key = getDisplayKey(entry)
+  const c = key ? PLANNING_COLORS[key] : PLANNING_COLORS[entry.type]
   return c ? `${c.bg} ${c.text}` : ''
+}
+
+function getSlotIcon(entry: PlanningEntry | undefined): string {
+  if (!entry) return ''
+  const key = getDisplayKey(entry)
+  if (key && PLANNING_TYPES[key as keyof typeof PLANNING_TYPES]) {
+    return PLANNING_TYPES[key as keyof typeof PLANNING_TYPES].icon
+  }
+  return PLANNING_TYPES[entry.type]?.icon || ''
 }
 
 onMounted(load)
@@ -87,7 +95,7 @@ onMounted(load)
         >
           <UIcon
             v-if="getEntry(day, 'matin')"
-            :name="PLANNING_TYPES[getEntry(day, 'matin')!.type]?.icon || ''"
+            :name="getSlotIcon(getEntry(day, 'matin'))"
             class="size-3.5"
           />
           <span v-else class="text-[10px]">-</span>
@@ -99,7 +107,7 @@ onMounted(load)
         >
           <UIcon
             v-if="getEntry(day, 'apres_midi')"
-            :name="PLANNING_TYPES[getEntry(day, 'apres_midi')!.type]?.icon || ''"
+            :name="getSlotIcon(getEntry(day, 'apres_midi'))"
             class="size-3.5"
           />
           <span v-else class="text-[10px]">-</span>

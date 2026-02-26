@@ -202,7 +202,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
+  <div class="flex flex-col h-full">
     <UDashboardNavbar title="Planning">
       <template #right>
         <div class="flex items-center gap-2">
@@ -237,7 +237,7 @@ onMounted(() => {
       </template>
     </UDashboardNavbar>
 
-    <div class="p-4 sm:p-6 space-y-4">
+    <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
       <!-- Quick actions - compact pills -->
       <div class="flex flex-wrap items-center gap-1.5">
         <span class="text-xs text-stone-400 dark:text-stone-500 mr-1">Mode :</span>

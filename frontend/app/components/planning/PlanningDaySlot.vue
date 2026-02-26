@@ -38,25 +38,28 @@ const displayLabel = computed(() => {
   return props.entry.motif || typeConfig.value?.label || ''
 })
 
+const hasFill = computed(() => !!props.entry && !!colorConfig.value)
+
 const slotClasses = computed(() => {
   if (props.disabled) {
-    return 'border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/50 text-stone-300 dark:text-stone-600 cursor-not-allowed'
+    return 'border-dashed border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/50 text-stone-300 dark:text-stone-600 cursor-not-allowed'
   }
-  if (props.entry && colorConfig.value) {
-    const c = colorConfig.value
-    return `${c.border} ${c.bg} ${c.text}${isPending.value ? ' opacity-60 border-dashed' : ''}`
+  if (hasFill.value) {
+    const c = colorConfig.value!
+    const base = `${c.border} ${c.bg} ${c.text}`
+    return isPending.value ? `${base} border-dashed opacity-60` : `${base} border-solid`
   }
   if (!props.readonly) {
-    return 'border-stone-300 dark:border-stone-700 hover:border-amber-400 dark:hover:border-amber-600 text-stone-500 dark:text-stone-400 cursor-pointer hover:bg-amber-50/50 dark:hover:bg-amber-950/30'
+    return 'border-dashed border-stone-300 dark:border-stone-700 hover:border-amber-400 dark:hover:border-amber-600 text-stone-500 dark:text-stone-400 cursor-pointer hover:bg-amber-50/50 dark:hover:bg-amber-950/30'
   }
-  return 'border-stone-300 dark:border-stone-700 text-stone-400 dark:text-stone-500 cursor-default'
+  return 'border-dashed border-stone-300 dark:border-stone-700 text-stone-400 dark:text-stone-500 cursor-default'
 })
 </script>
 
 <template>
   <UTooltip v-if="disabled && disabledReason" :text="disabledReason">
     <button
-      class="w-full h-12 rounded-lg border-2 border-dashed transition-all flex items-center justify-center gap-1.5 text-xs font-medium"
+      class="w-full h-12 rounded-lg border-2 transition-all flex items-center justify-center gap-1.5 text-xs font-medium"
       :class="slotClasses"
       disabled
     >
@@ -65,7 +68,7 @@ const slotClasses = computed(() => {
   </UTooltip>
   <button
     v-else
-    class="w-full h-12 rounded-lg border-2 border-dashed transition-all flex items-center justify-center gap-1.5 text-xs font-medium"
+    class="w-full h-12 rounded-lg border-2 transition-all flex items-center justify-center gap-1.5 text-xs font-medium"
     :class="slotClasses"
     :disabled="(readonly && !entry) || disabled"
     @click="emit('click')"
