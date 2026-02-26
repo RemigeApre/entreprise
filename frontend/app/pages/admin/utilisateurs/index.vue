@@ -49,14 +49,12 @@ const filteredUsers = computed(() => {
   return result
 })
 
-const columns = [
-  { key: 'user', label: 'Utilisateur' },
-  { key: 'email', label: 'Email' },
-  { key: 'role', label: 'Role' },
-  { key: 'type_contrat', label: 'Contrat' },
-  { key: 'actif', label: 'Statut' },
-  { key: 'actions', label: '' }
-]
+const userStats = computed(() => {
+  if (!users.value) return { total: 0, actifs: 0, inactifs: 0 }
+  const total = users.value.length
+  const actifs = users.value.filter((u: UserProfile) => u.actif).length
+  return { total, actifs, inactifs: total - actifs }
+})
 
 async function handleToggleActive(user: UserProfile) {
   togglingId.value = user.id
@@ -76,121 +74,130 @@ async function handleToggleActive(user: UserProfile) {
 </script>
 
 <template>
-  <div>
-    <UDashboardNavbar title="Gestion des utilisateurs">
+  <div class="flex flex-col h-full">
+    <UDashboardNavbar title="Utilisateurs">
       <template #right>
-        <USelectMenu
-          v-model="statusFilter"
-          :items="statusFilterOptions"
-          value-key="value"
-          class="w-36"
-        />
-        <UInput
-          v-model="search"
-          placeholder="Rechercher..."
-          icon="i-lucide-search"
-          class="w-64"
-        />
         <UButton
           label="Nouvel utilisateur"
           icon="i-lucide-plus"
+          size="sm"
           to="/admin/utilisateurs/nouveau"
         />
       </template>
     </UDashboardNavbar>
 
-    <div class="p-4 sm:p-6">
-      <div v-if="status === 'pending'" class="flex justify-center py-12">
-        <UIcon name="i-lucide-loader-2" class="size-8 text-primary animate-spin" />
-      </div>
-
-      <div v-else-if="!filteredUsers.length" class="text-center py-12">
-        <UIcon name="i-lucide-users" class="size-10 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
-        <p class="text-gray-500 dark:text-gray-400">Aucun utilisateur trouve</p>
-        <UButton
-          label="Creer un utilisateur"
-          icon="i-lucide-plus"
-          class="mt-4"
-          to="/admin/utilisateurs/nouveau"
-        />
-      </div>
-
-      <UTable
-        v-else
-        :data="filteredUsers"
-        :columns="columns"
-        class="w-full"
-      >
-        <template #user-cell="{ row }">
-          <div class="flex items-center gap-3">
-            <UAvatar
-              :alt="getUserName(row.original)"
-              size="sm"
-            />
-            <span class="font-medium text-gray-900 dark:text-white">
-              {{ getUserName(row.original) }}
-            </span>
-          </div>
-        </template>
-
-        <template #email-cell="{ row }">
-          <span class="text-sm text-gray-500 dark:text-gray-400">
-            {{ row.original.email }}
+    <div class="flex-1 overflow-y-auto">
+      <div class="p-4 sm:p-6 space-y-4">
+        <!-- Stats -->
+        <div class="flex items-center gap-6 text-sm">
+          <span class="text-stone-500 dark:text-stone-400">
+            <strong class="text-stone-900 dark:text-stone-100">{{ userStats.total }}</strong> utilisateurs
           </span>
-        </template>
+          <span class="text-stone-500 dark:text-stone-400">
+            <strong class="text-emerald-600 dark:text-emerald-400">{{ userStats.actifs }}</strong> actifs
+          </span>
+          <span v-if="userStats.inactifs" class="text-stone-500 dark:text-stone-400">
+            <strong class="text-red-500">{{ userStats.inactifs }}</strong> inactifs
+          </span>
+        </div>
 
-        <template #role-cell="{ row }">
-          <UBadge variant="subtle" size="sm">
-            {{ getRoleName(row.original) }}
-          </UBadge>
-        </template>
-
-        <template #type_contrat-cell="{ row }">
-          <UBadge
-            v-if="row.original.type_contrat"
-            variant="outline"
+        <!-- Filters -->
+        <div class="flex items-center gap-3">
+          <UInput
+            v-model="search"
+            placeholder="Rechercher un utilisateur..."
+            icon="i-lucide-search"
+            class="flex-1 max-w-sm"
             size="sm"
-            color="neutral"
-          >
-            {{ row.original.type_contrat }}
-          </UBadge>
-          <span v-else class="text-sm text-gray-400">-</span>
-        </template>
-
-        <template #actif-cell="{ row }">
-          <UBadge
-            :color="row.original.actif ? 'success' : 'error'"
-            variant="subtle"
+          />
+          <USelectMenu
+            v-model="statusFilter"
+            :items="statusFilterOptions"
+            value-key="value"
+            class="w-32"
             size="sm"
-          >
-            {{ row.original.actif ? 'Actif' : 'Inactif' }}
-          </UBadge>
-        </template>
+          />
+        </div>
 
-        <template #actions-cell="{ row }">
-          <div class="flex items-center justify-end gap-2">
-            <UTooltip :text="row.original.actif ? 'Desactiver' : 'Activer'">
-              <UButton
-                :icon="row.original.actif ? 'i-lucide-user-x' : 'i-lucide-user-check'"
+        <!-- Loading -->
+        <div v-if="status === 'pending'" class="flex justify-center py-12">
+          <UIcon name="i-lucide-loader-2" class="size-6 text-primary animate-spin" />
+        </div>
+
+        <!-- Empty -->
+        <div v-else-if="!filteredUsers.length" class="text-center py-12">
+          <UIcon name="i-lucide-users" class="size-10 text-stone-300 dark:text-stone-700 mx-auto mb-3" />
+          <p class="text-stone-500 dark:text-stone-400">Aucun utilisateur trouve</p>
+        </div>
+
+        <!-- User list -->
+        <div v-else class="space-y-2">
+          <div
+            v-for="u in filteredUsers"
+            :key="u.id"
+            class="flex items-center gap-4 p-3 rounded-lg border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors"
+          >
+            <UAvatar :alt="getUserName(u)" size="md" />
+
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <NuxtLink
+                  :to="`/admin/utilisateurs/${u.id}`"
+                  class="font-medium text-stone-900 dark:text-white hover:text-primary transition-colors truncate"
+                >
+                  {{ getUserName(u) }}
+                </NuxtLink>
+                <UBadge
+                  :color="u.actif ? 'success' : 'error'"
+                  variant="subtle"
+                  size="xs"
+                >
+                  {{ u.actif ? 'Actif' : 'Inactif' }}
+                </UBadge>
+              </div>
+              <p class="text-xs text-stone-500 dark:text-stone-400 truncate mt-0.5">
+                {{ u.email }}
+              </p>
+            </div>
+
+            <div class="hidden sm:flex items-center gap-2 shrink-0">
+              <UBadge variant="subtle" size="xs">
+                {{ getRoleName(u) }}
+              </UBadge>
+              <UBadge
+                v-if="u.type_contrat"
+                variant="outline"
+                size="xs"
                 color="neutral"
-                variant="ghost"
-                size="sm"
-                :loading="togglingId === row.original.id"
-                @click="handleToggleActive(row.original)"
-              />
-            </UTooltip>
-            <UTooltip text="Modifier">
-              <UButton
-                icon="i-lucide-pencil"
-                color="neutral"
-                variant="ghost"
-                size="sm"
-                :to="`/admin/utilisateurs/${row.original.id}`"
-              />
-            </UTooltip>
+              >
+                {{ u.type_contrat }}
+              </UBadge>
+            </div>
+
+            <div class="flex items-center gap-1 shrink-0">
+              <UTooltip :text="u.actif ? 'Desactiver' : 'Activer'">
+                <UButton
+                  :icon="u.actif ? 'i-lucide-user-x' : 'i-lucide-user-check'"
+                  color="neutral"
+                  variant="ghost"
+                  size="xs"
+                  :loading="togglingId === u.id"
+                  @click="handleToggleActive(u)"
+                />
+              </UTooltip>
+              <UTooltip text="Modifier">
+                <UButton
+                  icon="i-lucide-pencil"
+                  color="neutral"
+                  variant="ghost"
+                  size="xs"
+                  :to="`/admin/utilisateurs/${u.id}`"
+                />
+              </UTooltip>
+            </div>
           </div>
-        </template>
-      </UTable>
+        </div>
+      </div>
     </div>
   </div>
 </template>

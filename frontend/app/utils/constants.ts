@@ -26,7 +26,7 @@ export const ROLES_WITH_HOUR_TRACKING = [
 export const PLANNING_TYPES = {
   travail: { label: 'Travail', color: 'green', icon: 'i-lucide-briefcase' },
   teletravail: { label: 'Teletravail', color: 'green', icon: 'i-lucide-house' },
-  conge: { label: 'Conge', color: 'orange', icon: 'i-lucide-palm-tree' },
+  conge: { label: 'Conge', color: 'orange', icon: 'i-lucide-plane' },
   ecole: { label: 'Ecole', color: 'blue', icon: 'i-lucide-graduation-cap' },
   absent: { label: 'Absent', color: 'red', icon: 'i-lucide-x-circle' },
   ferie: { label: 'Ferie', color: 'neutral', icon: 'i-lucide-calendar-off' }

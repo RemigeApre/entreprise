@@ -29,7 +29,7 @@ const quickActions = computed<QuickAction[]>(() => {
   const actions: QuickAction[] = [
     { key: 'travail', label: 'Travail', icon: 'i-lucide-briefcase', planningType: 'travail', motif: null, requiresMotif: false },
     { key: 'teletravail', label: 'Teletravail', icon: 'i-lucide-house', planningType: 'travail', motif: 'Teletravail', requiresMotif: false },
-    { key: 'conge_paye', label: 'Conge', icon: 'i-lucide-palm-tree', planningType: 'conge', motif: 'Conge paye', requiresMotif: false },
+    { key: 'conge_paye', label: 'Conge', icon: 'i-lucide-plane', planningType: 'conge', motif: 'Conge paye', requiresMotif: false },
     { key: 'arret_maladie', label: 'Maladie', icon: 'i-lucide-heart-pulse', planningType: 'absent', motif: 'Arret maladie', requiresMotif: false }
   ]
 
@@ -223,18 +223,16 @@ onMounted(() => {
             size="xs"
             to="/planning/conges"
           />
-          <UButton
-            icon="i-lucide-copy"
-            color="neutral"
-            variant="ghost"
-            size="xs"
-            :loading="copyLoading"
-            @click="handleCopyPreviousWeek"
-          >
-            <UTooltip text="Copier la semaine precedente">
-              <UIcon name="i-lucide-copy" class="size-4" />
-            </UTooltip>
-          </UButton>
+          <UTooltip text="Copier la semaine precedente">
+            <UButton
+              icon="i-lucide-copy"
+              color="neutral"
+              variant="ghost"
+              size="xs"
+              :loading="copyLoading"
+              @click="handleCopyPreviousWeek"
+            />
+          </UTooltip>
         </div>
       </template>
     </UDashboardNavbar>

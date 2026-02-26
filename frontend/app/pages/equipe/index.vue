@@ -34,7 +34,7 @@ function getCategoryName(u: UserProfile) {
 </script>
 
 <template>
-  <div>
+  <div class="flex flex-col h-full">
     <UDashboardNavbar title="Equipe">
       <template #right>
         <div class="flex items-center gap-2">
@@ -55,9 +55,9 @@ function getCategoryName(u: UserProfile) {
       </template>
     </UDashboardNavbar>
 
-    <div class="p-4 sm:p-6">
+    <div class="flex-1 overflow-y-auto p-4 sm:p-6">
       <div v-if="status === 'pending'" class="flex justify-center py-12">
-        <UIcon name="i-lucide-loader-2" class="size-8 text-primary animate-spin" />
+        <UIcon name="i-lucide-loader-2" class="size-6 text-primary animate-spin" />
       </div>
 
       <div v-else-if="!filteredUsers.length" class="text-center py-12">
