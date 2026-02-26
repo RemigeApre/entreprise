@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { user, logout, isDirecteur } = useAuth()
+const { user, logout, isDirecteur, roleName } = useAuth()
 const colorMode = useColorMode()
 const sidebarOpen = ref(false)
 const route = useRoute()
@@ -83,7 +83,7 @@ const userMenuItems = [
         <UNavigationMenu :items="projetNav" orientation="vertical" />
       </div>
 
-      <div class="mt-5">
+      <div v-if="roleName !== 'Stagiaire'" class="mt-5">
         <p class="text-[11px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider px-3 mb-1">Clients</p>
         <UNavigationMenu :items="clientNav" orientation="vertical" />
       </div>

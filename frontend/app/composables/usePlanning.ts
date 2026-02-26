@@ -86,6 +86,34 @@ export function usePlanning() {
     }
   }
 
+  async function getPresenceStats(userId: string, startDate: string, endDate: string) {
+    const entries = await $directus.request(readItems('planning_entries', {
+      filter: {
+        utilisateur: { _eq: userId },
+        date: { _gte: startDate, _lte: endDate },
+        type: { _in: ['travail', 'ecole'] },
+        statut: { _eq: 'valide' }
+      },
+      fields: ['id', 'date', 'periode', 'type', 'heures'],
+      limit: -1
+    })) as PlanningEntry[]
+
+    const workEntries = entries.filter(e => e.type === 'travail')
+    const schoolEntries = entries.filter(e => e.type === 'ecole')
+
+    return {
+      totalHalfDays: entries.length,
+      totalHours: entries.reduce((sum, e) => sum + (e.heures || 3.5), 0),
+      totalDays: new Set(entries.map(e => e.date)).size,
+      workHalfDays: workEntries.length,
+      workHours: workEntries.reduce((sum, e) => sum + (e.heures || 3.5), 0),
+      workDays: new Set(workEntries.map(e => e.date)).size,
+      schoolHalfDays: schoolEntries.length,
+      schoolHours: schoolEntries.reduce((sum, e) => sum + (e.heures || 3.5), 0),
+      schoolDays: new Set(schoolEntries.map(e => e.date)).size
+    }
+  }
+
   async function getTeamEntries(userIds: string[], startDate: string, endDate: string) {
     return await $directus.request(readItems('planning_entries', {
       filter: {
@@ -109,6 +137,7 @@ export function usePlanning() {
     validateEntry,
     refuseEntry,
     getWorkedStats,
+    getPresenceStats,
     getTeamEntries
   }
 }
