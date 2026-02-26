@@ -124,8 +124,9 @@ async function doCreateEntry(date: string, periode: PlanningPeriode, type: Plann
     })
     entries.value.push(entry)
     loadStats()
-  } catch {
-    toast.add({ title: 'Erreur lors de l\'ajout', color: 'error' })
+  } catch (err: any) {
+    const msg = err?.errors?.[0]?.message || err?.message || 'Erreur lors de l\'ajout'
+    toast.add({ title: msg, color: 'error' })
   }
 }
 

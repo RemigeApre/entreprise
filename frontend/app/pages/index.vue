@@ -111,12 +111,11 @@ const colorClasses: Record<string, { iconBg: string, icon: string, border: strin
     <main class="flex-1 flex items-center justify-center px-4 sm:px-6 py-4 sm:py-8">
       <!-- Mobile: banners -->
       <div class="flex flex-col gap-2.5 w-full max-w-md sm:hidden">
-        <component
-          :is="link.external ? 'a' : 'NuxtLink'"
+        <NuxtLink
           v-for="link in links"
           :key="link.title"
-          :to="link.external ? undefined : link.to"
-          :href="link.external ? link.to : undefined"
+          :to="link.to"
+          :external="link.external"
           :target="link.external ? '_blank' : undefined"
           class="group flex items-center gap-3.5 rounded-xl border border-stone-200 dark:border-stone-800 border-l-[3px] px-4 py-3.5 transition-all active:scale-[0.98]"
           :class="[colorClasses[link.color].border, colorClasses[link.color].accent]"
@@ -140,17 +139,16 @@ const colorClasses: Record<string, { iconBg: string, icon: string, border: strin
             :name="link.external ? 'i-lucide-external-link' : 'i-lucide-chevron-right'"
             class="size-4 text-stone-300 dark:text-stone-600 shrink-0"
           />
-        </component>
+        </NuxtLink>
       </div>
 
       <!-- Desktop: 2x2 cards -->
       <div class="hidden sm:grid grid-cols-2 gap-5 w-full max-w-2xl">
-        <component
-          :is="link.external ? 'a' : 'NuxtLink'"
+        <NuxtLink
           v-for="link in links"
           :key="link.title"
-          :to="link.external ? undefined : link.to"
-          :href="link.external ? link.to : undefined"
+          :to="link.to"
+          :external="link.external"
           :target="link.external ? '_blank' : undefined"
           class="group block rounded-2xl border border-stone-200 dark:border-stone-800 p-6 text-center transition-all hover:shadow-lg hover:shadow-stone-200/50 dark:hover:shadow-stone-900/50 hover:-translate-y-0.5"
           :class="colorClasses[link.color].accent"
@@ -180,7 +178,7 @@ const colorClasses: Record<string, { iconBg: string, icon: string, border: strin
               class="size-4"
             />
           </span>
-        </component>
+        </NuxtLink>
       </div>
     </main>
 

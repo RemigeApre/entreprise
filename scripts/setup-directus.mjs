@@ -604,7 +604,7 @@ async function setupPermissions(roleIds) {
     const perms = [
       // Users: read active, update own
       { collection: 'directus_users', action: 'read', fields: ['id', 'first_name', 'last_name', 'email', 'avatar', 'role', 'categorie', 'actif', 'type_contrat', 'date_debut_contrat', 'date_fin_contrat', 'date_fin_periode_essai'], permissions: {} },
-      { collection: 'directus_users', action: 'update', fields: ['first_name', 'last_name', 'avatar'], permissions: { id: { _eq: '$CURRENT_USER' } } },
+      { collection: 'directus_users', action: 'update', fields: ['first_name', 'last_name', 'avatar', 'password'], permissions: { id: { _eq: '$CURRENT_USER' } } },
 
       // Roles: read
       { collection: 'directus_roles', action: 'read', fields: ['id', 'name', 'icon'], permissions: {} },
@@ -616,11 +616,11 @@ async function setupPermissions(roleIds) {
       // Categories: read
       { collection: 'categories', action: 'read', fields: ['*'], permissions: {} },
 
-      // Planning entries: create own, read all, update own pending, delete own pending
+      // Planning entries: create own, read all, update own, delete own
       { collection: 'planning_entries', action: 'create', fields: ['*'], permissions: {}, validation: { utilisateur: { _eq: '$CURRENT_USER' } } },
       { collection: 'planning_entries', action: 'read', fields: ['*'], permissions: {} },
-      { collection: 'planning_entries', action: 'update', fields: ['*'], permissions: { utilisateur: { _eq: '$CURRENT_USER' }, statut: { _eq: 'en_attente' } } },
-      { collection: 'planning_entries', action: 'delete', permissions: { utilisateur: { _eq: '$CURRENT_USER' }, statut: { _eq: 'en_attente' } } },
+      { collection: 'planning_entries', action: 'update', fields: ['*'], permissions: { utilisateur: { _eq: '$CURRENT_USER' } } },
+      { collection: 'planning_entries', action: 'delete', permissions: { utilisateur: { _eq: '$CURRENT_USER' } } },
 
       // Conges requests: create own, read own, update own pending, delete own pending
       { collection: 'conges_requests', action: 'create', fields: ['*'], permissions: {}, validation: { demandeur: { _eq: '$CURRENT_USER' } } },
@@ -776,6 +776,41 @@ async function createTestUsers(roleIds) {
   console.log('')
 }
 
+// ─── Step 9: Fix existing permissions ────────────────────
+
+async function fixExistingPermissions() {
+  console.log('🔧 Correction des permissions existantes...')
+
+  try {
+    // Fetch all permissions
+    const perms = await api('GET', '/permissions?limit=-1')
+
+    // Fix planning_entries delete/update: remove statut restriction
+    for (const perm of perms) {
+      if (perm.collection === 'planning_entries' && (perm.action === 'delete' || perm.action === 'update')) {
+        const currentPerms = perm.permissions || {}
+        if (currentPerms.statut) {
+          const newPerms = { ...currentPerms }
+          delete newPerms.statut
+          await safeApi('PATCH', `/permissions/${perm.id}`, { permissions: newPerms }, `Fix ${perm.action} planning_entries (id: ${perm.id})`)
+        }
+      }
+
+      // Fix directus_users update: add password field
+      if (perm.collection === 'directus_users' && perm.action === 'update' && perm.fields) {
+        if (!perm.fields.includes('password') && perm.fields.includes('first_name')) {
+          const newFields = [...perm.fields, 'password']
+          await safeApi('PATCH', `/permissions/${perm.id}`, { fields: newFields }, `Fix update directus_users: ajout champ password (id: ${perm.id})`)
+        }
+      }
+    }
+  } catch (e) {
+    console.log(`  ⚠ Impossible de corriger les permissions: ${e.message.substring(0, 150)}`)
+  }
+
+  console.log('')
+}
+
 // ─── Main ───────────────────────────────────────────────
 
 async function main() {
@@ -793,6 +828,8 @@ async function main() {
   await setupPermissions(roleIds)
   await seedCategories()
   await createTestUsers(roleIds)
+
+  await fixExistingPermissions()
 
   console.log('╔══════════════════════════════════════════╗')
   console.log('║   ✅ Setup termine avec succes !          ║')

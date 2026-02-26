@@ -21,8 +21,7 @@ const rhNav = computed(() => {
   ]
   if (isDirecteur.value) {
     items.push(
-      { label: 'Offres d\'emploi', icon: 'i-lucide-megaphone', to: '/offres' },
-      { label: 'Utilisateurs', icon: 'i-lucide-shield-check', to: '/admin/utilisateurs' }
+      { label: 'Offres d\'emploi', icon: 'i-lucide-megaphone', to: '/offres' }
     )
   }
   return items

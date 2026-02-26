@@ -102,7 +102,7 @@ function formatDateFr(date: string | null) {
         <div class="flex gap-3">
           <UButton
             :to="`/planning/${member.id}`"
-            label="Voir le planning"
+            label="Voir le calendrier"
             icon="i-lucide-calendar"
             variant="subtle"
           />
