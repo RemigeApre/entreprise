@@ -88,7 +88,7 @@ onMounted(() => {
 <template>
   <div>
     <!-- Navigation -->
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center mb-4">
       <div class="flex items-center gap-1">
         <UButton
           icon="i-lucide-chevron-left"
@@ -112,9 +112,6 @@ onMounted(() => {
           @click="nextWeek"
         />
       </div>
-      <span class="text-sm text-stone-600 dark:text-stone-400">
-        {{ weekLabel }}
-      </span>
     </div>
 
     <!-- Grid: row labels left + 5 day columns -->

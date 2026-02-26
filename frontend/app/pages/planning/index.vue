@@ -15,6 +15,14 @@ const stats = ref({ totalHours: 0, totalDays: 0, totalHalfDays: 0 })
 const contractStart = computed(() => user.value?.date_debut_contrat || null)
 const contractEnd = computed(() => user.value?.date_fin_contrat || null)
 
+const weekLabel = computed(() => {
+  const start = currentMonday.value
+  const end = addDays(start, 4)
+  const s = start.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+  const e = end.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+  return `${s} - ${e}`
+})
+
 // --- Quick action types ---
 interface QuickAction {
   key: string
@@ -37,7 +45,7 @@ const quickActions = computed<QuickAction[]>(() => {
     actions.push({ key: 'ecole', label: 'Ecole', icon: 'i-lucide-graduation-cap', planningType: 'ecole', motif: null, requiresMotif: false })
   }
 
-  actions.push({ key: 'autre', label: 'Autre...', icon: 'i-lucide-more-horizontal', planningType: 'absent', motif: null, requiresMotif: true })
+  actions.push({ key: 'autre', label: 'Autre', icon: 'i-lucide-more-horizontal', planningType: 'absent', motif: null, requiresMotif: true })
 
   return actions
 })
@@ -203,7 +211,13 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col h-full">
-    <UDashboardNavbar title="Planning">
+    <UDashboardNavbar>
+      <template #left>
+        <div class="flex items-center gap-2">
+          <span class="text-base font-semibold text-stone-900 dark:text-stone-100">Planning</span>
+          <span class="text-xs text-stone-400 dark:text-stone-500">S{{ weekNumber }} · {{ weekLabel }}</span>
+        </div>
+      </template>
       <template #right>
         <div class="flex items-center gap-2">
           <UButton
@@ -240,7 +254,6 @@ onMounted(() => {
     <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
       <!-- Quick actions - compact pills -->
       <div class="flex flex-wrap items-center gap-1.5">
-        <span class="text-xs text-stone-400 dark:text-stone-500 mr-1">Mode :</span>
         <button
           v-for="action in quickActions"
           :key="action.key"

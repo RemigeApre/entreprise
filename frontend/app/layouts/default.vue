@@ -87,7 +87,7 @@ const userMenuItems = [
       </div>
 
       <template #footer>
-        <div class="flex items-center gap-2 mb-2 px-1">
+        <div class="mb-2 px-1">
           <UButton
             :icon="isDark ? 'i-lucide-sun' : 'i-lucide-moon'"
             color="neutral"
@@ -95,7 +95,6 @@ const userMenuItems = [
             size="xs"
             @click="isDark = !isDark"
           />
-          <span class="text-xs text-stone-400 dark:text-stone-500">{{ isDark ? 'Clair' : 'Sombre' }}</span>
         </div>
         <UDropdownMenu :items="userMenuItems">
           <UButton
