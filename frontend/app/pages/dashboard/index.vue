@@ -26,7 +26,7 @@ const greeting = computed(() => {
 </script>
 
 <template>
-  <div>
+  <div class="flex flex-col h-full">
     <UDashboardNavbar title="Dashboard">
       <template #right>
         <UButton
@@ -39,7 +39,7 @@ const greeting = computed(() => {
       </template>
     </UDashboardNavbar>
 
-    <div class="p-4 sm:p-6 space-y-6">
+    <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
       <!-- Greeting -->
       <div class="flex items-center justify-between">
         <div>

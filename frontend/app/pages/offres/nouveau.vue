@@ -76,7 +76,7 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div>
+  <div class="flex flex-col h-full">
     <UDashboardNavbar title="Nouvelle offre d'emploi">
       <template #right>
         <UButton
@@ -89,7 +89,7 @@ async function handleSubmit() {
       </template>
     </UDashboardNavbar>
 
-    <div class="p-4 sm:p-6">
+    <div class="flex-1 overflow-y-auto p-4 sm:p-6">
       <div class="max-w-2xl space-y-6">
         <UCard>
           <template #header>

@@ -239,14 +239,14 @@ async function handleCopyPreviousWeek() {
 </script>
 
 <template>
-  <div>
+  <div class="flex flex-col h-full">
     <UDashboardNavbar title="Gestion des plannings">
       <template #right>
         <UButton label="Retour" icon="i-lucide-arrow-left" color="neutral" variant="ghost" to="/planning" />
       </template>
     </UDashboardNavbar>
 
-    <div class="p-4 sm:p-6 space-y-6">
+    <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
       <!-- Employee selector -->
       <UCard>
         <template #header>

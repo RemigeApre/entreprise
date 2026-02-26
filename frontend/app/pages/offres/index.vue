@@ -69,7 +69,7 @@ function getContractColor(type: string) {
 </script>
 
 <template>
-  <div>
+  <div class="flex flex-col h-full">
     <UDashboardNavbar title="Offres d'emploi">
       <template #right>
         <UInput
@@ -86,7 +86,7 @@ function getContractColor(type: string) {
       </template>
     </UDashboardNavbar>
 
-    <div class="p-4 sm:p-6">
+    <div class="flex-1 overflow-y-auto p-4 sm:p-6">
       <div v-if="status === 'pending'" class="flex justify-center py-12">
         <UIcon name="i-lucide-loader-2" class="size-8 text-primary animate-spin" />
       </div>

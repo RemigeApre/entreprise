@@ -3,10 +3,10 @@ definePageMeta({ middleware: ['auth'] })
 </script>
 
 <template>
-  <div>
+  <div class="flex flex-col h-full">
     <UDashboardNavbar title="Liste clients" />
 
-    <div class="p-4 sm:p-6 space-y-6">
+    <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
       <div class="text-center py-16">
         <div class="inline-flex items-center justify-center size-16 rounded-full bg-stone-100 dark:bg-stone-800 mb-4">
           <UIcon name="i-lucide-building" class="size-8 text-stone-400 dark:text-stone-500" />
