@@ -45,7 +45,7 @@ onMounted(loadUser)
 
 <template>
   <div class="flex flex-col h-full">
-    <UDashboardNavbar :title="`Planning de ${userName}`">
+    <UDashboardNavbar :title="`Calendrier de ${userName}`">
       <template #right>
         <UButton
           label="Retour"

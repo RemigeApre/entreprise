@@ -91,7 +91,7 @@ async function loadEntries(mondayStr: string) {
     const friday = formatDate(addDays(new Date(mondayStr + 'T00:00:00'), 4))
     entries.value = await getEntries(selectedUserId.value, mondayStr, friday)
   } catch {
-    toast.add({ title: 'Erreur lors du chargement du planning', color: 'error' })
+    toast.add({ title: 'Erreur lors du chargement du calendrier', color: 'error' })
   } finally {
     loading.value = false
   }
@@ -140,7 +140,7 @@ async function doCreateEntry(date: string, periode: PlanningPeriode, type: Plann
     toast.add({ title: 'Entree ajoutee', color: 'success' })
     await createBatch(
       [selectedUserId.value],
-      `Votre manager a modifie votre planning (${date})`,
+      `Votre manager a modifie votre calendrier (${date})`,
       'planning_modifie',
       '/planning'
     )
@@ -163,7 +163,7 @@ async function handleClickEntry(entry: PlanningEntry) {
       toast.add({ title: 'Entree supprimee', color: 'success' })
       await createBatch(
         [selectedUserId.value],
-        `Votre manager a supprime une entree de votre planning (${entry.date})`,
+        `Votre manager a supprime une entree de votre calendrier (${entry.date})`,
         'planning_modifie',
         '/planning'
       )
@@ -226,7 +226,7 @@ async function handleCopyPreviousWeek() {
     toast.add({ title: `${count} entree(s) copiee(s)`, color: 'success' })
     await createBatch(
       [selectedUserId.value],
-      `Votre manager a modifie ${count} demi-journee(s) de votre planning`,
+      `Votre manager a modifie ${count} demi-journee(s) de votre calendrier`,
       'planning_modifie',
       '/planning'
     )
@@ -240,7 +240,7 @@ async function handleCopyPreviousWeek() {
 
 <template>
   <div class="flex flex-col h-full">
-    <UDashboardNavbar title="Gestion des plannings">
+    <UDashboardNavbar title="Gestion des calendriers">
       <template #right>
         <UButton label="Retour" icon="i-lucide-arrow-left" color="neutral" variant="ghost" to="/planning" />
       </template>
@@ -290,7 +290,7 @@ async function handleCopyPreviousWeek() {
         <!-- Planning view -->
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold">Planning de {{ selectedUserName }}</h3>
+            <h3 class="text-sm font-semibold">Calendrier de {{ selectedUserName }}</h3>
           </template>
           <PlanningWeekView
             :entries="entries"

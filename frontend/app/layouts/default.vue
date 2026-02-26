@@ -8,12 +8,12 @@ const isDark = computed({
 })
 
 const mainNav = [
-  { label: 'Dashboard', icon: 'i-lucide-layout-dashboard', to: '/dashboard' }
+  { label: 'Tableau de bord', icon: 'i-lucide-layout-dashboard', to: '/dashboard' }
 ]
 
 const rhNav = computed(() => {
   const items = [
-    { label: 'Planning', icon: 'i-lucide-calendar', to: '/planning' },
+    { label: 'Calendrier', icon: 'i-lucide-calendar', to: '/planning' },
     { label: 'Equipe', icon: 'i-lucide-users', to: '/equipe' }
   ]
   if (isDirecteur.value) {
@@ -27,8 +27,8 @@ const rhNav = computed(() => {
 
 const projetNav = [
   { label: 'Liste projets', icon: 'i-lucide-folder-kanban', to: '/projets' },
-  { label: 'Tickets', icon: 'i-lucide-ticket', to: '/projets/tickets', disabled: true },
-  { label: 'Status sites', icon: 'i-lucide-activity', to: '/projets/status', disabled: true }
+  { label: 'Incidents', icon: 'i-lucide-ticket', to: '/projets/tickets', disabled: true },
+  { label: 'Etat des sites', icon: 'i-lucide-activity', to: '/projets/status', disabled: true }
 ]
 
 const clientNav = [

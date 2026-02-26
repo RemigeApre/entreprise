@@ -214,7 +214,7 @@ onMounted(() => {
     <UDashboardNavbar>
       <template #left>
         <div class="flex items-center gap-2">
-          <span class="text-base font-semibold text-stone-900 dark:text-stone-100">Planning</span>
+          <span class="text-base font-semibold text-stone-900 dark:text-stone-100">Calendrier</span>
           <span class="text-xs text-stone-400 dark:text-stone-500">S{{ weekNumber }} · {{ weekLabel }}</span>
         </div>
       </template>
@@ -222,7 +222,7 @@ onMounted(() => {
         <div class="flex items-center gap-2">
           <UButton
             v-if="isDirecteur"
-            label="Admin"
+            label="Gestion"
             icon="i-lucide-calendar-cog"
             color="neutral"
             variant="ghost"

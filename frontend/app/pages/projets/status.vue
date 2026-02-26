@@ -4,7 +4,7 @@ definePageMeta({ middleware: ['auth'] })
 
 <template>
   <div class="flex flex-col h-full">
-    <UDashboardNavbar title="Status des sites" />
+    <UDashboardNavbar title="Etat des sites" />
 
     <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
       <div class="text-center py-16">
@@ -12,7 +12,7 @@ definePageMeta({ middleware: ['auth'] })
           <UIcon name="i-lucide-activity" class="size-8 text-stone-400 dark:text-stone-500" />
         </div>
         <h2 class="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-2">
-          Status & KPIs
+          Etat & Indicateurs
         </h2>
         <p class="text-sm text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
           Le monitoring des sites et les indicateurs de performance seront disponibles prochainement.

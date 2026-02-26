@@ -63,7 +63,7 @@ onMounted(load)
       <div class="flex items-center justify-between">
         <h3 class="text-sm font-semibold">Ma semaine</h3>
         <UButton
-          label="Voir le planning"
+          label="Voir le calendrier"
           variant="link"
           size="xs"
           to="/planning"

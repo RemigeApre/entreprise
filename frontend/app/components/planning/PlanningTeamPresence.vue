@@ -137,8 +137,8 @@ onMounted(load)
           <tr>
             <th />
             <template v-for="day in weekDays" :key="'h-' + formatDate(day)">
-              <th class="text-center pb-1 px-0.5 text-[10px] text-stone-400 dark:text-stone-500 font-normal">AM</th>
-              <th class="text-center pb-1 px-0.5 text-[10px] text-stone-400 dark:text-stone-500 font-normal">PM</th>
+              <th class="text-center pb-1 px-0.5 text-[10px] text-stone-400 dark:text-stone-500 font-normal">Mat.</th>
+              <th class="text-center pb-1 px-0.5 text-[10px] text-stone-400 dark:text-stone-500 font-normal">A-M</th>
             </template>
           </tr>
         </thead>

@@ -27,7 +27,7 @@ const greeting = computed(() => {
 
 <template>
   <div class="flex flex-col h-full">
-    <UDashboardNavbar title="Dashboard">
+    <UDashboardNavbar title="Tableau de bord">
       <template #right>
         <UButton
           :icon="isDark ? 'i-lucide-sun' : 'i-lucide-moon'"
@@ -66,6 +66,9 @@ const greeting = computed(() => {
         <DashboardActiveProjects />
         <DashboardProspectSummary />
       </div>
+
+      <!-- Job listings (directors only) -->
+      <DashboardJobListings v-if="isDirecteur" />
     </div>
   </div>
 </template>

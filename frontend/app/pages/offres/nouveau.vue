@@ -24,6 +24,8 @@ const salaireOptions = [
   { label: 'Par annee', value: 'annee' }
 ]
 
+const showSalaire = ref(false)
+
 const form = reactive({
   titre: '',
   description: '',
@@ -51,9 +53,9 @@ async function handleSubmit() {
       description: form.description,
       type_contrat: form.type_contrat,
       localisation: form.localisation,
-      salaire_min: form.salaire_min,
-      salaire_max: form.salaire_max,
-      salaire_periode: form.salaire_periode,
+      salaire_min: showSalaire.value ? form.salaire_min : null,
+      salaire_max: showSalaire.value ? form.salaire_max : null,
+      salaire_periode: showSalaire.value ? form.salaire_periode : null,
       competences_requises: form.competences_requises || null,
       avantages: form.avantages || null,
       publie: form.publie,
@@ -134,10 +136,16 @@ async function handleSubmit() {
 
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Remuneration</h3>
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-stone-900 dark:text-stone-100">Remuneration</h3>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-stone-500 dark:text-stone-400">{{ showSalaire ? 'Affiche' : 'Non affiche' }}</span>
+                <USwitch v-model="showSalaire" size="sm" />
+              </div>
+            </div>
           </template>
 
-          <div class="space-y-4">
+          <div v-if="showSalaire" class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <UFormField label="Salaire minimum">
                 <UInput
@@ -164,6 +172,9 @@ async function handleSubmit() {
               </UFormField>
             </div>
           </div>
+          <p v-else class="text-sm text-stone-500 dark:text-stone-400">
+            Le salaire ne sera pas affiche sur l'offre.
+          </p>
         </UCard>
 
         <UCard>

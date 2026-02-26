@@ -4,7 +4,7 @@ definePageMeta({ middleware: ['auth'] })
 
 <template>
   <div class="flex flex-col h-full">
-    <UDashboardNavbar title="Tickets & Erreurs" />
+    <UDashboardNavbar title="Incidents & Erreurs" />
 
     <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
       <div class="text-center py-16">
@@ -12,10 +12,10 @@ definePageMeta({ middleware: ['auth'] })
           <UIcon name="i-lucide-ticket" class="size-8 text-stone-400 dark:text-stone-500" />
         </div>
         <h2 class="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-2">
-          Suivi des tickets
+          Suivi des incidents
         </h2>
         <p class="text-sm text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
-          Le systeme de suivi des erreurs et tickets sera disponible prochainement.
+          Le systeme de suivi des erreurs et incidents sera disponible prochainement.
         </p>
         <UBadge variant="subtle" color="neutral" class="mt-4">
           En construction
