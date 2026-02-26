@@ -61,6 +61,13 @@ function getCategoryName(u: UserProfile) {
   return u.categorie.nom
 }
 
+// Telephone visible: directeur voit tout, autres ne voient pas le tel des stagiaires
+function canSeePhone(member: UserProfile) {
+  if (isDirecteur.value) return true
+  const role = typeof member.role === 'string' ? '' : member.role.name
+  return role !== 'Stagiaire'
+}
+
 function handleClickMember(member: UserProfile) {
   if (isDirecteur.value) {
     navigateTo(`/admin/utilisateurs/${member.id}`)
@@ -184,6 +191,10 @@ async function handleToggleActive(e: Event, user: UserProfile) {
               </div>
               <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
                 {{ member.email }}
+              </p>
+              <p v-if="member.telephone && canSeePhone(member)" class="text-xs text-gray-500 dark:text-gray-400 truncate flex items-center gap-1">
+                <UIcon name="i-lucide-phone" class="size-3" />
+                {{ member.telephone }}
               </p>
             </div>
 

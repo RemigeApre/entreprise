@@ -38,6 +38,10 @@ const clientNav = [
   { label: 'Liste clients', icon: 'i-lucide-building', to: '/clients', disabled: true }
 ]
 
+const resourceNav = [
+  { label: 'Wiki interne', icon: 'i-lucide-book-open', to: '/wiki' }
+]
+
 const userDisplayName = computed(() => {
   if (!user.value) return ''
   const { first_name, last_name, email } = user.value
@@ -86,6 +90,11 @@ const userMenuItems = [
       <div v-if="roleName !== 'Stagiaire'" class="mt-5">
         <p class="text-[11px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider px-3 mb-1">Clients</p>
         <UNavigationMenu :items="clientNav" orientation="vertical" />
+      </div>
+
+      <div class="mt-5">
+        <p class="text-[11px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider px-3 mb-1">Ressources</p>
+        <UNavigationMenu :items="resourceNav" orientation="vertical" />
       </div>
 
       <template #footer>

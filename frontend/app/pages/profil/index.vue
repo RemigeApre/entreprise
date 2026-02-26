@@ -40,6 +40,51 @@ function getRoleColor(name: string) {
   return colors[name] || 'neutral'
 }
 
+// Edition des infos perso
+const editingInfo = ref(false)
+const infoSaving = ref(false)
+const editForm = reactive({
+  telephone: '',
+  linkedin: '',
+  localisation: '',
+  bio: ''
+})
+
+function startEditInfo() {
+  if (!user.value) return
+  editForm.telephone = user.value.telephone || ''
+  editForm.linkedin = user.value.linkedin || ''
+  editForm.localisation = user.value.localisation || ''
+  editForm.bio = user.value.bio || ''
+  editingInfo.value = true
+}
+
+async function saveInfo() {
+  if (!user.value) return
+  infoSaving.value = true
+  try {
+    await $directus.request(updateMe({
+      telephone: editForm.telephone || null,
+      linkedin: editForm.linkedin || null,
+      localisation: editForm.localisation || null,
+      bio: editForm.bio || null
+    }))
+    user.value = {
+      ...user.value,
+      telephone: editForm.telephone || null,
+      linkedin: editForm.linkedin || null,
+      localisation: editForm.localisation || null,
+      bio: editForm.bio || null
+    }
+    editingInfo.value = false
+    toast.add({ title: 'Informations mises a jour', color: 'success' })
+  } catch {
+    toast.add({ title: 'Erreur lors de la mise a jour', color: 'error' })
+  } finally {
+    infoSaving.value = false
+  }
+}
+
 const currentPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
@@ -61,11 +106,8 @@ async function handlePasswordChange() {
   }
   passwordSaving.value = true
   try {
-    // Verifier le mot de passe actuel en tentant une connexion
     await $directus.login({ email: user.value.email, password: currentPassword.value })
-    // Mettre a jour le mot de passe
     await $directus.request(updateMe({ password: newPassword.value }))
-    // Re-authentifier avec le nouveau mot de passe
     await $directus.login({ email: user.value.email, password: newPassword.value })
     toast.add({ title: 'Mot de passe mis a jour avec succes', color: 'success' })
     currentPassword.value = ''
@@ -123,7 +165,90 @@ async function handleLogout() {
                   {{ user.type_contrat }}
                 </UBadge>
               </div>
+              <div v-if="user.bio" class="mt-2 text-sm text-stone-600 dark:text-stone-400 italic">
+                {{ user.bio }}
+              </div>
             </div>
+          </div>
+        </UCard>
+
+        <!-- Coordonnees & infos perso -->
+        <UCard>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Coordonnees</h3>
+              <UButton
+                v-if="!editingInfo"
+                label="Modifier"
+                icon="i-lucide-pencil"
+                variant="ghost"
+                size="xs"
+                @click="startEditInfo"
+              />
+              <div v-else class="flex gap-2">
+                <UButton
+                  label="Annuler"
+                  variant="ghost"
+                  size="xs"
+                  color="neutral"
+                  @click="editingInfo = false"
+                />
+                <UButton
+                  label="Enregistrer"
+                  icon="i-lucide-check"
+                  size="xs"
+                  :loading="infoSaving"
+                  @click="saveInfo"
+                />
+              </div>
+            </div>
+          </template>
+
+          <!-- Mode lecture -->
+          <div v-if="!editingInfo" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div>
+              <span class="text-gray-500 dark:text-gray-400">Telephone</span>
+              <p class="font-medium text-gray-900 dark:text-white">{{ user.telephone || '-' }}</p>
+            </div>
+            <div>
+              <span class="text-gray-500 dark:text-gray-400">LinkedIn</span>
+              <p v-if="user.linkedin" class="font-medium">
+                <a :href="user.linkedin" target="_blank" rel="noopener" class="text-primary hover:underline">
+                  {{ user.linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, '').replace(/\/$/, '') || 'Profil' }}
+                </a>
+              </p>
+              <p v-else class="font-medium text-gray-900 dark:text-white">-</p>
+            </div>
+            <div>
+              <span class="text-gray-500 dark:text-gray-400">Localisation</span>
+              <p class="font-medium text-gray-900 dark:text-white">{{ user.localisation || '-' }}</p>
+            </div>
+            <div>
+              <span class="text-gray-500 dark:text-gray-400">Email</span>
+              <p class="font-medium text-gray-900 dark:text-white">{{ user.email }}</p>
+            </div>
+            <div v-if="user.bio" class="sm:col-span-2">
+              <span class="text-gray-500 dark:text-gray-400">Presentation</span>
+              <p class="font-medium text-gray-900 dark:text-white whitespace-pre-line">{{ user.bio }}</p>
+            </div>
+          </div>
+
+          <!-- Mode edition -->
+          <div v-else class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <UFormField label="Telephone">
+                <UInput v-model="editForm.telephone" placeholder="06 12 34 56 78" icon="i-lucide-phone" />
+              </UFormField>
+              <UFormField label="LinkedIn">
+                <UInput v-model="editForm.linkedin" placeholder="https://linkedin.com/in/..." icon="i-lucide-link" />
+              </UFormField>
+              <UFormField label="Localisation">
+                <UInput v-model="editForm.localisation" placeholder="Paris, Lyon..." icon="i-lucide-map-pin" />
+              </UFormField>
+            </div>
+            <UFormField label="Presentation">
+              <UTextarea v-model="editForm.bio" placeholder="Quelques mots sur vous..." :rows="3" />
+            </UFormField>
           </div>
         </UCard>
 
@@ -141,10 +266,6 @@ async function handleLogout() {
             <div>
               <span class="text-gray-500 dark:text-gray-400">Nom</span>
               <p class="font-medium text-gray-900 dark:text-white">{{ user.last_name || '-' }}</p>
-            </div>
-            <div>
-              <span class="text-gray-500 dark:text-gray-400">Email</span>
-              <p class="font-medium text-gray-900 dark:text-white">{{ user.email }}</p>
             </div>
             <div>
               <span class="text-gray-500 dark:text-gray-400">Role</span>

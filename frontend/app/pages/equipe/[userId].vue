@@ -27,6 +27,12 @@ const isStagiaire = computed(() => {
   return member.value.type_contrat === 'Stage'
 })
 
+// Telephone visible: directeur voit tout, autres ne voient pas le tel des stagiaires
+const canSeePhone = computed(() => {
+  if (isDirecteur.value) return true
+  return !isStagiaire.value
+})
+
 const hasTrialPeriod = computed(() => {
   if (!member.value) return true
   return member.value.type_contrat !== 'Stage' && member.value.type_contrat !== 'Freelance'
@@ -155,7 +161,7 @@ function pct(value: number, max: number) {
         <UCard>
           <div class="flex items-center gap-4">
             <UAvatar :alt="getUserName(member)" size="xl" />
-            <div>
+            <div class="min-w-0 flex-1">
               <h2 class="text-xl font-bold text-gray-900 dark:text-white">
                 {{ getUserName(member) }}
               </h2>
@@ -169,6 +175,41 @@ function pct(value: number, max: number) {
                   {{ member.type_contrat }}
                 </UBadge>
               </div>
+              <div v-if="member.bio" class="mt-2 text-sm text-stone-600 dark:text-stone-400 italic">
+                {{ member.bio }}
+              </div>
+            </div>
+          </div>
+        </UCard>
+
+        <!-- Coordonnees -->
+        <UCard v-if="member.telephone || member.linkedin || member.localisation">
+          <template #header>
+            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Coordonnees</h3>
+          </template>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div v-if="member.telephone && canSeePhone">
+              <span class="text-gray-500 dark:text-gray-400">Telephone</span>
+              <p class="font-medium text-gray-900 dark:text-white flex items-center gap-1.5">
+                <UIcon name="i-lucide-phone" class="size-3.5 text-stone-400" />
+                {{ member.telephone }}
+              </p>
+            </div>
+            <div v-if="member.linkedin">
+              <span class="text-gray-500 dark:text-gray-400">LinkedIn</span>
+              <p class="font-medium">
+                <a :href="member.linkedin" target="_blank" rel="noopener" class="text-primary hover:underline flex items-center gap-1.5">
+                  <UIcon name="i-lucide-link" class="size-3.5" />
+                  {{ member.linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, '').replace(/\/$/, '') || 'Profil' }}
+                </a>
+              </p>
+            </div>
+            <div v-if="member.localisation">
+              <span class="text-gray-500 dark:text-gray-400">Localisation</span>
+              <p class="font-medium text-gray-900 dark:text-white flex items-center gap-1.5">
+                <UIcon name="i-lucide-map-pin" class="size-3.5 text-stone-400" />
+                {{ member.localisation }}
+              </p>
             </div>
           </div>
         </UCard>

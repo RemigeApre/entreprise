@@ -156,6 +156,30 @@ async function extendDirectusUsers() {
           ]
         }
       }
+    },
+    {
+      field: 'telephone',
+      type: 'string',
+      schema: { is_nullable: true },
+      meta: { interface: 'input', display: 'raw', width: 'half', sort: 105, note: 'Numero de telephone' }
+    },
+    {
+      field: 'linkedin',
+      type: 'string',
+      schema: { is_nullable: true },
+      meta: { interface: 'input', display: 'raw', width: 'half', sort: 106, note: 'URL du profil LinkedIn' }
+    },
+    {
+      field: 'localisation',
+      type: 'string',
+      schema: { is_nullable: true },
+      meta: { interface: 'input', display: 'raw', width: 'half', sort: 107, note: 'Ville / lieu de travail' }
+    },
+    {
+      field: 'bio',
+      type: 'text',
+      schema: { is_nullable: true },
+      meta: { interface: 'input-multiline', display: 'raw', width: 'full', sort: 108, note: 'Courte presentation' }
     }
   ]
 
@@ -603,8 +627,8 @@ async function setupPermissions(roleIds) {
     // Permissions for authenticated users
     const perms = [
       // Users: read active, update own
-      { collection: 'directus_users', action: 'read', fields: ['id', 'first_name', 'last_name', 'email', 'avatar', 'role', 'categorie', 'actif', 'type_contrat', 'date_debut_contrat', 'date_fin_contrat', 'date_fin_periode_essai'], permissions: {} },
-      { collection: 'directus_users', action: 'update', fields: ['first_name', 'last_name', 'avatar', 'password'], permissions: { id: { _eq: '$CURRENT_USER' } } },
+      { collection: 'directus_users', action: 'read', fields: ['id', 'first_name', 'last_name', 'email', 'avatar', 'role', 'categorie', 'actif', 'type_contrat', 'date_debut_contrat', 'date_fin_contrat', 'date_fin_periode_essai', 'telephone', 'linkedin', 'localisation', 'bio'], permissions: {} },
+      { collection: 'directus_users', action: 'update', fields: ['first_name', 'last_name', 'avatar', 'password', 'telephone', 'linkedin', 'localisation', 'bio'], permissions: { id: { _eq: '$CURRENT_USER' } } },
 
       // Roles: read
       { collection: 'directus_roles', action: 'read', fields: ['id', 'name', 'icon'], permissions: {} },
@@ -797,11 +821,23 @@ async function fixExistingPermissions() {
         }
       }
 
-      // Fix directus_users update: add password field
+      // Fix directus_users update: add missing fields
       if (perm.collection === 'directus_users' && perm.action === 'update' && perm.fields) {
-        if (!perm.fields.includes('password') && perm.fields.includes('first_name')) {
-          const newFields = [...perm.fields, 'password']
-          await safeApi('PATCH', `/permissions/${perm.id}`, { fields: newFields }, `Fix update directus_users: ajout champ password (id: ${perm.id})`)
+        const required = ['password', 'telephone', 'linkedin', 'localisation', 'bio']
+        const missing = required.filter(f => !perm.fields.includes(f))
+        if (missing.length > 0 && perm.fields.includes('first_name')) {
+          const newFields = [...perm.fields, ...missing]
+          await safeApi('PATCH', `/permissions/${perm.id}`, { fields: newFields }, `Fix update directus_users: ajout champs ${missing.join(', ')} (id: ${perm.id})`)
+        }
+      }
+
+      // Fix directus_users read: add missing profile fields
+      if (perm.collection === 'directus_users' && perm.action === 'read' && perm.fields) {
+        const required = ['telephone', 'linkedin', 'localisation', 'bio']
+        const missing = required.filter(f => !perm.fields.includes(f))
+        if (missing.length > 0 && perm.fields.includes('first_name')) {
+          const newFields = [...perm.fields, ...missing]
+          await safeApi('PATCH', `/permissions/${perm.id}`, { fields: newFields }, `Fix read directus_users: ajout champs ${missing.join(', ')} (id: ${perm.id})`)
         }
       }
     }

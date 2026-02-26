@@ -12,6 +12,10 @@ export interface UserProfile {
   last_name: string | null
   avatar: string | null
   role: Role | string
+  telephone: string | null
+  linkedin: string | null
+  localisation: string | null
+  bio: string | null
   date_debut_contrat: string | null
   date_fin_contrat: string | null
   date_fin_periode_essai: string | null

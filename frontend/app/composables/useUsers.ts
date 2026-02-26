@@ -6,6 +6,7 @@ export function useUsers() {
 
   const allFields = [
     'id', 'first_name', 'last_name', 'email', 'avatar',
+    'telephone', 'linkedin', 'localisation', 'bio',
     'role.id', 'role.name',
     'categorie.id', 'categorie.nom', 'categorie.couleur',
     'actif', 'type_contrat',
