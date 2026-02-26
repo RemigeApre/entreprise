@@ -1,47 +1,40 @@
 <script setup lang="ts">
 const { user, logout, isDirecteur } = useAuth()
+const colorMode = useColorMode()
 
-const navigation = computed(() => {
+const isDark = computed({
+  get: () => colorMode.value === 'dark',
+  set: (v: boolean) => { colorMode.preference = v ? 'dark' : 'light' }
+})
+
+const mainNav = [
+  { label: 'Dashboard', icon: 'i-lucide-layout-dashboard', to: '/dashboard' }
+]
+
+const rhNav = computed(() => {
   const items = [
-    {
-      label: 'Dashboard',
-      icon: 'i-lucide-layout-dashboard',
-      to: '/dashboard'
-    },
-    {
-      label: 'Planning',
-      icon: 'i-lucide-calendar',
-      to: '/planning'
-    },
-    {
-      label: 'Equipe',
-      icon: 'i-lucide-users',
-      to: '/equipe'
-    },
-    {
-      label: 'Prospection',
-      icon: 'i-lucide-target',
-      to: '/prospection'
-    },
-    {
-      label: 'Projets',
-      icon: 'i-lucide-folder-kanban',
-      to: '/projets'
-    }
+    { label: 'Planning', icon: 'i-lucide-calendar', to: '/planning' },
+    { label: 'Equipe', icon: 'i-lucide-users', to: '/equipe' }
   ]
-
   if (isDirecteur.value) {
     items.push(
-      {
-        label: 'Offres d\'emploi',
-        icon: 'i-lucide-megaphone',
-        to: '/offres'
-      }
+      { label: 'Offres d\'emploi', icon: 'i-lucide-megaphone', to: '/offres' },
+      { label: 'Utilisateurs', icon: 'i-lucide-shield-check', to: '/admin/utilisateurs' }
     )
   }
-
   return items
 })
+
+const projetNav = [
+  { label: 'Liste projets', icon: 'i-lucide-folder-kanban', to: '/projets' },
+  { label: 'Tickets', icon: 'i-lucide-ticket', to: '/projets/tickets', disabled: true },
+  { label: 'Status sites', icon: 'i-lucide-activity', to: '/projets/status', disabled: true }
+]
+
+const clientNav = [
+  { label: 'Prospection', icon: 'i-lucide-target', to: '/prospection' },
+  { label: 'Liste clients', icon: 'i-lucide-building', to: '/clients', disabled: true }
+]
 
 const userDisplayName = computed(() => {
   if (!user.value) return ''
@@ -76,9 +69,34 @@ const userMenuItems = [
         </NuxtLink>
       </template>
 
-      <UNavigationMenu :items="navigation" orientation="vertical" />
+      <UNavigationMenu :items="mainNav" orientation="vertical" />
+
+      <div class="mt-5">
+        <p class="text-[11px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider px-3 mb-1">RH</p>
+        <UNavigationMenu :items="rhNav" orientation="vertical" />
+      </div>
+
+      <div class="mt-5">
+        <p class="text-[11px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider px-3 mb-1">Projets</p>
+        <UNavigationMenu :items="projetNav" orientation="vertical" />
+      </div>
+
+      <div class="mt-5">
+        <p class="text-[11px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider px-3 mb-1">Clients</p>
+        <UNavigationMenu :items="clientNav" orientation="vertical" />
+      </div>
 
       <template #footer>
+        <div class="flex items-center gap-2 mb-2 px-1">
+          <UButton
+            :icon="isDark ? 'i-lucide-sun' : 'i-lucide-moon'"
+            color="neutral"
+            variant="ghost"
+            size="xs"
+            @click="isDark = !isDark"
+          />
+          <span class="text-xs text-stone-400 dark:text-stone-500">{{ isDark ? 'Clair' : 'Sombre' }}</span>
+        </div>
         <UDropdownMenu :items="userMenuItems">
           <UButton
             color="neutral"

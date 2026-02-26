@@ -11,6 +11,15 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  icon: {
+    clientBundle: {
+      scan: {
+        globInclude: ['app/**/*.{vue,ts,tsx}']
+      },
+      sizeLimitKb: 0
+    }
+  },
+
   runtimeConfig: {
     directusUrl: process.env.NUXT_DIRECTUS_URL || 'http://localhost:8055',
     public: {
@@ -27,7 +36,9 @@ export default defineNuxtConfig({
     '/projets/**': { ssr: false },
     '/equipe/**': { ssr: false },
     '/offres/**': { ssr: false },
-    '/profil/**': { ssr: false }
+    '/profil/**': { ssr: false },
+    '/clients/**': { ssr: false },
+    '/admin/**': { ssr: false }
   },
 
   compatibilityDate: '2025-01-15',

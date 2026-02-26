@@ -1,5 +1,12 @@
 <script setup lang="ts">
 const { user, isDirecteur, roleName } = useAuth()
+const colorMode = useColorMode()
+
+const isDark = computed(() => colorMode.value === 'dark')
+
+function toggleTheme() {
+  colorMode.preference = isDark.value ? 'light' : 'dark'
+}
 
 const userDisplayName = computed(() => {
   if (!user.value) return ''
@@ -16,24 +23,21 @@ const greeting = computed(() => {
   if (hour < 18) return 'Bon apres-midi'
   return 'Bonsoir'
 })
-
-const quickActions = computed(() => {
-  const actions = [
-    { label: 'Planning', icon: 'i-lucide-calendar', to: '/planning' },
-    { label: 'Equipe', icon: 'i-lucide-users', to: '/equipe' },
-    { label: 'Prospection', icon: 'i-lucide-target', to: '/prospection' },
-    { label: 'Projets', icon: 'i-lucide-folder-kanban', to: '/projets' }
-  ]
-  if (isDirecteur.value) {
-    actions.push({ label: 'Offres', icon: 'i-lucide-megaphone', to: '/offres' })
-  }
-  return actions
-})
 </script>
 
 <template>
   <div>
-    <UDashboardNavbar title="Dashboard" />
+    <UDashboardNavbar title="Dashboard">
+      <template #right>
+        <UButton
+          :icon="isDark ? 'i-lucide-sun' : 'i-lucide-moon'"
+          color="neutral"
+          variant="ghost"
+          size="sm"
+          @click="toggleTheme"
+        />
+      </template>
+    </UDashboardNavbar>
 
     <div class="p-4 sm:p-6 space-y-6">
       <!-- Greeting -->
@@ -54,26 +58,13 @@ const quickActions = computed(() => {
       <!-- Notifications -->
       <DashboardNotifications />
 
-      <!-- Week summary - full width -->
+      <!-- Week summary -->
       <DashboardWeekSummary />
 
-      <!-- Projects + Prospects - 2 columns -->
+      <!-- Projects + Prospects -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <DashboardActiveProjects />
         <DashboardProspectSummary />
-      </div>
-
-      <!-- Quick access - compact -->
-      <div class="flex flex-wrap gap-2">
-        <UButton
-          v-for="action in quickActions"
-          :key="action.to"
-          :label="action.label"
-          :icon="action.icon"
-          :to="action.to"
-          variant="soft"
-          size="sm"
-        />
       </div>
     </div>
   </div>

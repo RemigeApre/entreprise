@@ -29,16 +29,15 @@ const quickActions = computed<QuickAction[]>(() => {
   const actions: QuickAction[] = [
     { key: 'travail', label: 'Travail', icon: 'i-lucide-briefcase', planningType: 'travail', motif: null, requiresMotif: false },
     { key: 'teletravail', label: 'Teletravail', icon: 'i-lucide-house', planningType: 'travail', motif: 'Teletravail', requiresMotif: false },
-    { key: 'conge_paye', label: 'Conge paye', icon: 'i-lucide-palm-tree', planningType: 'conge', motif: 'Conge paye', requiresMotif: false },
-    { key: 'sans_solde', label: 'Sans solde', icon: 'i-lucide-wallet', planningType: 'conge', motif: 'Sans solde', requiresMotif: false },
-    { key: 'arret_maladie', label: 'Arret maladie', icon: 'i-lucide-heart-pulse', planningType: 'absent', motif: 'Arret maladie', requiresMotif: false },
+    { key: 'conge_paye', label: 'Conge', icon: 'i-lucide-palm-tree', planningType: 'conge', motif: 'Conge paye', requiresMotif: false },
+    { key: 'arret_maladie', label: 'Maladie', icon: 'i-lucide-heart-pulse', planningType: 'absent', motif: 'Arret maladie', requiresMotif: false }
   ]
 
   if (hasSchoolDays.value) {
     actions.push({ key: 'ecole', label: 'Ecole', icon: 'i-lucide-graduation-cap', planningType: 'ecole', motif: null, requiresMotif: false })
   }
 
-  actions.push({ key: 'autre', label: 'Autre', icon: 'i-lucide-help-circle', planningType: 'absent', motif: null, requiresMotif: true })
+  actions.push({ key: 'autre', label: 'Autre...', icon: 'i-lucide-more-horizontal', planningType: 'absent', motif: null, requiresMotif: true })
 
   return actions
 })
@@ -61,7 +60,7 @@ async function loadEntries(mondayStr: string) {
     const friday = formatDate(addDays(new Date(mondayStr + 'T00:00:00'), 4))
     entries.value = await getEntries(user.value.id, mondayStr, friday)
   } catch {
-    toast.add({ title: 'Erreur lors du chargement du planning', color: 'error' })
+    toast.add({ title: 'Erreur lors du chargement', color: 'error' })
   } finally {
     loading.value = false
   }
@@ -72,11 +71,11 @@ async function loadStats() {
   try {
     stats.value = await getWorkedStats(user.value.id, new Date().getFullYear())
   } catch {
-    // Silent fail for stats
+    // Silent fail
   }
 }
 
-// --- Add entry (click empty slot) ---
+// --- Add entry ---
 async function handleAddEntry(date: string, periode: PlanningPeriode) {
   if (!user.value) return
   const action = currentAction.value
@@ -116,14 +115,13 @@ async function doCreateEntry(date: string, periode: PlanningPeriode, type: Plann
       motif
     })
     entries.value.push(entry)
-    toast.add({ title: 'Entree ajoutee', color: 'success' })
     loadStats()
   } catch {
     toast.add({ title: 'Erreur lors de l\'ajout', color: 'error' })
   }
 }
 
-// --- Click existing entry: same type = remove, different type = replace ---
+// --- Click existing entry ---
 async function handleClickEntry(entry: PlanningEntry) {
   if (!user.value) return
   const action = currentAction.value
@@ -133,10 +131,7 @@ async function handleClickEntry(entry: PlanningEntry) {
     await deleteEntry(entry.id)
     entries.value = entries.value.filter(e => e.id !== entry.id)
 
-    if (isSameType) {
-      toast.add({ title: 'Entree supprimee', color: 'success' })
-    } else {
-      // Replace with the active type
+    if (!isSameType) {
       if (action.requiresMotif) {
         pendingSlot.value = { date: entry.date, periode: entry.periode }
         motifInput.value = ''
@@ -168,7 +163,6 @@ async function handleCopyPreviousWeek() {
       return
     }
 
-    // Delete all current week entries first
     for (const existing of entries.value) {
       await deleteEntry(existing.id)
     }
@@ -176,8 +170,8 @@ async function handleCopyPreviousWeek() {
     let count = 0
     for (const prev of prevEntries) {
       const prevDate = new Date(prev.date + 'T12:00:00')
-      const dayOfWeek = prevDate.getDay() // 1=Mon, 2=Tue, ..., 5=Fri
-      const offset = dayOfWeek - 1 // Mon=0, Tue=1, ..., Fri=4
+      const dayOfWeek = prevDate.getDay()
+      const offset = dayOfWeek - 1
       const newDate = formatDate(addDays(currentMonday.value, offset))
 
       await createEntry({
@@ -192,7 +186,6 @@ async function handleCopyPreviousWeek() {
       count++
     }
 
-    // Reload entries from server
     await loadEntries(mondayStr)
     toast.add({ title: `${count} entree(s) copiee(s)`, color: 'success' })
     loadStats()
@@ -210,58 +203,61 @@ onMounted(() => {
 
 <template>
   <div>
-    <div class="p-4 sm:p-6 space-y-6">
-      <!-- Header: centered title + week number -->
-      <div class="text-center">
-        <h1 class="text-xl font-semibold text-stone-900 dark:text-stone-100">Mon planning</h1>
-        <p class="text-sm text-stone-500 dark:text-stone-400 mt-0.5">Semaine {{ weekNumber }}</p>
-      </div>
+    <UDashboardNavbar title="Planning">
+      <template #right>
+        <div class="flex items-center gap-2">
+          <UButton
+            v-if="isDirecteur"
+            label="Admin"
+            icon="i-lucide-calendar-cog"
+            color="neutral"
+            variant="ghost"
+            size="xs"
+            to="/planning/admin"
+          />
+          <UButton
+            label="Conges"
+            icon="i-lucide-list"
+            color="neutral"
+            variant="ghost"
+            size="xs"
+            to="/planning/conges"
+          />
+          <UButton
+            icon="i-lucide-copy"
+            color="neutral"
+            variant="ghost"
+            size="xs"
+            :loading="copyLoading"
+            @click="handleCopyPreviousWeek"
+          >
+            <UTooltip text="Copier la semaine precedente">
+              <UIcon name="i-lucide-copy" class="size-4" />
+            </UTooltip>
+          </UButton>
+        </div>
+      </template>
+    </UDashboardNavbar>
 
-      <!-- Quick action buttons - centered -->
-      <div class="flex flex-wrap justify-center gap-2">
-        <UButton
+    <div class="p-4 sm:p-6 space-y-4">
+      <!-- Quick actions - compact pills -->
+      <div class="flex flex-wrap items-center gap-1.5">
+        <span class="text-xs text-stone-400 dark:text-stone-500 mr-1">Mode :</span>
+        <button
           v-for="action in quickActions"
           :key="action.key"
-          :label="action.label"
-          :icon="action.icon"
-          :variant="activeAction === action.key ? 'solid' : 'outline'"
-          :color="activeAction === action.key ? 'primary' : 'neutral'"
-          size="sm"
+          class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors"
+          :class="activeAction === action.key
+            ? 'bg-primary text-white'
+            : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700'"
           @click="activeAction = action.key"
-        />
+        >
+          <UIcon :name="action.icon" class="size-3.5" />
+          {{ action.label }}
+        </button>
       </div>
 
-      <!-- Navigation links -->
-      <div class="flex items-center justify-center gap-3 text-sm">
-        <UButton
-          v-if="isDirecteur"
-          label="Gerer les plannings"
-          icon="i-lucide-calendar-cog"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          to="/planning/admin"
-        />
-        <UButton
-          label="Mes demandes de conges"
-          icon="i-lucide-list"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          to="/planning/conges"
-        />
-        <UButton
-          label="Copier semaine precedente"
-          icon="i-lucide-copy"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          :loading="copyLoading"
-          @click="handleCopyPreviousWeek"
-        />
-      </div>
-
-      <!-- Mon planning + hours summary side by side -->
+      <!-- Planning grid + optional hours -->
       <div class="flex gap-6">
         <div class="flex-1">
           <PlanningWeekView
@@ -274,7 +270,7 @@ onMounted(() => {
           />
         </div>
 
-        <div v-if="hasHourTracking" class="w-64 shrink-0">
+        <div v-if="hasHourTracking" class="w-56 shrink-0">
           <PlanningHoursSummary
             :total-hours="stats.totalHours"
             :total-days="stats.totalDays"
@@ -283,7 +279,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Presence equipe -->
+      <!-- Team presence -->
       <PlanningTeamPresence
         :monday="currentMonday"
         :current-user-id="user?.id"
@@ -291,18 +287,18 @@ onMounted(() => {
       />
     </div>
 
-    <!-- Motif modal for "Autre" -->
+    <!-- Motif modal -->
     <UModal :open="showMotifModal" @update:open="showMotifModal = $event">
       <template #content>
         <div class="p-6">
-          <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-4">Justification requise</h3>
+          <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-4">Motif</h3>
           <form class="space-y-4" @submit.prevent="handleMotifSubmit">
-            <UFormField label="Motif">
+            <UFormField label="Justification">
               <UTextarea v-model="motifInput" placeholder="Indiquez le motif..." required />
             </UFormField>
             <div class="flex justify-end gap-2">
               <UButton label="Annuler" color="neutral" variant="ghost" @click="showMotifModal = false" />
-              <UButton type="submit" label="Ajouter" icon="i-lucide-check" :disabled="!motifInput.trim()" />
+              <UButton type="submit" label="Valider" :disabled="!motifInput.trim()" />
             </div>
           </form>
         </div>
