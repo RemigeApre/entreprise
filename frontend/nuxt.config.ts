@@ -13,9 +13,29 @@ export default defineNuxtConfig({
 
   icon: {
     clientBundle: {
-      scan: {
-        globInclude: ['app/**/*.{vue,ts,tsx}', 'node_modules/@nuxt/ui/dist/**/*.mjs']
-      },
+      scan: true,
+      include: [
+        'lucide:chevron-down',
+        'lucide:chevron-up',
+        'lucide:chevron-right',
+        'lucide:chevron-left',
+        'lucide:chevrons-up-down',
+        'lucide:check',
+        'lucide:x',
+        'lucide:loader-circle',
+        'lucide:search',
+        'lucide:circle',
+        'lucide:minus',
+        'lucide:eye',
+        'lucide:eye-off',
+        'lucide:circle-alert',
+        'lucide:circle-check',
+        'lucide:info',
+        'lucide:triangle-alert',
+        'lucide:ellipsis',
+        'lucide:arrow-up-down',
+        'lucide:external-link'
+      ],
       sizeLimitKb: 0
     }
   },
