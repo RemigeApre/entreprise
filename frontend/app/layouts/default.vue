@@ -66,8 +66,8 @@ const userMenuItems = [
     <UDashboardSidebar v-model:open="sidebarOpen">
       <template #header>
         <NuxtLink to="/dashboard" class="flex items-center gap-2 px-1">
-          <UIcon name="i-lucide-building-2" class="size-6 text-primary" />
-          <span class="font-bold text-lg">LeGeai</span>
+          <img src="/logo.svg" alt="Le Geai" class="size-7" />
+          <span class="font-heading font-bold text-lg tracking-tight">Le Geai</span>
         </NuxtLink>
       </template>
 
@@ -111,7 +111,7 @@ const userMenuItems = [
       </template>
     </UDashboardSidebar>
 
-    <UDashboardPanel>
+    <UDashboardPanel class="bg-watermark">
       <!-- Mobile sidebar toggle -->
       <div class="fixed top-3 left-3 z-50 lg:hidden">
         <button

@@ -4,6 +4,10 @@
 @theme static {
   --font-sans: 'Source Sans 3', 'Inter', sans-serif;
   --font-serif: 'Playfair Display', 'Georgia', serif;
+  --color-brand-gold: #af8f3c;
+  --color-brand-green: #1f2c23;
+  --color-brand-cream: #f7f0de;
+  --color-brand-terracotta: #b74d34;
 }
 
 /* ===== Dark Academia Theme ===== */
@@ -33,6 +37,29 @@
     radial-gradient(ellipse at 80% 20%, oklch(0.18 0.015 40 / 0.2), transparent 50%);
 }
 
+/* Logo watermark background */
+.bg-watermark {
+  position: relative;
+}
+.bg-watermark::before {
+  content: '';
+  position: fixed;
+  bottom: -5%;
+  right: -2%;
+  width: 380px;
+  height: 380px;
+  background-image: url('/logo.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 0;
+}
+.dark .bg-watermark::before {
+  opacity: 0.04;
+}
+
 /* Card warm hover */
 .card-hover-warm {
   transition: box-shadow 0.2s ease, transform 0.2s ease;
@@ -43,4 +70,9 @@
 }
 .dark .card-hover-warm:hover {
   box-shadow: 0 4px 24px oklch(0.45 0.08 55 / 0.2);
+}
+
+/* Gold accent line */
+.border-gold {
+  border-color: var(--color-brand-gold);
 }

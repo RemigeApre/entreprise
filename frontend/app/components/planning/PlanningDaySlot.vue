@@ -8,6 +8,7 @@ const props = defineProps<{
   readonly?: boolean
   disabled?: boolean
   disabledReason?: string
+  selected?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -40,19 +41,22 @@ const displayLabel = computed(() => {
 
 const hasFill = computed(() => !!props.entry && !!colorConfig.value)
 
+const selectedRing = 'ring-2 ring-primary ring-offset-1 dark:ring-offset-stone-900'
+
 const slotClasses = computed(() => {
+  const sel = props.selected ? ` ${selectedRing}` : ''
   if (props.disabled) {
     return 'border-dashed border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/50 text-stone-300 dark:text-stone-600 cursor-not-allowed'
   }
   if (hasFill.value) {
     const c = colorConfig.value!
     const base = `${c.border} ${c.bg} ${c.text}`
-    return isPending.value ? `${base} border-dashed opacity-60` : `${base} border-solid`
+    return (isPending.value ? `${base} border-dashed opacity-60` : `${base} border-solid`) + sel
   }
   if (!props.readonly) {
-    return 'border-dashed border-stone-300 dark:border-stone-700 hover:border-amber-400 dark:hover:border-amber-600 text-stone-500 dark:text-stone-400 cursor-pointer hover:bg-amber-50/50 dark:hover:bg-amber-950/30'
+    return 'border-dashed border-stone-300 dark:border-stone-700 hover:border-amber-400 dark:hover:border-amber-600 text-stone-500 dark:text-stone-400 cursor-pointer hover:bg-amber-50/50 dark:hover:bg-amber-950/30' + sel
   }
-  return 'border-dashed border-stone-300 dark:border-stone-700 text-stone-400 dark:text-stone-500 cursor-default'
+  return 'border-dashed border-stone-300 dark:border-stone-700 text-stone-400 dark:text-stone-500 cursor-default' + sel
 })
 </script>
 

@@ -7,6 +7,7 @@ const props = defineProps<{
   readonly?: boolean
   contractStart?: string | null
   contractEnd?: string | null
+  selectedSlots?: Set<string>
 }>()
 
 const emit = defineEmits<{
@@ -48,6 +49,10 @@ function goToToday() {
 function getEntry(date: Date, periode: 'matin' | 'apres_midi') {
   const dateStr = formatDate(date)
   return props.entries.find(e => e.date === dateStr && e.periode === periode)
+}
+
+function isSlotSelected(date: Date, periode: 'matin' | 'apres_midi'): boolean {
+  return props.selectedSlots?.has(`${formatDate(date)}_${periode}`) ?? false
 }
 
 function getSlotDisabled(date: Date): { disabled: boolean; reason?: string } {
@@ -148,6 +153,7 @@ onMounted(() => {
           :readonly="readonly"
           :disabled="getSlotDisabled(day).disabled"
           :disabled-reason="getSlotDisabled(day).reason"
+          :selected="isSlotSelected(day, 'matin')"
           @click="handleSlotClick(day, 'matin')"
         />
       </div>
@@ -163,6 +169,7 @@ onMounted(() => {
           :readonly="readonly"
           :disabled="getSlotDisabled(day).disabled"
           :disabled-reason="getSlotDisabled(day).reason"
+          :selected="isSlotSelected(day, 'apres_midi')"
           @click="handleSlotClick(day, 'apres_midi')"
         />
       </div>

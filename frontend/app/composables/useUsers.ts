@@ -61,15 +61,12 @@ export function useUsers() {
   }
 
   async function getAdminUsers() {
-    const users = await $directus.request(readUsers({
-      filter: {
-        role: { name: { _in: ['Directeur', 'Administrator'] } },
-        actif: { _eq: true }
-      },
-      fields: ['id'],
-      limit: -1
-    }))
-    return users as unknown as UserProfile[]
+    const users = await getActiveUsers()
+    return users.filter((u) => {
+      const role = u.role
+      if (!role || typeof role === 'string') return false
+      return role.name === 'Directeur' || role.name === 'Administrator'
+    })
   }
 
   async function removeUser(id: string) {

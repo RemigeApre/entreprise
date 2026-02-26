@@ -60,24 +60,56 @@ const showMotifModal = ref(false)
 const motifInput = ref('')
 const pendingSlot = ref<{ date: string, periode: PlanningPeriode } | null>(null)
 
-// --- Modification request modal (past dates, non-admin) ---
+// --- Modification request with multi-selection (past dates, non-admin) ---
+interface ModifSlot {
+  date: string
+  periode: PlanningPeriode
+  existingEntry?: PlanningEntry
+}
+
+const modifSelections = ref<Map<string, ModifSlot>>(new Map())
+const modifSelectedSet = computed(() => new Set(modifSelections.value.keys()))
 const showModifModal = ref(false)
 const modifDescription = ref('')
-const modifSlot = ref<{ date: string, periode: PlanningPeriode, existingEntry?: PlanningEntry } | null>(null)
 const modifSending = ref(false)
 
 function isPastForUser(date: string): boolean {
   return !isDirecteur.value && isPastDate(date)
 }
 
-function openModifRequest(date: string, periode: PlanningPeriode, existingEntry?: PlanningEntry) {
-  modifSlot.value = { date, periode, existingEntry }
+function modifSlotKey(date: string, periode: PlanningPeriode): string {
+  return `${date}_${periode}`
+}
+
+function toggleModifSelection(date: string, periode: PlanningPeriode, existingEntry?: PlanningEntry) {
+  const key = modifSlotKey(date, periode)
+  const map = new Map(modifSelections.value)
+  if (map.has(key)) {
+    map.delete(key)
+  } else {
+    map.set(key, { date, periode, existingEntry })
+  }
+  modifSelections.value = map
+}
+
+function clearModifSelections() {
+  modifSelections.value = new Map()
+}
+
+const sortedModifSlots = computed(() => {
+  return [...modifSelections.value.values()].sort((a, b) => {
+    if (a.date !== b.date) return a.date.localeCompare(b.date)
+    return a.periode === 'matin' ? -1 : 1
+  })
+})
+
+function openModifModal() {
   modifDescription.value = ''
   showModifModal.value = true
 }
 
 async function handleModifSubmit() {
-  if (!modifSlot.value || !modifDescription.value.trim() || !user.value) return
+  if (!modifSelections.value.size || !modifDescription.value.trim() || !user.value) return
   modifSending.value = true
   try {
     const admins = await getAdminUsers()
@@ -86,17 +118,20 @@ async function handleModifSubmit() {
       return
     }
 
-    const dateLabel = formatDateFr(modifSlot.value.date + 'T00:00:00')
-    const periodeLabel = modifSlot.value.periode === 'matin' ? 'matin' : 'apres-midi'
     const userName = [user.value.first_name, user.value.last_name].filter(Boolean).join(' ') || user.value.email
+    const slots = sortedModifSlots.value
+    const slotLabels = slots.map(s => {
+      const periodeLabel = s.periode === 'matin' ? 'matin' : 'apres-midi'
+      return `${formatDateFr(s.date + 'T00:00:00')} (${periodeLabel})`
+    }).join(', ')
 
-    const message = `${userName} demande une modification pour le ${dateLabel} (${periodeLabel}) : ${modifDescription.value.trim()}`
+    const message = `${userName} demande une modification sur ${slots.length} creneau(x) : ${slotLabels}. Motif : ${modifDescription.value.trim()}`
     const adminIds = admins.map(a => a.id)
 
     await createBatch(adminIds, message, 'planning_modifie', `/planning/${user.value.id}`)
     toast.add({ title: 'Demande envoyee a l\'administrateur', color: 'success' })
     showModifModal.value = false
-    modifSlot.value = null
+    clearModifSelections()
   } catch {
     toast.add({ title: 'Erreur lors de l\'envoi de la demande', color: 'error' })
   } finally {
@@ -134,7 +169,7 @@ async function handleAddEntry(date: string, periode: PlanningPeriode) {
   if (!user.value) return
 
   if (isPastForUser(date)) {
-    openModifRequest(date, periode)
+    toggleModifSelection(date, periode)
     return
   }
 
@@ -187,7 +222,7 @@ async function handleClickEntry(entry: PlanningEntry) {
   if (!user.value) return
 
   if (isPastForUser(entry.date)) {
-    openModifRequest(entry.date, entry.periode, entry)
+    toggleModifSelection(entry.date, entry.periode, entry)
     return
   }
 
@@ -343,6 +378,7 @@ onMounted(() => {
             :entries="entries"
             :contract-start="contractStart"
             :contract-end="contractEnd"
+            :selected-slots="modifSelectedSet"
             @week-change="loadEntries"
             @add-entry="handleAddEntry"
             @click-entry="handleClickEntry"
@@ -384,33 +420,69 @@ onMounted(() => {
       </template>
     </UModal>
 
+    <!-- Floating bar for past date selections -->
+    <Transition
+      enter-active-class="transition-all duration-200 ease-out"
+      leave-active-class="transition-all duration-150 ease-in"
+      enter-from-class="translate-y-full opacity-0"
+      leave-to-class="translate-y-full opacity-0"
+    >
+      <div
+        v-if="modifSelections.size > 0"
+        class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 shadow-lg"
+      >
+        <span class="text-sm text-stone-600 dark:text-stone-300">
+          {{ modifSelections.size }} creneau(x) selectionne(s)
+        </span>
+        <UButton
+          label="Demander une modification"
+          icon="i-lucide-send"
+          size="sm"
+          @click="openModifModal"
+        />
+        <UButton
+          icon="i-lucide-x"
+          color="neutral"
+          variant="ghost"
+          size="xs"
+          @click="clearModifSelections"
+        />
+      </div>
+    </Transition>
+
     <!-- Modification request modal (past dates) -->
     <UModal :open="showModifModal" @update:open="showModifModal = $event">
       <template #content>
         <div class="p-6">
           <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-1">Demander une modification</h3>
           <p class="text-sm text-stone-500 dark:text-stone-400 mb-4">
-            Cette date est passee. Decrivez la modification souhaitee, elle sera transmise a l'administrateur.
+            Decrivez la modification souhaitee, elle sera transmise a l'administrateur.
           </p>
 
-          <div v-if="modifSlot" class="mb-4 p-3 rounded-lg bg-stone-50 dark:bg-stone-800/50 text-sm">
-            <p class="font-medium text-stone-900 dark:text-white">
-              {{ formatDateFr(modifSlot.date + 'T00:00:00') }}
-              <span class="text-stone-400 ml-1">({{ modifSlot.periode === 'matin' ? 'matin' : 'apres-midi' }})</span>
-            </p>
-            <p v-if="modifSlot.existingEntry" class="text-stone-500 dark:text-stone-400 mt-1">
-              Actuellement : {{ modifSlot.existingEntry.motif || modifSlot.existingEntry.type }}
-            </p>
-            <p v-else class="text-stone-500 dark:text-stone-400 mt-1">
-              Aucune entree actuellement
-            </p>
+          <div class="mb-4 space-y-1.5 max-h-40 overflow-y-auto">
+            <div
+              v-for="slot in sortedModifSlots"
+              :key="modifSlotKey(slot.date, slot.periode)"
+              class="flex items-center justify-between p-2 rounded-lg bg-stone-50 dark:bg-stone-800/50 text-sm"
+            >
+              <div>
+                <span class="font-medium text-stone-900 dark:text-white">
+                  {{ formatDateFr(slot.date + 'T00:00:00') }}
+                </span>
+                <span class="text-stone-400 ml-1">({{ slot.periode === 'matin' ? 'matin' : 'apres-midi' }})</span>
+              </div>
+              <span v-if="slot.existingEntry" class="text-xs text-stone-500 dark:text-stone-400">
+                {{ slot.existingEntry.motif || slot.existingEntry.type }}
+              </span>
+              <span v-else class="text-xs text-stone-400">vide</span>
+            </div>
           </div>
 
           <form class="space-y-4" @submit.prevent="handleModifSubmit">
             <UFormField label="Modification souhaitee">
               <UTextarea
                 v-model="modifDescription"
-                placeholder="Ex: Ajouter une journee de travail, Supprimer cette entree, Changer en teletravail..."
+                placeholder="Ex: Ajouter des journees de travail, Supprimer ces entrees, Changer en teletravail..."
                 required
               />
             </UFormField>

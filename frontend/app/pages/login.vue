@@ -34,11 +34,11 @@ async function handleLogin() {
   <div class="min-h-screen flex items-center justify-center px-4">
     <div class="w-full max-w-sm">
       <div class="text-center mb-8">
-        <UIcon name="i-lucide-building-2" class="size-12 text-primary mx-auto mb-4" />
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-          LeGeai Intranet
+        <img src="/logo.svg" alt="Le Geai" class="size-14 mx-auto mb-3" />
+        <h1 class="font-heading text-2xl font-bold text-stone-900 dark:text-stone-100">
+          Le Geai Intranet
         </h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        <p class="text-sm text-stone-500 dark:text-stone-400 mt-1">
           Connectez-vous pour acceder a votre espace
         </p>
       </div>

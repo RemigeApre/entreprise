@@ -52,34 +52,30 @@ const links = [
   }
 ]
 
-const colorClasses: Record<string, { iconBg: string, icon: string, border: string, accent: string, btn: string }> = {
+const colorClasses: Record<string, { iconBg: string, icon: string, border: string, accent: string }> = {
   amber: {
     iconBg: 'bg-amber-500/10',
-    icon: 'text-amber-500',
-    border: 'border-l-amber-400 dark:border-l-amber-600',
-    accent: 'group-hover:border-amber-300 dark:group-hover:border-amber-700',
-    btn: 'primary'
+    icon: 'text-amber-600 dark:text-amber-400',
+    border: 'border-l-amber-500 dark:border-l-amber-600',
+    accent: 'group-hover:border-amber-300 dark:group-hover:border-amber-700'
   },
   blue: {
     iconBg: 'bg-blue-500/10',
     icon: 'text-blue-500',
     border: 'border-l-blue-400 dark:border-l-blue-600',
-    accent: 'group-hover:border-blue-300 dark:group-hover:border-blue-700',
-    btn: 'blue'
+    accent: 'group-hover:border-blue-300 dark:group-hover:border-blue-700'
   },
   violet: {
     iconBg: 'bg-violet-500/10',
     icon: 'text-violet-500',
     border: 'border-l-violet-400 dark:border-l-violet-600',
-    accent: 'group-hover:border-violet-300 dark:group-hover:border-violet-700',
-    btn: 'violet'
+    accent: 'group-hover:border-violet-300 dark:group-hover:border-violet-700'
   },
   emerald: {
     iconBg: 'bg-emerald-500/10',
     icon: 'text-emerald-500',
     border: 'border-l-emerald-400 dark:border-l-emerald-600',
-    accent: 'group-hover:border-emerald-300 dark:group-hover:border-emerald-700',
-    btn: 'green'
+    accent: 'group-hover:border-emerald-300 dark:group-hover:border-emerald-700'
   }
 }
 </script>
@@ -97,12 +93,16 @@ const colorClasses: Record<string, { iconBg: string, icon: string, border: strin
       />
     </div>
 
-    <!-- Header -->
+    <!-- Header with logo -->
     <header class="pt-10 sm:pt-14 text-center shrink-0 px-4">
-      <h1 class="text-2xl sm:text-4xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
+      <div class="flex items-center justify-center mb-3">
+        <img src="/logo.svg" alt="Le Geai" class="size-10 sm:size-14" />
+      </div>
+      <h1 class="font-heading text-2xl sm:text-4xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
         Groupe Le Geai
       </h1>
-      <p class="text-xs sm:text-sm text-stone-400 dark:text-stone-500 mt-1 sm:mt-2">
+      <div class="w-10 h-px mx-auto mt-3 bg-amber-400/50 dark:bg-amber-600/40" />
+      <p class="text-xs sm:text-sm text-stone-400 dark:text-stone-500 mt-3">
         Bienvenue sur notre portail
       </p>
     </header>
@@ -159,7 +159,7 @@ const colorClasses: Record<string, { iconBg: string, icon: string, border: strin
           >
             <UIcon :name="link.icon" class="size-6" :class="colorClasses[link.color].icon" />
           </div>
-          <h2 class="text-base font-semibold text-stone-900 dark:text-stone-100">
+          <h2 class="font-heading text-base font-semibold text-stone-900 dark:text-stone-100">
             {{ link.title }}
           </h2>
           <UBadge v-if="link.badge" variant="subtle" color="violet" size="xs" class="mt-1">
