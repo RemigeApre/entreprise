@@ -1,0 +1,24 @@
+# Dev overrides - auto-loaded by "docker compose up" locally
+# NOT loaded in production (use: docker compose -f docker-compose.yml up -d)
+services:
+  directus:
+    ports:
+      - "8060:8055"
+    environment:
+      REFRESH_TOKEN_COOKIE_SECURE: "false"
+      REFRESH_TOKEN_COOKIE_DOMAIN: ""
+      LOG_LEVEL: "info"
+      CACHE_ENABLED: "false"
+
+  nginx:
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - web
+
+networks:
+  proxy:
+    external: false
+    driver: bridge

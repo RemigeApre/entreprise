@@ -6,14 +6,15 @@ export default defineNuxtConfig({
   ],
 
   devtools: {
-    enabled: true
+    enabled: process.env.NODE_ENV !== 'production'
   },
 
   css: ['~/assets/css/main.css'],
 
   runtimeConfig: {
+    directusUrl: process.env.NUXT_DIRECTUS_URL || 'http://localhost:8055',
     public: {
-      directusUrl: process.env.NUXT_PUBLIC_DIRECTUS_URL || 'http://localhost:8055'
+      directusUrl: process.env.NUXT_PUBLIC_DIRECTUS_URL || 'http://localhost/api'
     }
   },
 

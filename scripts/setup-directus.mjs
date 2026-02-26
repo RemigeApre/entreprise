@@ -5,12 +5,15 @@
  * Cree le schema (collections, champs, relations), les roles,
  * les permissions, les donnees de seed et les utilisateurs de test.
  *
- * Usage: node scripts/setup-directus.mjs
+ * Usage:
+ *   Dev:  node scripts/setup-directus.mjs
+ *   Prod: docker compose -f docker-compose.yml exec directus npx -- (or use curl method below)
+ *         OR: DIRECTUS_URL=http://localhost:8055 ADMIN_EMAIL=... ADMIN_PASSWORD=... node scripts/setup-directus.mjs
  */
 
 const BASE_URL = process.env.DIRECTUS_URL || 'http://localhost:8060'
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@legeai.fr'
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Admin2026LeGeai'
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@legeai-editions.com'
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'CHANGE_ME'
 
 let token = ''
 
