@@ -1,6 +1,9 @@
 <script setup lang="ts">
 const { user, logout, isDirecteur } = useAuth()
 const colorMode = useColorMode()
+const sidebarOpen = ref(false)
+const route = useRoute()
+watch(() => route.fullPath, () => { sidebarOpen.value = false })
 
 const isDark = computed({
   get: () => colorMode.value === 'dark',
@@ -61,7 +64,7 @@ const userMenuItems = [
 
 <template>
   <UDashboardGroup>
-    <UDashboardSidebar>
+    <UDashboardSidebar v-model:open="sidebarOpen">
       <template #header>
         <NuxtLink to="/dashboard" class="flex items-center gap-2 px-1">
           <UIcon name="i-lucide-building-2" class="size-6 text-primary" />
@@ -110,6 +113,15 @@ const userMenuItems = [
     </UDashboardSidebar>
 
     <UDashboardPanel>
+      <!-- Mobile sidebar toggle -->
+      <div class="fixed top-3 left-3 z-50 lg:hidden">
+        <button
+          class="flex items-center justify-center size-10 rounded-lg bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm active:scale-95 transition-transform"
+          @click="sidebarOpen = true"
+        >
+          <UIcon name="i-lucide-menu" class="size-5 text-stone-700 dark:text-stone-300" />
+        </button>
+      </div>
       <slot />
     </UDashboardPanel>
   </UDashboardGroup>

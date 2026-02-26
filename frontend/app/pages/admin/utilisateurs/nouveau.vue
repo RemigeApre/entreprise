@@ -34,6 +34,10 @@ const contractTypeOptions = [
 
 const submitting = ref(false)
 
+const hasTrialPeriod = computed(() => {
+  return form.type_contrat !== 'Stage' && form.type_contrat !== 'Freelance'
+})
+
 const form = reactive({
   first_name: '',
   last_name: '',
@@ -76,7 +80,7 @@ async function handleSubmit() {
       type_contrat: form.type_contrat || null,
       date_debut_contrat: form.date_debut_contrat || null,
       date_fin_contrat: form.date_fin_contrat || null,
-      date_fin_periode_essai: form.date_fin_periode_essai || null,
+      date_fin_periode_essai: hasTrialPeriod.value ? (form.date_fin_periode_essai || null) : null,
       actif: form.actif
     }
 
@@ -198,7 +202,7 @@ async function handleSubmit() {
               </UFormField>
             </div>
 
-            <UFormField label="Date de fin de periode d'essai">
+            <UFormField v-if="hasTrialPeriod" label="Date de fin de periode d'essai">
               <UInput
                 v-model="form.date_fin_periode_essai"
                 type="date"

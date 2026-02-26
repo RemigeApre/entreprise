@@ -41,6 +41,44 @@ const contractTypeOptions = [
 const submitting = ref(false)
 const deleting = ref(false)
 const showDeleteModal = ref(false)
+const showPasswordModal = ref(false)
+const newPassword = ref('')
+const passwordSaving = ref(false)
+
+const hasTrialPeriod = computed(() => {
+  return form.type_contrat !== 'Stage' && form.type_contrat !== 'Freelance'
+})
+
+function generatePassword(length = 16) {
+  const chars = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&*'
+  let pwd = ''
+  for (let i = 0; i < length; i++) {
+    pwd += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return pwd
+}
+
+function openPasswordModal() {
+  newPassword.value = generatePassword()
+  showPasswordModal.value = true
+}
+
+async function handlePasswordSubmit() {
+  if (!newPassword.value || newPassword.value.length < 8) {
+    toast.add({ title: 'Le mot de passe doit contenir au moins 8 caracteres', color: 'warning' })
+    return
+  }
+  passwordSaving.value = true
+  try {
+    await updateExistingUser(userId, { password: newPassword.value })
+    toast.add({ title: 'Mot de passe mis a jour', color: 'success' })
+    showPasswordModal.value = false
+  } catch {
+    toast.add({ title: 'Erreur lors de la mise a jour du mot de passe', color: 'error' })
+  } finally {
+    passwordSaving.value = false
+  }
+}
 
 const form = reactive({
   first_name: '',
@@ -91,7 +129,7 @@ async function handleSubmit() {
       type_contrat: form.type_contrat || null,
       date_debut_contrat: form.date_debut_contrat || null,
       date_fin_contrat: form.date_fin_contrat || null,
-      date_fin_periode_essai: form.date_fin_periode_essai || null,
+      date_fin_periode_essai: hasTrialPeriod.value ? (form.date_fin_periode_essai || null) : null,
       actif: form.actif
     }
 
@@ -198,6 +236,27 @@ function getUserName(u: UserProfile) {
 
         <UCard>
           <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Mot de passe</h3>
+            </div>
+          </template>
+
+          <div class="flex items-center justify-between">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              Reinitialiser ou generer un nouveau mot de passe pour cet utilisateur.
+            </p>
+            <UButton
+              label="Reinitialiser"
+              icon="i-lucide-key-round"
+              color="neutral"
+              variant="subtle"
+              @click="openPasswordModal"
+            />
+          </div>
+        </UCard>
+
+        <UCard>
+          <template #header>
             <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Contrat</h3>
           </template>
 
@@ -227,7 +286,7 @@ function getUserName(u: UserProfile) {
               </UFormField>
             </div>
 
-            <UFormField label="Date de fin de periode d'essai">
+            <UFormField v-if="hasTrialPeriod" label="Date de fin de periode d'essai">
               <UInput
                 v-model="form.date_fin_periode_essai"
                 type="date"
@@ -319,6 +378,66 @@ function getUserName(u: UserProfile) {
               color="red"
               :loading="deleting"
               @click="handleDelete"
+            />
+          </div>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Reinitialisation mot de passe -->
+    <UModal v-model:open="showPasswordModal">
+      <template #content>
+        <div class="p-6 space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="rounded-full bg-amber-100 dark:bg-amber-900/30 p-2">
+              <UIcon name="i-lucide-key-round" class="size-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Reinitialiser le mot de passe</h3>
+          </div>
+
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Un mot de passe a ete genere automatiquement. Vous pouvez le modifier avant de l'enregistrer.
+          </p>
+
+          <UFormField label="Nouveau mot de passe">
+            <UInput
+              v-model="newPassword"
+              type="text"
+              placeholder="Mot de passe"
+            />
+          </UFormField>
+
+          <div class="flex items-center gap-2">
+            <UButton
+              label="Regenerer"
+              icon="i-lucide-refresh-cw"
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              @click="newPassword = generatePassword()"
+            />
+            <UButton
+              label="Copier"
+              icon="i-lucide-copy"
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              @click="navigator.clipboard.writeText(newPassword)"
+            />
+          </div>
+
+          <div class="flex justify-end gap-3 pt-2">
+            <UButton
+              label="Annuler"
+              color="neutral"
+              variant="subtle"
+              @click="showPasswordModal = false"
+            />
+            <UButton
+              label="Enregistrer"
+              icon="i-lucide-check"
+              :loading="passwordSaving"
+              @click="handlePasswordSubmit"
             />
           </div>
         </div>

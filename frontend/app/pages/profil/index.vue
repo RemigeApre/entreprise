@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { updateMe } from '@directus/sdk'
 import type { UserProfile } from '~/utils/types'
 
+const { $directus } = useNuxtApp()
 const { user, logout, roleName } = useAuth()
+const toast = useToast()
 
 function getUserName(u: UserProfile) {
   return [u.first_name, u.last_name].filter(Boolean).join(' ') || u.email
@@ -35,6 +38,38 @@ function getRoleColor(name: string) {
     Stagiaire: 'yellow'
   }
   return colors[name] || 'neutral'
+}
+
+const currentPassword = ref('')
+const newPassword = ref('')
+const confirmPassword = ref('')
+const passwordSaving = ref(false)
+
+async function handlePasswordChange() {
+  if (!currentPassword.value) {
+    toast.add({ title: 'Veuillez saisir votre mot de passe actuel', color: 'warning' })
+    return
+  }
+  if (!newPassword.value || newPassword.value.length < 8) {
+    toast.add({ title: 'Le nouveau mot de passe doit contenir au moins 8 caracteres', color: 'warning' })
+    return
+  }
+  if (newPassword.value !== confirmPassword.value) {
+    toast.add({ title: 'Les mots de passe ne correspondent pas', color: 'warning' })
+    return
+  }
+  passwordSaving.value = true
+  try {
+    await $directus.request(updateMe({ password: newPassword.value }))
+    toast.add({ title: 'Mot de passe mis a jour avec succes', color: 'success' })
+    currentPassword.value = ''
+    newPassword.value = ''
+    confirmPassword.value = ''
+  } catch {
+    toast.add({ title: 'Erreur lors de la mise a jour du mot de passe', color: 'error' })
+  } finally {
+    passwordSaving.value = false
+  }
 }
 
 const loggingOut = ref(false)
@@ -135,7 +170,7 @@ async function handleLogout() {
               <span class="text-gray-500 dark:text-gray-400">Fin de contrat</span>
               <p class="font-medium text-gray-900 dark:text-white">{{ formatDateFr(user.date_fin_contrat) }}</p>
             </div>
-            <div>
+            <div v-if="user.type_contrat !== 'Stage' && user.type_contrat !== 'Freelance'">
               <span class="text-gray-500 dark:text-gray-400">Fin de periode d'essai</span>
               <p class="font-medium text-gray-900 dark:text-white">{{ formatDateFr(user.date_fin_periode_essai) }}</p>
             </div>
@@ -144,6 +179,51 @@ async function handleLogout() {
               <UBadge :color="user.actif ? 'green' : 'red'" variant="subtle" size="sm">
                 {{ user.actif ? 'Actif' : 'Inactif' }}
               </UBadge>
+            </div>
+          </div>
+        </UCard>
+
+        <!-- Securite -->
+        <UCard>
+          <template #header>
+            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Securite</h3>
+          </template>
+
+          <div class="space-y-4">
+            <UFormField label="Mot de passe actuel">
+              <UInput
+                v-model="currentPassword"
+                type="password"
+                placeholder="Mot de passe actuel"
+              />
+            </UFormField>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <UFormField label="Nouveau mot de passe">
+                <UInput
+                  v-model="newPassword"
+                  type="password"
+                  placeholder="Minimum 8 caracteres"
+                />
+              </UFormField>
+
+              <UFormField label="Confirmer le mot de passe">
+                <UInput
+                  v-model="confirmPassword"
+                  type="password"
+                  placeholder="Confirmer"
+                />
+              </UFormField>
+            </div>
+
+            <div class="flex justify-end">
+              <UButton
+                label="Modifier le mot de passe"
+                icon="i-lucide-key-round"
+                :loading="passwordSaving"
+                :disabled="!currentPassword || !newPassword || !confirmPassword"
+                @click="handlePasswordChange"
+              />
             </div>
           </div>
         </UCard>

@@ -14,7 +14,7 @@ export default defineNuxtConfig({
   icon: {
     clientBundle: {
       scan: {
-        globInclude: ['app/**/*.{vue,ts,tsx}']
+        globInclude: ['app/**/*.{vue,ts,tsx}', 'node_modules/@nuxt/ui/dist/**/*.mjs']
       },
       sizeLimitKb: 0
     }
