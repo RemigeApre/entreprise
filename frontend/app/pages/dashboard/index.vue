@@ -67,8 +67,11 @@ const greeting = computed(() => {
         <DashboardProspectSummary />
       </div>
 
-      <!-- Job listings (directors only) -->
-      <DashboardJobListings v-if="isDirecteur" />
+      <!-- Stage tracker + Job listings (directors only) -->
+      <div v-if="isDirecteur" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <DashboardStageTracker />
+        <DashboardJobListings />
+      </div>
     </div>
   </div>
 </template>

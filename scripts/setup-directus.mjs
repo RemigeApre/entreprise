@@ -659,7 +659,8 @@ async function setupPermissions(roleIds) {
       { collection: 'project_files', action: 'create', fields: ['*'], permissions: {} },
       { collection: 'project_files', action: 'read', fields: ['*'], permissions: {} },
 
-      // Notifications: read own, update own (mark as read)
+      // Notifications: create, read own, update own (mark as read)
+      { collection: 'notifications', action: 'create', fields: ['*'], permissions: {} },
       { collection: 'notifications', action: 'read', fields: ['*'], permissions: { utilisateur: { _eq: '$CURRENT_USER' } } },
       { collection: 'notifications', action: 'update', fields: ['lu'], permissions: { utilisateur: { _eq: '$CURRENT_USER' } } },
 
@@ -802,6 +803,22 @@ async function fixExistingPermissions() {
           const newFields = [...perm.fields, 'password']
           await safeApi('PATCH', `/permissions/${perm.id}`, { fields: newFields }, `Fix update directus_users: ajout champ password (id: ${perm.id})`)
         }
+      }
+    }
+
+    // Check if notifications create permission exists
+    const hasNotifCreate = perms.some(p => p.collection === 'notifications' && p.action === 'create')
+    if (!hasNotifCreate) {
+      // Find the authenticated policy ID from existing notifications read permission
+      const notifReadPerm = perms.find(p => p.collection === 'notifications' && p.action === 'read')
+      if (notifReadPerm) {
+        await safeApi('POST', '/permissions', {
+          policy: notifReadPerm.policy,
+          collection: 'notifications',
+          action: 'create',
+          fields: ['*'],
+          permissions: {}
+        }, 'Fix: ajout permission create notifications')
       }
     }
   } catch (e) {
