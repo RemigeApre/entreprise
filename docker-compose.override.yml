@@ -4,6 +4,8 @@ services:
   directus:
     ports:
       - "8060:8055"
+    volumes:
+      - ./scripts:/scripts:ro
     environment:
       REFRESH_TOKEN_COOKIE_SECURE: "false"
       REFRESH_TOKEN_COOKIE_DOMAIN: ""

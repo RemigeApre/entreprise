@@ -7,7 +7,7 @@
 docker compose up -d
 
 # Premiere fois uniquement : initialiser le schema et les permissions Directus
-node scripts/setup-directus.mjs
+docker compose exec -e DIRECTUS_URL=http://localhost:8055 directus node /scripts/setup-directus.mjs
 ```
 
 Acces :
@@ -30,7 +30,7 @@ docker compose up -d --build frontend
 
 ```bash
 # Relancer le script de setup (idempotent, ne casse rien)
-node scripts/setup-directus.mjs
+docker compose exec -e DIRECTUS_URL=http://localhost:8055 directus node /scripts/setup-directus.mjs
 ```
 
 ---

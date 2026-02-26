@@ -53,6 +53,7 @@ services:
     volumes:
       - uploads:/directus/uploads
       - ./directus/extensions:/directus/extensions
+      - ./scripts:/scripts:ro
     networks:
       - internal
       - web
