@@ -8,6 +8,8 @@ const { getAdminUsers } = useUsers()
 const { createBatch } = useNotifications()
 const toast = useToast()
 
+const weekViewRef = ref<{ weekNumber: number; weekLabel: string; previousWeek: () => void; nextWeek: () => void; goToToday: () => void } | null>(null)
+
 const entries = ref<PlanningEntry[]>([])
 const loading = ref(false)
 const currentMonday = ref(getMonday(new Date()))
@@ -314,68 +316,97 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col h-full">
-    <PageHeader title="Calendrier">
-      <template #left>
-        <span class="text-xs text-stone-400 dark:text-stone-500">S{{ weekNumber }} · {{ weekLabel }}</span>
-      </template>
-      <template #right>
-        <div class="flex items-center gap-2">
+    <!-- Page actions teleported into the layout tab bar -->
+    <ClientOnly><Teleport to="#page-actions">
+      <div class="flex items-center gap-1.5">
+        <UButton
+          v-if="isDirecteur"
+          label="Gestion"
+          icon="i-lucide-calendar-cog"
+          color="neutral"
+          variant="ghost"
+          size="xs"
+          to="/planning/admin"
+        />
+        <UButton
+          label="Conges"
+          icon="i-lucide-list"
+          color="neutral"
+          variant="ghost"
+          size="xs"
+          to="/planning/conges"
+        />
+        <UTooltip text="Copier la semaine precedente">
           <UButton
-            v-if="isDirecteur"
-            label="Gestion"
-            icon="i-lucide-calendar-cog"
+            icon="i-lucide-copy"
             color="neutral"
             variant="ghost"
             size="xs"
-            to="/planning/admin"
+            :loading="copyLoading"
+            @click="handleCopyPreviousWeek"
           />
-          <UButton
-            label="Conges"
-            icon="i-lucide-list"
-            color="neutral"
-            variant="ghost"
-            size="xs"
-            to="/planning/conges"
-          />
-          <UTooltip text="Copier la semaine precedente">
+        </UTooltip>
+      </div>
+    </Teleport></ClientOnly>
+
+    <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+      <!-- Navigation bar: week nav + date left, activity pills right -->
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-0.5">
             <UButton
-              icon="i-lucide-copy"
+              icon="i-lucide-chevron-left"
               color="neutral"
               variant="ghost"
               size="xs"
-              :loading="copyLoading"
-              @click="handleCopyPreviousWeek"
+              @click="weekViewRef?.previousWeek()"
             />
-          </UTooltip>
+            <UButton
+              label="Aujourd'hui"
+              color="neutral"
+              variant="soft"
+              size="xs"
+              @click="weekViewRef?.goToToday()"
+            />
+            <UButton
+              icon="i-lucide-chevron-right"
+              color="neutral"
+              variant="ghost"
+              size="xs"
+              @click="weekViewRef?.nextWeek()"
+            />
+          </div>
+          <span class="text-sm font-medium text-stone-500 dark:text-stone-400">
+            S{{ weekNumber }} <span class="text-stone-300 dark:text-stone-600 mx-0.5">·</span> {{ weekLabel }}
+          </span>
         </div>
-      </template>
-    </PageHeader>
 
-    <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
-      <!-- Quick actions - compact pills -->
-      <div class="flex flex-wrap items-center gap-1.5">
-        <button
-          v-for="action in quickActions"
-          :key="action.key"
-          class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors"
-          :class="activeAction === action.key
-            ? 'bg-primary text-white'
-            : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700'"
-          @click="activeAction = action.key"
-        >
-          <UIcon :name="action.icon" class="size-3.5" />
-          {{ action.label }}
-        </button>
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button
+            v-for="action in quickActions"
+            :key="action.key"
+            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors"
+            :class="activeAction === action.key
+              ? 'bg-primary text-white'
+              : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700'"
+            @click="activeAction = action.key"
+          >
+            <UIcon :name="action.icon" class="size-3.5" />
+            {{ action.label }}
+          </button>
+        </div>
       </div>
 
       <!-- Planning grid + optional hours -->
       <div class="flex gap-6">
         <div class="flex-1">
           <PlanningWeekView
+            ref="weekViewRef"
             :entries="entries"
             :contract-start="contractStart"
             :contract-end="contractEnd"
             :selected-slots="modifSelectedSet"
+            hide-nav
             @week-change="loadEntries"
             @add-entry="handleAddEntry"
             @click-entry="handleClickEntry"

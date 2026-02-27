@@ -8,6 +8,7 @@ const props = defineProps<{
   contractStart?: string | null
   contractEnd?: string | null
   selectedSlots?: Set<string>
+  hideNav?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -29,7 +30,7 @@ const weekLabel = computed(() => {
   return `${startStr} - ${endStr}`
 })
 
-defineExpose({ weekNumber })
+defineExpose({ weekNumber, weekLabel, previousWeek, nextWeek, goToToday })
 
 function previousWeek() {
   currentMonday.value = addDays(currentMonday.value, -7)
@@ -93,7 +94,7 @@ onMounted(() => {
 <template>
   <div>
     <!-- Navigation -->
-    <div class="flex items-center mb-4">
+    <div v-if="!hideNav" class="flex items-center mb-4">
       <div class="flex items-center gap-1">
         <UButton
           icon="i-lucide-chevron-left"

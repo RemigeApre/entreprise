@@ -199,12 +199,6 @@ const userMenuItems = [
               class="relative flex items-center justify-center size-9 rounded-lg text-stone-400 dark:text-stone-500 hover:bg-stone-200/60 dark:hover:bg-stone-800/60 hover:text-stone-700 dark:hover:text-stone-300 transition-colors"
             >
               <UIcon name="i-lucide-settings" class="size-4" />
-              <span
-                v-if="hiddenCount > 0"
-                class="absolute -top-0.5 -right-0.5 size-3.5 rounded-full bg-amber-500 text-white text-[9px] flex items-center justify-center font-bold"
-              >
-                {{ hiddenCount }}
-              </span>
             </button>
           </UTooltip>
           <template #content>
@@ -298,27 +292,27 @@ const userMenuItems = [
 
       <!-- Domain tab bar (desktop, shown when ≥ 2 tabs) -->
       <div v-if="activeTabs.length >= 2" class="hidden lg:block border-b border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-950 shrink-0">
-        <div class="flex items-center gap-0.5 px-4 -mb-px overflow-x-auto">
-          <span class="text-[11px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider mr-3 shrink-0 py-2.5">
-            {{ activeDomain?.label }}
-          </span>
-          <component
-            :is="tab.disabled ? 'span' : 'NuxtLink'"
-            v-for="tab in activeTabs"
-            :key="tab.to"
-            :to="tab.disabled ? undefined : tab.to"
-            class="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium border-b-2 transition-colors shrink-0"
-            :class="[
-              tab.disabled
-                ? 'text-stone-300 dark:text-stone-700 cursor-not-allowed border-transparent'
-                : isTabActive(tab)
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white hover:border-stone-300 dark:hover:border-stone-600'
-            ]"
-          >
-            <UIcon :name="tab.icon" class="size-4" />
-            {{ tab.label }}
-          </component>
+        <div class="flex items-end px-4 overflow-x-auto">
+          <div class="flex items-end gap-0.5 -mb-px">
+            <component
+              :is="tab.disabled ? 'span' : 'NuxtLink'"
+              v-for="tab in activeTabs"
+              :key="tab.to"
+              :to="tab.disabled ? undefined : tab.to"
+              class="flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-t-lg border border-b-0 transition-colors shrink-0"
+              :class="[
+                tab.disabled
+                  ? 'text-stone-300 dark:text-stone-700 cursor-not-allowed border-transparent'
+                  : isTabActive(tab)
+                    ? 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 text-stone-900 dark:text-white'
+                    : 'border-transparent text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-50 dark:hover:bg-stone-900/50'
+              ]"
+            >
+              <UIcon :name="tab.icon" class="size-4" />
+              {{ tab.label }}
+            </component>
+          </div>
+          <div id="page-actions" class="ml-auto flex items-center gap-2 pb-1.5" />
         </div>
       </div>
 
