@@ -32,14 +32,6 @@ interface Domain {
 const domains = computed<Domain[]>(() => {
   const list: Domain[] = [
     {
-      id: 'dashboard',
-      label: 'Tableau de bord',
-      icon: 'i-lucide-layout-dashboard',
-      to: '/dashboard',
-      prefixes: ['/dashboard'],
-      tabs: []
-    },
-    {
       id: 'rh',
       label: 'RH',
       icon: 'i-lucide-users',
@@ -106,6 +98,8 @@ const domains = computed<Domain[]>(() => {
 
 // ─── Active state logic ─────────────────────────────────
 
+const isOnDashboard = computed(() => route.path === '/dashboard' || route.path.startsWith('/dashboard/'))
+
 const activeDomain = computed(() => {
   const path = route.path
   return domains.value.find(d =>
@@ -155,10 +149,19 @@ const userMenuItems = [
     <!-- DESKTOP: Icon Rail                                         -->
     <!-- ========================================================== -->
     <aside class="hidden lg:flex flex-col items-center w-[60px] shrink-0 border-r border-stone-200 dark:border-stone-800 bg-stone-50/80 dark:bg-stone-900/40">
-      <!-- Logo -->
-      <NuxtLink to="/dashboard" class="flex items-center justify-center h-14 shrink-0">
-        <img src="/logo.svg" alt="Le Geai" class="size-7" />
-      </NuxtLink>
+      <!-- Logo = Dashboard -->
+      <UTooltip text="Tableau de bord" :delay-duration="300">
+        <NuxtLink to="/dashboard" class="flex items-center justify-center h-14 shrink-0 group">
+          <img
+            src="/logo.svg"
+            alt="Le Geai"
+            class="size-8 transition-all duration-200"
+            :class="isOnDashboard
+              ? 'scale-110'
+              : 'grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105'"
+          />
+        </NuxtLink>
+      </UTooltip>
 
       <div class="w-8 h-px bg-stone-200 dark:bg-stone-800 mb-2" />
 

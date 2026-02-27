@@ -1,12 +1,5 @@
 <script setup lang="ts">
 const { user, isDirecteur, roleName } = useAuth()
-const colorMode = useColorMode()
-
-const isDark = computed(() => colorMode.value === 'dark')
-
-function toggleTheme() {
-  colorMode.preference = isDark.value ? 'light' : 'dark'
-}
 
 const userDisplayName = computed(() => {
   if (!user.value) return ''
@@ -27,17 +20,9 @@ const greeting = computed(() => {
 
 <template>
   <div class="flex flex-col h-full">
-    <UDashboardNavbar title="Tableau de bord">
-      <template #right>
-        <UButton
-          :icon="isDark ? 'i-lucide-sun' : 'i-lucide-moon'"
-          color="neutral"
-          variant="ghost"
-          size="sm"
-          @click="toggleTheme"
-        />
-      </template>
-    </UDashboardNavbar>
+    <div class="h-12 flex items-center justify-center border-b border-stone-200 dark:border-stone-800 shrink-0">
+      <span class="font-heading font-bold text-lg tracking-tight text-stone-900 dark:text-white">Le Geai</span>
+    </div>
 
     <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
       <!-- Greeting -->
