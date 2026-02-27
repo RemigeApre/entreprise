@@ -509,6 +509,29 @@ async function createCollections() {
     ]
   }, 'Collection "schedule_entries"')
 
+  // ── monitored_sites ──
+  await safeApi('POST', '/collections', {
+    collection: 'monitored_sites',
+    schema: {},
+    meta: { icon: 'monitoring', note: 'Sites web a surveiller', sort: 12 },
+    fields: [
+      uuidPK(),
+      { field: 'nom', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, sort: 1 } },
+      { field: 'url', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, sort: 2, options: { placeholder: 'https://example.com' } } },
+      { field: 'actif', type: 'boolean', schema: { is_nullable: false, default_value: true }, meta: { interface: 'boolean', display: 'boolean', width: 'half', sort: 3, special: ['cast-boolean'] } }
+    ]
+  }, 'Collection "monitored_sites"')
+
+  // ── monitored_sites_users (junction M2M) ──
+  await safeApi('POST', '/collections', {
+    collection: 'monitored_sites_users',
+    schema: {},
+    meta: { icon: 'group', note: 'Utilisateurs autorises par site', sort: 13, hidden: true },
+    fields: [
+      autoPK()
+    ]
+  }, 'Collection "monitored_sites_users"')
+
   // ── offres_emploi ──
   await safeApi('POST', '/collections', {
     collection: 'offres_emploi',
@@ -584,6 +607,10 @@ async function createRelations() {
 
     // notifications
     { coll: 'notifications', field: 'utilisateur', related: 'directus_users', template: '{{first_name}} {{last_name}}' },
+
+    // monitored_sites_users (junction)
+    { coll: 'monitored_sites_users', field: 'monitored_site', related: 'monitored_sites', template: '{{nom}}', one_field: 'utilisateurs' },
+    { coll: 'monitored_sites_users', field: 'utilisateur', related: 'directus_users', template: '{{first_name}} {{last_name}}' },
 
     // schedule_entries
     { coll: 'schedule_entries', field: 'utilisateur', related: 'directus_users', template: '{{first_name}} {{last_name}}' },
@@ -760,6 +787,10 @@ async function setupPermissions(roleIds) {
       { collection: 'schedule_entries', action: 'read', fields: ['*'], permissions: {} },
       { collection: 'schedule_entries', action: 'update', fields: ['*'], permissions: { utilisateur: { _eq: '$CURRENT_USER' } } },
       { collection: 'schedule_entries', action: 'delete', permissions: { utilisateur: { _eq: '$CURRENT_USER' } } },
+
+      // Monitored sites: read active
+      { collection: 'monitored_sites', action: 'read', fields: ['*'], permissions: { actif: { _eq: true } } },
+      { collection: 'monitored_sites_users', action: 'read', fields: ['*'], permissions: {} },
 
       // Offres emploi: read published
       { collection: 'offres_emploi', action: 'read', fields: ['*'], permissions: { publie: { _eq: true } } }
@@ -967,6 +998,24 @@ async function seedWikiPages() {
   console.log('')
 }
 
+// ─── Step 7c: Seed Monitored Sites ──────────────────────
+
+async function seedMonitoredSites() {
+  console.log('🌐 Seed des sites surveilles...')
+
+  const sites = [
+    { nom: 'Le Geai Editions', url: 'https://legeai-editions.com', actif: true },
+    { nom: 'Le Geai Informatique', url: 'https://legeai-informatique.fr', actif: true },
+    { nom: 'Bergfrid', url: 'https://bergfrid.com', actif: true }
+  ]
+
+  for (const site of sites) {
+    await safeApi('POST', '/items/monitored_sites', site, `Site "${site.nom}"`)
+  }
+
+  console.log('')
+}
+
 // ─── Step 8: Test Users ─────────────────────────────────
 
 async function createTestUsers(roleIds) {
@@ -1143,6 +1192,7 @@ async function main() {
   await setupPermissions(roleIds)
   await seedCategories()
   await seedWikiPages()
+  await seedMonitoredSites()
   await createTestUsers(roleIds)
 
   await fixExistingPermissions()

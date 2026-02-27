@@ -3,6 +3,7 @@ import type { DashboardModule } from '~/composables/useDashboardPreferences'
 
 const { user, isDirecteur } = useAuth()
 const { isVisible, hide } = useDashboardPreferences()
+const { hasSites } = useSiteMonitor()
 
 const userDisplayName = computed(() => {
   if (!user.value) return ''
@@ -127,6 +128,18 @@ const adminRow = computed(() => {
         </button>
         <DashboardProspectSummary />
       </div>
+    </div>
+
+    <!-- Site status (only if user has sites) -->
+    <div v-if="hasSites && isVisible('siteStatus')" class="relative group">
+      <button
+        class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+        title="Masquer"
+        @click="hideModule('siteStatus')"
+      >
+        <UIcon name="i-lucide-x" class="size-3.5" />
+      </button>
+      <DashboardSiteStatus />
     </div>
 
     <!-- Stage tracker + Job listings (directors only) -->

@@ -193,6 +193,20 @@ export interface WikiPage {
   date_updated: string | null
 }
 
+export interface MonitoredSite {
+  id: string
+  nom: string
+  url: string
+  actif: boolean
+  utilisateurs?: MonitoredSiteUser[]
+}
+
+export interface MonitoredSiteUser {
+  id: number
+  monitored_site: MonitoredSite | string
+  utilisateur: UserProfile | string
+}
+
 export type ScheduleCategorie = 'reunion_client' | 'reunion_interne' | 'reunion_financement' | 'indispo_perso' | 'autre'
 
 export interface ScheduleEntry {
@@ -223,5 +237,7 @@ export interface DirectusSchema {
   notifications: Notification[]
   wiki_pages: WikiPage[]
   schedule_entries: ScheduleEntry[]
+  monitored_sites: MonitoredSite[]
+  monitored_sites_users: MonitoredSiteUser[]
   directus_users: UserProfile[]
 }

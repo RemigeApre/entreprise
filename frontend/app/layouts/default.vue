@@ -6,6 +6,7 @@ const colorMode = useColorMode()
 const route = useRoute()
 const mobileOpen = ref(false)
 const { isVisible, show, hide, hiddenCount, showAll, planningMode, setPlanningMode, presenceMode, setPresenceMode } = useDashboardPreferences()
+const { hasSites } = useSiteMonitor()
 
 watch(() => route.fullPath, () => { mobileOpen.value = false })
 
@@ -56,7 +57,7 @@ const domains = computed<Domain[]>(() => {
       tabs: [
         { label: 'Projets', icon: 'i-lucide-folder-kanban', to: '/projets' },
         { label: 'Incidents', icon: 'i-lucide-ticket', to: '/projets/tickets', disabled: true },
-        { label: 'Sites', icon: 'i-lucide-activity', to: '/projets/status', disabled: true }
+        ...(hasSites.value || isDirecteur.value ? [{ label: 'Sites', icon: 'i-lucide-activity', to: '/projets/status' }] : [])
       ]
     }
   ]
