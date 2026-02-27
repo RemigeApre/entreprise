@@ -292,26 +292,29 @@ const userMenuItems = [
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
 
       <!-- Domain tab bar (desktop, shown when ≥ 2 tabs) -->
-      <div v-if="activeTabs.length >= 2" class="hidden lg:block border-b border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-950 shrink-0">
-        <div class="flex items-end px-4 overflow-x-auto">
+      <div v-if="activeTabs.length >= 2" class="hidden lg:block border-b border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-950 shrink-0 relative z-10">
+        <div class="flex items-end px-4">
           <div class="flex items-end gap-0.5 -mb-px">
-            <component
-              :is="tab.disabled ? 'span' : 'NuxtLink'"
-              v-for="tab in activeTabs"
-              :key="tab.to"
-              :to="tab.disabled ? undefined : tab.to"
-              class="flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-t-lg border border-b-0 transition-colors shrink-0"
-              :class="[
-                tab.disabled
-                  ? 'text-stone-300 dark:text-stone-700 cursor-not-allowed border-transparent'
-                  : isTabActive(tab)
-                    ? 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 text-stone-900 dark:text-white cursor-default'
-                    : 'border-transparent text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-50 dark:hover:bg-stone-900/50 cursor-pointer'
-              ]"
-            >
-              <UIcon :name="tab.icon" class="size-4" />
-              {{ tab.label }}
-            </component>
+            <template v-for="tab in activeTabs" :key="tab.to">
+              <span
+                v-if="tab.disabled"
+                class="flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-t-lg border border-b-0 border-transparent text-stone-300 dark:text-stone-700 cursor-not-allowed shrink-0"
+              >
+                <UIcon :name="tab.icon" class="size-4" />
+                {{ tab.label }}
+              </span>
+              <NuxtLink
+                v-else
+                :to="tab.to"
+                class="flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-t-lg border border-b-0 transition-colors shrink-0"
+                :class="isTabActive(tab)
+                  ? 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 text-stone-900 dark:text-white cursor-default'
+                  : 'border-transparent text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-50 dark:hover:bg-stone-900/50 cursor-pointer'"
+              >
+                <UIcon :name="tab.icon" class="size-4" />
+                {{ tab.label }}
+              </NuxtLink>
+            </template>
           </div>
           <div id="page-actions" class="ml-auto flex items-center gap-2 pb-1.5" />
         </div>
@@ -398,24 +401,27 @@ const userMenuItems = [
                   {{ domain.label }}
                 </p>
                 <div class="space-y-0.5">
-                  <component
-                    :is="tab.disabled ? 'span' : 'NuxtLink'"
-                    v-for="tab in domain.tabs"
-                    :key="tab.to"
-                    :to="tab.disabled ? undefined : tab.to"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors"
-                    :class="[
-                      tab.disabled
-                        ? 'text-stone-300 dark:text-stone-700 cursor-not-allowed'
-                        : isTabActive(tab)
-                          ? 'bg-primary/10 text-primary font-medium'
-                          : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'
-                    ]"
-                    @click="!tab.disabled && (mobileOpen = false)"
-                  >
-                    <UIcon :name="tab.icon" class="size-4" />
-                    {{ tab.label }}
-                  </component>
+                  <template v-for="tab in domain.tabs" :key="tab.to">
+                    <span
+                      v-if="tab.disabled"
+                      class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-stone-300 dark:text-stone-700 cursor-not-allowed"
+                    >
+                      <UIcon :name="tab.icon" class="size-4" />
+                      {{ tab.label }}
+                    </span>
+                    <NuxtLink
+                      v-else
+                      :to="tab.to"
+                      class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors"
+                      :class="isTabActive(tab)
+                        ? 'bg-primary/10 text-primary font-medium'
+                        : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'"
+                      @click="mobileOpen = false"
+                    >
+                      <UIcon :name="tab.icon" class="size-4" />
+                      {{ tab.label }}
+                    </NuxtLink>
+                  </template>
                 </div>
               </template>
             </div>
