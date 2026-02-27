@@ -62,7 +62,7 @@ export function useSiteMonitor() {
 
   async function checkSiteStatus(url: string): Promise<SiteStatus> {
     try {
-      const data = await $fetch<SiteStatus>('/api/site-status', {
+      const data = await $fetch<SiteStatus>('/_check/site-status', {
         params: { url }
       })
       return data

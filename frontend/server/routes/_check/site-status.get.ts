@@ -46,7 +46,6 @@ export default defineEventHandler(async (event) => {
       }
     } catch (err: any) {
       if (method === 'GET' || err.name === 'AbortError') {
-        const responseTime = Date.now() - Date.now()
         return {
           up: false,
           statusCode: 0,
