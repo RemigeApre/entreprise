@@ -5,6 +5,7 @@ export interface SiteStatus {
   up: boolean
   statusCode: number
   responseTime: number
+  error?: 'timeout' | 'network'
 }
 
 export function useSiteMonitor() {
@@ -66,7 +67,7 @@ export function useSiteMonitor() {
       })
       return data
     } catch {
-      return { up: false, statusCode: 0, responseTime: 0 }
+      return { up: false, statusCode: 0, responseTime: 0, error: 'network' }
     }
   }
 

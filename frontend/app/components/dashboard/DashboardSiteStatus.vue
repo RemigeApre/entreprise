@@ -29,6 +29,11 @@ function formatResponseTime(ms: number): string {
   return `${(ms / 1000).toFixed(1)}s`
 }
 
+function isCheckError(status: SiteStatus | undefined): boolean {
+  if (!status) return false
+  return !status.up && status.statusCode === 0 && !!status.error
+}
+
 onMounted(async () => {
   if (!sitesLoaded.value) {
     await loadUserSites()
@@ -84,6 +89,7 @@ onMounted(async () => {
           <span
             class="size-2.5 rounded-full shrink-0"
             :class="!getStatus(site) ? 'bg-stone-300 dark:bg-stone-600 animate-pulse'
+              : isCheckError(getStatus(site)) ? 'bg-amber-400'
               : getStatus(site)!.up ? 'bg-emerald-500' : 'bg-red-500'"
           />
           <div class="min-w-0">
@@ -94,9 +100,10 @@ onMounted(async () => {
         <div v-if="getStatus(site)" class="text-right shrink-0 ml-3">
           <p
             class="text-xs font-medium"
-            :class="getStatus(site)!.up ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'"
+            :class="isCheckError(getStatus(site)) ? 'text-amber-600 dark:text-amber-400'
+              : getStatus(site)!.up ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'"
           >
-            {{ getStatus(site)!.up ? 'En ligne' : 'Hors ligne' }}
+            {{ isCheckError(getStatus(site)) ? 'Non verifie' : getStatus(site)!.up ? 'En ligne' : 'Hors ligne' }}
           </p>
           <p v-if="getStatus(site)!.responseTime > 0" class="text-[10px] text-stone-400">
             {{ formatResponseTime(getStatus(site)!.responseTime) }}

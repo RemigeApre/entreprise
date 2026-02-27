@@ -42,16 +42,29 @@ function formatLastChecked(): string {
   return lastChecked.value.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 }
 
+function isCheckError(status: SiteStatus | undefined): boolean {
+  if (!status) return false
+  return !status.up && status.statusCode === 0 && !!status.error
+}
+
 function getStatusColor(status: SiteStatus | undefined): string {
   if (!status) return 'neutral'
+  if (isCheckError(status)) return 'warning'
   return status.up ? 'success' : 'error'
 }
 
 function getStatusLabel(status: SiteStatus | undefined): string {
   if (!status) return 'Verification...'
+  if (isCheckError(status)) return status.error === 'timeout' ? 'Timeout' : 'Non verifie'
   if (status.up) return 'En ligne'
   if (status.statusCode > 0) return `Erreur ${status.statusCode}`
   return 'Hors ligne'
+}
+
+function getStatusDotClass(status: SiteStatus | undefined): string {
+  if (!status) return 'bg-stone-300 dark:bg-stone-600 animate-pulse'
+  if (isCheckError(status)) return 'bg-amber-400'
+  return status.up ? 'bg-emerald-500' : 'bg-red-500'
 }
 
 // --- Admin: user management per site ---
@@ -204,8 +217,7 @@ onUnmounted(() => {
               </div>
               <span
                 class="size-3 rounded-full shrink-0 mt-1"
-                :class="!getStatus(site) ? 'bg-stone-300 dark:bg-stone-600 animate-pulse'
-                  : getStatus(site)!.up ? 'bg-emerald-500' : 'bg-red-500'"
+                :class="getStatusDotClass(getStatus(site))"
               />
             </div>
 
@@ -227,7 +239,7 @@ onUnmounted(() => {
             </div>
 
             <!-- Stats row -->
-            <div v-if="getStatus(site)" class="grid grid-cols-3 gap-3 pt-1 border-t border-stone-100 dark:border-stone-800">
+            <div v-if="getStatus(site) && !isCheckError(getStatus(site))" class="grid grid-cols-3 gap-3 pt-1 border-t border-stone-100 dark:border-stone-800">
               <div class="text-center">
                 <p class="text-sm font-semibold text-stone-900 dark:text-white">
                   {{ getStatus(site)!.statusCode || '\u2014' }}
@@ -249,6 +261,13 @@ onUnmounted(() => {
                 </p>
                 <p class="text-[10px] text-stone-400 uppercase">Statut</p>
               </div>
+            </div>
+
+            <!-- Check error message -->
+            <div v-else-if="getStatus(site) && isCheckError(getStatus(site))" class="pt-1 border-t border-stone-100 dark:border-stone-800">
+              <p class="text-xs text-amber-600 dark:text-amber-400 text-center">
+                {{ getStatus(site)!.error === 'timeout' ? 'La verification a expire (timeout 10s)' : 'Impossible de joindre le site depuis le serveur' }}
+              </p>
             </div>
 
             <!-- Admin: manage users button -->

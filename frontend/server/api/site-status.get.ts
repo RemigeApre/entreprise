@@ -17,59 +17,46 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Invalid URL' })
   }
 
-  const start = Date.now()
+  const headers: Record<string, string> = {
+    'User-Agent': 'Mozilla/5.0 (compatible; LeGeai-Monitor/1.0)',
+    'Accept': '*/*'
+  }
 
-  try {
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 10000)
+  // Try HEAD first, then GET fallback
+  for (const method of ['HEAD', 'GET'] as const) {
+    try {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 10000)
+      const start = Date.now()
 
-    const response = await fetch(parsedUrl.href, {
-      method: 'HEAD',
-      signal: controller.signal,
-      redirect: 'follow'
-    })
+      const response = await fetch(parsedUrl.href, {
+        method,
+        headers,
+        signal: controller.signal,
+        redirect: 'follow'
+      })
 
-    clearTimeout(timeout)
-    const responseTime = Date.now() - start
+      clearTimeout(timeout)
+      const responseTime = Date.now() - start
 
-    return {
-      up: response.ok,
-      statusCode: response.status,
-      responseTime
-    }
-  } catch (err: any) {
-    const responseTime = Date.now() - start
-
-    // HEAD might not be supported, try GET
-    if (err.name !== 'AbortError') {
-      try {
-        const controller2 = new AbortController()
-        const timeout2 = setTimeout(() => controller2.abort(), 10000)
-        const start2 = Date.now()
-
-        const response = await fetch(parsedUrl.href, {
-          method: 'GET',
-          signal: controller2.signal,
-          redirect: 'follow'
-        })
-
-        clearTimeout(timeout2)
-        const responseTime2 = Date.now() - start2
-
-        return {
-          up: response.ok,
-          statusCode: response.status,
-          responseTime: responseTime2
-        }
-      } catch {
-        // Fall through to return down
+      return {
+        up: response.ok,
+        statusCode: response.status,
+        responseTime
       }
-    }
-
-    return {
-      up: false,
-      statusCode: 0,
-      responseTime
+    } catch (err: any) {
+      if (method === 'GET' || err.name === 'AbortError') {
+        const responseTime = Date.now() - Date.now()
+        return {
+          up: false,
+          statusCode: 0,
+          responseTime: 0,
+          error: err.name === 'AbortError' ? 'timeout' : 'network'
+        }
+      }
+      // HEAD failed with non-abort error, try GET
     }
   }
+
+  return { up: false, statusCode: 0, responseTime: 0, error: 'network' }
 })

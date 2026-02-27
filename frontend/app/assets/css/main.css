@@ -38,9 +38,7 @@
 }
 
 /* Logo watermark background */
-.bg-watermark {
-  position: relative;
-}
+.bg-watermark {}
 .bg-watermark::before {
   content: '';
   position: fixed;

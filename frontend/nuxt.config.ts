@@ -53,6 +53,7 @@ export default defineNuxtConfig({
     '/recrutement': { prerender: false },
     '/dashboard/**': { ssr: false },
     '/planning/**': { ssr: false },
+    '/emploi-du-temps/**': { ssr: false },
     '/prospection/**': { ssr: false },
     '/projets/**': { ssr: false },
     '/equipe/**': { ssr: false },
