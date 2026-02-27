@@ -180,6 +180,19 @@ export interface Notification {
   date_created: string
 }
 
+export interface WikiPage {
+  id: string
+  titre: string
+  slug: string
+  contenu: string
+  icone: string | null
+  couleur: string | null
+  ordre: number
+  actif: boolean
+  date_created: string
+  date_updated: string | null
+}
+
 // Directus schema type for SDK
 export interface DirectusSchema {
   categories: Category[]
@@ -193,5 +206,6 @@ export interface DirectusSchema {
   project_files: ProjectFile[]
   offres_emploi: OffreEmploi[]
   notifications: Notification[]
+  wiki_pages: WikiPage[]
   directus_users: UserProfile[]
 }

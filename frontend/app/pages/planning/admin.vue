@@ -240,11 +240,11 @@ async function handleCopyPreviousWeek() {
 
 <template>
   <div class="flex flex-col h-full">
-    <UDashboardNavbar title="Gestion des calendriers">
+    <PageHeader title="Gestion des calendriers">
       <template #right>
         <UButton label="Retour" icon="i-lucide-arrow-left" color="neutral" variant="ghost" to="/planning" />
       </template>
-    </UDashboardNavbar>
+    </PageHeader>
 
     <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
       <!-- Employee selector -->

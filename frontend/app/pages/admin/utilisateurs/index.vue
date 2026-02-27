@@ -75,7 +75,7 @@ async function handleToggleActive(user: UserProfile) {
 
 <template>
   <div class="flex flex-col h-full">
-    <UDashboardNavbar title="Utilisateurs">
+    <PageHeader title="Utilisateurs">
       <template #right>
         <UButton
           label="Nouvel utilisateur"
@@ -84,7 +84,7 @@ async function handleToggleActive(user: UserProfile) {
           to="/admin/utilisateurs/nouveau"
         />
       </template>
-    </UDashboardNavbar>
+    </PageHeader>
 
     <div class="flex-1 overflow-y-auto">
       <div class="p-4 sm:p-6 space-y-4">

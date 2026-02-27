@@ -112,30 +112,48 @@ async function createRoles() {
 async function extendDirectusUsers() {
   console.log('👤 Extension de directus_users...')
 
+  // Group alias fields (visual groups in Directus admin)
+  const groups = [
+    {
+      field: 'contrat_group',
+      type: 'alias',
+      meta: { interface: 'group-detail', special: ['alias', 'no-data', 'group'], sort: 99, options: { headerIcon: 'badge', headerColor: '#3B82F6' } }
+    },
+    {
+      field: 'coordonnees_group',
+      type: 'alias',
+      meta: { interface: 'group-detail', special: ['alias', 'no-data', 'group'], sort: 105, options: { headerIcon: 'contact_phone', headerColor: '#10B981' } }
+    }
+  ]
+
+  for (const g of groups) {
+    await safeApi('POST', '/fields/directus_users', g, `Groupe "${g.field}"`)
+  }
+
   const fields = [
     {
       field: 'date_debut_contrat',
       type: 'date',
       schema: { is_nullable: true },
-      meta: { interface: 'datetime', display: 'datetime', width: 'half', sort: 100, group: null, note: 'Date de debut de contrat' }
+      meta: { interface: 'datetime', display: 'datetime', width: 'half', sort: 100, group: 'contrat_group', note: 'Date de debut de contrat' }
     },
     {
       field: 'date_fin_contrat',
       type: 'date',
       schema: { is_nullable: true },
-      meta: { interface: 'datetime', display: 'datetime', width: 'half', sort: 101, note: 'Date de fin de contrat' }
+      meta: { interface: 'datetime', display: 'datetime', width: 'half', sort: 101, group: 'contrat_group', note: 'Date de fin de contrat' }
     },
     {
       field: 'date_fin_periode_essai',
       type: 'date',
       schema: { is_nullable: true },
-      meta: { interface: 'datetime', display: 'datetime', width: 'half', sort: 102, note: 'Date de fin de periode d\'essai' }
+      meta: { interface: 'datetime', display: 'datetime', width: 'half', sort: 102, group: 'contrat_group', note: 'Date de fin de periode d\'essai' }
     },
     {
       field: 'actif',
       type: 'boolean',
       schema: { is_nullable: false, default_value: true },
-      meta: { interface: 'boolean', display: 'boolean', width: 'half', sort: 103, special: ['cast-boolean'] }
+      meta: { interface: 'boolean', display: 'boolean', width: 'half', sort: 103, group: 'contrat_group', special: ['cast-boolean'] }
     },
     {
       field: 'type_contrat',
@@ -146,6 +164,7 @@ async function extendDirectusUsers() {
         display: 'labels',
         width: 'half',
         sort: 104,
+        group: 'contrat_group',
         options: {
           choices: [
             { text: 'CDI', value: 'CDI' },
@@ -161,25 +180,25 @@ async function extendDirectusUsers() {
       field: 'telephone',
       type: 'string',
       schema: { is_nullable: true },
-      meta: { interface: 'input', display: 'raw', width: 'half', sort: 105, note: 'Numero de telephone' }
+      meta: { interface: 'input', display: 'raw', width: 'half', sort: 106, group: 'coordonnees_group', note: 'Numero de telephone' }
     },
     {
       field: 'linkedin',
       type: 'string',
       schema: { is_nullable: true },
-      meta: { interface: 'input', display: 'raw', width: 'half', sort: 106, note: 'URL du profil LinkedIn' }
+      meta: { interface: 'input', display: 'raw', width: 'half', sort: 107, group: 'coordonnees_group', note: 'URL du profil LinkedIn' }
     },
     {
       field: 'localisation',
       type: 'string',
       schema: { is_nullable: true },
-      meta: { interface: 'input', display: 'raw', width: 'half', sort: 107, note: 'Ville / lieu de travail' }
+      meta: { interface: 'input', display: 'raw', width: 'half', sort: 108, group: 'coordonnees_group', note: 'Ville / lieu de travail' }
     },
     {
       field: 'bio',
       type: 'text',
       schema: { is_nullable: true },
-      meta: { interface: 'input-multiline', display: 'raw', width: 'full', sort: 108, note: 'Courte presentation' }
+      meta: { interface: 'input-multiline', display: 'raw', width: 'full', sort: 109, group: 'coordonnees_group', note: 'Courte presentation' }
     }
   ]
 
@@ -448,6 +467,24 @@ async function createCollections() {
     ]
   }, 'Collection "notifications"')
 
+  // ── wiki_pages ──
+  await safeApi('POST', '/collections', {
+    collection: 'wiki_pages',
+    schema: {},
+    meta: { icon: 'menu_book', note: 'Pages du wiki interne', sort: 12 },
+    fields: [
+      uuidPK(),
+      { field: 'titre', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, sort: 1 } },
+      { field: 'slug', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, sort: 2, note: 'Identifiant URL (ex: reglement)' } },
+      { field: 'contenu', type: 'text', schema: { is_nullable: false }, meta: { interface: 'input-rich-text-html', required: true, sort: 3 } },
+      { field: 'icone', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', sort: 4, width: 'half', note: 'Nom icone Lucide (ex: i-lucide-scale)' } },
+      { field: 'couleur', type: 'string', schema: { is_nullable: true }, meta: { interface: 'select-color', display: 'color', sort: 5, width: 'half' } },
+      { field: 'ordre', type: 'integer', schema: { is_nullable: false, default_value: 0 }, meta: { interface: 'input', sort: 6, width: 'half' } },
+      { field: 'actif', type: 'boolean', schema: { is_nullable: false, default_value: true }, meta: { interface: 'boolean', display: 'boolean', sort: 7, width: 'half', special: ['cast-boolean'] } },
+      ...systemFields()
+    ]
+  }, 'Collection "wiki_pages"')
+
   // ── offres_emploi ──
   await safeApi('POST', '/collections', {
     collection: 'offres_emploi',
@@ -688,6 +725,9 @@ async function setupPermissions(roleIds) {
       { collection: 'notifications', action: 'read', fields: ['*'], permissions: { utilisateur: { _eq: '$CURRENT_USER' } } },
       { collection: 'notifications', action: 'update', fields: ['lu'], permissions: { utilisateur: { _eq: '$CURRENT_USER' } } },
 
+      // Wiki pages: read active
+      { collection: 'wiki_pages', action: 'read', fields: ['*'], permissions: { actif: { _eq: true } } },
+
       // Offres emploi: read published
       { collection: 'offres_emploi', action: 'read', fields: ['*'], permissions: { publie: { _eq: true } } }
     ]
@@ -719,6 +759,176 @@ async function seedCategories() {
 
   for (const cat of categories) {
     await safeApi('POST', '/items/categories', cat, `Categorie "${cat.nom}"`)
+  }
+
+  console.log('')
+}
+
+// ─── Step 7b: Seed Wiki Pages ────────────────────────────
+
+async function seedWikiPages() {
+  console.log('📖 Seed des pages wiki...')
+
+  const pages = [
+    {
+      titre: 'Reglement interieur',
+      slug: 'reglement',
+      icone: 'i-lucide-scale',
+      couleur: '#3B82F6',
+      ordre: 1,
+      actif: true,
+      contenu: `<h2>Preambule</h2>
+<p>Le present reglement interieur est etabli par la direction de Le Geai Editions, conformement aux dispositions des articles L.1311-1 a L.1321-6 et R.1321-1 a R.1321-4 du Code du travail.</p>
+<p>Bien que l'entreprise emploie moins de 50 salaries et ne soit donc pas soumise a l'obligation legale d'etablir un reglement interieur, la direction a choisi de mettre en place le present document afin de garantir un cadre de travail clair, sur et equitable.</p>
+<p><strong>Champ d'application :</strong> le present reglement s'applique a l'ensemble des salaries de l'entreprise, quel que soit leur contrat de travail (CDI, CDD, contrat d'apprentissage, contrat de professionnalisation). Les stagiaires et travailleurs interimaires sont soumis aux dispositions relatives a l'hygiene, a la securite et a la discipline generale.</p>
+
+<h2>Titre I - Hygiene et securite</h2>
+<h3>Article 1 : Regles generales</h3>
+<p>Chaque collaborateur est tenu de prendre soin de sa sante et de sa securite ainsi que de celles des autres personnes concernees par ses actes ou omissions au travail (art. L.4122-1). Les collaborateurs doivent respecter les regles d'utilisation des equipements et des locaux, signaler toute situation dangereuse et ne pas modifier les dispositifs de securite.</p>
+<h3>Article 2 : Teletravail</h3>
+<p>Le collaborateur en teletravail reste soumis aux regles de securite applicables. Il s'engage a disposer d'un espace de travail conforme aux exigences d'ergonomie et de securite electrique. Tout accident survenu pendant les heures de travail sur le lieu de teletravail doit etre signale dans les 24 heures.</p>
+<h3>Article 3 : Retablissement des conditions de securite</h3>
+<p>Lorsque les conditions protectrices de la sante et de la securite sont compromises, les collaborateurs sont tenus de participer a leur retablissement (formations, mesures correctives, procedures temporaires renforcees).</p>
+
+<h2>Titre II - Discipline</h2>
+<h3>Article 4 : Regles generales de discipline</h3>
+<ul>
+<li>Respecter les horaires de travail ou les delais et livrables fixes</li>
+<li>Adopter un comportement professionnel, courtois et respectueux</li>
+<li>Se conformer aux directives de la direction</li>
+<li>Justifier toute absence dans les 48 heures</li>
+<li>Ne pas exercer d'activite concurrente</li>
+</ul>
+<h3>Article 5 : Outils et ressources</h3>
+<p>Les outils, logiciels et ressources numeriques sont destines a un usage exclusivement professionnel, sauf tolerance de la direction. Toute utilisation abusive constitue une faute disciplinaire.</p>
+<h3>Article 6 : Systemes d'information</h3>
+<p>L'acces est strictement nominatif. Il est interdit de communiquer ses identifiants, d'utiliser ceux d'un autre collaborateur ou de contourner les mesures de securite. Les acces sont desactives a la fin de la collaboration.</p>
+<h3>Article 7 : Comportements nuisibles</h3>
+<p>Sont interdits : la diffusion de fausses informations, la mise en danger des donnees, l'introduction de contenus illicites (a l'exception des oeuvres editoriales de l'entreprise).</p>
+<h3>Article 8 : Communication des incidents</h3>
+<p>Tout incident doit etre signale sans delai a la direction. Ce signalement ne peut donner lieu a des represailles.</p>
+
+<h2>Titre III - Harcelement, discrimination et lanceurs d'alerte</h2>
+<h3>Article 9 : Harcelement moral</h3>
+<p>Aucun collaborateur ne doit subir des agissements repetes de harcelement moral (art. L.1152-1 a L.1152-6). Toute victime peut saisir la direction, le medecin du travail ou l'inspection du travail.</p>
+<h3>Article 10 : Harcelement sexuel et agissements sexistes</h3>
+<p>Aucun collaborateur ne doit subir de harcelement sexuel ou d'agissements sexistes (art. L.1153-1 a L.1153-6 et L.1142-2-1). Est assimile au harcelement sexuel toute pression grave exercee dans le but d'obtenir un acte de nature sexuelle.</p>
+<h3>Article 11 : Discriminations</h3>
+<p>Aucune discrimination n'est toleree, conformement aux articles L.1132-1 et suivants du Code du travail (origine, sexe, age, orientation sexuelle, identite de genre, handicap, opinions politiques, convictions religieuses, etc.).</p>
+<h3>Article 12 : Lanceurs d'alerte</h3>
+<p>Conformement a la loi du 21 mars 2022, un dispositif de recueil des signalements est en place. Aucune sanction ne peut etre prise contre un lanceur d'alerte de bonne foi.</p>
+
+<h2>Titre IV - Sanctions disciplinaires</h2>
+<p>Echelle des sanctions, en fonction de la gravite :</p>
+<ol>
+<li><strong>Avertissement ecrit</strong> - observation ecrite rappelant les faits</li>
+<li><strong>Blame</strong> - reprimande versee au dossier</li>
+<li><strong>Mise a pied disciplinaire</strong> - suspension sans remuneration (max. 5 jours ouvres)</li>
+<li><strong>Retrogradation</strong> - sous reserve de l'accord du collaborateur</li>
+<li><strong>Licenciement pour faute</strong></li>
+<li><strong>Licenciement pour faute grave ou lourde</strong> - sans preavis ni indemnite</li>
+</ol>
+<p>Cette echelle n'implique pas une progressivite obligatoire. Aucune sanction ne peut etre prononcee sans entretien prealable (sauf avertissement/blame). Aucun fait fautif ne peut donner lieu a des poursuites au-dela de 2 mois.</p>`
+    },
+    {
+      titre: 'Charte contractuelle',
+      slug: 'charte',
+      icone: 'i-lucide-file-lock',
+      couleur: '#10B981',
+      ordre: 2,
+      actif: true,
+      contenu: `<h2>Preambule</h2>
+<p>La presente charte constitue une annexe au contrat de travail (ou a la convention de stage). Elle definit les engagements reciproques en matiere de confidentialite, de propriete intellectuelle, de non-sollicitation et d'utilisation des ressources. Les obligations s'ajoutent aux dispositions du reglement interieur.</p>
+
+<h2>Titre I - Confidentialite</h2>
+<h3>Article 1 : Informations confidentielles</h3>
+<p>Sont confidentielles : les donnees, documents, oeuvres, manuscrits, strategies commerciales, listes de clients, conditions tarifaires, procedes techniques et savoir-faire. Cette obligation couvre les oeuvres en cours ou non publiees.</p>
+<h3>Article 2 : Obligations</h3>
+<ul>
+<li>Ne pas divulguer, reproduire ou exploiter les informations sans autorisation ecrite</li>
+<li>Ne pas utiliser les informations a des fins personnelles</li>
+<li>Proteger la confidentialite (verrouillage postes, stockage securise, chiffrement)</li>
+<li>Restituer tous les documents a la fin de la collaboration</li>
+</ul>
+<h3>Article 3 : Duree</h3>
+<p>L'obligation s'applique pendant et apres la collaboration, sans limitation de duree. Toute violation engage la responsabilite civile et penale du collaborateur.</p>
+
+<h2>Titre II - Propriete intellectuelle</h2>
+<h3>Article 4 : Cession des droits patrimoniaux</h3>
+<p>Le collaborateur cede a Le Geai Editions l'integralite de ses droits patrimoniaux sur les oeuvres realisees dans le cadre de son contrat. Cession pour le monde entier et pour toute la duree de la protection legale :</p>
+<ul>
+<li><strong>Reproduction</strong> : sur tout support connu ou a venir</li>
+<li><strong>Representation</strong> : par tout procede de diffusion</li>
+<li><strong>Adaptation</strong> : modification, traduction, integration</li>
+</ul>
+<h3>Article 5 : Droit moral</h3>
+<p>Le droit moral reste inalienable. L'entreprise respecte la paternite de l'oeuvre et ne procede pas a des modifications portant atteinte a son integrite sans concertation.</p>
+
+<h2>Titre III - Non-sollicitation et loyaute</h2>
+<p>Pendant la collaboration, le collaborateur s'interdit de :</p>
+<ul>
+<li>Demarcher les clients pour son propre compte</li>
+<li>Diffuser les coordonnees ou listes de clients</li>
+<li>Solliciter les partenaires commerciaux pour detourner du chiffre d'affaires</li>
+</ul>
+<p>L'obligation est applicable pendant toute la duree du contrat. Les clauses de non-concurrence eventuelles s'appliquent au-dela.</p>
+
+<h2>Dispositions finales</h2>
+<p>Tout manquement constitue une faute susceptible d'entrainer des sanctions disciplinaires conformement au reglement interieur, sans prejudice de poursuites judiciaires.</p>`
+    },
+    {
+      titre: 'Cession de droits d\'auteur',
+      slug: 'cession',
+      icone: 'i-lucide-file-signature',
+      couleur: '#8B5CF6',
+      ordre: 3,
+      actif: true,
+      contenu: `<h2>Article 1 - Objet de la cession</h2>
+<p>Le stagiaire cede ses droits patrimoniaux sur l'ensemble des oeuvres realisees dans le cadre du stage ou a l'aide des outils de l'entreprise. Les oeuvres incluent :</p>
+<ul>
+<li>Code source, scripts, modules logiciels, contributions techniques</li>
+<li>Illustrations, graphismes, maquettes, animations, videos, mises en page</li>
+<li>Contenus redactionnels, editoriaux et documentaires</li>
+<li>Toute autre creation originale produite dans le cadre du stage</li>
+</ul>
+
+<h2>Article 2 - Droits cedes</h2>
+<p>Conformement a l'article L.131-3 du CPI :</p>
+<ul>
+<li><strong>Reproduction :</strong> fixation sur tout support materiel ou immateriel, en nombre illimite</li>
+<li><strong>Representation :</strong> communication au public par tout procede</li>
+<li><strong>Adaptation :</strong> modification, traduction, integration dans une oeuvre composite</li>
+</ul>
+
+<h2>Article 3 - Destination</h2>
+<ul>
+<li>Edition et publication d'ouvrages (papier et numerique)</li>
+<li>Sites web, applications mobiles, plateformes en ligne</li>
+<li>Communication institutionnelle et promotionnelle</li>
+<li>Exploitations derivees liees aux activites de l'entreprise</li>
+</ul>
+
+<h2>Article 4 - Etendue</h2>
+<ul>
+<li><strong>Territoire :</strong> monde entier, sans restriction</li>
+<li><strong>Duree :</strong> toute la duree legale de protection des droits d'auteur</li>
+</ul>
+
+<h2>Article 5 - Contrepartie</h2>
+<p>La cession est consentie en contrepartie de la gratification de stage. En l'absence de gratification (stage de 2 mois ou moins), la cession est a titre gratuit, l'experience professionnelle constituant la contrepartie.</p>
+
+<h2>Articles 6, 7, 8 - Droit moral, garanties et confidentialite</h2>
+<h3>Droit moral (art. 6)</h3>
+<p>Le droit moral demeure inalienable. L'entreprise respecte l'integrite des oeuvres. Le stagiaire autorise l'exploitation sans mention systematique de son nom. Il conserve le droit de revendiquer la paternite de ses creations.</p>
+<h3>Garanties (art. 7)</h3>
+<p>Le stagiaire garantit etre l'auteur des oeuvres, leur originalite, l'absence d'atteinte aux droits de tiers, et l'absence de cessions incompatibles.</p>
+<h3>Confidentialite (art. 8)</h3>
+<p>Le stagiaire ne peut diffuser les oeuvres sans autorisation. Il conserve le droit d'integrer les oeuvres dans un portfolio personnel, sans divulguer d'informations confidentielles, en informant prealablement l'entreprise.</p>`
+    }
+  ]
+
+  for (const page of pages) {
+    await safeApi('POST', '/items/wiki_pages', page, `Wiki "${page.titre}"`)
   }
 
   console.log('')
@@ -842,6 +1052,25 @@ async function fixExistingPermissions() {
       }
     }
 
+    // Fix directus_users fields: assign to groups if not already grouped
+    const groupAssignments = {
+      contrat_group: ['date_debut_contrat', 'date_fin_contrat', 'date_fin_periode_essai', 'actif', 'type_contrat'],
+      coordonnees_group: ['telephone', 'linkedin', 'localisation', 'bio']
+    }
+    try {
+      const userFields = await api('GET', '/fields/directus_users')
+      for (const [groupName, fieldNames] of Object.entries(groupAssignments)) {
+        for (const fieldName of fieldNames) {
+          const field = userFields.find(f => f.field === fieldName)
+          if (field && field.meta && field.meta.group !== groupName) {
+            await safeApi('PATCH', `/fields/directus_users/${fieldName}`, { meta: { group: groupName } }, `Fix groupe: ${fieldName} → ${groupName}`)
+          }
+        }
+      }
+    } catch (e) {
+      console.log(`  ⚠ Impossible de corriger les groupes: ${e.message.substring(0, 150)}`)
+    }
+
     // Check if notifications create permission exists
     const hasNotifCreate = perms.some(p => p.collection === 'notifications' && p.action === 'create')
     if (!hasNotifCreate) {
@@ -880,6 +1109,7 @@ async function main() {
   await createRelations()
   await setupPermissions(roleIds)
   await seedCategories()
+  await seedWikiPages()
   await createTestUsers(roleIds)
 
   await fixExistingPermissions()

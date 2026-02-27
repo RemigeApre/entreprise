@@ -1,5 +1,8 @@
 <script setup lang="ts">
-const { user, isDirecteur, roleName } = useAuth()
+import type { DashboardModule } from '~/composables/useDashboardPreferences'
+
+const { user, isDirecteur } = useAuth()
+const { isVisible, hide } = useDashboardPreferences()
 
 const userDisplayName = computed(() => {
   if (!user.value) return ''
@@ -16,45 +19,89 @@ const greeting = computed(() => {
   if (hour < 18) return 'Bon apres-midi'
   return 'Bonsoir'
 })
+
+function hideModule(key: DashboardModule) {
+  hide(key)
+}
 </script>
 
 <template>
-  <div class="flex flex-col h-full">
-    <div class="h-12 flex items-center justify-center border-b border-stone-200 dark:border-stone-800 shrink-0">
-      <span class="font-heading font-bold text-lg tracking-tight text-stone-900 dark:text-white">Le Geai</span>
+  <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+    <!-- Greeting -->
+    <div class="text-center pt-2">
+      <h1 class="text-2xl font-bold font-heading text-gray-900 dark:text-white">
+        {{ greeting }}, {{ userDisplayName }}
+      </h1>
     </div>
 
-    <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
-      <!-- Greeting -->
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl font-bold font-heading text-gray-900 dark:text-white">
-            {{ greeting }}, {{ userDisplayName }}
-          </h1>
-          <p class="text-sm text-stone-500 dark:text-stone-400 mt-0.5">
-            Bienvenue sur l'intranet LeGeai
-          </p>
-        </div>
-        <UBadge v-if="roleName" variant="subtle" size="sm">
-          {{ roleName }}
-        </UBadge>
-      </div>
-
-      <!-- Notifications -->
+    <!-- Notifications -->
+    <div v-if="isVisible('notifications')" class="relative group">
+      <button
+        class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+        title="Masquer"
+        @click="hideModule('notifications')"
+      >
+        <UIcon name="i-lucide-x" class="size-3.5" />
+      </button>
       <DashboardNotifications />
+    </div>
 
-      <!-- Week summary -->
+    <!-- Week summary -->
+    <div v-if="isVisible('weekSummary')" class="relative group">
+      <button
+        class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+        title="Masquer"
+        @click="hideModule('weekSummary')"
+      >
+        <UIcon name="i-lucide-x" class="size-3.5" />
+      </button>
       <DashboardWeekSummary />
+    </div>
 
-      <!-- Projects + Prospects -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Projects + Prospects -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div v-if="isVisible('activeProjects')" class="relative group">
+        <button
+          class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Masquer"
+          @click="hideModule('activeProjects')"
+        >
+          <UIcon name="i-lucide-x" class="size-3.5" />
+        </button>
         <DashboardActiveProjects />
+      </div>
+      <div v-if="isVisible('prospectSummary')" class="relative group">
+        <button
+          class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Masquer"
+          @click="hideModule('prospectSummary')"
+        >
+          <UIcon name="i-lucide-x" class="size-3.5" />
+        </button>
         <DashboardProspectSummary />
       </div>
+    </div>
 
-      <!-- Stage tracker + Job listings (directors only) -->
-      <div v-if="isDirecteur" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Stage tracker + Job listings (directors only) -->
+    <div v-if="isDirecteur" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div v-if="isVisible('stageTracker')" class="relative group">
+        <button
+          class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Masquer"
+          @click="hideModule('stageTracker')"
+        >
+          <UIcon name="i-lucide-x" class="size-3.5" />
+        </button>
         <DashboardStageTracker />
+      </div>
+      <div v-if="isVisible('jobListings')" class="relative group">
+        <button
+          class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Masquer"
+          @click="hideModule('jobListings')"
+        >
+          <UIcon name="i-lucide-x" class="size-3.5" />
+        </button>
         <DashboardJobListings />
       </div>
     </div>

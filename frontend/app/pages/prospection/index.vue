@@ -54,7 +54,7 @@ const columns = [
 
 <template>
   <div class="flex flex-col h-full">
-    <UDashboardNavbar title="Prospection">
+    <PageHeader title="Prospection">
       <template #right>
         <div class="flex items-center gap-2">
           <UInput
@@ -76,7 +76,7 @@ const columns = [
           />
         </div>
       </template>
-    </UDashboardNavbar>
+    </PageHeader>
 
     <div class="flex-1 overflow-y-auto p-4 sm:p-6">
       <div v-if="status === 'pending'" class="flex justify-center py-12">

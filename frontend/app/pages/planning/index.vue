@@ -314,12 +314,9 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col h-full">
-    <UDashboardNavbar>
+    <PageHeader title="Calendrier">
       <template #left>
-        <div class="flex items-center gap-2">
-          <span class="text-base font-semibold text-stone-900 dark:text-stone-100">Calendrier</span>
-          <span class="text-xs text-stone-400 dark:text-stone-500">S{{ weekNumber }} · {{ weekLabel }}</span>
-        </div>
+        <span class="text-xs text-stone-400 dark:text-stone-500">S{{ weekNumber }} · {{ weekLabel }}</span>
       </template>
       <template #right>
         <div class="flex items-center gap-2">
@@ -352,7 +349,7 @@ onMounted(() => {
           </UTooltip>
         </div>
       </template>
-    </UDashboardNavbar>
+    </PageHeader>
 
     <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
       <!-- Quick actions - compact pills -->

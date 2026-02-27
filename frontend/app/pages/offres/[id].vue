@@ -117,7 +117,7 @@ async function handleDelete() {
 
 <template>
   <div class="flex flex-col h-full">
-    <UDashboardNavbar title="Modifier l'offre">
+    <PageHeader title="Modifier l'offre">
       <template #right>
         <UButton
           label="Retour"
@@ -127,7 +127,7 @@ async function handleDelete() {
           to="/offres"
         />
       </template>
-    </UDashboardNavbar>
+    </PageHeader>
 
     <div class="flex-1 overflow-y-auto p-4 sm:p-6">
       <div v-if="status === 'pending'" class="flex justify-center py-12">

@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { DASHBOARD_MODULES } from '~/composables/useDashboardPreferences'
+
 const { user, logout, isDirecteur, roleName } = useAuth()
 const colorMode = useColorMode()
 const route = useRoute()
 const mobileOpen = ref(false)
+const { isVisible, show, hide, hiddenCount, showAll } = useDashboardPreferences()
 
 watch(() => route.fullPath, () => { mobileOpen.value = false })
 
@@ -180,7 +183,7 @@ const userMenuItems = [
         </UTooltip>
       </nav>
 
-      <!-- Bottom: theme + user -->
+      <!-- Bottom: theme + settings + user -->
       <div class="flex flex-col items-center gap-1.5 pb-3 px-2">
         <UTooltip :text="isDark ? 'Mode clair' : 'Mode sombre'" :delay-duration="300">
           <button
@@ -190,9 +193,57 @@ const userMenuItems = [
             <UIcon :name="isDark ? 'i-lucide-sun' : 'i-lucide-moon'" class="size-4" />
           </button>
         </UTooltip>
+        <UPopover>
+          <UTooltip text="Parametres" :delay-duration="300">
+            <button
+              class="relative flex items-center justify-center size-9 rounded-lg text-stone-400 dark:text-stone-500 hover:bg-stone-200/60 dark:hover:bg-stone-800/60 hover:text-stone-700 dark:hover:text-stone-300 transition-colors"
+            >
+              <UIcon name="i-lucide-settings" class="size-4" />
+              <span
+                v-if="hiddenCount > 0"
+                class="absolute -top-0.5 -right-0.5 size-3.5 rounded-full bg-amber-500 text-white text-[9px] flex items-center justify-center font-bold"
+              >
+                {{ hiddenCount }}
+              </span>
+            </button>
+          </UTooltip>
+          <template #content>
+            <div class="p-3 w-56 space-y-3">
+              <p class="text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Modules du tableau de bord</p>
+              <div class="space-y-2">
+                <label
+                  v-for="mod in DASHBOARD_MODULES"
+                  :key="mod.key"
+                  class="flex items-center justify-between gap-2 cursor-pointer"
+                >
+                  <span class="text-sm text-stone-700 dark:text-stone-300">{{ mod.label }}</span>
+                  <USwitch
+                    :model-value="isVisible(mod.key)"
+                    size="xs"
+                    @update:model-value="$event ? show(mod.key) : hide(mod.key)"
+                  />
+                </label>
+              </div>
+              <button
+                v-if="hiddenCount > 0"
+                class="text-xs text-primary hover:underline"
+                @click="showAll()"
+              >
+                Tout reafficher
+              </button>
+            </div>
+          </template>
+        </UPopover>
         <UDropdownMenu :items="userMenuItems">
-          <button class="flex items-center justify-center size-9 rounded-lg hover:bg-stone-200/60 dark:hover:bg-stone-800/60 transition-colors">
-            <UAvatar :alt="userDisplayName" size="xs" />
+          <button
+            class="flex items-center justify-center size-9 rounded-lg hover:bg-stone-200/60 dark:hover:bg-stone-800/60 transition-colors"
+            :class="isDirecteur ? 'ring-1 ring-amber-400/50' : ''"
+          >
+            <UAvatar
+              :alt="userDisplayName"
+              size="xs"
+              :class="isDirecteur ? 'ring-2 ring-amber-500' : ''"
+            />
           </button>
         </UDropdownMenu>
       </div>
@@ -344,12 +395,39 @@ const userMenuItems = [
                 {{ isDark ? 'Mode clair' : 'Mode sombre' }}
               </button>
             </div>
+            <!-- Settings: dashboard modules -->
+            <div class="px-2 py-2 rounded-lg bg-stone-50 dark:bg-stone-800/50 space-y-2">
+              <p class="text-[11px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Tableau de bord</p>
+              <label
+                v-for="mod in DASHBOARD_MODULES"
+                :key="mod.key"
+                class="flex items-center justify-between gap-2 cursor-pointer"
+              >
+                <span class="text-xs text-stone-600 dark:text-stone-400">{{ mod.label }}</span>
+                <USwitch
+                  :model-value="isVisible(mod.key)"
+                  size="xs"
+                  @update:model-value="$event ? show(mod.key) : hide(mod.key)"
+                />
+              </label>
+              <button
+                v-if="hiddenCount > 0"
+                class="text-xs text-primary hover:underline"
+                @click="showAll()"
+              >
+                Tout reafficher
+              </button>
+            </div>
             <NuxtLink
               to="/profil"
               class="flex items-center gap-3 px-2 py-2 rounded-lg text-sm text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
               @click="mobileOpen = false"
             >
-              <UAvatar :alt="userDisplayName" size="xs" />
+              <UAvatar
+                :alt="userDisplayName"
+                size="xs"
+                :class="isDirecteur ? 'ring-2 ring-amber-500' : ''"
+              />
               <span class="truncate">{{ userDisplayName }}</span>
             </NuxtLink>
             <button

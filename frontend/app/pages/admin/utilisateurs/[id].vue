@@ -172,7 +172,7 @@ function getUserName(u: UserProfile) {
 
 <template>
   <div class="flex flex-col h-full">
-    <UDashboardNavbar title="Modifier l'utilisateur">
+    <PageHeader title="Modifier l'utilisateur">
       <template #right>
         <UButton
           label="Retour"
@@ -182,7 +182,7 @@ function getUserName(u: UserProfile) {
           to="/admin/utilisateurs"
         />
       </template>
-    </UDashboardNavbar>
+    </PageHeader>
 
     <div class="flex-1 overflow-y-auto p-4 sm:p-6">
       <div v-if="status === 'pending'" class="flex justify-center py-12">

@@ -139,7 +139,7 @@ function pct(value: number, max: number) {
 
 <template>
   <div class="flex flex-col h-full">
-    <UDashboardNavbar :title="member ? getUserName(member) : 'Profil'">
+    <PageHeader :title="member ? getUserName(member) : 'Profil'">
       <template #right>
         <UButton
           label="Retour"
@@ -149,7 +149,7 @@ function pct(value: number, max: number) {
           to="/equipe"
         />
       </template>
-    </UDashboardNavbar>
+    </PageHeader>
 
     <div class="flex-1 overflow-y-auto p-4 sm:p-6">
       <div v-if="status === 'pending'" class="flex justify-center py-12">

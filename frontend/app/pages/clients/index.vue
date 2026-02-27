@@ -4,7 +4,7 @@ definePageMeta({ middleware: ['auth'] })
 
 <template>
   <div class="flex flex-col h-full">
-    <UDashboardNavbar title="Liste clients" />
+    <PageHeader title="Liste clients" />
 
     <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
       <div class="text-center py-16">

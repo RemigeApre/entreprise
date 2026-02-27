@@ -79,7 +79,7 @@ async function handleSubmit() {
 
 <template>
   <div class="flex flex-col h-full">
-    <UDashboardNavbar title="Nouvelle offre d'emploi">
+    <PageHeader title="Nouvelle offre d'emploi">
       <template #right>
         <UButton
           label="Annuler"
@@ -89,7 +89,7 @@ async function handleSubmit() {
           to="/offres"
         />
       </template>
-    </UDashboardNavbar>
+    </PageHeader>
 
     <div class="flex-1 overflow-y-auto p-4 sm:p-6">
       <div class="max-w-2xl space-y-6">

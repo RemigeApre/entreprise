@@ -79,7 +79,7 @@ function getMemberName(member: { utilisateur: UserProfile | string }) {
 
 <template>
   <div class="flex flex-col h-full">
-    <UDashboardNavbar title="Projets">
+    <PageHeader title="Projets">
       <template #right>
         <div class="flex items-center gap-3">
           <USelectMenu
@@ -102,7 +102,7 @@ function getMemberName(member: { utilisateur: UserProfile | string }) {
           />
         </div>
       </template>
-    </UDashboardNavbar>
+    </PageHeader>
 
     <div class="flex-1 overflow-y-auto p-4 sm:p-6">
       <div v-if="status === 'pending'" class="flex justify-center py-12">

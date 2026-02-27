@@ -45,7 +45,7 @@ onMounted(loadUser)
 
 <template>
   <div class="flex flex-col h-full">
-    <UDashboardNavbar :title="`Calendrier de ${userName}`">
+    <PageHeader :title="`Calendrier de ${userName}`">
       <template #right>
         <UButton
           label="Retour"
@@ -55,7 +55,7 @@ onMounted(loadUser)
           to="/equipe"
         />
       </template>
-    </UDashboardNavbar>
+    </PageHeader>
 
     <div class="flex-1 overflow-y-auto p-4 sm:p-6">
       <PlanningWeekView

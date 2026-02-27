@@ -68,7 +68,7 @@ function getContractColor(type: string) {
 
 <template>
   <div class="flex flex-col h-full">
-    <UDashboardNavbar title="Offres d'emploi">
+    <PageHeader title="Offres d'emploi">
       <template #right>
         <UInput
           v-model="search"
@@ -84,7 +84,7 @@ function getContractColor(type: string) {
           to="/offres/nouveau"
         />
       </template>
-    </UDashboardNavbar>
+    </PageHeader>
 
     <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
       <div v-if="status === 'pending'" class="flex justify-center py-12">

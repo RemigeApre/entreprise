@@ -92,7 +92,7 @@ async function handleSubmit() {
 
 <template>
   <div class="flex flex-col h-full">
-    <UDashboardNavbar title="Nouveau projet">
+    <PageHeader title="Nouveau projet">
       <template #right>
         <UButton
           label="Annuler"
@@ -102,7 +102,7 @@ async function handleSubmit() {
           to="/projets"
         />
       </template>
-    </UDashboardNavbar>
+    </PageHeader>
 
     <div class="flex-1 overflow-y-auto p-4 sm:p-6">
       <div class="max-w-2xl">
