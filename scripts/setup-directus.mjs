@@ -1020,8 +1020,8 @@ async function seedMonitoredSites() {
     }
   }
 
-  // Clean up duplicates (keep oldest per URL)
-  const allSites = await api('GET', '/items/monitored_sites?fields=id,url,nom&sort=date_created&limit=-1')
+  // Clean up duplicates (keep first per URL)
+  const allSites = await api('GET', '/items/monitored_sites?fields=id,url,nom&limit=-1')
   const seen = new Set()
   for (const site of allSites || []) {
     if (seen.has(site.url)) {
