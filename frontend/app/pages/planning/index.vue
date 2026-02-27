@@ -8,7 +8,11 @@ const { getAdminUsers } = useUsers()
 const { createBatch } = useNotifications()
 const toast = useToast()
 
+type ViewMode = 'week' | 'month'
+const viewMode = ref<ViewMode>('week')
+
 const weekViewRef = ref<{ weekNumber: number; weekLabel: string; previousWeek: () => void; nextWeek: () => void; goToToday: () => void } | null>(null)
+const monthViewRef = ref<{ previousMonth: () => void; nextMonth: () => void; goToToday: () => void; monthLabel: string } | null>(null)
 
 const entries = ref<PlanningEntry[]>([])
 const loading = ref(false)
@@ -166,6 +170,37 @@ async function loadStats() {
   }
 }
 
+async function loadMonthEntries(year: number, month: number) {
+  if (!user.value) return
+  loading.value = true
+  currentMonthLabel.value = new Date(year, month, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
+  try {
+    const firstDay = formatDate(new Date(year, month, 1))
+    const lastDay = formatDate(new Date(year, month + 1, 0))
+    entries.value = await getEntries(user.value.id, firstDay, lastDay)
+  } catch {
+    toast.add({ title: 'Erreur lors du chargement', color: 'error' })
+  } finally {
+    loading.value = false
+  }
+}
+
+// Navigation helpers that delegate to the active view
+function navigatePrev() {
+  if (viewMode.value === 'week') weekViewRef.value?.previousWeek()
+  else monthViewRef.value?.previousMonth()
+}
+function navigateNext() {
+  if (viewMode.value === 'week') weekViewRef.value?.nextWeek()
+  else monthViewRef.value?.nextMonth()
+}
+function navigateToday() {
+  if (viewMode.value === 'week') weekViewRef.value?.goToToday()
+  else monthViewRef.value?.goToToday()
+}
+
+const currentMonthLabel = ref('')
+
 // --- Add entry ---
 async function handleAddEntry(date: string, periode: PlanningPeriode) {
   if (!user.value) return
@@ -309,7 +344,10 @@ async function handleCopyPreviousWeek() {
   }
 }
 
+const teleportReady = ref(false)
+
 onMounted(() => {
+  teleportReady.value = !!document.getElementById('page-actions')
   loadStats()
 })
 </script>
@@ -317,7 +355,7 @@ onMounted(() => {
 <template>
   <div class="flex flex-col h-full">
     <!-- Page actions teleported into the layout tab bar -->
-    <ClientOnly><Teleport to="#page-actions">
+    <Teleport v-if="teleportReady" to="#page-actions">
       <div class="flex items-center gap-1.5">
         <UButton
           v-if="isDirecteur"
@@ -336,7 +374,7 @@ onMounted(() => {
           size="xs"
           to="/planning/conges"
         />
-        <UTooltip text="Copier la semaine precedente">
+        <UTooltip v-if="viewMode === 'week'" text="Copier la semaine precedente">
           <UButton
             icon="i-lucide-copy"
             color="neutral"
@@ -347,10 +385,10 @@ onMounted(() => {
           />
         </UTooltip>
       </div>
-    </Teleport></ClientOnly>
+    </Teleport>
 
     <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
-      <!-- Navigation bar: week nav + date left, activity pills right -->
+      <!-- Navigation bar: nav + date left, view toggle + activity pills right -->
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3">
           <div class="flex items-center gap-0.5">
@@ -359,26 +397,46 @@ onMounted(() => {
               color="neutral"
               variant="ghost"
               size="xs"
-              @click="weekViewRef?.previousWeek()"
+              @click="navigatePrev"
             />
             <UButton
               label="Aujourd'hui"
               color="neutral"
               variant="soft"
               size="xs"
-              @click="weekViewRef?.goToToday()"
+              @click="navigateToday"
             />
             <UButton
               icon="i-lucide-chevron-right"
               color="neutral"
               variant="ghost"
               size="xs"
-              @click="weekViewRef?.nextWeek()"
+              @click="navigateNext"
             />
           </div>
-          <span class="text-sm font-medium text-stone-500 dark:text-stone-400">
+          <span v-if="viewMode === 'week'" class="text-sm font-medium text-stone-500 dark:text-stone-400">
             S{{ weekNumber }} <span class="text-stone-300 dark:text-stone-600 mx-0.5">·</span> {{ weekLabel }}
           </span>
+          <span v-else class="text-sm font-medium text-stone-500 dark:text-stone-400 capitalize">
+            {{ currentMonthLabel }}
+          </span>
+          <!-- View mode toggle -->
+          <div class="flex items-center rounded-lg border border-stone-200 dark:border-stone-700 overflow-hidden">
+            <button
+              class="flex items-center justify-center size-7 transition-colors"
+              :class="viewMode === 'week' ? 'bg-primary/10 text-primary' : 'text-stone-400 dark:text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800'"
+              @click="viewMode = 'week'"
+            >
+              <UIcon name="i-lucide-rows-3" class="size-3.5" />
+            </button>
+            <button
+              class="flex items-center justify-center size-7 transition-colors"
+              :class="viewMode === 'month' ? 'bg-primary/10 text-primary' : 'text-stone-400 dark:text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800'"
+              @click="viewMode = 'month'"
+            >
+              <UIcon name="i-lucide-grid-3x3" class="size-3.5" />
+            </button>
+          </div>
         </div>
 
         <div class="flex flex-wrap items-center gap-1.5">
@@ -397,37 +455,65 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Planning grid + optional hours -->
-      <div class="flex gap-6">
-        <div class="flex-1">
-          <PlanningWeekView
-            ref="weekViewRef"
-            :entries="entries"
-            :contract-start="contractStart"
-            :contract-end="contractEnd"
-            :selected-slots="modifSelectedSet"
-            hide-nav
-            @week-change="loadEntries"
-            @add-entry="handleAddEntry"
-            @click-entry="handleClickEntry"
-          />
+      <!-- Week view -->
+      <template v-if="viewMode === 'week'">
+        <div class="flex gap-6">
+          <div class="flex-1">
+            <PlanningWeekView
+              ref="weekViewRef"
+              :entries="entries"
+              :contract-start="contractStart"
+              :contract-end="contractEnd"
+              :selected-slots="modifSelectedSet"
+              hide-nav
+              @week-change="loadEntries"
+              @add-entry="handleAddEntry"
+              @click-entry="handleClickEntry"
+            />
+          </div>
+
+          <div v-if="hasHourTracking" class="w-56 shrink-0">
+            <PlanningHoursSummary
+              :total-hours="stats.totalHours"
+              :total-days="stats.totalDays"
+              :total-half-days="stats.totalHalfDays"
+            />
+          </div>
         </div>
 
-        <div v-if="hasHourTracking" class="w-56 shrink-0">
-          <PlanningHoursSummary
-            :total-hours="stats.totalHours"
-            :total-days="stats.totalDays"
-            :total-half-days="stats.totalHalfDays"
-          />
-        </div>
-      </div>
+        <!-- Team presence -->
+        <PlanningTeamPresence
+          :monday="currentMonday"
+          :current-user-id="user?.id"
+          :is-admin="isDirecteur"
+        />
+      </template>
 
-      <!-- Team presence -->
-      <PlanningTeamPresence
-        :monday="currentMonday"
-        :current-user-id="user?.id"
-        :is-admin="isDirecteur"
-      />
+      <!-- Month view -->
+      <template v-else>
+        <div class="flex gap-6">
+          <div class="flex-1">
+            <PlanningMonthView
+              ref="monthViewRef"
+              :entries="entries"
+              :contract-start="contractStart"
+              :contract-end="contractEnd"
+              :selected-slots="modifSelectedSet"
+              @month-change="loadMonthEntries"
+              @add-entry="handleAddEntry"
+              @click-entry="handleClickEntry"
+            />
+          </div>
+
+          <div v-if="hasHourTracking" class="w-56 shrink-0">
+            <PlanningHoursSummary
+              :total-hours="stats.totalHours"
+              :total-days="stats.totalDays"
+              :total-half-days="stats.totalHalfDays"
+            />
+          </div>
+        </div>
+      </template>
     </div>
 
     <!-- Motif modal -->
