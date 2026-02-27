@@ -41,10 +41,9 @@ services:
       CORS_ORIGIN: ${CORS_ORIGIN}
       CORS_CREDENTIALS: "true"
       ACCESS_TOKEN_TTL: "15m"
-      REFRESH_TOKEN_TTL: "7d"
+      REFRESH_TOKEN_TTL: "30d"
       REFRESH_TOKEN_COOKIE_SECURE: "true"
       REFRESH_TOKEN_COOKIE_SAME_SITE: "lax"
-      REFRESH_TOKEN_COOKIE_DOMAIN: ${DOMAIN}
       REFRESH_TOKEN_COOKIE_NAME: "intranet_refresh_token"
       LOG_LEVEL: "warn"
       CACHE_ENABLED: "true"

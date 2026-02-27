@@ -68,6 +68,14 @@ export function getWeekNumber(date: Date): number {
   return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7)
 }
 
+export function getNextWorkingDay(date: Date): Date {
+  const d = new Date(date)
+  do {
+    d.setDate(d.getDate() + 1)
+  } while (d.getDay() === 0 || d.getDay() === 6)
+  return d
+}
+
 export function isPastDate(dateStr: string): boolean {
   return dateStr < formatDate(new Date())
 }

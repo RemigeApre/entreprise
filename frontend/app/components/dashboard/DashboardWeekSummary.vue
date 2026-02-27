@@ -1,21 +1,41 @@
 <script setup lang="ts">
 import type { PlanningEntry } from '~/utils/types'
 import { PLANNING_TYPES, PLANNING_COLORS } from '~/utils/constants'
-import { getMonday, getWeekDays, formatDate, formatDateShortFr, addDays } from '~/utils/dates'
+import { getMonday, getWeekDays, formatDate, formatDateShortFr, formatDateFr, addDays, getNextWorkingDay } from '~/utils/dates'
 
 const { user } = useAuth()
 const { getEntries } = usePlanning()
+const { planningMode } = useDashboardPreferences()
 
 const loading = ref(true)
 const entries = ref<PlanningEntry[]>([])
 
-const currentMonday = getMonday(new Date())
-const weekDays = getWeekDays(currentMonday)
+const today = new Date()
+const currentMonday = getMonday(today)
+
+// Jours a afficher selon le mode
+const displayDays = computed(() => {
+  if (planningMode.value === 'week') {
+    return getWeekDays(currentMonday)
+  }
+  if (planningMode.value === 'today') {
+    return [today]
+  }
+  // todayNext
+  return [today, getNextWorkingDay(today)]
+})
+
+const headerLabel = computed(() => {
+  if (planningMode.value === 'week') return 'Ma semaine'
+  if (planningMode.value === 'today') return 'Mon planning'
+  return 'Mon planning'
+})
 
 async function load() {
   if (!user.value) return
   loading.value = true
   try {
+    // Toujours charger la semaine entiere (on filtre cote client)
     const friday = addDays(currentMonday, 4)
     entries.value = await getEntries(user.value.id, formatDate(currentMonday), formatDate(friday))
   } finally {
@@ -54,6 +74,27 @@ function getSlotIcon(entry: PlanningEntry | undefined): string {
   return PLANNING_TYPES[entry.type]?.icon || ''
 }
 
+function getSlotLabel(entry: PlanningEntry | undefined): string {
+  if (!entry) return 'Non renseigne'
+  const key = getDisplayKey(entry)
+  if (key && PLANNING_TYPES[key as keyof typeof PLANNING_TYPES]) {
+    return PLANNING_TYPES[key as keyof typeof PLANNING_TYPES].label
+  }
+  return PLANNING_TYPES[entry.type]?.label || ''
+}
+
+// Format jour pour les modes compact
+function getDayLabel(date: Date): string {
+  if (isToday(date)) return 'Aujourd\'hui'
+  // Check si c'est demain ou lundi prochain, etc.
+  const tomorrow = getNextWorkingDay(new Date())
+  if (formatDate(date) === formatDate(tomorrow)) {
+    const dayName = date.toLocaleDateString('fr-FR', { weekday: 'long' })
+    return dayName.charAt(0).toUpperCase() + dayName.slice(1)
+  }
+  return formatDateShortFr(date)
+}
+
 onMounted(load)
 </script>
 
@@ -61,7 +102,7 @@ onMounted(load)
   <UCard>
     <template #header>
       <div class="flex items-center justify-between">
-        <h3 class="text-sm font-semibold">Ma semaine</h3>
+        <h3 class="text-sm font-semibold">{{ headerLabel }}</h3>
         <UButton
           label="Voir le calendrier"
           variant="link"
@@ -76,9 +117,10 @@ onMounted(load)
       <UIcon name="i-lucide-loader-2" class="size-5 animate-spin text-primary" />
     </div>
 
-    <div v-else class="grid grid-cols-5 gap-2">
+    <!-- Mode semaine : grille 5 colonnes -->
+    <div v-else-if="planningMode === 'week'" class="grid grid-cols-5 gap-2">
       <div
-        v-for="day in weekDays"
+        v-for="day in displayDays"
         :key="formatDate(day)"
         class="text-center"
       >
@@ -111,6 +153,48 @@ onMounted(load)
             class="size-3.5"
           />
           <span v-else class="text-[10px]">-</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mode today / todayNext : affichage compact horizontal -->
+    <div v-else class="space-y-3">
+      <div
+        v-for="day in displayDays"
+        :key="formatDate(day)"
+        class="flex items-center gap-3"
+      >
+        <p
+          class="text-xs font-medium w-24 shrink-0"
+          :class="isToday(day) ? 'text-primary font-bold' : 'text-stone-500 dark:text-stone-400'"
+        >
+          {{ getDayLabel(day) }}
+        </p>
+        <div class="flex gap-2 flex-1">
+          <!-- Matin -->
+          <div
+            class="flex-1 h-9 rounded-lg flex items-center justify-center gap-1.5 text-xs font-medium"
+            :class="getSlotClasses(getEntry(day, 'matin'))"
+          >
+            <UIcon
+              v-if="getEntry(day, 'matin')"
+              :name="getSlotIcon(getEntry(day, 'matin'))"
+              class="size-3.5"
+            />
+            <span>{{ getEntry(day, 'matin') ? getSlotLabel(getEntry(day, 'matin')) : '-' }}</span>
+          </div>
+          <!-- Apres-midi -->
+          <div
+            class="flex-1 h-9 rounded-lg flex items-center justify-center gap-1.5 text-xs font-medium"
+            :class="getSlotClasses(getEntry(day, 'apres_midi'))"
+          >
+            <UIcon
+              v-if="getEntry(day, 'apres_midi')"
+              :name="getSlotIcon(getEntry(day, 'apres_midi'))"
+              class="size-3.5"
+            />
+            <span>{{ getEntry(day, 'apres_midi') ? getSlotLabel(getEntry(day, 'apres_midi')) : '-' }}</span>
+          </div>
         </div>
       </div>
     </div>

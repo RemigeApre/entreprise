@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { DASHBOARD_MODULES } from '~/composables/useDashboardPreferences'
+import { DASHBOARD_MODULES, PLANNING_DISPLAY_OPTIONS, PRESENCE_DISPLAY_OPTIONS } from '~/composables/useDashboardPreferences'
 
 const { user, logout, isDirecteur, roleName } = useAuth()
 const colorMode = useColorMode()
 const route = useRoute()
 const mobileOpen = ref(false)
-const { isVisible, show, hide, hiddenCount, showAll } = useDashboardPreferences()
+const { isVisible, show, hide, hiddenCount, showAll, planningMode, setPlanningMode, presenceMode, setPresenceMode } = useDashboardPreferences()
 
 watch(() => route.fullPath, () => { mobileOpen.value = false })
 
@@ -208,9 +208,9 @@ const userMenuItems = [
             </button>
           </UTooltip>
           <template #content>
-            <div class="p-3 w-56 space-y-3">
-              <p class="text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Modules du tableau de bord</p>
+            <div class="p-3 w-64 space-y-4 max-h-[70vh] overflow-y-auto">
               <div class="space-y-2">
+                <p class="text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Modules</p>
                 <label
                   v-for="mod in DASHBOARD_MODULES"
                   :key="mod.key"
@@ -223,14 +223,56 @@ const userMenuItems = [
                     @update:model-value="$event ? show(mod.key) : hide(mod.key)"
                   />
                 </label>
+                <button
+                  v-if="hiddenCount > 0"
+                  class="text-xs text-primary hover:underline"
+                  @click="showAll()"
+                >
+                  Tout reafficher
+                </button>
               </div>
-              <button
-                v-if="hiddenCount > 0"
-                class="text-xs text-primary hover:underline"
-                @click="showAll()"
-              >
-                Tout reafficher
-              </button>
+              <div class="h-px bg-stone-200 dark:bg-stone-700" />
+              <div class="space-y-1.5">
+                <p class="text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Affichage planning</p>
+                <div class="space-y-1">
+                  <label
+                    v-for="opt in PLANNING_DISPLAY_OPTIONS"
+                    :key="opt.value"
+                    class="flex items-center gap-2 cursor-pointer text-sm text-stone-700 dark:text-stone-300"
+                  >
+                    <input
+                      type="radio"
+                      name="planning-mode"
+                      :value="opt.value"
+                      :checked="planningMode === opt.value"
+                      class="accent-primary"
+                      @change="setPlanningMode(opt.value)"
+                    />
+                    {{ opt.label }}
+                  </label>
+                </div>
+              </div>
+              <div class="h-px bg-stone-200 dark:bg-stone-700" />
+              <div class="space-y-1.5">
+                <p class="text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Affichage presence</p>
+                <div class="space-y-1">
+                  <label
+                    v-for="opt in PRESENCE_DISPLAY_OPTIONS"
+                    :key="opt.value"
+                    class="flex items-center gap-2 cursor-pointer text-sm text-stone-700 dark:text-stone-300"
+                  >
+                    <input
+                      type="radio"
+                      name="presence-mode"
+                      :value="opt.value"
+                      :checked="presenceMode === opt.value"
+                      class="accent-primary"
+                      @change="setPresenceMode(opt.value)"
+                    />
+                    {{ opt.label }}
+                  </label>
+                </div>
+              </div>
             </div>
           </template>
         </UPopover>
@@ -396,27 +438,53 @@ const userMenuItems = [
               </button>
             </div>
             <!-- Settings: dashboard modules -->
-            <div class="px-2 py-2 rounded-lg bg-stone-50 dark:bg-stone-800/50 space-y-2">
-              <p class="text-[11px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Tableau de bord</p>
-              <label
-                v-for="mod in DASHBOARD_MODULES"
-                :key="mod.key"
-                class="flex items-center justify-between gap-2 cursor-pointer"
-              >
-                <span class="text-xs text-stone-600 dark:text-stone-400">{{ mod.label }}</span>
-                <USwitch
-                  :model-value="isVisible(mod.key)"
-                  size="xs"
-                  @update:model-value="$event ? show(mod.key) : hide(mod.key)"
-                />
-              </label>
-              <button
-                v-if="hiddenCount > 0"
-                class="text-xs text-primary hover:underline"
-                @click="showAll()"
-              >
-                Tout reafficher
-              </button>
+            <div class="px-2 py-2 rounded-lg bg-stone-50 dark:bg-stone-800/50 space-y-3">
+              <div class="space-y-2">
+                <p class="text-[11px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Modules</p>
+                <label
+                  v-for="mod in DASHBOARD_MODULES"
+                  :key="mod.key"
+                  class="flex items-center justify-between gap-2 cursor-pointer"
+                >
+                  <span class="text-xs text-stone-600 dark:text-stone-400">{{ mod.label }}</span>
+                  <USwitch
+                    :model-value="isVisible(mod.key)"
+                    size="xs"
+                    @update:model-value="$event ? show(mod.key) : hide(mod.key)"
+                  />
+                </label>
+                <button
+                  v-if="hiddenCount > 0"
+                  class="text-xs text-primary hover:underline"
+                  @click="showAll()"
+                >
+                  Tout reafficher
+                </button>
+              </div>
+              <div class="h-px bg-stone-200 dark:bg-stone-700" />
+              <div class="space-y-1.5">
+                <p class="text-[11px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Planning</p>
+                <label
+                  v-for="opt in PLANNING_DISPLAY_OPTIONS"
+                  :key="opt.value"
+                  class="flex items-center gap-2 cursor-pointer text-xs text-stone-600 dark:text-stone-400"
+                >
+                  <input type="radio" name="mobile-planning-mode" :value="opt.value" :checked="planningMode === opt.value" class="accent-primary" @change="setPlanningMode(opt.value)" />
+                  {{ opt.label }}
+                </label>
+              </div>
+              <div class="h-px bg-stone-200 dark:bg-stone-700" />
+              <div class="space-y-1.5">
+                <p class="text-[11px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Presence</p>
+                <label
+                  v-for="opt in PRESENCE_DISPLAY_OPTIONS"
+                  :key="opt.value"
+                  class="flex items-center gap-2 cursor-pointer text-xs text-stone-600 dark:text-stone-400"
+                >
+                  <input type="radio" name="mobile-presence-mode" :value="opt.value" :checked="presenceMode === opt.value" class="accent-primary" @change="setPresenceMode(opt.value)" />
+                  {{ opt.label }}
+                </label>
+              </div>
             </div>
             <NuxtLink
               to="/profil"
