@@ -151,7 +151,7 @@ onMounted(load)
             <td class="py-2 pr-3 whitespace-nowrap">
               <NuxtLink
                 v-if="isAdmin"
-                :to="`/planning/admin?user=${member.id}`"
+                :to="`/planning/${member.id}`"
                 class="text-stone-700 dark:text-stone-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
               >
                 {{ getMemberName(member) }}
