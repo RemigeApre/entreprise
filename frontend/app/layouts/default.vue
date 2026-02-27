@@ -322,7 +322,7 @@ const userMenuItems = [
       </div>
 
       <!-- Page content -->
-      <div class="flex-1 overflow-hidden bg-watermark isolate">
+      <div class="flex-1 overflow-hidden bg-watermark flex flex-col">
         <!-- Mobile menu button -->
         <div class="fixed top-3 left-3 z-50 lg:hidden">
           <button

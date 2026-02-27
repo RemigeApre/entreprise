@@ -28,7 +28,16 @@ export function useSiteMonitor() {
           sort: ['nom'],
           limit: -1
         }))
-        userSites.value = allSites as MonitoredSite[]
+        // Deduplicate by URL (keep first occurrence)
+        const seen = new Set<string>()
+        const unique: MonitoredSite[] = []
+        for (const site of allSites as MonitoredSite[]) {
+          if (!seen.has(site.url)) {
+            seen.add(site.url)
+            unique.push(site)
+          }
+        }
+        userSites.value = unique
       } else {
         // Non-admins: only see sites they're assigned to
         const junctionEntries = await $directus.request(readItems('monitored_sites_users', {

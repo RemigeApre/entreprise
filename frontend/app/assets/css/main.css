@@ -37,8 +37,10 @@
     radial-gradient(ellipse at 80% 20%, oklch(0.18 0.015 40 / 0.2), transparent 50%);
 }
 
-/* Logo watermark background */
-.bg-watermark {}
+/* Logo watermark background — contain:paint clips fixed-position children so they can't overlap the tab bar */
+.bg-watermark {
+  contain: paint;
+}
 .bg-watermark::before {
   content: '';
   position: fixed;
