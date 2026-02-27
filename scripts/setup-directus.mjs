@@ -1003,6 +1003,9 @@ async function seedWikiPages() {
 async function seedMonitoredSites() {
   console.log('🌐 Seed des sites surveilles...')
 
+  const existing = await api('GET', '/items/monitored_sites?fields=id,url&limit=-1')
+  const existingUrls = new Set((existing || []).map(s => s.url))
+
   const sites = [
     { nom: 'Le Geai Editions', url: 'https://legeai-editions.com', actif: true },
     { nom: 'Le Geai Informatique', url: 'https://legeai-informatique.fr', actif: true },
@@ -1010,7 +1013,22 @@ async function seedMonitoredSites() {
   ]
 
   for (const site of sites) {
-    await safeApi('POST', '/items/monitored_sites', site, `Site "${site.nom}"`)
+    if (existingUrls.has(site.url)) {
+      console.log(`  ⊘ Site "${site.nom}" (existe deja)`)
+    } else {
+      await safeApi('POST', '/items/monitored_sites', site, `Site "${site.nom}"`)
+    }
+  }
+
+  // Clean up duplicates (keep oldest per URL)
+  const allSites = await api('GET', '/items/monitored_sites?fields=id,url,nom&sort=date_created&limit=-1')
+  const seen = new Set()
+  for (const site of allSites || []) {
+    if (seen.has(site.url)) {
+      await safeApi('DELETE', `/items/monitored_sites/${site.id}`, null, `Doublon "${site.nom}" supprime`)
+    } else {
+      seen.add(site.url)
+    }
   }
 
   console.log('')
