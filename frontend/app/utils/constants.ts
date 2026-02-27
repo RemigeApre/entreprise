@@ -131,6 +131,42 @@ export const CONTRACT_TYPES = {
   Stage: 'Stage'
 } as const
 
+export const SCHEDULE_CATEGORIES = {
+  reunion_client: { label: 'Reunion client', icon: 'i-lucide-handshake', color: 'emerald' },
+  reunion_interne: { label: 'Reunion interne', icon: 'i-lucide-users', color: 'sky' },
+  reunion_financement: { label: 'Financement', icon: 'i-lucide-landmark', color: 'violet' },
+  indispo_perso: { label: 'Indisponibilite', icon: 'i-lucide-user-x', color: 'orange' },
+  autre: { label: 'Autre', icon: 'i-lucide-calendar-clock', color: 'neutral' }
+} as const
+
+export const SCHEDULE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  reunion_client: {
+    bg: 'bg-emerald-100 dark:bg-emerald-900/40',
+    text: 'text-emerald-800 dark:text-emerald-200',
+    border: 'border-emerald-400 dark:border-emerald-600'
+  },
+  reunion_interne: {
+    bg: 'bg-sky-100 dark:bg-sky-900/40',
+    text: 'text-sky-800 dark:text-sky-200',
+    border: 'border-sky-400 dark:border-sky-600'
+  },
+  reunion_financement: {
+    bg: 'bg-violet-100 dark:bg-violet-900/40',
+    text: 'text-violet-800 dark:text-violet-200',
+    border: 'border-violet-400 dark:border-violet-600'
+  },
+  indispo_perso: {
+    bg: 'bg-orange-100 dark:bg-orange-900/40',
+    text: 'text-orange-800 dark:text-orange-200',
+    border: 'border-orange-400 dark:border-orange-600'
+  },
+  autre: {
+    bg: 'bg-stone-100 dark:bg-stone-800/50',
+    text: 'text-stone-700 dark:text-stone-300',
+    border: 'border-stone-400 dark:border-stone-600'
+  }
+}
+
 export const PROJECT_ROLES = [
   'Chef de projet',
   'Developpeur',

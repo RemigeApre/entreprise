@@ -485,6 +485,30 @@ async function createCollections() {
     ]
   }, 'Collection "wiki_pages"')
 
+  // ── schedule_entries ──
+  await safeApi('POST', '/collections', {
+    collection: 'schedule_entries',
+    schema: {},
+    meta: { icon: 'schedule', note: 'Emploi du temps (creneaux horaires)', sort: 13 },
+    fields: [
+      uuidPK(),
+      { field: 'utilisateur', type: 'uuid', schema: { is_nullable: false }, meta: { interface: 'select-dropdown-m2o', display: 'user', required: true, sort: 1 } },
+      { field: 'date', type: 'date', schema: { is_nullable: false }, meta: { interface: 'datetime', required: true, sort: 2 } },
+      { field: 'heure_debut', type: 'time', schema: { is_nullable: false }, meta: { interface: 'input', required: true, sort: 3, note: 'Format HH:mm' } },
+      { field: 'heure_fin', type: 'time', schema: { is_nullable: false }, meta: { interface: 'input', required: true, sort: 4, note: 'Format HH:mm' } },
+      { field: 'titre', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, sort: 5 } },
+      dropdown('categorie', [
+        { text: 'Reunion client', value: 'reunion_client' },
+        { text: 'Reunion interne', value: 'reunion_interne' },
+        { text: 'Financement', value: 'reunion_financement' },
+        { text: 'Indisponibilite', value: 'indispo_perso' },
+        { text: 'Autre', value: 'autre' }
+      ], { required: true, default_value: 'reunion_interne', sort: 6 }),
+      { field: 'description', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 7 } },
+      ...systemFields()
+    ]
+  }, 'Collection "schedule_entries"')
+
   // ── offres_emploi ──
   await safeApi('POST', '/collections', {
     collection: 'offres_emploi',
@@ -560,6 +584,9 @@ async function createRelations() {
 
     // notifications
     { coll: 'notifications', field: 'utilisateur', related: 'directus_users', template: '{{first_name}} {{last_name}}' },
+
+    // schedule_entries
+    { coll: 'schedule_entries', field: 'utilisateur', related: 'directus_users', template: '{{first_name}} {{last_name}}' },
 
     // offres_emploi
     { coll: 'offres_emploi', field: 'categorie', related: 'categories', template: '{{nom}}' },
@@ -727,6 +754,12 @@ async function setupPermissions(roleIds) {
 
       // Wiki pages: read active
       { collection: 'wiki_pages', action: 'read', fields: ['*'], permissions: { actif: { _eq: true } } },
+
+      // Schedule entries: create own, read all, update own, delete own
+      { collection: 'schedule_entries', action: 'create', fields: ['*'], permissions: {}, validation: { utilisateur: { _eq: '$CURRENT_USER' } } },
+      { collection: 'schedule_entries', action: 'read', fields: ['*'], permissions: {} },
+      { collection: 'schedule_entries', action: 'update', fields: ['*'], permissions: { utilisateur: { _eq: '$CURRENT_USER' } } },
+      { collection: 'schedule_entries', action: 'delete', permissions: { utilisateur: { _eq: '$CURRENT_USER' } } },
 
       // Offres emploi: read published
       { collection: 'offres_emploi', action: 'read', fields: ['*'], permissions: { publie: { _eq: true } } }

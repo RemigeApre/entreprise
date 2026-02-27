@@ -193,6 +193,21 @@ export interface WikiPage {
   date_updated: string | null
 }
 
+export type ScheduleCategorie = 'reunion_client' | 'reunion_interne' | 'reunion_financement' | 'indispo_perso' | 'autre'
+
+export interface ScheduleEntry {
+  id: string
+  utilisateur: UserProfile | string
+  date: string
+  heure_debut: string // "09:00"
+  heure_fin: string   // "10:30"
+  titre: string
+  categorie: ScheduleCategorie
+  description: string | null
+  date_created: string
+  user_created: string
+}
+
 // Directus schema type for SDK
 export interface DirectusSchema {
   categories: Category[]
@@ -207,5 +222,6 @@ export interface DirectusSchema {
   offres_emploi: OffreEmploi[]
   notifications: Notification[]
   wiki_pages: WikiPage[]
+  schedule_entries: ScheduleEntry[]
   directus_users: UserProfile[]
 }

@@ -39,9 +39,10 @@ const domains = computed<Domain[]>(() => {
       label: 'RH',
       icon: 'i-lucide-users',
       to: '/planning',
-      prefixes: ['/planning', '/equipe', '/offres'],
+      prefixes: ['/planning', '/emploi-du-temps', '/equipe', '/offres'],
       tabs: [
         { label: 'Calendrier', icon: 'i-lucide-calendar', to: '/planning' },
+        { label: 'Emploi du temps', icon: 'i-lucide-clock', to: '/emploi-du-temps' },
         { label: 'Equipe', icon: 'i-lucide-users', to: '/equipe' },
         ...(isDirecteur.value ? [{ label: 'Offres', icon: 'i-lucide-megaphone', to: '/offres' }] : [])
       ]
@@ -304,8 +305,8 @@ const userMenuItems = [
                 tab.disabled
                   ? 'text-stone-300 dark:text-stone-700 cursor-not-allowed border-transparent'
                   : isTabActive(tab)
-                    ? 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 text-stone-900 dark:text-white'
-                    : 'border-transparent text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-50 dark:hover:bg-stone-900/50'
+                    ? 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 text-stone-900 dark:text-white cursor-default'
+                    : 'border-transparent text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-50 dark:hover:bg-stone-900/50 cursor-pointer'
               ]"
             >
               <UIcon :name="tab.icon" class="size-4" />
