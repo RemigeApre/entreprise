@@ -85,19 +85,6 @@ const domains = computed<Domain[]>(() => {
     tabs: []
   })
 
-  if (isDirecteur.value) {
-    list.push({
-      id: 'admin',
-      label: 'Admin',
-      icon: 'i-lucide-shield',
-      to: '/admin/utilisateurs',
-      prefixes: ['/admin'],
-      tabs: [
-        { label: 'Utilisateurs', icon: 'i-lucide-users', to: '/admin/utilisateurs' }
-      ]
-    })
-  }
-
   return list
 })
 
