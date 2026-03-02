@@ -128,10 +128,13 @@ const userDisplayName = computed(() => {
   return email
 })
 
-const userMenuItems = [
-  [{ label: 'Mon profil', icon: 'i-lucide-user', to: '/profil' }],
+const userMenuItems = computed(() => [
+  [
+    { label: 'Mon profil', icon: 'i-lucide-user', to: '/profil' },
+    ...(isDirecteur.value ? [{ label: 'Administration', icon: 'i-lucide-shield', to: '/admin' }] : [])
+  ],
   [{ label: 'Se deconnecter', icon: 'i-lucide-log-out', click: () => logout() }]
-]
+])
 </script>
 
 <template>
