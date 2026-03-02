@@ -317,24 +317,24 @@ onMounted(() => {
           </h3>
           <form class="space-y-4" @submit.prevent="handleSubmit">
             <UFormField label="Titre" required>
-              <UInput v-model="form.titre" placeholder="Ex: Reunion client X, Medecin..." />
+              <UInput v-model="form.titre" placeholder="Ex: Reunion client X, Medecin..." class="w-full" />
             </UFormField>
 
             <div class="grid grid-cols-2 gap-3">
               <UFormField label="Debut">
-                <USelect v-model="form.heure_debut" :items="timeOptions" value-key="value" />
+                <USelect v-model="form.heure_debut" :items="timeOptions" value-key="value" class="w-full" />
               </UFormField>
               <UFormField label="Fin">
-                <USelect v-model="form.heure_fin" :items="timeOptions" value-key="value" />
+                <USelect v-model="form.heure_fin" :items="timeOptions" value-key="value" class="w-full" />
               </UFormField>
             </div>
 
             <UFormField label="Categorie">
-              <USelect v-model="form.categorie" :items="categorieOptions" value-key="value" />
+              <USelect v-model="form.categorie" :items="categorieOptions" value-key="value" class="w-full" />
             </UFormField>
 
             <UFormField label="Description">
-              <UTextarea v-model="form.description" placeholder="Details (optionnel)..." :rows="2" />
+              <UTextarea v-model="form.description" placeholder="Details (optionnel)..." :rows="2" class="w-full" />
             </UFormField>
 
             <!-- Recurrence (create mode only) -->
@@ -343,10 +343,10 @@ onMounted(() => {
               <div class="space-y-3">
                 <p class="text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Recurrence</p>
                 <UFormField label="Repeter">
-                  <USelect v-model="recurrence" :items="RECURRENCE_OPTIONS" value-key="value" />
+                  <USelect v-model="recurrence" :items="RECURRENCE_OPTIONS" value-key="value" class="w-full" />
                 </UFormField>
                 <UFormField v-if="recurrence !== 'aucune'" label="Date de fin de recurrence" required>
-                  <UInput v-model="recurrenceEndDate" type="date" :min="form.date" />
+                  <UInput v-model="recurrenceEndDate" type="date" :min="form.date" class="w-full" />
                 </UFormField>
                 <p v-if="recurrence !== 'aucune' && recurrenceEndDate" class="text-xs text-stone-400 dark:text-stone-500">
                   Les entrees seront creees individuellement du {{ form.date }} au {{ recurrenceEndDate }}.

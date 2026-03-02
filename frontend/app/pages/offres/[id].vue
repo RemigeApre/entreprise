@@ -214,17 +214,17 @@ function formatSalaire(o: OffreEmploi) {
           </template>
           <div class="space-y-4">
             <UFormField label="Titre *">
-              <UInput v-model="form.titre" placeholder="Ex: Developpeur Full Stack" />
+              <UInput v-model="form.titre" placeholder="Ex: Developpeur Full Stack" class="w-full" />
             </UFormField>
             <UFormField label="Description *">
-              <UTextarea v-model="form.description" placeholder="Decrivez le poste en detail..." :rows="6" />
+              <UTextarea v-model="form.description" placeholder="Decrivez le poste en detail..." :rows="6" class="w-full" />
             </UFormField>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <UFormField label="Type de contrat *">
-                <USelectMenu v-model="form.type_contrat" :items="CONTRACT_OPTIONS" value-key="value" />
+                <USelectMenu v-model="form.type_contrat" :items="CONTRACT_OPTIONS" value-key="value" class="w-full" />
               </UFormField>
               <UFormField label="Localisation *">
-                <UInput v-model="form.localisation" placeholder="Ex: Lyon, France" icon="i-lucide-map-pin" />
+                <UInput v-model="form.localisation" placeholder="Ex: Lyon, France" icon="i-lucide-map-pin" class="w-full" />
               </UFormField>
             </div>
           </div>
@@ -243,13 +243,13 @@ function formatSalaire(o: OffreEmploi) {
           <div v-if="showSalaire" class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <UFormField label="Salaire minimum">
-                <UInput v-model.number="form.salaire_min" type="number" placeholder="Ex: 35000" />
+                <UInput v-model.number="form.salaire_min" type="number" placeholder="Ex: 35000" class="w-full" />
               </UFormField>
               <UFormField label="Salaire maximum">
-                <UInput v-model.number="form.salaire_max" type="number" placeholder="Ex: 45000" />
+                <UInput v-model.number="form.salaire_max" type="number" placeholder="Ex: 45000" class="w-full" />
               </UFormField>
               <UFormField label="Periode">
-                <USelectMenu v-model="form.salaire_periode" :items="SALAIRE_OPTIONS" value-key="value" />
+                <USelectMenu v-model="form.salaire_periode" :items="SALAIRE_OPTIONS" value-key="value" class="w-full" />
               </UFormField>
             </div>
           </div>
@@ -264,13 +264,13 @@ function formatSalaire(o: OffreEmploi) {
           </template>
           <div class="space-y-4">
             <UFormField label="Competences requises">
-              <UTextarea v-model="form.competences_requises" placeholder="Listez les competences attendues..." :rows="4" />
+              <UTextarea v-model="form.competences_requises" placeholder="Listez les competences attendues..." :rows="4" class="w-full" />
             </UFormField>
             <UFormField label="Avantages">
-              <UTextarea v-model="form.avantages" placeholder="Ex: Teletravail, tickets restaurant, mutuelle..." :rows="3" />
+              <UTextarea v-model="form.avantages" placeholder="Ex: Teletravail, tickets restaurant, mutuelle..." :rows="3" class="w-full" />
             </UFormField>
             <UFormField label="Date d'expiration">
-              <UInput v-model="form.date_expiration" type="date" />
+              <UInput v-model="form.date_expiration" type="date" class="w-full" />
             </UFormField>
           </div>
         </UCard>
