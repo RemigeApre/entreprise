@@ -812,6 +812,9 @@ async function setupPermissions(roleIds) {
 async function seedCategories() {
   console.log('🌱 Donnees de seed...')
 
+  const existing = await api('GET', '/items/categories?fields=id,nom&limit=-1')
+  const existingNoms = new Set((existing || []).map(c => c.nom))
+
   const categories = [
     { nom: 'Informatique', couleur: '#3B82F6', description: 'Developpement, infrastructure, support IT' },
     { nom: 'Design 2D/3D', couleur: '#8B5CF6', description: 'Creation graphique, modelisation 3D, UI/UX' },
@@ -822,7 +825,22 @@ async function seedCategories() {
   ]
 
   for (const cat of categories) {
-    await safeApi('POST', '/items/categories', cat, `Categorie "${cat.nom}"`)
+    if (existingNoms.has(cat.nom)) {
+      console.log(`  ⊘ Categorie "${cat.nom}" (existe deja)`)
+    } else {
+      await safeApi('POST', '/items/categories', cat, `Categorie "${cat.nom}"`)
+    }
+  }
+
+  // Clean up duplicates (keep first per nom)
+  const allCats = await api('GET', '/items/categories?fields=id,nom&limit=-1')
+  const seen = new Set()
+  for (const cat of allCats || []) {
+    if (seen.has(cat.nom)) {
+      await safeApi('DELETE', `/items/categories/${cat.id}`, null, `Doublon categorie "${cat.nom}" supprime`)
+    } else {
+      seen.add(cat.nom)
+    }
   }
 
   console.log('')
@@ -991,8 +1009,26 @@ async function seedWikiPages() {
     }
   ]
 
+  const existing = await api('GET', '/items/wiki_pages?fields=id,slug&limit=-1')
+  const existingSlugs = new Set((existing || []).map(p => p.slug))
+
   for (const page of pages) {
-    await safeApi('POST', '/items/wiki_pages', page, `Wiki "${page.titre}"`)
+    if (existingSlugs.has(page.slug)) {
+      console.log(`  ⊘ Wiki "${page.titre}" (existe deja)`)
+    } else {
+      await safeApi('POST', '/items/wiki_pages', page, `Wiki "${page.titre}"`)
+    }
+  }
+
+  // Clean up duplicates (keep first per slug)
+  const allPages = await api('GET', '/items/wiki_pages?fields=id,slug,titre&limit=-1')
+  const seen = new Set()
+  for (const page of allPages || []) {
+    if (seen.has(page.slug)) {
+      await safeApi('DELETE', `/items/wiki_pages/${page.id}`, null, `Doublon wiki "${page.titre}" supprime`)
+    } else {
+      seen.add(page.slug)
+    }
   }
 
   console.log('')
