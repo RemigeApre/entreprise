@@ -110,8 +110,8 @@ function getMemberName(member: { utilisateur: UserProfile | string }) {
       </div>
 
       <div v-else-if="!filteredProjects.length" class="text-center py-12">
-        <UIcon name="i-lucide-folder-kanban" class="size-10 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
-        <p class="text-gray-500 dark:text-gray-400">Aucun projet trouve</p>
+        <UIcon name="i-lucide-folder-kanban" class="size-10 text-stone-300 dark:text-stone-700 mx-auto mb-3" />
+        <p class="text-stone-500 dark:text-stone-400">Aucun projet trouve</p>
       </div>
 
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -124,7 +124,7 @@ function getMemberName(member: { utilisateur: UserProfile | string }) {
           <div class="space-y-3">
             <!-- Header: nom + statut -->
             <div class="flex items-start justify-between gap-2">
-              <h3 class="font-semibold text-gray-900 dark:text-white truncate">
+              <h3 class="font-semibold text-stone-900 dark:text-white truncate">
                 {{ project.nom }}
               </h3>
               <UBadge
@@ -159,13 +159,13 @@ function getMemberName(member: { utilisateur: UserProfile | string }) {
             </div>
 
             <!-- Dates -->
-            <div v-if="formatDateRange(project)" class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+            <div v-if="formatDateRange(project)" class="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400">
               <UIcon name="i-lucide-calendar" class="size-3.5" />
               <span>{{ formatDateRange(project) }}</span>
             </div>
 
             <!-- Budget -->
-            <div v-if="formatBudget(project.budget)" class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+            <div v-if="formatBudget(project.budget)" class="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400">
               <UIcon name="i-lucide-euro" class="size-3.5" />
               <span>{{ formatBudget(project.budget) }}</span>
             </div>
@@ -180,22 +180,22 @@ function getMemberName(member: { utilisateur: UserProfile | string }) {
                   :key="member.id"
                   :alt="getMemberName(member)"
                   size="xs"
-                  class="ring-2 ring-white dark:ring-gray-900"
+                  class="ring-2 ring-white dark:ring-stone-900"
                 />
                 <span
                   v-if="getMembers(project).length > 3"
-                  class="inline-flex items-center justify-center size-6 rounded-full bg-gray-100 dark:bg-gray-800 text-xs font-medium text-gray-600 dark:text-gray-300 ring-2 ring-white dark:ring-gray-900"
+                  class="inline-flex items-center justify-center size-6 rounded-full bg-stone-100 dark:bg-stone-800 text-xs font-medium text-stone-600 dark:text-stone-300 ring-2 ring-white dark:ring-stone-900"
                 >
                   +{{ getMembers(project).length - 3 }}
                 </span>
                 <span
                   v-if="!getMembers(project).length"
-                  class="text-xs text-gray-400 dark:text-gray-500"
+                  class="text-xs text-stone-400 dark:text-stone-500"
                 >
                   Aucun membre
                 </span>
               </div>
-              <UIcon name="i-lucide-arrow-right" class="size-4 text-gray-400" />
+              <UIcon name="i-lucide-arrow-right" class="size-4 text-stone-400" />
             </div>
           </div>
         </UCard>

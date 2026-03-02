@@ -314,14 +314,8 @@ function getFileUrl(fileId: string) {
 <template>
   <div class="flex flex-col h-full">
     <PageHeader :title="project?.nom || 'Projet'">
-      <template #right>
-        <UButton
-          label="Retour"
-          icon="i-lucide-arrow-left"
-          color="neutral"
-          variant="ghost"
-          to="/projets"
-        />
+      <template #left>
+        <UButton icon="i-lucide-arrow-left" color="neutral" variant="ghost" size="sm" to="/projets" />
       </template>
     </PageHeader>
 
@@ -333,8 +327,8 @@ function getFileUrl(fileId: string) {
 
       <!-- Error / not found -->
       <div v-else-if="!project" class="text-center py-12">
-        <UIcon name="i-lucide-folder-x" class="size-10 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
-        <p class="text-gray-500 dark:text-gray-400">Projet introuvable</p>
+        <UIcon name="i-lucide-folder-x" class="size-10 text-stone-300 dark:text-stone-700 mx-auto mb-3" />
+        <p class="text-stone-500 dark:text-stone-400">Projet introuvable</p>
         <UButton label="Retour aux projets" to="/projets" variant="subtle" class="mt-4" />
       </div>
 
@@ -343,7 +337,7 @@ function getFileUrl(fileId: string) {
         <!-- Project header -->
         <div class="flex items-center justify-between mb-6">
           <div class="flex items-center gap-3">
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+            <h1 class="text-2xl font-bold text-stone-900 dark:text-white">
               {{ project.nom }}
             </h1>
             <UBadge
@@ -364,7 +358,7 @@ function getFileUrl(fileId: string) {
               <UCard v-if="!isEditing">
                 <template #header>
                   <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
+                    <h3 class="text-sm font-semibold text-stone-900 dark:text-white">
                       Informations du projet
                     </h3>
                     <UButton
@@ -380,7 +374,7 @@ function getFileUrl(fileId: string) {
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
                   <div>
-                    <span class="text-gray-500 dark:text-gray-400">Statut</span>
+                    <span class="text-stone-500 dark:text-stone-400">Statut</span>
                     <div class="mt-1">
                       <UBadge
                         :color="PROJECT_STATUTS[project.statut]?.color || 'neutral'"
@@ -391,30 +385,30 @@ function getFileUrl(fileId: string) {
                     </div>
                   </div>
                   <div>
-                    <span class="text-gray-500 dark:text-gray-400">Categorie</span>
-                    <p class="font-medium text-gray-900 dark:text-white mt-1">{{ getCategoryName(project) }}</p>
+                    <span class="text-stone-500 dark:text-stone-400">Categorie</span>
+                    <p class="font-medium text-stone-900 dark:text-white mt-1">{{ getCategoryName(project) }}</p>
                   </div>
                   <div>
-                    <span class="text-gray-500 dark:text-gray-400">Date de debut</span>
-                    <p class="font-medium text-gray-900 dark:text-white mt-1">{{ formatDateFr(project.date_debut) }}</p>
+                    <span class="text-stone-500 dark:text-stone-400">Date de debut</span>
+                    <p class="font-medium text-stone-900 dark:text-white mt-1">{{ formatDateFr(project.date_debut) }}</p>
                   </div>
                   <div>
-                    <span class="text-gray-500 dark:text-gray-400">Date de fin</span>
-                    <p class="font-medium text-gray-900 dark:text-white mt-1">{{ formatDateFr(project.date_fin) }}</p>
+                    <span class="text-stone-500 dark:text-stone-400">Date de fin</span>
+                    <p class="font-medium text-stone-900 dark:text-white mt-1">{{ formatDateFr(project.date_fin) }}</p>
                   </div>
                   <div>
-                    <span class="text-gray-500 dark:text-gray-400">Budget</span>
-                    <p class="font-medium text-gray-900 dark:text-white mt-1">{{ formatBudget(project.budget) }}</p>
+                    <span class="text-stone-500 dark:text-stone-400">Budget</span>
+                    <p class="font-medium text-stone-900 dark:text-white mt-1">{{ formatBudget(project.budget) }}</p>
                   </div>
                   <div>
-                    <span class="text-gray-500 dark:text-gray-400">Client</span>
-                    <p class="font-medium text-gray-900 dark:text-white mt-1">{{ getClientName(project) }}</p>
+                    <span class="text-stone-500 dark:text-stone-400">Client</span>
+                    <p class="font-medium text-stone-900 dark:text-white mt-1">{{ getClientName(project) }}</p>
                   </div>
                 </div>
 
                 <div v-if="project.description" class="mt-6">
-                  <span class="text-sm text-gray-500 dark:text-gray-400">Description</span>
-                  <p class="text-sm text-gray-900 dark:text-white mt-1 whitespace-pre-line">
+                  <span class="text-sm text-stone-500 dark:text-stone-400">Description</span>
+                  <p class="text-sm text-stone-900 dark:text-white mt-1 whitespace-pre-line">
                     {{ project.description }}
                   </p>
                 </div>
@@ -423,7 +417,7 @@ function getFileUrl(fileId: string) {
               <!-- Edit mode (directeur only) -->
               <UCard v-else>
                 <template #header>
-                  <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
+                  <h3 class="text-sm font-semibold text-stone-900 dark:text-white">
                     Modifier le projet
                   </h3>
                 </template>
@@ -511,7 +505,7 @@ function getFileUrl(fileId: string) {
           <template #tasks>
             <div class="mt-6 space-y-4">
               <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                <h3 class="text-lg font-semibold text-stone-900 dark:text-white">
                   Taches ({{ project.taches?.length || 0 }})
                 </h3>
                 <UButton
@@ -525,7 +519,7 @@ function getFileUrl(fileId: string) {
               <!-- Add task form -->
               <UCard v-if="showAddTask">
                 <template #header>
-                  <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Nouvelle tache</h4>
+                  <h4 class="text-sm font-semibold text-stone-900 dark:text-white">Nouvelle tache</h4>
                 </template>
                 <form class="space-y-4" @submit.prevent="handleAddTask">
                   <UFormField label="Titre *">
@@ -580,8 +574,8 @@ function getFileUrl(fileId: string) {
 
               <!-- Tasks list -->
               <div v-if="!project.taches?.length && !showAddTask" class="text-center py-8">
-                <UIcon name="i-lucide-list-checks" class="size-8 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
-                <p class="text-gray-500 dark:text-gray-400">Aucune tache pour ce projet</p>
+                <UIcon name="i-lucide-list-checks" class="size-8 text-stone-300 dark:text-stone-700 mx-auto mb-3" />
+                <p class="text-stone-500 dark:text-stone-400">Aucune tache pour ce projet</p>
               </div>
 
               <UCard v-for="task in project.taches" :key="task.id">
@@ -598,7 +592,7 @@ function getFileUrl(fileId: string) {
                       :class="{
                         'text-green-500': task.statut === 'termine',
                         'text-blue-500': task.statut === 'en_cours',
-                        'text-gray-400': task.statut === 'a_faire'
+                        'text-stone-400': task.statut === 'a_faire'
                       }"
                     />
                   </button>
@@ -607,8 +601,8 @@ function getFileUrl(fileId: string) {
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 flex-wrap">
                       <span
-                        class="font-medium text-gray-900 dark:text-white"
-                        :class="{ 'line-through text-gray-400 dark:text-gray-500': task.statut === 'termine' }"
+                        class="font-medium text-stone-900 dark:text-white"
+                        :class="{ 'line-through text-stone-400 dark:text-stone-500': task.statut === 'termine' }"
                       >
                         {{ task.titre }}
                       </span>
@@ -629,11 +623,11 @@ function getFileUrl(fileId: string) {
                       </UBadge>
                     </div>
 
-                    <p v-if="task.description" class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    <p v-if="task.description" class="text-sm text-stone-500 dark:text-stone-400 mt-1">
                       {{ task.description }}
                     </p>
 
-                    <div class="flex items-center gap-3 mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    <div class="flex items-center gap-3 mt-2 text-xs text-stone-500 dark:text-stone-400">
                       <!-- Assignee -->
                       <div v-if="getTaskAssigneeName(task)" class="flex items-center gap-1">
                         <UAvatar :alt="getTaskAssigneeName(task)!" size="3xs" />
@@ -664,7 +658,7 @@ function getFileUrl(fileId: string) {
           <template #members>
             <div class="mt-6 space-y-4">
               <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                <h3 class="text-lg font-semibold text-stone-900 dark:text-white">
                   Membres ({{ project.membres?.length || 0 }})
                 </h3>
                 <UButton
@@ -677,8 +671,8 @@ function getFileUrl(fileId: string) {
 
               <!-- Members list -->
               <div v-if="!project.membres?.length" class="text-center py-8">
-                <UIcon name="i-lucide-users" class="size-8 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
-                <p class="text-gray-500 dark:text-gray-400">Aucun membre dans ce projet</p>
+                <UIcon name="i-lucide-users" class="size-8 text-stone-300 dark:text-stone-700 mx-auto mb-3" />
+                <p class="text-stone-500 dark:text-stone-400">Aucun membre dans ce projet</p>
               </div>
 
               <UCard v-for="member in project.membres" :key="member.id">
@@ -686,10 +680,10 @@ function getFileUrl(fileId: string) {
                   <div class="flex items-center gap-3">
                     <UAvatar :alt="getMemberName(member)" size="sm" />
                     <div>
-                      <p class="font-medium text-gray-900 dark:text-white">
+                      <p class="font-medium text-stone-900 dark:text-white">
                         {{ getMemberName(member) }}
                       </p>
-                      <p v-if="member.role_projet" class="text-sm text-gray-500 dark:text-gray-400">
+                      <p v-if="member.role_projet" class="text-sm text-stone-500 dark:text-stone-400">
                         {{ member.role_projet }}
                       </p>
                     </div>
@@ -708,7 +702,7 @@ function getFileUrl(fileId: string) {
               <UModal v-model:open="showAddMember">
                 <template #content>
                   <div class="p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    <h3 class="text-lg font-semibold text-stone-900 dark:text-white mb-4">
                       Ajouter un membre
                     </h3>
                     <form class="space-y-4" @submit.prevent="handleAddMember">
@@ -759,22 +753,22 @@ function getFileUrl(fileId: string) {
           <template #files>
             <div class="mt-6 space-y-4">
               <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                <h3 class="text-lg font-semibold text-stone-900 dark:text-white">
                   Fichiers ({{ project.fichiers?.length || 0 }})
                 </h3>
               </div>
 
               <div v-if="!project.fichiers?.length" class="text-center py-8">
-                <UIcon name="i-lucide-paperclip" class="size-8 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
-                <p class="text-gray-500 dark:text-gray-400">Aucun fichier attache a ce projet</p>
+                <UIcon name="i-lucide-paperclip" class="size-8 text-stone-300 dark:text-stone-700 mx-auto mb-3" />
+                <p class="text-stone-500 dark:text-stone-400">Aucun fichier attache a ce projet</p>
               </div>
 
               <UCard v-for="file in project.fichiers" :key="file.id">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-3">
-                    <UIcon name="i-lucide-file" class="size-5 text-gray-400" />
+                    <UIcon name="i-lucide-file" class="size-5 text-stone-400" />
                     <div>
-                      <p class="font-medium text-gray-900 dark:text-white">
+                      <p class="font-medium text-stone-900 dark:text-white">
                         {{ file.description || 'Fichier sans description' }}
                       </p>
                     </div>

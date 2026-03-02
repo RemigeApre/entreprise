@@ -93,25 +93,28 @@ async function handleSubmit() {
 <template>
   <div class="flex flex-col h-full">
     <PageHeader title="Nouveau projet">
+      <template #left>
+        <UButton icon="i-lucide-arrow-left" color="neutral" variant="ghost" size="sm" to="/projets" />
+      </template>
       <template #right>
         <UButton
-          label="Annuler"
-          icon="i-lucide-arrow-left"
-          color="neutral"
-          variant="ghost"
-          to="/projets"
+          label="Creer"
+          icon="i-lucide-check"
+          size="sm"
+          :loading="loading"
+          @click="handleSubmit"
         />
       </template>
     </PageHeader>
 
     <div class="flex-1 overflow-y-auto p-4 sm:p-6">
-      <div class="max-w-2xl">
+      <div class="max-w-2xl mx-auto">
         <UCard>
           <template #header>
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+            <h2 class="text-lg font-semibold text-stone-900 dark:text-white">
               Creer un nouveau projet
             </h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <p class="text-sm text-stone-500 dark:text-stone-400 mt-1">
               Remplissez les informations du projet. Les champs marques d'un * sont obligatoires.
             </p>
           </template>

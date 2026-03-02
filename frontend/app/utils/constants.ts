@@ -168,13 +168,33 @@ export const SCHEDULE_COLORS: Record<string, { bg: string; text: string; border:
 }
 
 export const PROJECT_ROLES = [
+  // Gestion
   'Chef de projet',
-  'Developpeur',
-  'Designer',
-  'Redacteur',
-  'Charge de communication',
-  'Freelance',
+  'Directeur artistique',
   'Consultant',
+  // Developpement
+  'Developpeur web',
+  'Developpeur mobile',
+  'Developpeur fullstack',
+  'Integrateur',
+  // Design & 3D
+  'Designer UI/UX',
+  'Graphiste',
+  'Illustrateur',
+  'Modeleur 3D',
+  'Animateur 3D',
+  'Textureur',
+  // Ecriture & Edition
+  'Auteur',
+  'Correcteur',
+  'Relecteur',
+  'Editeur',
+  'Redacteur',
+  // Communication
+  'Charge de communication',
+  'Community manager',
+  // Autres
+  'Freelance',
   'Autre'
 ] as const
 

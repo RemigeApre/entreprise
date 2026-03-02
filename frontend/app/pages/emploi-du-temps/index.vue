@@ -217,7 +217,7 @@ const categorieOptions = Object.entries(SCHEDULE_CATEGORIES).map(([key, val]) =>
 function generateTimeOptions() {
   const options = []
   for (let h = 8; h <= 20; h++) {
-    for (let m = 0; m < 60; m += 15) {
+    for (let m = 0; m < 60; m += 5) {
       if (h === 20 && m > 0) break
       const time = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
       options.push({ label: time, value: time })
