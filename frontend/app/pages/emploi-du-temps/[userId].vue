@@ -183,19 +183,6 @@ async function handleDelete() {
   }
 }
 
-// --- Time options ---
-function generateTimeOptions() {
-  const options = []
-  for (let h = 8; h <= 20; h++) {
-    for (let m = 0; m < 60; m += 5) {
-      if (h === 20 && m > 0) break
-      const time = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
-      options.push({ label: time, value: time })
-    }
-  }
-  return options
-}
-const timeOptions = generateTimeOptions()
 
 const categorieOptions = Object.entries(SCHEDULE_CATEGORIES).map(([key, val]) => ({
   label: val.label,
@@ -287,10 +274,10 @@ onMounted(async () => {
 
             <div class="grid grid-cols-2 gap-3">
               <UFormField label="Debut">
-                <USelect v-model="form.heure_debut" :items="timeOptions" value-key="value" class="w-full" />
+                <UInput v-model="form.heure_debut" type="time" min="08:00" max="20:00" step="300" class="w-full" />
               </UFormField>
               <UFormField label="Fin">
-                <USelect v-model="form.heure_fin" :items="timeOptions" value-key="value" class="w-full" />
+                <UInput v-model="form.heure_fin" type="time" min="08:00" max="20:00" step="300" class="w-full" />
               </UFormField>
             </div>
 
