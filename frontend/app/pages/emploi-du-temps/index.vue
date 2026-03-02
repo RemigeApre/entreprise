@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { ScheduleEntry, ScheduleCategorie } from '~/utils/types'
-import { getMonday, addDays, formatDate, getWeekNumber } from '~/utils/dates'
-import { SCHEDULE_CATEGORIES, SCHEDULE_COLORS } from '~/utils/constants'
+import { getMonday, addDays, formatDate, getWeekNumber, generateRecurrenceDates } from '~/utils/dates'
+import { SCHEDULE_CATEGORIES, SCHEDULE_COLORS, RECURRENCE_OPTIONS } from '~/utils/constants'
+import type { RecurrenceType } from '~/utils/constants'
 
 const { user } = useAuth()
 const { getEntries, createEntry, updateEntry, deleteEntry } = useSchedule()
@@ -57,6 +58,11 @@ const form = ref({
   description: ''
 })
 
+// --- Recurrence ---
+const recurrence = ref<RecurrenceType>('aucune')
+const recurrenceEndDate = ref('')
+const recurrenceCreating = ref(false)
+
 function openCreateModal(date: string, heure: string) {
   editingEntry.value = null
   const [h, m] = heure.split(':').map(Number)
@@ -69,6 +75,8 @@ function openCreateModal(date: string, heure: string) {
     categorie: 'reunion_client',
     description: ''
   }
+  recurrence.value = 'aucune'
+  recurrenceEndDate.value = ''
   showModal.value = true
 }
 
@@ -100,6 +108,27 @@ async function handleSubmit() {
       })
       const idx = entries.value.findIndex(e => e.id === editingEntry.value!.id)
       if (idx !== -1) entries.value[idx] = updated
+    } else if (recurrence.value !== 'aucune' && recurrenceEndDate.value) {
+      recurrenceCreating.value = true
+      const dates = generateRecurrenceDates(form.value.date, recurrenceEndDate.value, recurrence.value)
+
+      let count = 0
+      for (const date of dates) {
+        await createEntry({
+          utilisateur: user.value.id,
+          date,
+          heure_debut: form.value.heure_debut,
+          heure_fin: form.value.heure_fin,
+          titre: form.value.titre.trim(),
+          categorie: form.value.categorie,
+          description: form.value.description.trim() || undefined
+        })
+        count++
+      }
+
+      await loadEntries(formatDate(currentMonday.value))
+      toast.add({ title: `${count} entree(s) creee(s)`, color: 'success' })
+      recurrenceCreating.value = false
     } else {
       const created = await createEntry({
         utilisateur: user.value.id,
@@ -114,6 +143,7 @@ async function handleSubmit() {
     }
     showModal.value = false
   } catch {
+    recurrenceCreating.value = false
     toast.add({ title: 'Erreur lors de l\'enregistrement', color: 'error' })
   }
 }
@@ -307,6 +337,23 @@ onMounted(() => {
               <UTextarea v-model="form.description" placeholder="Details (optionnel)..." :rows="2" />
             </UFormField>
 
+            <!-- Recurrence (create mode only) -->
+            <template v-if="!editingEntry">
+              <USeparator />
+              <div class="space-y-3">
+                <p class="text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Recurrence</p>
+                <UFormField label="Repeter">
+                  <USelect v-model="recurrence" :items="RECURRENCE_OPTIONS" value-key="value" />
+                </UFormField>
+                <UFormField v-if="recurrence !== 'aucune'" label="Date de fin de recurrence" required>
+                  <UInput v-model="recurrenceEndDate" type="date" :min="form.date" />
+                </UFormField>
+                <p v-if="recurrence !== 'aucune' && recurrenceEndDate" class="text-xs text-stone-400 dark:text-stone-500">
+                  Les entrees seront creees individuellement du {{ form.date }} au {{ recurrenceEndDate }}.
+                </p>
+              </div>
+            </template>
+
             <div class="flex items-center justify-between">
               <UButton
                 v-if="editingEntry"
@@ -319,7 +366,12 @@ onMounted(() => {
               <span v-else />
               <div class="flex gap-2">
                 <UButton label="Annuler" color="neutral" variant="ghost" @click="showModal = false" />
-                <UButton type="submit" :label="editingEntry ? 'Enregistrer' : 'Ajouter'" :disabled="!form.titre.trim()" />
+                <UButton
+                  type="submit"
+                  :label="recurrenceCreating ? 'Creation en cours...' : (editingEntry ? 'Enregistrer' : 'Ajouter')"
+                  :loading="recurrenceCreating"
+                  :disabled="!form.titre.trim() || (recurrence !== 'aucune' && !editingEntry && !recurrenceEndDate)"
+                />
               </div>
             </div>
           </form>

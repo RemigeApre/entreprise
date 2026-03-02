@@ -177,3 +177,40 @@ export const PROJECT_ROLES = [
   'Consultant',
   'Autre'
 ] as const
+
+// --- Offres d'emploi ---
+
+export const CONTRACT_OPTIONS = [
+  { label: 'CDI', value: 'CDI' },
+  { label: 'CDD', value: 'CDD' },
+  { label: 'Freelance', value: 'Freelance' },
+  { label: 'Alternance', value: 'Alternance' },
+  { label: 'Stage', value: 'Stage' }
+]
+
+export const SALAIRE_OPTIONS = [
+  { label: 'Par heure', value: 'heure' },
+  { label: 'Par mois', value: 'mois' },
+  { label: 'Par annee', value: 'annee' }
+]
+
+export const CONTRACT_COLORS: Record<string, string> = {
+  CDI: 'green',
+  CDD: 'blue',
+  Freelance: 'orange',
+  Alternance: 'purple',
+  Stage: 'yellow'
+}
+
+// --- Emploi du temps : recurrence ---
+
+export const RECURRENCE_OPTIONS = [
+  { label: 'Aucune', value: 'aucune' },
+  { label: 'Chaque jour ouvre (lun-ven)', value: 'chaque_jour_ouvre' },
+  { label: 'Chaque jour', value: 'chaque_jour' },
+  { label: 'Chaque semaine', value: 'chaque_semaine' },
+  { label: 'Toutes les 2 semaines', value: 'toutes_les_2_semaines' },
+  { label: 'Chaque mois', value: 'chaque_mois' }
+]
+
+export type RecurrenceType = 'aucune' | 'chaque_jour_ouvre' | 'chaque_jour' | 'chaque_semaine' | 'toutes_les_2_semaines' | 'chaque_mois'

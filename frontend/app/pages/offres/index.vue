@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { OffreEmploi } from '~/utils/types'
+import { CONTRACT_COLORS } from '~/utils/constants'
 
 definePageMeta({
   middleware: ['directeur']
@@ -24,12 +25,6 @@ const filteredOffres = computed(() => {
   )
 })
 
-const stats = computed(() => {
-  if (!offres.value) return { total: 0, publiees: 0, brouillons: 0 }
-  const publiees = offres.value.filter(o => o.publie).length
-  return { total: offres.value.length, publiees, brouillons: offres.value.length - publiees }
-})
-
 async function handleTogglePublish(offre: OffreEmploi) {
   togglingId.value = offre.id
   try {
@@ -52,17 +47,6 @@ function formatDateFr(date: string) {
     month: 'short',
     year: 'numeric'
   })
-}
-
-function getContractColor(type: string) {
-  const colors: Record<string, string> = {
-    CDI: 'green',
-    CDD: 'blue',
-    Freelance: 'orange',
-    Alternance: 'purple',
-    Stage: 'yellow'
-  }
-  return colors[type] || 'neutral'
 }
 </script>
 
@@ -92,22 +76,6 @@ function getContractColor(type: string) {
       </div>
 
       <template v-else>
-        <!-- Stats -->
-        <div v-if="offres?.length" class="grid grid-cols-3 gap-3">
-          <div class="rounded-lg bg-stone-50 dark:bg-stone-800/50 px-4 py-2.5 text-center">
-            <p class="text-lg font-bold text-stone-900 dark:text-stone-100">{{ stats.total }}</p>
-            <p class="text-[11px] text-stone-500 dark:text-stone-400">Total</p>
-          </div>
-          <div class="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2.5 text-center">
-            <p class="text-lg font-bold text-emerald-700 dark:text-emerald-300">{{ stats.publiees }}</p>
-            <p class="text-[11px] text-stone-500 dark:text-stone-400">Publiees</p>
-          </div>
-          <div class="rounded-lg bg-stone-50 dark:bg-stone-800/50 px-4 py-2.5 text-center">
-            <p class="text-lg font-bold text-stone-500 dark:text-stone-400">{{ stats.brouillons }}</p>
-            <p class="text-[11px] text-stone-500 dark:text-stone-400">Brouillons</p>
-          </div>
-        </div>
-
         <!-- Empty state -->
         <div v-if="!filteredOffres.length" class="text-center py-12">
           <UIcon name="i-lucide-megaphone" class="size-10 text-stone-300 dark:text-stone-700 mx-auto mb-3" />
@@ -141,7 +109,7 @@ function getContractColor(type: string) {
                     {{ offre.titre }}
                   </h3>
                   <UBadge
-                    :color="getContractColor(offre.type_contrat)"
+                    :color="CONTRACT_COLORS[offre.type_contrat] || 'neutral'"
                     variant="subtle"
                     size="xs"
                   >

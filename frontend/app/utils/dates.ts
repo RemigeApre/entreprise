@@ -92,3 +92,59 @@ export function getEachDayBetween(start: string, end: string): string[] {
   }
   return days
 }
+
+export function generateRecurrenceDates(
+  startDate: string,
+  endDate: string,
+  recurrenceType: RecurrenceType
+): string[] {
+  if (recurrenceType === 'aucune') return [startDate]
+
+  const start = new Date(startDate + 'T12:00:00')
+  const end = new Date(endDate + 'T12:00:00')
+  if (start > end) return [startDate]
+
+  const dates: string[] = []
+
+  if (recurrenceType === 'chaque_jour_ouvre') {
+    const current = new Date(start)
+    while (current <= end) {
+      const day = current.getDay()
+      if (day !== 0 && day !== 6) dates.push(formatDate(current))
+      current.setDate(current.getDate() + 1)
+    }
+  } else if (recurrenceType === 'chaque_jour') {
+    const current = new Date(start)
+    while (current <= end) {
+      dates.push(formatDate(current))
+      current.setDate(current.getDate() + 1)
+    }
+  } else if (recurrenceType === 'chaque_semaine') {
+    const current = new Date(start)
+    while (current <= end) {
+      dates.push(formatDate(current))
+      current.setDate(current.getDate() + 7)
+    }
+  } else if (recurrenceType === 'toutes_les_2_semaines') {
+    const current = new Date(start)
+    while (current <= end) {
+      dates.push(formatDate(current))
+      current.setDate(current.getDate() + 14)
+    }
+  } else if (recurrenceType === 'chaque_mois') {
+    const anchorDay = start.getDate()
+    const current = new Date(start)
+    while (current <= end) {
+      dates.push(formatDate(current))
+      const nextMonth = current.getMonth() + 1
+      const nextYear = current.getFullYear() + Math.floor(nextMonth / 12)
+      const actualMonth = nextMonth % 12
+      const daysInMonth = new Date(nextYear, actualMonth + 1, 0).getDate()
+      current.setFullYear(nextYear)
+      current.setMonth(actualMonth)
+      current.setDate(Math.min(anchorDay, daysInMonth))
+    }
+  }
+
+  return dates
+}
