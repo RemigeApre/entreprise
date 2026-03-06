@@ -16,3 +16,14 @@
   background-color: #1F2C23;
 }
 </style>
+
+<style>
+/* Force html/body background to match landing — prevents white flash on theme toggle */
+html:has(.landing-layout) {
+  background-color: #F7F0DE;
+  transition: background-color 0.4s ease;
+}
+html.dark:has(.landing-layout) {
+  background-color: #1F2C23;
+}
+</style>

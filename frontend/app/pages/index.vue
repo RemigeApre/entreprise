@@ -104,35 +104,22 @@ onMounted(() => {
     <!-- ===== SPINE NAV — left (desktop) ===== -->
     <nav class="spine spine--left" aria-label="Pages internes">
       <div class="spine-track">
-        <NuxtLink to="/le-geai" class="spine-link">
-          <span class="spine-link-dash" aria-hidden="true" />
-          <span class="spine-link-label">{{ t.identite }}</span>
-        </NuxtLink>
-        <NuxtLink to="/recrutement" class="spine-link">
-          <span class="spine-link-dash" aria-hidden="true" />
-          <span class="spine-link-label">{{ t.recrutement }}</span>
-        </NuxtLink>
-        <NuxtLink to="/soutenir" class="spine-link spine-link--warm">
-          <span class="spine-link-dash" aria-hidden="true" />
-          <span class="spine-link-label">{{ t.soutenir }}</span>
-        </NuxtLink>
+        <NuxtLink to="/le-geai" class="spine-link">{{ t.identite }}</NuxtLink>
+        <span class="spine-sep" aria-hidden="true">—</span>
+        <NuxtLink to="/recrutement" class="spine-link">{{ t.recrutement }}</NuxtLink>
+        <span class="spine-sep" aria-hidden="true">—</span>
+        <NuxtLink to="/soutenir" class="spine-link spine-link--warm">{{ t.soutenir }}</NuxtLink>
       </div>
     </nav>
 
     <!-- ===== SPINE NAV — right (desktop) ===== -->
     <nav class="spine spine--right" aria-label="Nos branches">
       <div class="spine-track">
-        <a href="https://legeai-informatique.fr" target="_blank" rel="noopener noreferrer" class="spine-link">
-          <span class="spine-link-label">{{ t.informatique }}</span>
-          <span class="spine-link-dash" aria-hidden="true" />
-        </a>
-        <a href="https://bergfrid.com" target="_blank" rel="noopener noreferrer" class="spine-link">
-          <span class="spine-link-label">{{ t.bergfrid }}</span>
-          <span class="spine-link-dash" aria-hidden="true" />
-        </a>
-        <span class="spine-link spine-link--muted">
-          <span class="spine-link-label">{{ t.editions }}</span>
-        </span>
+        <a href="https://legeai-informatique.fr" target="_blank" rel="noopener noreferrer" class="spine-link">{{ t.informatique }}&thinsp;&#x2197;</a>
+        <span class="spine-sep" aria-hidden="true">—</span>
+        <a href="https://bergfrid.com" target="_blank" rel="noopener noreferrer" class="spine-link">{{ t.bergfrid }}&thinsp;&#x2197;</a>
+        <span class="spine-sep" aria-hidden="true">—</span>
+        <span class="spine-link spine-link--muted">{{ t.editions }}</span>
       </div>
     </nav>
 
@@ -320,7 +307,7 @@ onMounted(() => {
 .spine {
   position: fixed;
   top: 0; bottom: 0;
-  width: 52px;
+  width: 44px;
   display: flex; align-items: center; justify-content: center;
   z-index: 5;
   pointer-events: none;
@@ -333,39 +320,25 @@ onMounted(() => {
 .spine--right { right: clamp(10px, 2.2vw, 20px); }
 
 .spine-track {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0;
+  display: flex; align-items: center; gap: 16px;
   white-space: nowrap;
   pointer-events: auto;
 }
 
-.spine--left .spine-track {
-  writing-mode: vertical-lr;
-  transform: rotate(180deg);
-}
-
-.spine--right .spine-track {
-  writing-mode: vertical-lr;
-}
+.spine--left .spine-track { transform: rotate(-90deg); }
+.spine--right .spine-track { transform: rotate(90deg); }
 
 .spine-link {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 11px;
-  letter-spacing: 0.18em;
+  font-size: 11.5px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   text-decoration: none;
   color: inherit;
-  opacity: 0.55;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 6px;
-  transition: opacity 0.35s, color 0.35s;
-  position: relative;
+  opacity: 0.6;
+  padding: 6px 2px;
+  transition: opacity 0.3s, color 0.3s;
 }
-
 .spine-link:hover, .spine-link:focus-visible {
   opacity: 1;
   color: var(--gold);
@@ -379,29 +352,18 @@ onMounted(() => {
 .spine-link--warm:focus-visible { color: var(--terracotta); }
 
 .spine-link--muted {
-  opacity: 0.2;
+  opacity: 0.25;
   cursor: default;
   font-style: italic;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: none;
 }
 
-.spine-link-dash {
-  display: block;
-  width: 1px;
-  height: 18px;
-  background: var(--gold-dim);
-  flex-shrink: 0;
-  transition: height 0.35s ease, background 0.35s ease;
-}
-.spine-link:hover .spine-link-dash,
-.spine-link:focus-visible .spine-link-dash {
-  height: 28px;
-  background: var(--gold);
-}
-
-.spine-link-label {
-  display: block;
+.spine-sep {
+  font-size: 9px;
+  opacity: 0.2;
+  color: var(--gold);
+  user-select: none;
 }
 
 @media (max-width: 899px) {
