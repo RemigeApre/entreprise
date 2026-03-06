@@ -38,7 +38,17 @@ export default defineNuxtConfig({
         'lucide:heart',
         'lucide:mail',
         'lucide:share-2',
-        'lucide:message-circle'
+        'lucide:message-circle',
+        'lucide:scroll-text',
+        'lucide:cpu',
+        'lucide:crown',
+        'lucide:flame',
+        'lucide:key-round',
+        'lucide:sun',
+        'lucide:moon',
+        'lucide:book-open',
+        'lucide:feather',
+        'lucide:user'
       ],
       sizeLimitKb: 0
     }
