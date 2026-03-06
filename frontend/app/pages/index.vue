@@ -126,11 +126,12 @@ onMounted(() => {
     <!-- ===== CENTER ===== -->
     <div class="center">
       <div class="center-inner">
-        <!-- Subtitle -->
-        <p class="subtitle">Edition &middot; Informatique &middot; Medias</p>
-
         <!-- Title -->
-        <h1 class="title">LE&ensp;GEAI</h1>
+        <h1 class="title">
+          <span class="title-main">Le</span>
+          <span class="title-main">Geai</span>
+          <span class="title-sub">groupe</span>
+        </h1>
 
         <!-- Ornament -->
         <div class="ornament">
@@ -330,38 +331,37 @@ onMounted(() => {
 
 .spine-link {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 11.5px;
-  letter-spacing: 0.16em;
+  font-size: 12px;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   text-decoration: none;
-  color: inherit;
-  opacity: 0.6;
+  color: var(--gold);
+  opacity: 0.75;
   padding: 6px 2px;
   transition: opacity 0.3s, color 0.3s;
 }
 .spine-link:hover, .spine-link:focus-visible {
   opacity: 1;
-  color: var(--gold);
 }
 .spine-link:focus-visible {
   outline: 1px solid var(--gold-dim);
   outline-offset: 4px;
 }
 
-.spine-link--warm:hover,
-.spine-link--warm:focus-visible { color: var(--terracotta); }
+.spine-link--warm { color: var(--terracotta); }
 
 .spine-link--muted {
-  opacity: 0.25;
+  opacity: 0.3;
   cursor: default;
   font-style: italic;
   letter-spacing: 0.06em;
   text-transform: none;
+  color: inherit;
 }
 
 .spine-sep {
-  font-size: 9px;
-  opacity: 0.2;
+  font-size: 10px;
+  opacity: 0.35;
   color: var(--gold);
   user-select: none;
 }
@@ -395,24 +395,11 @@ onMounted(() => {
   text-align: center;
 }
 
-/* Subtitle */
-.subtitle {
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: clamp(0.6rem, 1.2vw, 0.72rem);
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  opacity: 0;
-  transition: opacity 0.8s ease 0.15s;
-  margin-bottom: clamp(10px, 2vh, 20px);
-}
-.is-visible .subtitle { opacity: 0.38; }
-
-/* Title — MASSIVE */
+/* Title */
 .title {
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: clamp(2.8rem, 9vw, 6rem);
-  font-weight: 400;
-  letter-spacing: 0.3em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   line-height: 1;
   opacity: 0;
   transform: translateY(14px);
@@ -421,6 +408,26 @@ onMounted(() => {
 .is-visible .title {
   opacity: 1;
   transform: translateY(0);
+}
+
+.title-main {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: clamp(3.2rem, 10vw, 7rem);
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  display: block;
+  line-height: 0.85;
+}
+
+.title-sub {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: clamp(0.7rem, 1.6vw, 0.95rem);
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  opacity: 0.35;
+  margin-top: clamp(6px, 1.2vh, 12px);
+  display: block;
 }
 
 /* Ornament */
@@ -569,7 +576,7 @@ onMounted(() => {
    RESPONSIVE
    ============================ */
 @media (max-height: 580px) {
-  .title { font-size: clamp(1.8rem, 6vw, 3rem); }
+  .title-main { font-size: clamp(2rem, 7vw, 3.5rem); }
   .motto { font-size: clamp(0.9rem, 2.2vw, 1.1rem); }
 }
 
