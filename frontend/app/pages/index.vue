@@ -23,12 +23,14 @@ useSeoMeta({
   ogSiteName: 'Le Geai'
 })
 
+/* ---- Theme toggle (robust) ---- */
 const colorMode = useColorMode()
-const isDark = computed({
-  get: () => colorMode.value === 'dark',
-  set: (v: boolean) => { colorMode.preference = v ? 'dark' : 'light' }
-})
+const isDark = computed(() => colorMode.value === 'dark')
+function toggleTheme() {
+  colorMode.preference = isDark.value ? 'light' : 'dark'
+}
 
+/* ---- Language ---- */
 const lang = ref<'fr' | 'en'>('fr')
 function toggleLang() { lang.value = lang.value === 'fr' ? 'en' : 'fr' }
 
@@ -41,7 +43,6 @@ const t = computed(() => lang.value === 'fr' ? {
   bergfrid: 'Bergfrid',
   recrutement: 'Recrutement',
   soutenir: 'Nous soutenir',
-  connexion: 'Connexion',
   tooltip: 'En construction'
 } : {
   motto: 'Darkness feeds the flame.',
@@ -52,10 +53,10 @@ const t = computed(() => lang.value === 'fr' ? {
   bergfrid: 'Bergfrid',
   recrutement: 'Careers',
   soutenir: 'Support us',
-  connexion: 'Sign in',
   tooltip: 'Coming soon'
 })
 
+/* ---- Diamond items (6 — connexion moved to header) ---- */
 interface DiamondItem {
   key: string
   label: string
@@ -63,7 +64,7 @@ interface DiamondItem {
   to?: string
   href?: string
   disabled?: boolean
-  accent?: 'gold' | 'terracotta'
+  accent?: 'terracotta'
 }
 
 const items = computed<DiamondItem[]>(() => [
@@ -72,8 +73,7 @@ const items = computed<DiamondItem[]>(() => [
   { key: 'informatique', label: t.value.informatique, icon: 'i-lucide-cpu', href: 'https://legeai-informatique.fr' },
   { key: 'bergfrid', label: t.value.bergfrid, icon: 'i-lucide-eye', href: 'https://bergfrid.com' },
   { key: 'recrutement', label: t.value.recrutement, icon: 'i-lucide-crown', to: '/recrutement' },
-  { key: 'soutenir', label: t.value.soutenir, icon: 'i-lucide-flame', to: '/soutenir', accent: 'terracotta' },
-  { key: 'connexion', label: t.value.connexion, icon: 'i-lucide-key-round', to: '/login', accent: 'gold' }
+  { key: 'soutenir', label: t.value.soutenir, icon: 'i-lucide-flame', to: '/soutenir', accent: 'terracotta' }
 ])
 
 const visible = ref(false)
@@ -100,7 +100,7 @@ onMounted(() => {
     <!-- Vignette -->
     <div class="vignette" aria-hidden="true" />
 
-    <!-- Background watermark logo -->
+    <!-- Background watermark logo — IMPOSING -->
     <div class="watermark" aria-hidden="true">
       <img src="/logo.svg" alt="" class="watermark-img" />
     </div>
@@ -111,11 +111,25 @@ onMounted(() => {
       <div class="corner corner--tr" />
       <div class="corner corner--bl" />
       <div class="corner corner--br" />
+      <!-- Center marks on frame edges -->
+      <div class="frame-mark frame-mark--top" />
+      <div class="frame-mark frame-mark--bottom" />
+      <div class="frame-mark frame-mark--left" />
+      <div class="frame-mark frame-mark--right" />
     </div>
+
+    <!-- ============ TOP BAR : Connexion + Theme ============ -->
+    <header class="top-bar">
+      <NuxtLink to="/login" class="top-icon" aria-label="Connexion">
+        <UIcon name="i-lucide-key-round" class="size-3.5" />
+      </NuxtLink>
+      <button class="top-icon" :aria-label="isDark ? 'Mode clair' : 'Mode sombre'" @click="toggleTheme">
+        <UIcon :name="isDark ? 'i-lucide-sun' : 'i-lucide-moon'" class="size-3.5" />
+      </button>
+    </header>
 
     <!-- ============ ZONE 1 : En-tete ============ -->
     <div class="zone zone--header">
-      <img src="/logo.svg" alt="Le Geai" class="landing-logo" />
       <h1 class="landing-title">LE GEAI</h1>
 
       <!-- Ornamental divider -->
@@ -125,17 +139,22 @@ onMounted(() => {
         <div class="ornament-line" />
       </div>
 
-      <!-- Motto — prominent -->
+      <!-- Motto — prominent, golden -->
       <p class="landing-motto">
         <span class="motto-latin">Obscuritas nutrit flammam.</span>
       </p>
-      <p class="landing-motto-translation">
-        {{ t.motto }}
-      </p>
+      <p class="landing-motto-sub">{{ t.motto }}</p>
     </div>
 
     <!-- ============ ZONE 2 : Navigation losanges ============ -->
     <div class="zone zone--nav">
+      <!-- Small ornament above diamonds -->
+      <div class="nav-ornament">
+        <div class="nav-ornament-dot" />
+        <div class="nav-ornament-line" />
+        <div class="nav-ornament-dot" />
+      </div>
+
       <div class="diamond-grid">
         <div
           v-for="(item, idx) in items"
@@ -162,18 +181,18 @@ onMounted(() => {
             rel="noopener noreferrer"
             class="diamond-link"
           >
-            <div class="diamond" :class="diamondVariant(item)">
+            <div class="diamond" :class="{ 'diamond--terracotta': item.accent === 'terracotta' }">
               <div class="diamond-face">
-                <UIcon :name="item.icon" class="diamond-icon" :class="iconVariant(item)" />
+                <UIcon :name="item.icon" class="diamond-icon" :class="{ 'diamond-icon--terracotta': item.accent === 'terracotta' }" />
               </div>
             </div>
           </a>
 
           <!-- Internal link diamond -->
           <NuxtLink v-else :to="item.to!" class="diamond-link">
-            <div class="diamond" :class="diamondVariant(item)">
+            <div class="diamond" :class="{ 'diamond--terracotta': item.accent === 'terracotta' }">
               <div class="diamond-face">
-                <UIcon :name="item.icon" class="diamond-icon" :class="iconVariant(item)" />
+                <UIcon :name="item.icon" class="diamond-icon" :class="{ 'diamond-icon--terracotta': item.accent === 'terracotta' }" />
               </div>
             </div>
           </NuxtLink>
@@ -189,28 +208,10 @@ onMounted(() => {
         <span class="footer-text">{{ t.copyright }}</span>
         <span class="footer-sep">&middot;</span>
         <button class="footer-btn" @click="toggleLang">{{ lang === 'fr' ? 'EN' : 'FR' }}</button>
-        <span class="footer-sep">&middot;</span>
-        <button class="footer-btn" :aria-label="isDark ? 'Mode clair' : 'Mode sombre'" @click="isDark = !isDark">
-          <UIcon :name="isDark ? 'i-lucide-sun' : 'i-lucide-moon'" class="size-3" />
-        </button>
       </div>
     </div>
   </div>
 </template>
-
-<script lang="ts">
-function diamondVariant(item: { accent?: string }) {
-  return {
-    'diamond--gold': item.accent === 'gold',
-    'diamond--terracotta': item.accent === 'terracotta'
-  }
-}
-function iconVariant(item: { accent?: string }) {
-  return {
-    'diamond-icon--terracotta': item.accent === 'terracotta'
-  }
-}
-</script>
 
 <style scoped>
 /* ============================
@@ -218,8 +219,8 @@ function iconVariant(item: { accent?: string }) {
    ============================ */
 .landing {
   --gold: #AF8F3C;
-  --gold-dim: rgba(175, 143, 60, 0.30);
-  --gold-faint: rgba(175, 143, 60, 0.12);
+  --gold-dim: rgba(175, 143, 60, 0.28);
+  --gold-faint: rgba(175, 143, 60, 0.10);
   --terracotta: #B74D34;
   --cream: #F7F0DE;
   --green: #1F2C23;
@@ -227,10 +228,10 @@ function iconVariant(item: { accent?: string }) {
   --ink: #2c2419;
 
   /* Diamond proportions — tall & slender (ratio ~1:1.45) */
-  --d-w: clamp(34px, 7vw, 50px);
-  --d-h: clamp(50px, 10.2vw, 72px);
-  --d-cell: clamp(52px, 14vw, 76px);
-  --d-gap: clamp(6px, 1.8vw, 18px);
+  --d-w: clamp(36px, 7.5vw, 52px);
+  --d-h: clamp(52px, 10.8vw, 76px);
+  --d-cell: clamp(58px, 15vw, 92px);
+  --d-gap: clamp(8px, 2.5vw, 28px);
 
   height: 100%;
   display: flex;
@@ -254,12 +255,12 @@ function iconVariant(item: { accent?: string }) {
   inset: 0;
   pointer-events: none;
   z-index: 1;
-  opacity: 0.025;
+  opacity: 0.02;
   mix-blend-mode: overlay;
 }
 
 :global(.dark) .noise-layer {
-  opacity: 0.04;
+  opacity: 0.035;
 }
 
 .vignette {
@@ -267,23 +268,23 @@ function iconVariant(item: { accent?: string }) {
   inset: 0;
   pointer-events: none;
   z-index: 1;
-  background: radial-gradient(ellipse at center, transparent 40%, rgba(175, 143, 60, 0.04) 100%);
+  background: radial-gradient(ellipse at center, transparent 35%, rgba(44, 36, 25, 0.06) 100%);
 }
 
 :global(.dark) .vignette {
-  background: radial-gradient(ellipse at center, transparent 30%, rgba(14, 21, 15, 0.3) 100%);
+  background: radial-gradient(ellipse at center, transparent 25%, rgba(14, 21, 15, 0.35) 100%);
 }
 
 /* ============================
-   WATERMARK LOGO
+   WATERMARK LOGO — IMPOSING
    ============================ */
 .watermark {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: clamp(280px, 65vmin, 560px);
-  height: clamp(280px, 65vmin, 560px);
+  width: clamp(360px, 88vmin, 720px);
+  height: clamp(360px, 88vmin, 720px);
   pointer-events: none;
   z-index: 0;
   display: flex;
@@ -295,12 +296,13 @@ function iconVariant(item: { accent?: string }) {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  opacity: 0.035;
+  opacity: 0.04;
+  transition: opacity 0.4s ease, filter 0.4s ease;
 }
 
 :global(.dark) .watermark-img {
-  filter: brightness(0) invert(0.92);
-  opacity: 0.04;
+  filter: brightness(0) invert(0.9);
+  opacity: 0.045;
 }
 
 /* ============================
@@ -308,7 +310,7 @@ function iconVariant(item: { accent?: string }) {
    ============================ */
 .frame {
   position: fixed;
-  inset: clamp(8px, 2vw, 16px);
+  inset: clamp(10px, 2.5vw, 20px);
   border: 1px solid var(--gold-faint);
   pointer-events: none;
   z-index: 0;
@@ -316,14 +318,80 @@ function iconVariant(item: { accent?: string }) {
 
 .corner {
   position: absolute;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
 }
 
-.corner--tl { top: -1px; left: -1px; border-top: 2px solid var(--gold-dim); border-left: 2px solid var(--gold-dim); }
-.corner--tr { top: -1px; right: -1px; border-top: 2px solid var(--gold-dim); border-right: 2px solid var(--gold-dim); }
-.corner--bl { bottom: -1px; left: -1px; border-bottom: 2px solid var(--gold-dim); border-left: 2px solid var(--gold-dim); }
-.corner--br { bottom: -1px; right: -1px; border-bottom: 2px solid var(--gold-dim); border-right: 2px solid var(--gold-dim); }
+.corner--tl { top: -1px; left: -1px; border-top: 1.5px solid var(--gold-dim); border-left: 1.5px solid var(--gold-dim); }
+.corner--tr { top: -1px; right: -1px; border-top: 1.5px solid var(--gold-dim); border-right: 1.5px solid var(--gold-dim); }
+.corner--bl { bottom: -1px; left: -1px; border-bottom: 1.5px solid var(--gold-dim); border-left: 1.5px solid var(--gold-dim); }
+.corner--br { bottom: -1px; right: -1px; border-bottom: 1.5px solid var(--gold-dim); border-right: 1.5px solid var(--gold-dim); }
+
+/* Small cross marks at center of each frame edge */
+.frame-mark {
+  position: absolute;
+  background: var(--gold-dim);
+}
+
+.frame-mark--top,
+.frame-mark--bottom {
+  width: 1px;
+  height: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.frame-mark--top { top: -1px; }
+.frame-mark--bottom { bottom: -1px; }
+
+.frame-mark--left,
+.frame-mark--right {
+  width: 8px;
+  height: 1px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.frame-mark--left { left: -1px; }
+.frame-mark--right { right: -1px; }
+
+/* ============================
+   TOP BAR : Connexion + Theme
+   ============================ */
+.top-bar {
+  position: fixed;
+  top: clamp(16px, 3.5vw, 28px);
+  left: clamp(16px, 3.5vw, 28px);
+  z-index: 10;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.8s ease 0.3s;
+}
+
+.is-visible .top-bar {
+  opacity: 1;
+}
+
+.top-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--gold-faint);
+  border-radius: 50%;
+  color: var(--gold-dim);
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.top-icon:hover {
+  color: var(--gold);
+  border-color: var(--gold-dim);
+}
 
 /* ============================
    ZONES LAYOUT
@@ -340,50 +408,33 @@ function iconVariant(item: { accent?: string }) {
 .zone--header {
   flex: 3 1 0%;
   justify-content: flex-end;
-  padding-bottom: clamp(4px, 1vh, 14px);
+  padding-bottom: clamp(6px, 1.2vh, 16px);
 }
 
 .zone--nav {
   flex: 5 1 0%;
   justify-content: center;
   padding: 0 16px;
+  gap: clamp(8px, 1.5vh, 16px);
 }
 
 .zone--footer {
   flex: 0 0 auto;
   justify-content: center;
-  padding: clamp(6px, 1.2vh, 14px) 0;
+  padding: clamp(8px, 1.5vh, 16px) 0;
 }
 
 /* ============================
-   ZONE 1 : HEADER
+   ZONE 1 : HEADER (no small logo)
    ============================ */
-.landing-logo {
-  height: clamp(48px, 9vh, 100px);
-  width: auto;
-  opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 0.8s ease 0.15s, transform 0.8s ease 0.15s;
-}
-
-.is-visible .landing-logo {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-:global(.dark) .landing-logo {
-  filter: brightness(0) invert(0.92);
-}
-
 .landing-title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: clamp(1.4rem, 3.5vw, 2.4rem);
+  font-size: clamp(1.8rem, 4.5vw, 3rem);
   font-weight: 400;
-  letter-spacing: 0.3em;
-  margin-top: clamp(6px, 1.2vh, 14px);
+  letter-spacing: 0.35em;
   opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.8s ease 0.35s, transform 0.8s ease 0.35s;
+  transform: translateY(12px);
+  transition: opacity 0.9s ease 0.2s, transform 0.9s ease 0.2s;
 }
 
 .is-visible .landing-title {
@@ -395,44 +446,44 @@ function iconVariant(item: { accent?: string }) {
 .ornament-divider {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: clamp(4px, 0.8vh, 10px);
+  gap: 12px;
+  margin-top: clamp(6px, 1vh, 12px);
   opacity: 0;
-  transition: opacity 0.8s ease 0.5s;
+  transition: opacity 0.8s ease 0.45s;
 }
 
 .is-visible .ornament-divider {
-  opacity: 0.5;
+  opacity: 0.55;
 }
 
 .ornament-line {
-  width: clamp(20px, 5vw, 44px);
+  width: clamp(28px, 7vw, 56px);
   height: 1px;
-  background: var(--gold);
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
 }
 
 .ornament-glyph {
   font-family: 'UnifrakturCook', cursive;
-  font-size: clamp(0.85rem, 1.8vw, 1.2rem);
+  font-size: clamp(1rem, 2.2vw, 1.4rem);
   color: var(--gold);
   line-height: 1;
 }
 
-/* Motto — prominent */
+/* Motto — prominent, golden */
 .landing-motto {
   font-family: 'IM Fell DW Pica', Georgia, serif;
   font-style: italic;
-  font-size: clamp(0.95rem, 2.5vw, 1.25rem);
+  font-size: clamp(1rem, 2.8vw, 1.35rem);
   text-align: center;
-  margin-top: clamp(6px, 1.2vh, 14px);
+  margin-top: clamp(8px, 1.5vh, 18px);
   opacity: 0;
   transform: translateY(8px);
-  transition: opacity 0.8s ease 0.6s, transform 0.8s ease 0.6s;
-  letter-spacing: 0.04em;
+  transition: opacity 0.9s ease 0.6s, transform 0.9s ease 0.6s;
+  letter-spacing: 0.05em;
 }
 
 .is-visible .landing-motto {
-  opacity: 0.85;
+  opacity: 1;
   transform: translateY(0);
 }
 
@@ -440,39 +491,59 @@ function iconVariant(item: { accent?: string }) {
   color: var(--gold);
 }
 
-:global(.dark) .motto-latin {
-  color: var(--gold);
-}
-
-.landing-motto-translation {
+.landing-motto-sub {
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: clamp(0.65rem, 1.4vw, 0.8rem);
   text-align: center;
-  margin-top: 2px;
-  letter-spacing: 0.06em;
+  margin-top: 3px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   opacity: 0;
-  transition: opacity 0.8s ease 0.75s;
+  transition: opacity 0.8s ease 0.8s;
 }
 
-.is-visible .landing-motto-translation {
-  opacity: 0.4;
+.is-visible .landing-motto-sub {
+  opacity: 0.35;
 }
 
 /* ============================
-   ZONE 2 : DIAMOND GRID
+   NAV ORNAMENT (above diamonds)
+   ============================ */
+.nav-ornament {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.6s ease 0.7s;
+}
+
+.is-visible .nav-ornament {
+  opacity: 0.3;
+}
+
+.nav-ornament-dot {
+  width: 3px;
+  height: 3px;
+  background: var(--gold);
+  border-radius: 50%;
+}
+
+.nav-ornament-line {
+  width: clamp(16px, 4vw, 32px);
+  height: 1px;
+  background: var(--gold);
+  opacity: 0.5;
+}
+
+/* ============================
+   ZONE 2 : DIAMOND GRID (3+3)
    ============================ */
 .diamond-grid {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: var(--d-gap);
-  max-width: calc(var(--d-cell) * 4 + var(--d-gap) * 3);
-}
-
-@media (max-width: 479px) {
-  .diamond-grid {
-    max-width: calc(var(--d-cell) * 3 + var(--d-gap) * 2);
-  }
+  max-width: calc(var(--d-cell) * 3 + var(--d-gap) * 2);
 }
 
 .diamond-cell {
@@ -480,11 +551,11 @@ function iconVariant(item: { accent?: string }) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   opacity: 0;
-  transform: translateY(14px);
-  transition: opacity 0.6s ease calc(0.8s + var(--i) * 0.07s),
-              transform 0.6s ease calc(0.8s + var(--i) * 0.07s);
+  transform: translateY(16px);
+  transition: opacity 0.6s ease calc(0.85s + var(--i) * 0.08s),
+              transform 0.6s ease calc(0.85s + var(--i) * 0.08s);
 }
 
 .is-visible .diamond-cell {
@@ -511,7 +582,7 @@ function iconVariant(item: { accent?: string }) {
 }
 
 /* ============================
-   DIAMOND SHAPE (clip-path rhombus)
+   DIAMOND SHAPE (clip-path rhombus — tall & elegant)
    ============================ */
 .diamond {
   position: relative;
@@ -537,32 +608,32 @@ function iconVariant(item: { accent?: string }) {
   inset: 0;
   clip-path: polygon(50% 1.8%, 98.2% 50%, 50% 98.2%, 1.8% 50%);
   background: linear-gradient(
-    170deg,
-    rgba(247, 240, 222, 0.8) 0%,
-    rgba(247, 240, 222, 0.5) 100%
+    175deg,
+    rgba(247, 240, 222, 0.85) 0%,
+    rgba(240, 232, 210, 0.55) 100%
   );
-  transition: background 0.3s ease;
+  transition: background 0.4s ease;
 }
 
 :global(.dark) .diamond::after {
   background: linear-gradient(
-    170deg,
-    rgba(31, 44, 35, 0.95) 0%,
-    rgba(31, 44, 35, 0.75) 100%
+    175deg,
+    rgba(35, 50, 40, 0.95) 0%,
+    rgba(28, 40, 32, 0.75) 100%
   );
 }
 
-/* Hover: intensify border, add drop-shadow glow */
+/* Hover */
 .diamond-link:hover .diamond::before {
   background: var(--gold);
 }
 
 .diamond-link:hover .diamond {
-  filter: drop-shadow(0 3px 10px rgba(175, 143, 60, 0.2));
+  filter: drop-shadow(0 3px 12px rgba(175, 143, 60, 0.18));
 }
 
 :global(.dark) .diamond-link:hover .diamond {
-  filter: drop-shadow(0 3px 12px rgba(175, 143, 60, 0.25));
+  filter: drop-shadow(0 3px 14px rgba(175, 143, 60, 0.25));
 }
 
 /* Diamond face (icon container) */
@@ -581,6 +652,7 @@ function iconVariant(item: { accent?: string }) {
   height: clamp(16px, 3.2vw, 22px);
   color: var(--gold);
   transform: translate(0.5px, -0.5px);
+  transition: color 0.3s ease;
 }
 
 .diamond-icon--terracotta {
@@ -593,37 +665,16 @@ function iconVariant(item: { accent?: string }) {
 
 /* Disabled */
 .diamond--disabled {
-  opacity: 0.25;
+  opacity: 0.22;
 }
 
 .diamond--disabled::before {
   background: rgba(175, 143, 60, 0.15);
 }
 
-/* Gold (Connexion) */
-.diamond--gold::before {
-  background: var(--gold);
-}
-
-.diamond--gold::after {
-  background: linear-gradient(
-    170deg,
-    rgba(175, 143, 60, 0.12) 0%,
-    rgba(247, 240, 222, 0.7) 100%
-  );
-}
-
-:global(.dark) .diamond--gold::after {
-  background: linear-gradient(
-    170deg,
-    rgba(175, 143, 60, 0.2) 0%,
-    rgba(31, 44, 35, 0.85) 100%
-  );
-}
-
 /* Terracotta (Nous soutenir) */
 .diamond--terracotta::before {
-  background: rgba(183, 77, 52, 0.4);
+  background: rgba(183, 77, 52, 0.35);
 }
 
 .diamond-link:hover .diamond--terracotta::before {
@@ -631,7 +682,7 @@ function iconVariant(item: { accent?: string }) {
 }
 
 .diamond-link:hover .diamond--terracotta {
-  filter: drop-shadow(0 3px 10px rgba(183, 77, 52, 0.2));
+  filter: drop-shadow(0 3px 12px rgba(183, 77, 52, 0.2));
 }
 
 /* ============================
@@ -639,12 +690,12 @@ function iconVariant(item: { accent?: string }) {
    ============================ */
 .diamond-label {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: clamp(8px, 1.5vw, 10.5px);
+  font-size: clamp(8px, 1.6vw, 10.5px);
   text-align: center;
   white-space: nowrap;
-  opacity: 0.4;
+  opacity: 0.35;
   transition: opacity 0.3s ease;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
 }
 
 .diamond-cell:hover .diamond-label {
@@ -653,7 +704,7 @@ function iconVariant(item: { accent?: string }) {
 
 @media (max-width: 639px) {
   .diamond-label {
-    opacity: 0.6;
+    opacity: 0.55;
     font-size: clamp(8px, 2.5vw, 10px);
   }
 }
@@ -670,11 +721,11 @@ function iconVariant(item: { accent?: string }) {
 }
 
 .is-visible .footer-row {
-  opacity: 0.35;
+  opacity: 0.3;
 }
 
 .footer-row:hover {
-  opacity: 0.65;
+  opacity: 0.6;
 }
 
 .footer-text {
@@ -706,34 +757,40 @@ function iconVariant(item: { accent?: string }) {
 }
 
 /* ============================
-   MOBILE-SPECIFIC
+   RESPONSIVE
    ============================ */
 @media (max-height: 640px) {
   .landing {
-    --d-w: clamp(30px, 6.5vw, 42px);
-    --d-h: clamp(42px, 9vw, 60px);
-    --d-cell: clamp(46px, 12vw, 64px);
-  }
-
-  .landing-logo {
-    height: clamp(36px, 7vh, 64px);
+    --d-w: clamp(28px, 6vw, 40px);
+    --d-h: clamp(40px, 8.5vw, 58px);
+    --d-cell: clamp(44px, 12vw, 62px);
   }
 
   .landing-title {
-    font-size: clamp(1.1rem, 3vw, 1.6rem);
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
   }
 
   .landing-motto {
-    font-size: clamp(0.8rem, 2vw, 1rem);
+    font-size: clamp(0.85rem, 2vw, 1rem);
   }
 }
 
 @media (max-width: 379px) {
   .landing {
-    --d-w: 32px;
-    --d-h: 46px;
-    --d-cell: 50px;
+    --d-w: 30px;
+    --d-h: 44px;
+    --d-cell: 48px;
     --d-gap: 6px;
+  }
+
+  .top-bar {
+    top: 10px;
+    left: 10px;
+  }
+
+  .top-icon {
+    width: 28px;
+    height: 28px;
   }
 }
 </style>

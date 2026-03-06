@@ -1,5 +1,18 @@
 <template>
-  <div class="h-dvh overflow-hidden bg-[#F7F0DE] dark:bg-[#1F2C23] transition-colors duration-[400ms]">
+  <div class="landing-layout">
     <slot />
   </div>
 </template>
+
+<style scoped>
+.landing-layout {
+  height: 100dvh;
+  overflow: hidden;
+  background-color: #F7F0DE;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+:global(.dark) .landing-layout {
+  background-color: #1F2C23;
+}
+</style>
