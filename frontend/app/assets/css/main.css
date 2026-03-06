@@ -77,3 +77,33 @@
 .border-gold {
   border-color: var(--color-brand-gold);
 }
+
+/* ===== Public page animations ===== */
+
+@keyframes logo-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes logo-ring-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.15; transform: scale(1.05); }
+}
+
+.logo-float {
+  animation: logo-float 6s ease-in-out infinite;
+}
+
+.logo-ring {
+  animation: logo-ring-pulse 6s ease-in-out infinite;
+}
+
+/* Nav indicator entrance */
+.nav-indicator {
+  animation: nav-slide-in 0.3s ease-out;
+}
+
+@keyframes nav-slide-in {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}

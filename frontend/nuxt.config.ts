@@ -50,6 +50,7 @@ export default defineNuxtConfig({
   routeRules: {
     '/api/**': { proxy: 'http://directus:8055/**' },
     '/': { prerender: true },
+    '/le-geai': { prerender: true },
     '/recrutement': { prerender: false },
     '/dashboard/**': { ssr: false },
     '/planning/**': { ssr: false },
