@@ -102,26 +102,39 @@ onMounted(() => {
     </header>
 
     <!-- ===== SPINE NAV — left (desktop) ===== -->
-    <div class="spine spine--left">
+    <nav class="spine spine--left" aria-label="Pages internes">
       <div class="spine-track">
-        <NuxtLink to="/le-geai" class="spine-link">{{ t.identite }}</NuxtLink>
-        <span class="spine-dot" aria-hidden="true">&middot;</span>
-        <NuxtLink to="/recrutement" class="spine-link">{{ t.recrutement }}</NuxtLink>
-        <span class="spine-dot" aria-hidden="true">&middot;</span>
-        <NuxtLink to="/soutenir" class="spine-link spine-link--warm">{{ t.soutenir }}</NuxtLink>
+        <NuxtLink to="/le-geai" class="spine-link">
+          <span class="spine-link-dash" aria-hidden="true" />
+          <span class="spine-link-label">{{ t.identite }}</span>
+        </NuxtLink>
+        <NuxtLink to="/recrutement" class="spine-link">
+          <span class="spine-link-dash" aria-hidden="true" />
+          <span class="spine-link-label">{{ t.recrutement }}</span>
+        </NuxtLink>
+        <NuxtLink to="/soutenir" class="spine-link spine-link--warm">
+          <span class="spine-link-dash" aria-hidden="true" />
+          <span class="spine-link-label">{{ t.soutenir }}</span>
+        </NuxtLink>
       </div>
-    </div>
+    </nav>
 
     <!-- ===== SPINE NAV — right (desktop) ===== -->
-    <div class="spine spine--right">
+    <nav class="spine spine--right" aria-label="Nos branches">
       <div class="spine-track">
-        <a href="https://legeai-informatique.fr" target="_blank" rel="noopener noreferrer" class="spine-link">{{ t.informatique }}</a>
-        <span class="spine-dot" aria-hidden="true">&middot;</span>
-        <a href="https://bergfrid.com" target="_blank" rel="noopener noreferrer" class="spine-link">{{ t.bergfrid }}</a>
-        <span class="spine-dot" aria-hidden="true">&middot;</span>
-        <span class="spine-link spine-link--muted">{{ t.editions }}</span>
+        <a href="https://legeai-informatique.fr" target="_blank" rel="noopener noreferrer" class="spine-link">
+          <span class="spine-link-label">{{ t.informatique }}</span>
+          <span class="spine-link-dash" aria-hidden="true" />
+        </a>
+        <a href="https://bergfrid.com" target="_blank" rel="noopener noreferrer" class="spine-link">
+          <span class="spine-link-label">{{ t.bergfrid }}</span>
+          <span class="spine-link-dash" aria-hidden="true" />
+        </a>
+        <span class="spine-link spine-link--muted">
+          <span class="spine-link-label">{{ t.editions }}</span>
+        </span>
       </div>
-    </div>
+    </nav>
 
     <!-- ===== CENTER ===== -->
     <div class="center">
@@ -278,30 +291,36 @@ onMounted(() => {
   color: var(--gold);
   background: transparent;
   cursor: pointer;
-  opacity: 0.65;
-  transition: opacity 0.3s, border-color 0.3s, background 0.3s;
+  opacity: 0.7;
+  transition: opacity 0.3s, border-color 0.3s, background 0.3s, transform 0.3s;
 }
 .top-btn:hover {
   opacity: 1;
   border-color: var(--gold);
   background: rgba(175, 143, 60, 0.07);
 }
+.top-btn:focus-visible {
+  opacity: 1;
+  border-color: var(--gold);
+  outline: 1px solid var(--gold-dim);
+  outline-offset: 3px;
+}
 :global(.dark) .top-btn:hover { background: rgba(175, 143, 60, 0.12); }
 
 .top-btn--key {
   border-color: var(--gold);
-  opacity: 0.85;
+  opacity: 0.9;
 }
 .top-btn--key:hover { opacity: 1; background: rgba(175, 143, 60, 0.1); }
 :global(.dark) .top-btn--key:hover { background: rgba(175, 143, 60, 0.16); }
 
 /* ============================
-   SPINE NAV (desktop — book-spine text along frame edges)
+   SPINE NAV (desktop — book-spine along frame edges)
    ============================ */
 .spine {
   position: fixed;
   top: 0; bottom: 0;
-  width: 40px;
+  width: 52px;
   display: flex; align-items: center; justify-content: center;
   z-index: 5;
   pointer-events: none;
@@ -310,48 +329,79 @@ onMounted(() => {
 }
 .is-visible .spine { opacity: 1; }
 
-.spine--left { left: clamp(12px, 2.5vw, 22px); }
-.spine--right { right: clamp(12px, 2.5vw, 22px); }
+.spine--left { left: clamp(10px, 2.2vw, 20px); }
+.spine--right { right: clamp(10px, 2.2vw, 20px); }
 
 .spine-track {
-  display: flex; align-items: center; gap: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
   white-space: nowrap;
   pointer-events: auto;
 }
 
-.spine--left .spine-track { transform: rotate(-90deg); }
-.spine--right .spine-track { transform: rotate(90deg); }
+.spine--left .spine-track {
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+}
+
+.spine--right .spine-track {
+  writing-mode: vertical-lr;
+}
 
 .spine-link {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 10px;
-  letter-spacing: 0.14em;
+  font-size: 11px;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   text-decoration: none;
   color: inherit;
-  opacity: 0.35;
-  transition: opacity 0.3s, color 0.3s;
-  padding: 4px 0;
+  opacity: 0.55;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 6px;
+  transition: opacity 0.35s, color 0.35s;
+  position: relative;
 }
-.spine-link:hover {
+
+.spine-link:hover, .spine-link:focus-visible {
   opacity: 1;
   color: var(--gold);
 }
+.spine-link:focus-visible {
+  outline: 1px solid var(--gold-dim);
+  outline-offset: 4px;
+}
 
-.spine-link--warm:hover { color: var(--terracotta); }
+.spine-link--warm:hover,
+.spine-link--warm:focus-visible { color: var(--terracotta); }
 
 .spine-link--muted {
-  opacity: 0.15;
+  opacity: 0.2;
   cursor: default;
   font-style: italic;
   letter-spacing: 0.08em;
   text-transform: none;
 }
 
-.spine-dot {
-  font-size: 8px;
-  opacity: 0.2;
-  color: var(--gold);
+.spine-link-dash {
+  display: block;
+  width: 1px;
+  height: 18px;
+  background: var(--gold-dim);
+  flex-shrink: 0;
+  transition: height 0.35s ease, background 0.35s ease;
+}
+.spine-link:hover .spine-link-dash,
+.spine-link:focus-visible .spine-link-dash {
+  height: 28px;
+  background: var(--gold);
+}
+
+.spine-link-label {
+  display: block;
 }
 
 @media (max-width: 899px) {
@@ -386,14 +436,14 @@ onMounted(() => {
 /* Subtitle */
 .subtitle {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: clamp(0.55rem, 1.2vw, 0.7rem);
-  letter-spacing: 0.25em;
+  font-size: clamp(0.6rem, 1.2vw, 0.72rem);
+  letter-spacing: 0.3em;
   text-transform: uppercase;
   opacity: 0;
   transition: opacity 0.8s ease 0.15s;
-  margin-bottom: clamp(8px, 1.5vh, 16px);
+  margin-bottom: clamp(10px, 2vh, 20px);
 }
-.is-visible .subtitle { opacity: 0.3; }
+.is-visible .subtitle { opacity: 0.38; }
 
 /* Title — MASSIVE */
 .title {
@@ -451,14 +501,14 @@ onMounted(() => {
 
 .motto-sub {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: clamp(0.6rem, 1.3vw, 0.75rem);
-  letter-spacing: 0.12em;
+  font-size: clamp(0.62rem, 1.3vw, 0.78rem);
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  margin-top: 4px;
+  margin-top: 6px;
   opacity: 0;
   transition: opacity 0.8s ease 0.85s;
 }
-.is-visible .motto-sub { opacity: 0.3; }
+.is-visible .motto-sub { opacity: 0.4; }
 
 /* ============================
    MOBILE NAV
@@ -495,13 +545,13 @@ onMounted(() => {
 .mnav-link {
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: clamp(10px, 2.5vw, 12px);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   text-decoration: none;
   color: inherit;
-  opacity: 0.45;
+  opacity: 0.6;
   transition: opacity 0.3s, color 0.3s;
-  padding: 2px 0;
+  padding: 4px 2px;
 }
 .mnav-link:hover, .mnav-link:active {
   opacity: 1;
@@ -511,7 +561,7 @@ onMounted(() => {
 .mnav-link--warm:hover, .mnav-link--warm:active { color: var(--terracotta); }
 
 .mnav-link--muted {
-  opacity: 0.2;
+  opacity: 0.3;
   cursor: default;
   font-style: italic;
   text-transform: none;
@@ -534,8 +584,8 @@ onMounted(() => {
   opacity: 0;
   transition: opacity 0.8s ease 1.2s;
 }
-.is-visible .footer-bar { opacity: 0.25; }
-.footer-bar:hover { opacity: 0.55; }
+.is-visible .footer-bar { opacity: 0.35; }
+.footer-bar:hover { opacity: 0.6; }
 
 .footer-text {
   font-family: 'Crimson Pro', Georgia, serif;
