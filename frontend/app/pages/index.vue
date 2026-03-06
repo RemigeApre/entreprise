@@ -261,7 +261,7 @@ async function handleLogin() {
   --terracotta: #B74D34;
   --cream: #F7F0DE;
   --ink: #2c2419;
-  --transition: 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: 1.4s cubic-bezier(0.4, 0, 0.2, 1);
 
   height: 100%;
   display: flex;
@@ -301,8 +301,8 @@ async function handleLogin() {
   position: fixed;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  width: clamp(400px, 95vmin, 820px);
-  height: clamp(400px, 95vmin, 820px);
+  width: clamp(500px, 100vmin, 920px);
+  height: clamp(500px, 100vmin, 920px);
   pointer-events: none; z-index: 0;
   transition: left var(--transition), width var(--transition), height var(--transition);
 }
@@ -310,24 +310,26 @@ async function handleLogin() {
   width: 100%; height: 100%;
   object-fit: contain;
   opacity: 0.04;
-  transition: opacity var(--transition), filter 0.4s ease;
+  transition: opacity var(--transition), filter var(--transition);
 }
 :global(.dark) .watermark-img {
   filter: brightness(0) invert(0.85);
   opacity: 0.055;
 }
 
-/* Login mode — logo slides left, half visible */
+/* Login mode — logo slides left, half visible, full color */
 .login-mode .watermark {
   left: 0;
-  width: clamp(500px, 90vh, 900px);
-  height: clamp(500px, 90vh, 900px);
+  width: clamp(600px, 100vh, 1100px);
+  height: clamp(600px, 100vh, 1100px);
 }
 .login-mode .watermark-img {
-  opacity: 0.12;
+  opacity: 1;
+  filter: none;
 }
 :global(.dark) .login-mode .watermark-img {
-  opacity: 0.14;
+  opacity: 1;
+  filter: none;
 }
 
 /* ============================
@@ -403,7 +405,7 @@ async function handleLogin() {
   transition: opacity 1s ease 0.6s;
 }
 .is-visible .spine { opacity: 1; }
-.login-mode .spine { opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
+.login-mode .spine { opacity: 0; pointer-events: none; transition: opacity 0.8s ease; }
 
 .spine--left { left: clamp(10px, 2.2vw, 20px); }
 .spine--right { right: clamp(10px, 2.2vw, 20px); }
@@ -468,7 +470,7 @@ async function handleLogin() {
   z-index: 2;
   width: 100%;
   padding: 0 clamp(50px, 8vw, 100px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transition: opacity 1s ease, transform 1s ease;
 }
 .login-mode .center {
   opacity: 0;
@@ -675,9 +677,9 @@ async function handleLogin() {
   justify-content: center;
   padding: clamp(24px, 4vw, 48px);
   opacity: 0;
-  transform: translateX(40px);
+  transform: translateX(60px);
   pointer-events: none;
-  transition: opacity 0.7s ease 0.15s, transform 0.7s cubic-bezier(0.4, 0, 0.2, 1) 0.15s;
+  transition: opacity 1s ease 0.5s, transform 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.5s;
 }
 .login-mode .login-panel {
   opacity: 1;
@@ -689,108 +691,112 @@ async function handleLogin() {
   position: absolute;
   top: clamp(20px, 3.5vw, 36px);
   left: clamp(20px, 3vw, 40px);
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: 8px;
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 12px;
-  letter-spacing: 0.1em;
+  font-size: 13px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--gold);
-  opacity: 0.6;
+  opacity: 0.7;
   background: none; border: none;
   cursor: pointer;
-  transition: opacity 0.3s;
+  transition: opacity 0.3s, gap 0.3s;
 }
-.login-back:hover { opacity: 1; }
+.login-back:hover { opacity: 1; gap: 12px; }
 
 .login-form-wrap {
   width: 100%;
-  max-width: 320px;
+  max-width: 380px;
 }
 
 .login-title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
   font-weight: 400;
   letter-spacing: 0.15em;
   text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .login-ornament {
   display: flex; justify-content: center;
-  margin-bottom: clamp(24px, 4vh, 40px);
+  margin-bottom: clamp(28px, 5vh, 48px);
 }
 .login-ornament-line {
-  width: 40px; height: 1px;
+  width: 50px; height: 1px;
   background: linear-gradient(90deg, transparent, var(--gold), transparent);
 }
 
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 .login-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .login-label {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 11px;
-  letter-spacing: 0.14em;
+  font-size: 12px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  opacity: 0.5;
+  opacity: 0.6;
 }
 
 .login-input {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 15px;
+  font-size: 16px;
   letter-spacing: 0.02em;
-  padding: 12px 16px;
-  background: transparent;
+  padding: 14px 18px;
+  background: rgba(175, 143, 60, 0.04);
   border: 1px solid var(--gold-dim);
   border-radius: 0;
   color: inherit;
   outline: none;
-  transition: border-color 0.3s;
+  transition: border-color 0.3s, background 0.3s;
+}
+:global(.dark) .login-input {
+  background: rgba(175, 143, 60, 0.06);
 }
 .login-input::placeholder {
   color: inherit;
-  opacity: 0.25;
+  opacity: 0.3;
 }
 .login-input:focus {
   border-color: var(--gold);
+  background: rgba(175, 143, 60, 0.08);
 }
 
 .login-error {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--terracotta);
   text-align: center;
 }
 
 .login-submit {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 13px;
-  letter-spacing: 0.18em;
+  font-size: 14px;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  padding: 14px 24px;
-  background: transparent;
+  padding: 16px 28px;
+  background: var(--gold);
   border: 1px solid var(--gold);
-  color: var(--gold);
+  color: var(--cream);
   cursor: pointer;
-  transition: background 0.3s, color 0.3s;
-  margin-top: 4px;
+  transition: background 0.3s, color 0.3s, opacity 0.3s;
+  margin-top: 8px;
+}
+:global(.dark) .login-submit {
+  color: var(--ink);
 }
 .login-submit:hover:not(:disabled) {
-  background: var(--gold);
-  color: var(--cream);
-}
-:global(.dark) .login-submit:hover:not(:disabled) {
-  color: var(--ink);
+  background: transparent;
+  color: var(--gold);
 }
 .login-submit:disabled {
   opacity: 0.5;
@@ -824,9 +830,11 @@ async function handleLogin() {
   }
   .login-mode .watermark {
     left: 50%;
-    opacity: 0.06;
-    width: clamp(300px, 80vmin, 500px);
-    height: clamp(300px, 80vmin, 500px);
+    width: clamp(350px, 90vmin, 600px);
+    height: clamp(350px, 90vmin, 600px);
+  }
+  .login-mode .watermark-img {
+    opacity: 0.08;
   }
 }
 
