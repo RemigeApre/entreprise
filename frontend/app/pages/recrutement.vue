@@ -4,9 +4,20 @@ import type { OffreEmploi } from '~/utils/types'
 
 definePageMeta({ layout: 'public' })
 
+useHead({
+  link: [
+    { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+    { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+    {
+      rel: 'stylesheet',
+      href: 'https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IM+Fell+DW+Pica:ital@0;1&family=UnifrakturCook:wght@700&display=swap'
+    }
+  ]
+})
+
 useSeoMeta({
   title: 'Recrutement - Le Geai',
-  description: 'Decouvrez les offres d\'emploi du groupe Le Geai. Rejoignez une equipe pluridisciplinaire en edition, informatique et medias.',
+  description: 'Decouvrez les offres d\'emploi du groupe Le Geai.',
   ogTitle: 'Recrutement - Le Geai',
   ogDescription: 'Rejoignez-nous. Decouvrez les opportunites au sein du groupe Le Geai.'
 })
@@ -63,145 +74,342 @@ function formatDate(date: string) {
 </script>
 
 <template>
-  <div class="min-h-full">
-    <!-- Header -->
-    <section class="px-6 pt-24 pb-12 sm:pt-28 sm:pb-16 text-center">
+  <div class="page-recrutement">
+    <!-- Hero -->
+    <section class="hero">
       <div
-        class="max-w-2xl mx-auto transition-all duration-1000 ease-out"
-        :class="visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'"
+        class="hero-inner"
+        :class="visible ? 'is-visible' : ''"
       >
-        <h1 class="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-          Rejoignez-nous
-        </h1>
-        <div class="w-12 h-px bg-gradient-to-r from-transparent via-amber-400/60 to-transparent mx-auto mt-5 mb-4" />
-        <p class="text-stone-500 dark:text-stone-400 text-base sm:text-lg">
-          Decouvrez les opportunites au sein du groupe Le Geai
+        <div class="hero-ornament">
+          <div class="hero-line" />
+          <span class="hero-glyph">G</span>
+          <div class="hero-line" />
+        </div>
+        <h1 class="hero-title">Recrutement</h1>
+        <p class="hero-sub">
+          Decouvrez les opportunites au sein du groupe Le Geai.
         </p>
       </div>
     </section>
 
     <!-- Content -->
-    <section class="px-6 pb-20">
-      <div class="max-w-3xl mx-auto">
+    <section class="section">
+      <!-- Loading -->
+      <div v-if="status === 'pending'" class="loading">
+        <div class="spinner" />
+      </div>
 
-        <!-- Loading -->
-        <div v-if="status === 'pending'" class="flex justify-center py-16">
-          <UIcon name="i-lucide-loader-2" class="size-8 text-stone-400 animate-spin" />
-        </div>
+      <!-- Empty -->
+      <div
+        v-else-if="!offres?.length"
+        class="empty"
+        :class="visible ? 'is-visible' : ''"
+      >
+        <p class="empty-title">Aucune offre pour le moment</p>
+        <p class="empty-text">Revenez bientot, de nouvelles opportunites sont en preparation.</p>
+      </div>
 
-        <!-- Empty -->
-        <div
-          v-else-if="!offres?.length"
-          class="text-center py-16 transition-all duration-700 delay-300"
-          :class="visible ? 'opacity-100' : 'opacity-0'"
+      <!-- Job listings -->
+      <div v-else class="offres-list">
+        <article
+          v-for="(offre, i) in offres"
+          :key="offre.id"
+          class="offre-card"
+          :class="visible ? 'is-visible' : ''"
+          :style="{ transitionDelay: `${300 + i * 100}ms` }"
+          @click="openDetail(offre)"
         >
-          <div class="size-16 rounded-full bg-stone-100 dark:bg-stone-800/60 flex items-center justify-center mx-auto mb-4">
-            <UIcon name="i-lucide-inbox" class="size-7 text-stone-400 dark:text-stone-500" />
-          </div>
-          <h3 class="font-heading text-lg font-semibold mb-2">Aucune offre pour le moment</h3>
-          <p class="text-sm text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
-            Revenez bientot, de nouvelles opportunites sont en preparation.
-          </p>
-        </div>
-
-        <!-- Job listings -->
-        <div v-else class="space-y-4">
-          <article
-            v-for="(offre, i) in offres"
-            :key="offre.id"
-            class="group rounded-2xl border border-stone-200/60 dark:border-stone-800/60 p-5 sm:p-6 cursor-pointer transition-all duration-500 ease-out hover:border-stone-300 dark:hover:border-stone-700 hover:shadow-sm"
-            :class="visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'"
-            :style="{ transitionDelay: `${300 + i * 100}ms` }"
-            @click="openDetail(offre)"
-          >
-            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
-              <div>
-                <h2 class="font-heading text-lg font-semibold group-hover:text-primary transition-colors duration-300">
-                  {{ offre.titre }}
-                </h2>
-                <div class="flex flex-wrap items-center gap-3 mt-1.5 text-sm text-stone-400 dark:text-stone-500">
-                  <span v-if="offre.localisation" class="flex items-center gap-1">
-                    <UIcon name="i-lucide-map-pin" class="size-3.5" />
-                    {{ offre.localisation }}
-                  </span>
-                  <span v-if="formatSalaire(offre)" class="flex items-center gap-1">
-                    <UIcon name="i-lucide-banknote" class="size-3.5" />
-                    {{ formatSalaire(offre) }}
-                  </span>
-                  <span v-if="offre.date_publication" class="flex items-center gap-1">
-                    <UIcon name="i-lucide-calendar" class="size-3.5" />
-                    {{ formatDate(offre.date_publication) }}
-                  </span>
-                </div>
+          <div class="offre-header">
+            <div>
+              <h2 class="offre-title">{{ offre.titre }}</h2>
+              <div class="offre-meta">
+                <span v-if="offre.localisation">{{ offre.localisation }}</span>
+                <span v-if="formatSalaire(offre)">{{ formatSalaire(offre) }}</span>
+                <span v-if="offre.date_publication">{{ formatDate(offre.date_publication) }}</span>
               </div>
-              <UBadge variant="subtle" color="neutral" size="sm" class="shrink-0 self-start">
-                {{ offre.type_contrat }}
-              </UBadge>
             </div>
-            <p
-              class="text-sm text-stone-500 dark:text-stone-400 line-clamp-2 leading-relaxed"
-              v-html="offre.description"
-            />
-          </article>
-        </div>
+            <span class="offre-badge">{{ offre.type_contrat }}</span>
+          </div>
+          <p class="offre-desc" v-html="offre.description" />
+        </article>
       </div>
     </section>
 
     <!-- Detail slideover -->
     <USlideover v-model:open="isSlideoverOpen">
       <template #content>
-        <div v-if="selectedOffre" class="p-6 space-y-6">
-          <div>
-            <div class="flex items-start justify-between gap-3 mb-3">
-              <h2 class="font-heading text-xl font-bold">{{ selectedOffre.titre }}</h2>
-              <UBadge variant="subtle" color="neutral">{{ selectedOffre.type_contrat }}</UBadge>
-            </div>
-            <div class="flex flex-wrap gap-3 text-sm text-stone-400 dark:text-stone-500">
-              <span v-if="selectedOffre.localisation" class="flex items-center gap-1">
-                <UIcon name="i-lucide-map-pin" class="size-4" />
-                {{ selectedOffre.localisation }}
-              </span>
-              <span v-if="formatSalaire(selectedOffre)" class="flex items-center gap-1">
-                <UIcon name="i-lucide-banknote" class="size-4" />
-                {{ formatSalaire(selectedOffre) }}
-              </span>
-            </div>
+        <div v-if="selectedOffre" class="slideover-content">
+          <div class="slideover-header">
+            <h2 class="slideover-title">{{ selectedOffre.titre }}</h2>
+            <span class="offre-badge">{{ selectedOffre.type_contrat }}</span>
+          </div>
+          <div class="slideover-meta">
+            <span v-if="selectedOffre.localisation">{{ selectedOffre.localisation }}</span>
+            <span v-if="formatSalaire(selectedOffre)">{{ formatSalaire(selectedOffre) }}</span>
           </div>
 
-          <div class="h-px bg-stone-200 dark:bg-stone-800" />
+          <div class="slideover-divider" />
 
           <div>
-            <h3 class="font-semibold mb-2">Description</h3>
-            <div class="prose prose-sm prose-stone dark:prose-invert max-w-none" v-html="selectedOffre.description" />
+            <h3 class="slideover-section-title">Description</h3>
+            <div class="slideover-prose" v-html="selectedOffre.description" />
           </div>
 
           <div v-if="selectedOffre.competences_requises">
-            <h3 class="font-semibold mb-2">Competences requises</h3>
-            <div class="prose prose-sm prose-stone dark:prose-invert max-w-none" v-html="selectedOffre.competences_requises" />
+            <h3 class="slideover-section-title">Competences requises</h3>
+            <div class="slideover-prose" v-html="selectedOffre.competences_requises" />
           </div>
 
           <div v-if="selectedOffre.avantages">
-            <h3 class="font-semibold mb-2">Avantages</h3>
-            <div class="prose prose-sm prose-stone dark:prose-invert max-w-none" v-html="selectedOffre.avantages" />
+            <h3 class="slideover-section-title">Avantages</h3>
+            <div class="slideover-prose" v-html="selectedOffre.avantages" />
           </div>
 
-          <div class="h-px bg-stone-200 dark:bg-stone-800" />
+          <div class="slideover-divider" />
 
-          <p class="text-sm text-stone-500 dark:text-stone-400">
-            Pour postuler, envoyez votre CV et lettre de motivation a
-            <strong class="text-stone-700 dark:text-stone-300">recrutement@legeai-editions.com</strong>
+          <p class="slideover-cta">
+            Pour postuler, envoyez votre CV a
+            <strong>recrutement@legeai-editions.com</strong>
           </p>
         </div>
       </template>
     </USlideover>
 
     <!-- Footer -->
-    <footer class="px-6 pb-6 text-center">
-      <div class="max-w-4xl mx-auto pt-6 border-t border-stone-200/40 dark:border-stone-800/40">
-        <p class="text-[11px] text-stone-400 dark:text-stone-600">
-          &copy; {{ new Date().getFullYear() }} Groupe Le Geai &mdash; Tous droits reserves
-        </p>
-      </div>
+    <footer class="page-footer">
+      <p>&copy; {{ new Date().getFullYear() }} Groupe Le Geai</p>
     </footer>
   </div>
 </template>
+
+<style scoped>
+.page-recrutement {
+  --gold: #AF8F3C;
+  --gold-dim: rgba(175, 143, 60, 0.28);
+  --gold-faint: rgba(175, 143, 60, 0.10);
+  --terracotta: #B74D34;
+  font-family: 'Crimson Pro', Georgia, serif;
+}
+
+/* Hero */
+.hero {
+  padding: clamp(60px, 10vh, 120px) clamp(24px, 5vw, 48px) clamp(40px, 6vh, 80px);
+  text-align: center;
+}
+.hero-inner {
+  max-width: 600px;
+  margin: 0 auto;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 1s ease, transform 1s ease;
+}
+.hero-inner.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hero-ornament {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  margin-bottom: 20px;
+}
+.hero-line {
+  width: 40px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.hero-glyph {
+  font-family: 'UnifrakturCook', cursive;
+  font-size: 1.4rem;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.hero-title {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  margin-bottom: 16px;
+}
+
+.hero-sub {
+  font-size: clamp(0.9rem, 2vw, 1.05rem);
+  line-height: 1.7;
+  opacity: 0.55;
+}
+
+/* Section */
+.section {
+  padding: 0 clamp(24px, 5vw, 48px) clamp(48px, 8vh, 80px);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Loading */
+.loading {
+  display: flex; justify-content: center; padding: 60px 0;
+}
+.spinner {
+  width: 24px; height: 24px;
+  border: 1.5px solid var(--gold-dim);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Empty */
+.empty {
+  text-align: center;
+  padding: 60px 0;
+  opacity: 0;
+  transition: opacity 0.7s ease 0.3s;
+}
+.empty.is-visible { opacity: 1; }
+.empty-title {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+.empty-text {
+  font-size: 0.88rem;
+  opacity: 0.45;
+}
+
+/* Offres */
+.offres-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.offre-card {
+  padding: 24px;
+  border: 1px solid var(--gold-faint);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.7s ease, transform 0.7s ease, border-color 0.3s;
+}
+.offre-card.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.offre-card:hover { border-color: var(--gold-dim); }
+
+.offre-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.offre-title {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  transition: color 0.3s;
+}
+.offre-card:hover .offre-title { color: var(--gold); }
+
+.offre-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  opacity: 0.4;
+}
+
+.offre-badge {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border: 1px solid var(--gold-faint);
+  color: var(--gold);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.offre-desc {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  opacity: 0.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Slideover */
+.slideover-content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  font-family: 'Crimson Pro', Georgia, serif;
+}
+
+.slideover-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.slideover-title {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1.3rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+}
+
+.slideover-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.85rem;
+  opacity: 0.45;
+}
+
+.slideover-divider {
+  height: 1px;
+  background: var(--gold-faint);
+}
+
+.slideover-section-title {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+  color: var(--gold);
+}
+
+.slideover-prose {
+  font-size: 0.88rem;
+  line-height: 1.7;
+  opacity: 0.6;
+}
+
+.slideover-cta {
+  font-size: 0.88rem;
+  opacity: 0.5;
+}
+.slideover-cta strong {
+  opacity: 1;
+  color: var(--gold);
+}
+
+/* Footer */
+.page-footer {
+  text-align: center;
+  padding: 24px;
+  font-size: 11px;
+  opacity: 0.25;
+  letter-spacing: 0.05em;
+}
+</style>

@@ -1,168 +1,291 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'public' })
 
+useHead({
+  link: [
+    { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+    { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+    {
+      rel: 'stylesheet',
+      href: 'https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IM+Fell+DW+Pica:ital@0;1&family=UnifrakturCook:wght@700&display=swap'
+    }
+  ]
+})
+
 useSeoMeta({
-  title: 'Notre identite - Le Geai',
-  description: 'Decouvrez les valeurs, la vision et le manifeste du groupe Le Geai. Edition, informatique et medias reunis sous une meme ambition.',
-  ogTitle: 'Le Geai - Notre identite',
-  ogDescription: 'Un groupe fonde sur l\'exigence, la creativite et l\'accessibilite.'
+  title: 'L\u2019entreprise - Le Geai',
+  description: 'Decouvrez les valeurs, la vision et les poles du groupe Le Geai.',
+  ogTitle: 'Le Geai - L\u2019entreprise',
+  ogDescription: 'Un groupe fonde sur l\u2019exigence, la creativite et l\u2019accessibilite.'
 })
 
 const visible = ref(false)
-
-onMounted(() => {
-  requestAnimationFrame(() => { visible.value = true })
-})
+onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
 
 const values = [
-  {
-    icon: 'i-lucide-gem',
-    title: 'Exigence',
-    text: 'Chaque detail compte. Nous ne livrons que ce dont nous sommes fiers, du premier pixel a la derniere ligne de code.'
-  },
-  {
-    icon: 'i-lucide-accessibility',
-    title: 'Accessibilite',
-    text: 'Si un utilisateur ne s\'y retrouve pas, c\'est nous qui avons echoue. La simplicite est notre complexite.'
-  },
-  {
-    icon: 'i-lucide-lightbulb',
-    title: 'Creativite',
-    text: 'Nous croyons que l\'innovation nait au croisement des disciplines. Edition, technologie et medias se nourrissent mutuellement.'
-  },
-  {
-    icon: 'i-lucide-handshake',
-    title: 'Integrite',
-    text: 'Des engagements tenus, une transparence totale. La confiance se construit sur la constance.'
-  }
+  { numeral: 'I', title: 'Exigence', text: 'Chaque detail compte. Nous ne livrons que ce dont nous sommes fiers, du premier pixel a la derniere ligne de code.' },
+  { numeral: 'II', title: 'Accessibilite', text: 'Si un utilisateur ne s\u2019y retrouve pas, c\u2019est nous qui avons echoue. La simplicite est notre complexite.' },
+  { numeral: 'III', title: 'Creativite', text: 'L\u2019innovation nait au croisement des disciplines. Edition, technologie et medias se nourrissent mutuellement.' },
+  { numeral: 'IV', title: 'Integrite', text: 'Des engagements tenus, une transparence totale. La confiance se construit sur la constance.' }
 ]
 
 const branches = [
-  {
-    title: 'Edition',
-    desc: 'Maison d\'edition dediee aux ouvrages qui marquent, avec un soin particulier porte a la qualite editoriale et graphique.',
-    status: 'En refonte'
-  },
-  {
-    title: 'Informatique',
-    desc: 'Conception de sites web, d\'applications et de solutions numeriques sur mesure pour les entreprises et les createurs.',
-    href: 'https://legeai-informatique.fr'
-  },
-  {
-    title: 'Medias',
-    desc: 'Production de contenus, journalisme independant et creation mediatique a travers nos differentes plateformes.',
-    href: 'https://bergfrid.com'
-  }
+  { title: 'Edition', desc: 'Maison d\u2019edition dediee aux ouvrages qui marquent.', status: 'En refonte' },
+  { title: 'Informatique', desc: 'Sites web, applications et solutions numeriques sur mesure.', href: 'https://legeai-informatique.fr' },
+  { title: 'Medias', desc: 'Production de contenus et journalisme independant.', href: 'https://bergfrid.com' }
 ]
 </script>
 
 <template>
-  <div class="min-h-full">
+  <div class="page-entreprise">
     <!-- Hero -->
-    <section class="relative flex items-center justify-center px-6 pt-24 pb-16 sm:pt-28 sm:pb-20">
+    <section class="hero">
       <div
-        class="text-center max-w-2xl transition-all duration-1000 ease-out"
-        :class="visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'"
+        class="hero-inner"
+        :class="visible ? 'is-visible' : ''"
       >
-        <!-- Ornament -->
-        <div class="flex items-center justify-center gap-3 mb-6 opacity-40">
-          <div class="w-10 h-px bg-stone-400 dark:bg-stone-600" />
-          <div class="size-1.5 rotate-45 bg-stone-400 dark:bg-stone-600" />
-          <div class="w-10 h-px bg-stone-400 dark:bg-stone-600" />
+        <div class="hero-ornament">
+          <div class="hero-line" />
+          <span class="hero-glyph">G</span>
+          <div class="hero-line" />
         </div>
-
-        <h1 class="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-          Notre identite
-        </h1>
-        <div class="w-14 h-px bg-gradient-to-r from-transparent via-[var(--color-brand-gold)]/50 to-transparent mx-auto mt-5 mb-4" />
-        <p class="text-stone-500 dark:text-stone-400 text-base sm:text-lg leading-relaxed max-w-lg mx-auto">
-          Le Geai reunit des savoir-faire complementaires autour d'une conviction commune : creer avec exigence, partager avec sincerite.
+        <h1 class="hero-title">L'entreprise</h1>
+        <p class="hero-sub">
+          Le Geai reunit des savoir-faire complementaires autour d'une conviction commune&nbsp;:
+          creer avec exigence, partager avec sincerite.
         </p>
       </div>
     </section>
 
     <!-- Values -->
-    <section class="px-6 pb-16 sm:pb-20">
-      <div class="max-w-4xl mx-auto">
-        <h2
-          class="text-xs uppercase tracking-[0.2em] text-stone-400 dark:text-stone-500 text-center mb-10 transition-all duration-700 delay-200"
-          :class="visible ? 'opacity-100' : 'opacity-0'"
+    <section class="section">
+      <h2 class="section-label" :class="visible ? 'is-visible' : ''">Nos valeurs</h2>
+      <div class="values-grid">
+        <div
+          v-for="(val, i) in values"
+          :key="val.title"
+          class="value-card"
+          :class="visible ? 'is-visible' : ''"
+          :style="{ transitionDelay: `${300 + i * 150}ms` }"
         >
-          Nos valeurs
-        </h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-10">
-          <div
-            v-for="(val, i) in values"
-            :key="val.title"
-            class="transition-all duration-700 ease-out"
-            :class="visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'"
-            :style="{ transitionDelay: `${300 + i * 150}ms` }"
-          >
-            <div class="flex items-start gap-4">
-              <div class="size-10 rounded-xl bg-stone-100 dark:bg-stone-800/60 flex items-center justify-center shrink-0 border border-stone-200/60 dark:border-stone-700/40">
-                <UIcon :name="val.icon" class="size-5 text-stone-500 dark:text-stone-400" />
-              </div>
-              <div>
-                <h3 class="font-heading text-lg font-semibold mb-1">{{ val.title }}</h3>
-                <p class="text-sm text-stone-500 dark:text-stone-400 leading-relaxed">{{ val.text }}</p>
-              </div>
-            </div>
-          </div>
+          <span class="value-numeral">{{ val.numeral }}</span>
+          <h3 class="value-title">{{ val.title }}</h3>
+          <p class="value-text">{{ val.text }}</p>
         </div>
       </div>
     </section>
 
     <!-- Branches -->
-    <section class="px-6 pb-20 sm:pb-24">
-      <div class="max-w-4xl mx-auto">
-        <h2
-          class="text-xs uppercase tracking-[0.2em] text-stone-400 dark:text-stone-500 text-center mb-10 transition-all duration-700 delay-500"
-          :class="visible ? 'opacity-100' : 'opacity-0'"
+    <section class="section">
+      <h2 class="section-label" :class="visible ? 'is-visible' : ''">Nos poles</h2>
+      <div class="branches-grid">
+        <div
+          v-for="(branch, i) in branches"
+          :key="branch.title"
+          class="branch-card"
+          :class="visible ? 'is-visible' : ''"
+          :style="{ transitionDelay: `${500 + i * 150}ms` }"
         >
-          Nos branches
-        </h2>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div
-            v-for="(branch, i) in branches"
-            :key="branch.title"
-            class="rounded-2xl border border-stone-200/60 dark:border-stone-800/60 p-6 transition-all duration-700 ease-out hover:border-stone-300 dark:hover:border-stone-700"
-            :class="visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'"
-            :style="{ transitionDelay: `${600 + i * 150}ms` }"
+          <h3 class="branch-title">{{ branch.title }}</h3>
+          <p class="branch-desc">{{ branch.desc }}</p>
+          <a
+            v-if="branch.href"
+            :href="branch.href"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="branch-link"
           >
-            <h3 class="font-heading text-base font-semibold mb-2">{{ branch.title }}</h3>
-            <p class="text-sm text-stone-500 dark:text-stone-400 leading-relaxed mb-4">{{ branch.desc }}</p>
-            <a
-              v-if="branch.href"
-              :href="branch.href"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="inline-flex items-center gap-1.5 text-sm font-medium text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 transition-colors duration-300"
-            >
-              Visiter
-              <UIcon name="i-lucide-external-link" class="size-3.5" />
-            </a>
-            <span
-              v-else-if="branch.status"
-              class="inline-flex items-center gap-1.5 text-sm text-stone-400 dark:text-stone-600 italic"
-            >
-              {{ branch.status }}
-            </span>
-          </div>
+            Visiter&thinsp;&#x2197;
+          </a>
+          <span v-else-if="branch.status" class="branch-status">{{ branch.status }}</span>
         </div>
       </div>
     </section>
 
     <!-- Footer -->
-    <footer class="px-6 pb-6 text-center">
-      <div class="max-w-4xl mx-auto pt-6 border-t border-stone-200/40 dark:border-stone-800/40">
-        <p class="text-[11px] text-stone-400 dark:text-stone-600">
-          &copy; {{ new Date().getFullYear() }} Groupe Le Geai &mdash; Tous droits reserves
-        </p>
-        <p class="text-[10px] text-stone-300 dark:text-stone-700 mt-1">
-          Site realise par
-          <a href="https://legeai-informatique.fr" target="_blank" class="underline hover:text-stone-500 transition-colors">Le Geai Informatique</a>
-        </p>
-      </div>
+    <footer class="page-footer">
+      <p>&copy; {{ new Date().getFullYear() }} Groupe Le Geai</p>
     </footer>
   </div>
 </template>
+
+<style scoped>
+.page-entreprise {
+  --gold: #AF8F3C;
+  --gold-dim: rgba(175, 143, 60, 0.28);
+  --gold-faint: rgba(175, 143, 60, 0.10);
+  font-family: 'Crimson Pro', Georgia, serif;
+}
+
+/* Hero */
+.hero {
+  padding: clamp(60px, 10vh, 120px) clamp(24px, 5vw, 48px) clamp(40px, 6vh, 80px);
+  text-align: center;
+}
+.hero-inner {
+  max-width: 600px;
+  margin: 0 auto;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 1s ease, transform 1s ease;
+}
+.hero-inner.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hero-ornament {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  margin-bottom: 20px;
+}
+.hero-line {
+  width: 40px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.hero-glyph {
+  font-family: 'UnifrakturCook', cursive;
+  font-size: 1.4rem;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.hero-title {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  margin-bottom: 16px;
+}
+
+.hero-sub {
+  font-size: clamp(0.9rem, 2vw, 1.05rem);
+  line-height: 1.7;
+  opacity: 0.55;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* Section */
+.section {
+  padding: 0 clamp(24px, 5vw, 48px) clamp(48px, 8vh, 80px);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.section-label {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  text-align: center;
+  opacity: 0;
+  color: var(--gold);
+  margin-bottom: clamp(28px, 4vh, 44px);
+  transition: opacity 0.8s ease;
+}
+.section-label.is-visible { opacity: 0.6; }
+
+/* Values */
+.values-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: clamp(20px, 3vw, 32px);
+}
+
+.value-card {
+  padding: 24px;
+  border: 1px solid var(--gold-faint);
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.7s ease, transform 0.7s ease, border-color 0.3s;
+}
+.value-card.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.value-card:hover { border-color: var(--gold-dim); }
+
+.value-numeral {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 0.8rem;
+  color: var(--gold);
+  opacity: 0.5;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.value-title {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.value-text {
+  font-size: 0.88rem;
+  line-height: 1.65;
+  opacity: 0.5;
+}
+
+/* Branches */
+.branches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: clamp(16px, 3vw, 24px);
+}
+
+.branch-card {
+  padding: 24px;
+  border: 1px solid var(--gold-faint);
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.7s ease, transform 0.7s ease, border-color 0.3s;
+}
+.branch-card.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.branch-card:hover { border-color: var(--gold-dim); }
+
+.branch-title {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.branch-desc {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  opacity: 0.5;
+  margin-bottom: 14px;
+}
+
+.branch-link {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--gold);
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+.branch-link:hover { opacity: 1; }
+
+.branch-status {
+  font-size: 12px;
+  font-style: italic;
+  opacity: 0.3;
+}
+
+/* Footer */
+.page-footer {
+  text-align: center;
+  padding: 24px;
+  font-size: 11px;
+  opacity: 0.25;
+  letter-spacing: 0.05em;
+}
+</style>

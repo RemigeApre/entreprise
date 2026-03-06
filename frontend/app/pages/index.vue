@@ -515,34 +515,58 @@ async function handleLogin() {
   text-decoration: none;
   color: inherit;
   position: relative;
-  transition: color 0.3s;
+  transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
-.nav-item:hover { color: var(--gold); }
+.nav-item:hover {
+  transform: translateY(-3px);
+}
 .nav-item:focus-visible {
   outline: 1px solid var(--gold-dim);
   outline-offset: 4px;
+}
+
+/* Gold underline that grows from center on hover */
+.nav-item::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 0;
+  height: 1px;
+  background: var(--gold);
+  transform: translateX(-50%);
+  transition: width 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.nav-item:hover::after {
+  width: 60%;
 }
 
 .nav-numeral {
   font-family: 'IM Fell DW Pica', Georgia, serif;
   font-size: clamp(0.7rem, 1.4vw, 0.9rem);
   color: var(--gold);
-  opacity: 0.5;
+  opacity: 0.4;
   letter-spacing: 0.05em;
-  transition: opacity 0.3s;
+  transition: opacity 0.5s ease, transform 0.5s ease;
 }
-.nav-item:hover .nav-numeral { opacity: 1; }
+.nav-item:hover .nav-numeral {
+  opacity: 1;
+  transform: translateY(-1px);
+}
 
 .nav-label {
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: clamp(11px, 1.4vw, 13px);
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  opacity: 0.65;
-  transition: opacity 0.3s;
+  opacity: 0.55;
+  transition: opacity 0.5s ease, color 0.5s ease;
   white-space: nowrap;
 }
-.nav-item:hover .nav-label { opacity: 1; }
+.nav-item:hover .nav-label {
+  opacity: 1;
+  color: var(--gold);
+}
 
 .nav-divider {
   width: 1px;
