@@ -515,43 +515,63 @@ async function handleLogin() {
   text-decoration: none;
   color: inherit;
   position: relative;
-  transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+  transition: transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
+  overflow: visible;
 }
 .nav-item:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
+  background: radial-gradient(ellipse at center, rgba(175, 143, 60, 0.06) 0%, transparent 70%);
 }
 .nav-item:focus-visible {
   outline: 1px solid var(--gold-dim);
   outline-offset: 4px;
 }
 
-/* Gold underline that grows from center on hover */
+/* Corner brackets that expand on hover */
+.nav-item::before,
 .nav-item::after {
   content: '';
   position: absolute;
-  bottom: 2px;
-  left: 50%;
   width: 0;
-  height: 1px;
-  background: var(--gold);
-  transform: translateX(-50%);
-  transition: width 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+  height: 0;
+  opacity: 0;
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+              height 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.4s ease;
 }
+.nav-item::before {
+  top: 0;
+  left: 0;
+  border-top: 1px solid var(--gold);
+  border-left: 1px solid var(--gold);
+}
+.nav-item::after {
+  bottom: 0;
+  right: 0;
+  border-bottom: 1px solid var(--gold);
+  border-right: 1px solid var(--gold);
+}
+.nav-item:hover::before,
 .nav-item:hover::after {
-  width: 60%;
+  width: 20px;
+  height: 16px;
+  opacity: 0.6;
 }
 
+/* Gold glow backdrop */
 .nav-numeral {
   font-family: 'IM Fell DW Pica', Georgia, serif;
   font-size: clamp(0.7rem, 1.4vw, 0.9rem);
   color: var(--gold);
   opacity: 0.4;
   letter-spacing: 0.05em;
-  transition: opacity 0.5s ease, transform 0.5s ease;
+  transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+              text-shadow 0.6s ease, font-size 0.5s ease;
 }
 .nav-item:hover .nav-numeral {
   opacity: 1;
-  transform: translateY(-1px);
+  transform: translateY(-3px) scale(1.15);
+  text-shadow: 0 0 20px rgba(175, 143, 60, 0.5), 0 0 40px rgba(175, 143, 60, 0.2);
 }
 
 .nav-label {
@@ -560,12 +580,16 @@ async function handleLogin() {
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.55;
-  transition: opacity 0.5s ease, color 0.5s ease;
+  transition: opacity 0.5s ease, color 0.5s ease,
+              letter-spacing 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+              text-shadow 0.6s ease;
   white-space: nowrap;
 }
 .nav-item:hover .nav-label {
   opacity: 1;
   color: var(--gold);
+  letter-spacing: 0.35em;
+  text-shadow: 0 0 12px rgba(175, 143, 60, 0.3);
 }
 
 .nav-divider {
@@ -573,6 +597,15 @@ async function handleLogin() {
   height: 32px;
   background: linear-gradient(180deg, transparent, var(--gold-dim), transparent);
   flex-shrink: 0;
+  transition: height 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.5s ease,
+              box-shadow 0.5s ease;
+}
+.nav-item:hover + .nav-divider,
+.nav-divider:has(+ .nav-item:hover) {
+  height: 40px;
+  opacity: 0.6;
+  box-shadow: 0 0 8px rgba(175, 143, 60, 0.3);
 }
 
 /* Poles dropdown */
