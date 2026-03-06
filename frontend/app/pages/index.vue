@@ -35,11 +35,9 @@ function toggleLang() { lang.value = lang.value === 'fr' ? 'en' : 'fr' }
 const t = computed(() => lang.value === 'fr' ? {
   motto: 'L\u2019obscurite nourrit la flamme.',
   copyright: `\u00A9 ${new Date().getFullYear()} Le Geai`,
-  identite: 'Notre identite',
-  editions: 'Editions',
-  informatique: 'Informatique',
-  bergfrid: 'Bergfrid',
+  entreprise: 'L\u2019entreprise',
   recrutement: 'Recrutement',
+  poles: 'Nos poles',
   connecter: 'Se connecter',
   email: 'Email',
   motdepasse: 'Mot de passe',
@@ -48,17 +46,17 @@ const t = computed(() => lang.value === 'fr' ? {
 } : {
   motto: 'Darkness feeds the flame.',
   copyright: `\u00A9 ${new Date().getFullYear()} Le Geai`,
-  identite: 'Our identity',
-  editions: 'Publishing',
-  informatique: 'Tech',
-  bergfrid: 'Bergfrid',
+  entreprise: 'The company',
   recrutement: 'Careers',
+  poles: 'Our branches',
   connecter: 'Sign in',
   email: 'Email',
   motdepasse: 'Password',
   erreur: 'Invalid email or password',
   retour: 'Back'
 })
+
+const polesOpen = ref(false)
 
 const visible = ref(false)
 onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
@@ -135,26 +133,6 @@ async function handleLogin() {
       </button>
     </header>
 
-    <!-- ===== SPINE NAV — left (desktop) ===== -->
-    <nav class="spine spine--left" aria-label="Pages internes">
-      <div class="spine-track">
-        <NuxtLink to="/le-geai" class="spine-link">{{ t.identite }}</NuxtLink>
-        <span class="spine-sep" aria-hidden="true">—</span>
-        <NuxtLink to="/recrutement" class="spine-link">{{ t.recrutement }}</NuxtLink>
-      </div>
-    </nav>
-
-    <!-- ===== SPINE NAV — right (desktop) ===== -->
-    <nav class="spine spine--right" aria-label="Nos branches">
-      <div class="spine-track">
-        <a href="https://legeai-informatique.fr" target="_blank" rel="noopener noreferrer" class="spine-link">{{ t.informatique }}&thinsp;&#x2197;</a>
-        <span class="spine-sep" aria-hidden="true">—</span>
-        <a href="https://bergfrid.com" target="_blank" rel="noopener noreferrer" class="spine-link">{{ t.bergfrid }}&thinsp;&#x2197;</a>
-        <span class="spine-sep" aria-hidden="true">—</span>
-        <span class="spine-link spine-link--muted">{{ t.editions }}</span>
-      </div>
-    </nav>
-
     <!-- ===== CENTER ===== -->
     <div class="center">
       <div class="center-inner">
@@ -172,24 +150,36 @@ async function handleLogin() {
 
         <p class="motto">Obscuritas nutrit flammam.</p>
         <p class="motto-sub">{{ t.motto }}</p>
+
+        <!-- ===== NAV — 3 items ===== -->
+        <nav class="landing-nav" aria-label="Navigation">
+          <NuxtLink to="/le-geai" class="nav-item">
+            <span class="nav-numeral" aria-hidden="true">I</span>
+            <span class="nav-label">{{ t.entreprise }}</span>
+          </NuxtLink>
+
+          <div class="nav-divider" aria-hidden="true" />
+
+          <NuxtLink to="/recrutement" class="nav-item">
+            <span class="nav-numeral" aria-hidden="true">II</span>
+            <span class="nav-label">{{ t.recrutement }}</span>
+          </NuxtLink>
+
+          <div class="nav-divider" aria-hidden="true" />
+
+          <div class="nav-item nav-item--poles" @click="polesOpen = !polesOpen">
+            <span class="nav-numeral" aria-hidden="true">III</span>
+            <span class="nav-label">{{ t.poles }}</span>
+            <!-- Poles dropdown -->
+            <div class="poles-dropdown" :class="{ 'is-open': polesOpen }">
+              <a href="https://legeai-informatique.fr" target="_blank" rel="noopener noreferrer" class="pole-link">Informatique&thinsp;&#x2197;</a>
+              <a href="https://bergfrid.com" target="_blank" rel="noopener noreferrer" class="pole-link">Medias&thinsp;&#x2197;</a>
+              <span class="pole-link pole-link--muted">Edition</span>
+            </div>
+          </div>
+        </nav>
       </div>
     </div>
-
-    <!-- ===== MOBILE NAV ===== -->
-    <nav class="mobile-nav" aria-label="Navigation">
-      <div class="mnav-row">
-        <NuxtLink to="/le-geai" class="mnav-link">{{ t.identite }}</NuxtLink>
-        <span class="mnav-sep">&middot;</span>
-        <NuxtLink to="/recrutement" class="mnav-link">{{ t.recrutement }}</NuxtLink>
-      </div>
-      <div class="mnav-row mnav-row--secondary">
-        <a href="https://legeai-informatique.fr" target="_blank" rel="noopener noreferrer" class="mnav-link">{{ t.informatique }}&thinsp;&nearr;</a>
-        <span class="mnav-sep">&middot;</span>
-        <a href="https://bergfrid.com" target="_blank" rel="noopener noreferrer" class="mnav-link">{{ t.bergfrid }}&thinsp;&nearr;</a>
-        <span class="mnav-sep">&middot;</span>
-        <span class="mnav-link mnav-link--muted">{{ t.editions }}</span>
-      </div>
-    </nav>
 
     <!-- ===== FOOTER ===== -->
     <div class="footer-bar">
@@ -392,73 +382,6 @@ async function handleLogin() {
 :global(.dark) .top-btn:hover { background: rgba(175, 143, 60, 0.16); }
 
 /* ============================
-   SPINE NAV
-   ============================ */
-.spine {
-  position: fixed;
-  top: 0; bottom: 0;
-  width: 44px;
-  display: flex; align-items: center; justify-content: center;
-  z-index: 5;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 1s ease 0.6s;
-}
-.is-visible .spine { opacity: 1; }
-.login-mode .spine { opacity: 0; pointer-events: none; transition: opacity 0.8s ease; }
-
-.spine--left { left: clamp(10px, 2.2vw, 20px); }
-.spine--right { right: clamp(10px, 2.2vw, 20px); }
-
-.spine-track {
-  display: flex; align-items: center; gap: 16px;
-  white-space: nowrap;
-  pointer-events: auto;
-}
-
-.spine--left .spine-track { transform: rotate(-90deg); }
-.spine--right .spine-track { transform: rotate(90deg); }
-
-.spine-link {
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 12px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  text-decoration: none;
-  color: var(--gold);
-  opacity: 0.75;
-  padding: 6px 2px;
-  transition: opacity 0.3s;
-}
-.spine-link:hover, .spine-link:focus-visible {
-  opacity: 1;
-}
-.spine-link:focus-visible {
-  outline: 1px solid var(--gold-dim);
-  outline-offset: 4px;
-}
-
-.spine-link--muted {
-  opacity: 0.3;
-  cursor: default;
-  font-style: italic;
-  letter-spacing: 0.06em;
-  text-transform: none;
-  color: inherit;
-}
-
-.spine-sep {
-  font-size: 10px;
-  opacity: 0.35;
-  color: var(--gold);
-  user-select: none;
-}
-
-@media (max-width: 899px) {
-  .spine { display: none; }
-}
-
-/* ============================
    CENTER
    ============================ */
 .center {
@@ -469,17 +392,13 @@ async function handleLogin() {
   position: relative;
   z-index: 2;
   width: 100%;
-  padding: 0 clamp(50px, 8vw, 100px);
+  padding: 0 24px;
   transition: opacity 1s ease, transform 1s ease;
 }
 .login-mode .center {
   opacity: 0;
   transform: translateY(-30px);
   pointer-events: none;
-}
-
-@media (max-width: 899px) {
-  .center { padding: 0 24px; }
 }
 
 .center-inner {
@@ -574,62 +493,127 @@ async function handleLogin() {
 .is-visible .motto-sub { opacity: 0.4; }
 
 /* ============================
-   MOBILE NAV
+   LANDING NAV — 3 items
    ============================ */
-.mobile-nav {
-  display: none;
+.landing-nav {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-top: clamp(28px, 5vh, 48px);
+  opacity: 0;
+  transition: opacity 1s ease 1s;
+}
+.is-visible .landing-nav { opacity: 1; }
+
+.nav-item {
+  display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
+  padding: 12px clamp(18px, 3.5vw, 36px);
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
   position: relative;
-  z-index: 2;
-  padding-bottom: clamp(6px, 1vh, 12px);
-  opacity: 0;
-  transition: opacity 0.8s ease 0.9s;
+  transition: color 0.3s;
 }
-.is-visible .mobile-nav { opacity: 1; }
-.login-mode .mobile-nav { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
-
-@media (max-width: 899px) {
-  .mobile-nav { display: flex; }
+.nav-item:hover { color: var(--gold); }
+.nav-item:focus-visible {
+  outline: 1px solid var(--gold-dim);
+  outline-offset: 4px;
 }
 
-.mnav-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
+.nav-numeral {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: clamp(0.7rem, 1.4vw, 0.9rem);
+  color: var(--gold);
+  opacity: 0.5;
+  letter-spacing: 0.05em;
+  transition: opacity 0.3s;
 }
+.nav-item:hover .nav-numeral { opacity: 1; }
 
-.mnav-row--secondary { opacity: 0.7; }
-
-.mnav-link {
+.nav-label {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: clamp(10px, 2.5vw, 12px);
-  letter-spacing: 0.1em;
+  font-size: clamp(11px, 1.4vw, 13px);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.65;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+}
+.nav-item:hover .nav-label { opacity: 1; }
+
+.nav-divider {
+  width: 1px;
+  height: 32px;
+  background: linear-gradient(180deg, transparent, var(--gold-dim), transparent);
+  flex-shrink: 0;
+}
+
+/* Poles dropdown */
+.nav-item--poles {
+  user-select: none;
+}
+
+.poles-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 24px;
+  background: var(--cream);
+  border: 1px solid var(--gold-faint);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s;
+  z-index: 30;
+}
+:global(.dark) .poles-dropdown {
+  background: #1F2C23;
+}
+.poles-dropdown.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(8px);
+}
+
+.pole-link {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 12px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   text-decoration: none;
   color: var(--gold);
   opacity: 0.7;
-  transition: opacity 0.3s;
-  padding: 4px 2px;
+  padding: 4px 0;
+  white-space: nowrap;
+  transition: opacity 0.2s;
 }
-.mnav-link:hover, .mnav-link:active { opacity: 1; }
+.pole-link:hover { opacity: 1; }
 
-.mnav-link--muted {
+.pole-link--muted {
   opacity: 0.3;
+  color: inherit;
   cursor: default;
   font-style: italic;
   text-transform: none;
-  letter-spacing: 0.04em;
-  color: inherit;
+  letter-spacing: 0.06em;
 }
 
-.mnav-sep {
-  font-size: 8px;
-  opacity: 0.25;
-  color: var(--gold);
+@media (max-width: 500px) {
+  .nav-item {
+    padding: 10px clamp(12px, 3vw, 20px);
+  }
+  .nav-label {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+  }
+  .nav-divider { height: 24px; }
 }
 
 /* ============================
