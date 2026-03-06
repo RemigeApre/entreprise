@@ -30,6 +30,11 @@ onMounted(() => {
   })
 })
 
+function goBack() {
+  revealed.value = false
+  setTimeout(() => { navigateTo('/') }, 1400)
+}
+
 const values = [
   { numeral: 'I', title: 'Exigence', text: 'Chaque detail compte. Nous ne livrons que ce dont nous sommes fiers, du premier pixel a la derniere ligne de code.' },
   { numeral: 'II', title: 'Accessibilite', text: 'Si un utilisateur ne s\u2019y retrouve pas, c\u2019est nous qui avons echoue. La simplicite est notre complexite.' },
@@ -71,10 +76,10 @@ const values = [
 
     <!-- Top bar -->
     <header class="top-bar">
-      <NuxtLink to="/" class="top-back">
+      <button class="top-back" @click="goBack">
         <UIcon name="i-lucide-arrow-left" class="size-4" />
         <span>Retour</span>
-      </NuxtLink>
+      </button>
     </header>
 
     <!-- CENTER — fades out -->
@@ -103,10 +108,10 @@ const values = [
 
     <!-- VALEURS PANEL — slides from TOP (logo goes down = content from top) -->
     <div class="valeurs-panel">
-      <NuxtLink to="/" class="panel-back">
+      <button class="panel-back" @click="goBack">
         <UIcon name="i-lucide-arrow-left" class="size-4" />
         <span>Retour</span>
-      </NuxtLink>
+      </button>
 
       <div class="panel-content">
         <h2 class="panel-title">Nos valeurs</h2>

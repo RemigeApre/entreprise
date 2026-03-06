@@ -30,6 +30,11 @@ onMounted(() => {
   })
 })
 
+function goBack() {
+  revealed.value = false
+  setTimeout(() => { navigateTo('/') }, 1400)
+}
+
 const branches = [
   { title: 'Edition', desc: 'Maison d\u2019edition dediee aux ouvrages qui marquent. Romans, essais et beaux livres, avec une exigence editoriale sans concession.', status: 'En refonte' },
   { title: 'Informatique', desc: 'Sites web, applications et solutions numeriques sur mesure. Conception, developpement et hebergement pour entreprises et particuliers.', href: 'https://legeai-informatique.fr' },
@@ -70,10 +75,10 @@ const branches = [
 
     <!-- Top bar -->
     <header class="top-bar">
-      <NuxtLink to="/" class="top-back">
+      <button class="top-back" @click="goBack">
         <UIcon name="i-lucide-arrow-left" class="size-4" />
         <span>Retour</span>
-      </NuxtLink>
+      </button>
     </header>
 
     <!-- CENTER — fades out -->
@@ -102,10 +107,10 @@ const branches = [
 
     <!-- POLES PANEL — slides from BOTTOM (logo goes up = content from bottom) -->
     <div class="poles-panel">
-      <NuxtLink to="/" class="panel-back">
+      <button class="panel-back" @click="goBack">
         <UIcon name="i-lucide-arrow-left" class="size-4" />
         <span>Retour</span>
-      </NuxtLink>
+      </button>
 
       <div class="panel-content">
         <h2 class="panel-title">Nos poles</h2>

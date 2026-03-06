@@ -58,9 +58,15 @@ const revealed = ref(false)
 onMounted(() => {
   requestAnimationFrame(() => {
     visible.value = true
-    revealed.value = true
+    // Small delay so browser renders initial state before transition kicks in
+    setTimeout(() => { revealed.value = true }, 50)
   })
 })
+
+function goBack() {
+  revealed.value = false
+  setTimeout(() => { navigateTo('/') }, 1400)
+}
 
 function openDetail(offre: OffreEmploi) {
   selectedOffre.value = offre
@@ -129,10 +135,10 @@ function formatDate(date: string) {
     <div class="offres-panel">
       <!-- login-back: position absolute, top ..., LEFT ... -->
       <!-- panel-back: position absolute, top ..., RIGHT ... -->
-      <NuxtLink to="/" class="panel-back">
+      <button class="panel-back" @click="goBack">
         <UIcon name="i-lucide-arrow-right" class="size-4" />
         <span>Retour</span>
-      </NuxtLink>
+      </button>
 
       <!-- Content — same structure as login-form-wrap -->
       <div class="panel-content">
