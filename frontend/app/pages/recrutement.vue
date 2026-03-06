@@ -2,7 +2,18 @@
 import { readItems } from '@directus/sdk'
 import type { OffreEmploi } from '~/utils/types'
 
-definePageMeta({ layout: 'public' })
+definePageMeta({ layout: 'landing' })
+
+useHead({
+  link: [
+    { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+    { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+    {
+      rel: 'stylesheet',
+      href: 'https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IM+Fell+DW+Pica:ital@0;1&family=UnifrakturCook:wght@700&display=swap'
+    }
+  ]
+})
 
 useSeoMeta({
   title: 'Recrutement \u2014 Le Geai',
@@ -68,32 +79,56 @@ function formatDate(date: string) {
 </script>
 
 <template>
-  <div
-    class="page-recrutement"
-    :class="{ 'is-visible': visible, 'detail-mode': detailMode }"
-  >
-    <!-- Watermark (own copy for animation control) -->
-    <div class="rec-watermark" aria-hidden="true">
-      <img src="/logo.svg" alt="" class="rec-watermark-img" />
+  <div class="landing" :class="{ 'is-visible': visible, 'detail-mode': detailMode }">
+
+    <!-- Noise filter -->
+    <svg class="sr-only" aria-hidden="true">
+      <filter id="noise">
+        <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+      </filter>
+    </svg>
+    <div class="noise-layer" aria-hidden="true">
+      <svg width="100%" height="100%"><rect width="100%" height="100%" filter="url(#noise)" /></svg>
     </div>
 
-    <!-- Main content — fades out in detail mode -->
-    <div class="rec-main">
-      <!-- Hero -->
-      <section class="hero">
-        <div class="hero-ornament">
-          <div class="hero-line" />
-          <span class="hero-glyph">G</span>
-          <div class="hero-line" />
-        </div>
-        <h1 class="hero-title">Recrutement</h1>
-        <p class="hero-sub">
-          Decouvrez les opportunites au sein du groupe Le Geai.
-        </p>
-      </section>
+    <!-- Vignette -->
+    <div class="vignette" aria-hidden="true" />
 
-      <!-- Content -->
-      <section class="section">
+    <!-- Watermark — slides RIGHT on detail -->
+    <div class="watermark" aria-hidden="true">
+      <img src="/logo.svg" alt="" class="watermark-img" />
+    </div>
+
+    <!-- Gold frame -->
+    <div class="frame" aria-hidden="true">
+      <div class="corner corner--tl" />
+      <div class="corner corner--tr" />
+      <div class="corner corner--bl" />
+      <div class="corner corner--br" />
+      <div class="frame-mark frame-mark--top" />
+      <div class="frame-mark frame-mark--bottom" />
+    </div>
+
+    <!-- ===== TOP BAR ===== -->
+    <header class="top-bar">
+      <NuxtLink to="/" class="top-back" aria-label="Retour">
+        <UIcon name="i-lucide-arrow-left" class="size-4" />
+        <span>Retour</span>
+      </NuxtLink>
+    </header>
+
+    <!-- ===== CENTER ===== -->
+    <div class="center">
+      <div class="center-inner">
+        <div class="ornament">
+          <div class="ornament-line" />
+          <span class="ornament-glyph">G</span>
+          <div class="ornament-line" />
+        </div>
+
+        <h1 class="title">Recrutement</h1>
+        <p class="subtitle">Decouvrez les opportunites au sein du groupe Le Geai.</p>
+
         <!-- Loading -->
         <div v-if="status === 'pending'" class="loading">
           <div class="spinner" />
@@ -111,7 +146,7 @@ function formatDate(date: string) {
             v-for="(offre, i) in offres"
             :key="offre.id"
             class="offre-card"
-            :style="{ transitionDelay: detailMode ? '0ms' : `${400 + i * 120}ms` }"
+            :style="{ transitionDelay: detailMode ? '0ms' : `${600 + i * 120}ms` }"
             @click="openDetail(offre)"
           >
             <div class="offre-header">
@@ -128,34 +163,32 @@ function formatDate(date: string) {
             <p class="offre-desc" v-html="offre.description" />
           </article>
         </div>
-      </section>
-
-      <!-- Footer -->
-      <footer class="page-footer">
-        <div class="footer-ornament">
-          <div class="footer-line" />
-        </div>
-        <p>&copy; {{ new Date().getFullYear() }} Groupe Le Geai</p>
-      </footer>
+      </div>
     </div>
 
-    <!-- Detail panel — slides in from LEFT (mirrored from login) -->
+    <!-- ===== FOOTER ===== -->
+    <div class="footer-bar">
+      <span class="footer-text">&copy; {{ new Date().getFullYear() }} Groupe Le Geai</span>
+    </div>
+
+    <!-- ===== DETAIL PANEL (slides from LEFT — mirror of login) ===== -->
     <div class="detail-panel">
       <button class="detail-back" @click="closeDetail">
-        <span class="detail-back-arrow">&rarr;</span>
+        <UIcon name="i-lucide-arrow-right" class="size-4" />
         <span>Retour</span>
       </button>
 
       <div v-if="selectedOffre" class="detail-wrap">
-        <div class="detail-header">
-          <h2 class="detail-title">{{ selectedOffre.titre }}</h2>
-          <span class="offre-badge">{{ selectedOffre.type_contrat }}</span>
+        <h2 class="detail-title">{{ selectedOffre.titre }}</h2>
+        <div class="detail-ornament">
+          <div class="detail-ornament-line" />
         </div>
 
-        <div class="detail-meta">
-          <span v-if="selectedOffre.localisation">{{ selectedOffre.localisation }}</span>
-          <span v-if="formatSalaire(selectedOffre)">{{ formatSalaire(selectedOffre) }}</span>
-          <span v-if="selectedOffre.date_publication">{{ formatDate(selectedOffre.date_publication) }}</span>
+        <div class="detail-info">
+          <span class="offre-badge">{{ selectedOffre.type_contrat }}</span>
+          <span v-if="selectedOffre.localisation" class="detail-meta-item">{{ selectedOffre.localisation }}</span>
+          <span v-if="formatSalaire(selectedOffre)" class="detail-meta-item">{{ formatSalaire(selectedOffre) }}</span>
+          <span v-if="selectedOffre.date_publication" class="detail-meta-item">{{ formatDate(selectedOffre.date_publication) }}</span>
         </div>
 
         <div class="detail-divider" />
@@ -187,126 +220,212 @@ function formatDate(date: string) {
 </template>
 
 <style scoped>
-.page-recrutement {
+/* ============================
+   BASE — same as index.vue
+   ============================ */
+.landing {
   --gold: #AF8F3C;
   --gold-dim: rgba(175, 143, 60, 0.28);
   --gold-faint: rgba(175, 143, 60, 0.10);
+  --terracotta: #B74D34;
+  --cream: #F7F0DE;
+  --ink: #2c2419;
   --transition: 1.4s cubic-bezier(0.4, 0, 0.2, 1);
-  font-family: 'Crimson Pro', Georgia, serif;
+
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   position: relative;
-  min-height: 100dvh;
+  font-family: 'Crimson Pro', Georgia, serif;
+  color: var(--ink);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+:global(.dark) .landing { color: var(--cream); }
+
+/* ============================
+   LAYERS — same as index.vue
+   ============================ */
+.noise-layer {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 1;
+  opacity: 0.02; mix-blend-mode: overlay;
+}
+:global(.dark) .noise-layer { opacity: 0.035; }
+
+.vignette {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 1;
+  background: radial-gradient(ellipse at center, transparent 30%, rgba(44, 36, 25, 0.07) 100%);
+}
+:global(.dark) .vignette {
+  background: radial-gradient(ellipse at center, transparent 20%, rgba(10, 16, 11, 0.4) 100%);
 }
 
 /* ============================
-   WATERMARK (mirrored — slides RIGHT)
+   WATERMARK — slides RIGHT (mirror of login left)
    ============================ */
-.rec-watermark {
+.watermark {
   position: fixed;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  width: clamp(400px, 60vw, 700px);
-  height: clamp(400px, 60vw, 700px);
-  pointer-events: none;
-  z-index: 0;
+  width: clamp(500px, 100vmin, 920px);
+  height: clamp(500px, 100vmin, 920px);
+  pointer-events: none; z-index: 0;
   transition: left var(--transition), width var(--transition), height var(--transition);
 }
-.rec-watermark-img {
+.watermark-img {
   width: 100%; height: 100%;
   object-fit: contain;
   opacity: 0.04;
   transition: opacity var(--transition), filter var(--transition);
 }
-:global(.dark) .rec-watermark-img {
+:global(.dark) .watermark-img {
   filter: brightness(0) invert(0.85);
   opacity: 0.055;
 }
 
-/* Detail mode — watermark slides RIGHT, full color */
-.detail-mode .rec-watermark {
+/* Detail mode — logo slides RIGHT, half visible, full color */
+.detail-mode .watermark {
   left: 100%;
   width: clamp(600px, 100vh, 1100px);
   height: clamp(600px, 100vh, 1100px);
 }
-.detail-mode .rec-watermark-img {
+.detail-mode .watermark-img {
   opacity: 1;
   filter: none;
 }
-:global(.dark) .detail-mode .rec-watermark-img {
+:global(.dark) .detail-mode .watermark-img {
   opacity: 1;
   filter: none;
 }
 
 /* ============================
-   MAIN CONTENT — fades out
+   FRAME — same as index.vue
    ============================ */
-.rec-main {
+.frame {
+  position: fixed;
+  inset: clamp(10px, 2.5vw, 22px);
+  border: 1px solid var(--gold-faint);
+  pointer-events: none; z-index: 0;
+  transition: opacity var(--transition);
+}
+.detail-mode .frame { opacity: 0.3; }
+
+.corner { position: absolute; width: 26px; height: 26px; }
+.corner--tl { top: -1px; left: -1px; border-top: 1.5px solid var(--gold-dim); border-left: 1.5px solid var(--gold-dim); }
+.corner--tr { top: -1px; right: -1px; border-top: 1.5px solid var(--gold-dim); border-right: 1.5px solid var(--gold-dim); }
+.corner--bl { bottom: -1px; left: -1px; border-bottom: 1.5px solid var(--gold-dim); border-left: 1.5px solid var(--gold-dim); }
+.corner--br { bottom: -1px; right: -1px; border-bottom: 1.5px solid var(--gold-dim); border-right: 1.5px solid var(--gold-dim); }
+.frame-mark { position: absolute; background: var(--gold-dim); }
+.frame-mark--top, .frame-mark--bottom { width: 1px; height: 10px; left: 50%; transform: translateX(-50%); }
+.frame-mark--top { top: -1px; }
+.frame-mark--bottom { bottom: -1px; }
+
+/* ============================
+   TOP BAR
+   ============================ */
+.top-bar {
+  position: fixed;
+  top: clamp(18px, 3.5vw, 32px);
+  left: clamp(18px, 3.5vw, 32px);
+  z-index: 10;
+  display: flex; gap: 10px; align-items: center;
+  opacity: 0;
+  transition: opacity 0.8s ease 0.2s;
+}
+.is-visible .top-bar { opacity: 1; }
+.detail-mode .top-bar { opacity: 0; pointer-events: none; }
+
+.top-back {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--gold);
+  opacity: 0.7;
+  transition: opacity 0.3s, gap 0.3s;
+}
+.top-back:hover { opacity: 1; gap: 12px; }
+
+/* ============================
+   CENTER
+   ============================ */
+.center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
   z-index: 2;
+  width: 100%;
+  padding: clamp(80px, 12vh, 120px) 24px 0;
   transition: opacity 1s ease, transform 1s ease;
 }
-.detail-mode .rec-main {
+.detail-mode .center {
   opacity: 0;
   transform: translateY(-30px);
   pointer-events: none;
 }
 
-/* Hero */
-.hero {
-  padding: clamp(60px, 12vh, 140px) clamp(24px, 5vw, 48px) clamp(40px, 6vh, 80px);
+.center-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
+  width: 100%;
+  max-width: 700px;
 }
 
-.hero-ornament {
-  display: flex; align-items: center; justify-content: center; gap: 14px;
-  margin-bottom: 24px;
+/* Ornament */
+.ornament {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: clamp(12px, 2vh, 20px);
   opacity: 0;
   transition: opacity 0.8s ease 0.3s;
 }
-.is-visible .hero-ornament { opacity: 0.5; }
+.is-visible .ornament { opacity: 0.5; }
 
-.hero-line {
-  width: clamp(32px, 8vw, 64px); height: 1px;
+.ornament-line {
+  width: clamp(32px, 8vw, 64px);
+  height: 1px;
   background: linear-gradient(90deg, transparent, var(--gold), transparent);
 }
-.hero-glyph {
+.ornament-glyph {
   font-family: 'UnifrakturCook', cursive;
   font-size: clamp(1.1rem, 2.5vw, 1.6rem);
   color: var(--gold);
   line-height: 1;
 }
 
-.hero-title {
+/* Title */
+.title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
   font-size: clamp(2.4rem, 6vw, 4rem);
   font-weight: 400;
   letter-spacing: 0.15em;
   opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 1s ease 0.1s, transform 1s ease 0.1s;
+  transform: translateY(14px);
+  transition: opacity 1s ease 0.15s, transform 1s ease 0.15s;
 }
-.is-visible .hero-title {
+.is-visible .title {
   opacity: 1;
   transform: translateY(0);
 }
 
-.hero-sub {
+.subtitle {
   font-family: 'IM Fell DW Pica', Georgia, serif;
   font-style: italic;
   font-size: clamp(0.9rem, 2vw, 1.1rem);
   line-height: 1.7;
+  margin-top: 12px;
   opacity: 0;
-  max-width: 480px;
-  margin: 16px auto 0;
   transition: opacity 0.8s ease 0.5s;
 }
-.is-visible .hero-sub { opacity: 0.5; }
-
-/* Section */
-.section {
-  padding: 0 clamp(24px, 5vw, 48px) clamp(48px, 8vh, 80px);
-  max-width: 800px;
-  margin: 0 auto;
-}
+.is-visible .subtitle { opacity: 0.5; }
 
 /* Loading */
 .loading {
@@ -323,10 +442,9 @@ function formatDate(date: string) {
 
 /* Empty */
 .empty {
-  text-align: center;
-  padding: 60px 0;
+  padding: 48px 0;
   opacity: 0;
-  transition: opacity 0.7s ease 0.3s;
+  transition: opacity 0.7s ease 0.5s;
 }
 .is-visible .empty { opacity: 1; }
 .empty-title {
@@ -339,52 +457,56 @@ function formatDate(date: string) {
   opacity: 0.4;
 }
 
-/* Offres */
+/* ============================
+   OFFRES LIST
+   ============================ */
 .offres-list {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
+  margin-top: clamp(28px, 5vh, 48px);
+  text-align: left;
 }
 
 .offre-card {
-  padding: 28px 24px;
+  padding: 24px;
   border: 1px solid var(--gold-faint);
   cursor: pointer;
   position: relative;
   opacity: 0;
-  transform: translateY(14px);
-  transition: opacity 0.7s ease, transform 0.7s ease, border-color 0.4s;
+  transform: translateY(12px);
+  transition: opacity 0.7s ease, transform 0.7s ease, border-color 0.3s;
 }
 .is-visible .offre-card {
   opacity: 1;
   transform: translateY(0);
 }
 
-/* Corner accents */
 .offre-card::before,
 .offre-card::after {
   content: '';
   position: absolute;
-  width: 16px; height: 16px;
-  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-              height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-              opacity 0.3s;
+  width: 0; height: 0;
   opacity: 0;
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+              height 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.4s ease;
 }
 .offre-card::before {
-  top: -1px; left: -1px;
+  top: 0; left: 0;
   border-top: 1px solid var(--gold);
   border-left: 1px solid var(--gold);
 }
 .offre-card::after {
-  bottom: -1px; right: -1px;
+  bottom: 0; right: 0;
   border-bottom: 1px solid var(--gold);
   border-right: 1px solid var(--gold);
 }
 .offre-card:hover::before,
 .offre-card:hover::after {
-  width: 22px; height: 22px;
-  opacity: 0.5;
+  width: 20px; height: 16px;
+  opacity: 0.6;
 }
 .offre-card:hover { border-color: var(--gold-dim); }
 
@@ -436,7 +558,26 @@ function formatDate(date: string) {
 }
 
 /* ============================
-   DETAIL PANEL (slides from LEFT — mirrored login)
+   FOOTER — same as index.vue
+   ============================ */
+.footer-bar {
+  position: relative;
+  z-index: 2;
+  display: flex; align-items: center; gap: 8px;
+  padding: clamp(12px, 2vh, 24px) 0;
+  opacity: 0;
+  transition: opacity 0.8s ease 1.2s;
+}
+.is-visible .footer-bar { opacity: 0.35; }
+.detail-mode .footer-bar { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
+
+.footer-text {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: clamp(8px, 1.2vw, 10px);
+}
+
+/* ============================
+   DETAIL PANEL — slides from LEFT (mirror of login-panel)
    ============================ */
 .detail-panel {
   position: fixed;
@@ -476,38 +617,39 @@ function formatDate(date: string) {
   transition: opacity 0.3s, gap 0.3s;
 }
 .detail-back:hover { opacity: 1; gap: 12px; }
-.detail-back-arrow {
-  font-size: 16px;
-  transition: transform 0.3s;
-}
-.detail-back:hover .detail-back-arrow { transform: translateX(2px); }
 
 .detail-wrap {
   width: 100%;
-  max-width: 480px;
+  max-width: 420px;
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-.detail-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-}
-
 .detail-title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
   font-weight: 400;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.15em;
+  text-align: center;
 }
 
-.detail-meta {
+.detail-ornament {
+  display: flex; justify-content: center;
+}
+.detail-ornament-line {
+  width: 50px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.detail-info {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.detail-meta-item {
   font-size: 0.85rem;
   opacity: 0.45;
 }
@@ -535,32 +677,11 @@ function formatDate(date: string) {
 .detail-cta {
   font-size: 0.9rem;
   opacity: 0.5;
+  text-align: center;
 }
 .detail-cta strong {
   opacity: 1;
   color: var(--gold);
-}
-
-/* Footer */
-.page-footer {
-  text-align: center;
-  padding: clamp(32px, 6vh, 56px) 24px 24px;
-}
-.detail-mode .page-footer { opacity: 0; }
-
-.footer-ornament {
-  display: flex; justify-content: center;
-  margin-bottom: 16px;
-}
-.footer-line {
-  width: 40px; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
-}
-
-.page-footer p {
-  font-size: 11px;
-  opacity: 0.2;
-  letter-spacing: 0.08em;
 }
 
 /* Mobile */
@@ -569,7 +690,7 @@ function formatDate(date: string) {
     width: 100%;
     padding: clamp(16px, 3vw, 32px);
   }
-  .detail-mode .rec-watermark {
+  .detail-mode .watermark {
     display: none;
   }
 }

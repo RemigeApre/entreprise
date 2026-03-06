@@ -46,8 +46,8 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
     <!-- Vignette -->
     <div class="pub-vignette" aria-hidden="true" />
 
-    <!-- Watermark (hidden on recrutement — has its own animated one) -->
-    <div v-if="route.path !== '/recrutement'" class="pub-watermark" aria-hidden="true">
+    <!-- Watermark -->
+    <div class="pub-watermark" aria-hidden="true">
       <img src="/logo.svg" alt="" class="pub-watermark-img" />
     </div>
 
