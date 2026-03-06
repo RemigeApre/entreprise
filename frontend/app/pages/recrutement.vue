@@ -49,19 +49,22 @@ const { data: offres, status } = useAsyncData('offres-publiques', async () => {
 })
 
 const selectedOffre = ref<OffreEmploi | null>(null)
-const detailMode = ref(false)
+const isSlideoverOpen = ref(false)
 
 const visible = ref(false)
-onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
+const revealed = ref(false)
+
+onMounted(() => {
+  requestAnimationFrame(() => {
+    visible.value = true
+    // Auto-trigger the transition after hero shows briefly
+    setTimeout(() => { revealed.value = true }, 1200)
+  })
+})
 
 function openDetail(offre: OffreEmploi) {
   selectedOffre.value = offre
-  detailMode.value = true
-}
-
-function closeDetail() {
-  detailMode.value = false
-  setTimeout(() => { selectedOffre.value = null }, 1400)
+  isSlideoverOpen.value = true
 }
 
 function formatSalaire(offre: OffreEmploi) {
@@ -79,7 +82,7 @@ function formatDate(date: string) {
 </script>
 
 <template>
-  <div class="landing" :class="{ 'is-visible': visible, 'detail-mode': detailMode }">
+  <div class="landing" :class="{ 'is-visible': visible, 'revealed': revealed }">
 
     <!-- Noise filter -->
     <svg class="sr-only" aria-hidden="true">
@@ -94,7 +97,7 @@ function formatDate(date: string) {
     <!-- Vignette -->
     <div class="vignette" aria-hidden="true" />
 
-    <!-- Watermark — slides RIGHT on detail -->
+    <!-- Watermark — slides RIGHT on reveal -->
     <div class="watermark" aria-hidden="true">
       <img src="/logo.svg" alt="" class="watermark-img" />
     </div>
@@ -109,15 +112,7 @@ function formatDate(date: string) {
       <div class="frame-mark frame-mark--bottom" />
     </div>
 
-    <!-- ===== TOP BAR ===== -->
-    <header class="top-bar">
-      <NuxtLink to="/" class="top-back" aria-label="Retour">
-        <UIcon name="i-lucide-arrow-left" class="size-4" />
-        <span>Retour</span>
-      </NuxtLink>
-    </header>
-
-    <!-- ===== CENTER ===== -->
+    <!-- ===== CENTER (hero — fades out) ===== -->
     <div class="center">
       <div class="center-inner">
         <div class="ornament">
@@ -125,9 +120,23 @@ function formatDate(date: string) {
           <span class="ornament-glyph">G</span>
           <div class="ornament-line" />
         </div>
-
         <h1 class="title">Recrutement</h1>
-        <p class="subtitle">Decouvrez les opportunites au sein du groupe Le Geai.</p>
+        <p class="motto">Decouvrez les opportunites au sein du groupe Le Geai.</p>
+      </div>
+    </div>
+
+    <!-- ===== OFFRES PANEL (slides from LEFT) ===== -->
+    <div class="offres-panel">
+      <NuxtLink to="/" class="panel-back">
+        <UIcon name="i-lucide-arrow-left" class="size-4" />
+        <span>Retour</span>
+      </NuxtLink>
+
+      <div class="panel-wrap">
+        <h2 class="panel-title">Recrutement</h2>
+        <div class="panel-ornament">
+          <div class="panel-ornament-line" />
+        </div>
 
         <!-- Loading -->
         <div v-if="status === 'pending'" class="loading">
@@ -146,7 +155,7 @@ function formatDate(date: string) {
             v-for="(offre, i) in offres"
             :key="offre.id"
             class="offre-card"
-            :style="{ transitionDelay: detailMode ? '0ms' : `${600 + i * 120}ms` }"
+            :style="{ transitionDelay: `${1800 + i * 120}ms` }"
             @click="openDetail(offre)"
           >
             <div class="offre-header">
@@ -166,68 +175,61 @@ function formatDate(date: string) {
       </div>
     </div>
 
-    <!-- ===== FOOTER ===== -->
+    <!-- Detail slideover -->
+    <USlideover v-model:open="isSlideoverOpen">
+      <template #content>
+        <div v-if="selectedOffre" class="slideover-content">
+          <div class="slideover-header">
+            <h2 class="slideover-title">{{ selectedOffre.titre }}</h2>
+            <span class="offre-badge">{{ selectedOffre.type_contrat }}</span>
+          </div>
+          <div class="slideover-meta">
+            <span v-if="selectedOffre.localisation">{{ selectedOffre.localisation }}</span>
+            <span v-if="formatSalaire(selectedOffre)">{{ formatSalaire(selectedOffre) }}</span>
+          </div>
+
+          <div class="slideover-divider" />
+
+          <div>
+            <h3 class="slideover-section-title">Description</h3>
+            <div class="slideover-prose" v-html="selectedOffre.description" />
+          </div>
+
+          <div v-if="selectedOffre.competences_requises">
+            <h3 class="slideover-section-title">Competences requises</h3>
+            <div class="slideover-prose" v-html="selectedOffre.competences_requises" />
+          </div>
+
+          <div v-if="selectedOffre.avantages">
+            <h3 class="slideover-section-title">Avantages</h3>
+            <div class="slideover-prose" v-html="selectedOffre.avantages" />
+          </div>
+
+          <div class="slideover-divider" />
+
+          <p class="slideover-cta">
+            Pour postuler, envoyez votre CV a
+            <strong>recrutement@legeai-editions.com</strong>
+          </p>
+        </div>
+      </template>
+    </USlideover>
+
+    <!-- Footer -->
     <div class="footer-bar">
       <span class="footer-text">&copy; {{ new Date().getFullYear() }} Groupe Le Geai</span>
-    </div>
-
-    <!-- ===== DETAIL PANEL (slides from LEFT — mirror of login) ===== -->
-    <div class="detail-panel">
-      <button class="detail-back" @click="closeDetail">
-        <UIcon name="i-lucide-arrow-right" class="size-4" />
-        <span>Retour</span>
-      </button>
-
-      <div v-if="selectedOffre" class="detail-wrap">
-        <h2 class="detail-title">{{ selectedOffre.titre }}</h2>
-        <div class="detail-ornament">
-          <div class="detail-ornament-line" />
-        </div>
-
-        <div class="detail-info">
-          <span class="offre-badge">{{ selectedOffre.type_contrat }}</span>
-          <span v-if="selectedOffre.localisation" class="detail-meta-item">{{ selectedOffre.localisation }}</span>
-          <span v-if="formatSalaire(selectedOffre)" class="detail-meta-item">{{ formatSalaire(selectedOffre) }}</span>
-          <span v-if="selectedOffre.date_publication" class="detail-meta-item">{{ formatDate(selectedOffre.date_publication) }}</span>
-        </div>
-
-        <div class="detail-divider" />
-
-        <div>
-          <h3 class="detail-section-title">Description</h3>
-          <div class="detail-prose" v-html="selectedOffre.description" />
-        </div>
-
-        <div v-if="selectedOffre.competences_requises">
-          <h3 class="detail-section-title">Competences requises</h3>
-          <div class="detail-prose" v-html="selectedOffre.competences_requises" />
-        </div>
-
-        <div v-if="selectedOffre.avantages">
-          <h3 class="detail-section-title">Avantages</h3>
-          <div class="detail-prose" v-html="selectedOffre.avantages" />
-        </div>
-
-        <div class="detail-divider" />
-
-        <p class="detail-cta">
-          Pour postuler, envoyez votre CV a
-          <strong>recrutement@legeai-editions.com</strong>
-        </p>
-      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
 /* ============================
-   BASE — same as index.vue
+   BASE — identical to index.vue
    ============================ */
 .landing {
   --gold: #AF8F3C;
   --gold-dim: rgba(175, 143, 60, 0.28);
   --gold-faint: rgba(175, 143, 60, 0.10);
-  --terracotta: #B74D34;
   --cream: #F7F0DE;
   --ink: #2c2419;
   --transition: 1.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -239,13 +241,12 @@ function formatDate(date: string) {
   position: relative;
   font-family: 'Crimson Pro', Georgia, serif;
   color: var(--ink);
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 :global(.dark) .landing { color: var(--cream); }
 
 /* ============================
-   LAYERS — same as index.vue
+   LAYERS — identical to index.vue
    ============================ */
 .noise-layer {
   position: fixed; inset: 0;
@@ -264,7 +265,7 @@ function formatDate(date: string) {
 }
 
 /* ============================
-   WATERMARK — slides RIGHT (mirror of login left)
+   WATERMARK — identical to index.vue but slides RIGHT
    ============================ */
 .watermark {
   position: fixed;
@@ -286,23 +287,23 @@ function formatDate(date: string) {
   opacity: 0.055;
 }
 
-/* Detail mode — logo slides RIGHT, half visible, full color */
-.detail-mode .watermark {
+/* Revealed — logo slides RIGHT (mirror of login left: 0) */
+.revealed .watermark {
   left: 100%;
   width: clamp(600px, 100vh, 1100px);
   height: clamp(600px, 100vh, 1100px);
 }
-.detail-mode .watermark-img {
+.revealed .watermark-img {
   opacity: 1;
   filter: none;
 }
-:global(.dark) .detail-mode .watermark-img {
+:global(.dark) .revealed .watermark-img {
   opacity: 1;
   filter: none;
 }
 
 /* ============================
-   FRAME — same as index.vue
+   FRAME — identical to index.vue
    ============================ */
 .frame {
   position: fixed;
@@ -311,7 +312,7 @@ function formatDate(date: string) {
   pointer-events: none; z-index: 0;
   transition: opacity var(--transition);
 }
-.detail-mode .frame { opacity: 0.3; }
+.revealed .frame { opacity: 0.3; }
 
 .corner { position: absolute; width: 26px; height: 26px; }
 .corner--tl { top: -1px; left: -1px; border-top: 1.5px solid var(--gold-dim); border-left: 1.5px solid var(--gold-dim); }
@@ -324,35 +325,7 @@ function formatDate(date: string) {
 .frame-mark--bottom { bottom: -1px; }
 
 /* ============================
-   TOP BAR
-   ============================ */
-.top-bar {
-  position: fixed;
-  top: clamp(18px, 3.5vw, 32px);
-  left: clamp(18px, 3.5vw, 32px);
-  z-index: 10;
-  display: flex; gap: 10px; align-items: center;
-  opacity: 0;
-  transition: opacity 0.8s ease 0.2s;
-}
-.is-visible .top-bar { opacity: 1; }
-.detail-mode .top-bar { opacity: 0; pointer-events: none; }
-
-.top-back {
-  display: flex; align-items: center; gap: 8px;
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 13px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  text-decoration: none;
-  color: var(--gold);
-  opacity: 0.7;
-  transition: opacity 0.3s, gap 0.3s;
-}
-.top-back:hover { opacity: 1; gap: 12px; }
-
-/* ============================
-   CENTER
+   CENTER (hero — fades out like login-mode .center)
    ============================ */
 .center {
   flex: 1;
@@ -362,10 +335,10 @@ function formatDate(date: string) {
   position: relative;
   z-index: 2;
   width: 100%;
-  padding: clamp(80px, 12vh, 120px) 24px 0;
+  padding: 0 24px;
   transition: opacity 1s ease, transform 1s ease;
 }
-.detail-mode .center {
+.revealed .center {
   opacity: 0;
   transform: translateY(-30px);
   pointer-events: none;
@@ -376,14 +349,11 @@ function formatDate(date: string) {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  width: 100%;
-  max-width: 700px;
 }
 
-/* Ornament */
 .ornament {
   display: flex; align-items: center; gap: 14px;
-  margin-bottom: clamp(12px, 2vh, 20px);
+  margin-bottom: clamp(8px, 1.5vh, 16px);
   opacity: 0;
   transition: opacity 0.8s ease 0.3s;
 }
@@ -401,7 +371,6 @@ function formatDate(date: string) {
   line-height: 1;
 }
 
-/* Title */
 .title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
   font-size: clamp(2.4rem, 6vw, 4rem);
@@ -416,7 +385,7 @@ function formatDate(date: string) {
   transform: translateY(0);
 }
 
-.subtitle {
+.motto {
   font-family: 'IM Fell DW Pica', Georgia, serif;
   font-style: italic;
   font-size: clamp(0.9rem, 2vw, 1.1rem);
@@ -425,11 +394,78 @@ function formatDate(date: string) {
   opacity: 0;
   transition: opacity 0.8s ease 0.5s;
 }
-.is-visible .subtitle { opacity: 0.5; }
+.is-visible .motto { opacity: 0.5; }
+
+/* ============================
+   OFFRES PANEL — slides from LEFT (mirror of login-panel from right)
+   ============================ */
+.offres-panel {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: 50%;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: clamp(24px, 4vw, 48px);
+  padding-top: clamp(60px, 8vh, 80px);
+  overflow-y: auto;
+  opacity: 0;
+  transform: translateX(-60px);
+  pointer-events: none;
+  transition: opacity 1s ease 0.5s, transform 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.5s;
+}
+.revealed .offres-panel {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.panel-back {
+  position: fixed;
+  top: clamp(20px, 3.5vw, 36px);
+  left: clamp(20px, 3vw, 40px);
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--gold);
+  opacity: 0;
+  z-index: 30;
+  transition: opacity 0.3s, gap 0.3s;
+}
+.revealed .panel-back { opacity: 0.7; }
+.panel-back:hover { opacity: 1; gap: 12px; }
+
+.panel-wrap {
+  width: 100%;
+  max-width: 480px;
+}
+
+.panel-title {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.panel-ornament {
+  display: flex; justify-content: center;
+  margin-bottom: clamp(24px, 4vh, 40px);
+}
+.panel-ornament-line {
+  width: 50px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
 
 /* Loading */
 .loading {
-  display: flex; justify-content: center; padding: 60px 0;
+  display: flex; justify-content: center; padding: 40px 0;
 }
 .spinner {
   width: 24px; height: 24px;
@@ -442,11 +478,9 @@ function formatDate(date: string) {
 
 /* Empty */
 .empty {
-  padding: 48px 0;
-  opacity: 0;
-  transition: opacity 0.7s ease 0.5s;
+  text-align: center;
+  padding: 40px 0;
 }
-.is-visible .empty { opacity: 1; }
 .empty-title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
   font-size: 1.1rem;
@@ -457,28 +491,23 @@ function formatDate(date: string) {
   opacity: 0.4;
 }
 
-/* ============================
-   OFFRES LIST
-   ============================ */
+/* Offres list */
 .offres-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  width: 100%;
-  margin-top: clamp(28px, 5vh, 48px);
-  text-align: left;
+  gap: 14px;
 }
 
 .offre-card {
-  padding: 24px;
+  padding: 20px;
   border: 1px solid var(--gold-faint);
   cursor: pointer;
   position: relative;
   opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 0.7s ease, transform 0.7s ease, border-color 0.3s;
+  transform: translateY(10px);
+  transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s;
 }
-.is-visible .offre-card {
+.revealed .offre-card {
   opacity: 1;
   transform: translateY(0);
 }
@@ -515,12 +544,12 @@ function formatDate(date: string) {
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .offre-title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 400;
   letter-spacing: 0.04em;
   transition: color 0.3s;
@@ -530,17 +559,17 @@ function formatDate(date: string) {
 .offre-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 6px;
-  font-size: 0.8rem;
+  gap: 12px;
+  margin-top: 4px;
+  font-size: 0.78rem;
   opacity: 0.4;
 }
 
 .offre-badge {
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  padding: 4px 10px;
+  padding: 3px 8px;
   border: 1px solid var(--gold-faint);
   color: var(--gold);
   white-space: nowrap;
@@ -548,7 +577,7 @@ function formatDate(date: string) {
 }
 
 .offre-desc {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   line-height: 1.6;
   opacity: 0.4;
   display: -webkit-box;
@@ -558,139 +587,92 @@ function formatDate(date: string) {
 }
 
 /* ============================
-   FOOTER — same as index.vue
+   SLIDEOVER (detail view)
+   ============================ */
+.slideover-content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  font-family: 'Crimson Pro', Georgia, serif;
+}
+
+.slideover-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.slideover-title {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1.3rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+}
+
+.slideover-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.85rem;
+  opacity: 0.45;
+}
+
+.slideover-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-faint), transparent);
+}
+
+.slideover-section-title {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+  color: var(--gold);
+}
+
+.slideover-prose {
+  font-size: 0.88rem;
+  line-height: 1.7;
+  opacity: 0.6;
+}
+
+.slideover-cta {
+  font-size: 0.88rem;
+  opacity: 0.5;
+}
+.slideover-cta strong {
+  opacity: 1;
+  color: var(--gold);
+}
+
+/* ============================
+   FOOTER — identical to index.vue
    ============================ */
 .footer-bar {
   position: relative;
   z-index: 2;
   display: flex; align-items: center; gap: 8px;
-  padding: clamp(12px, 2vh, 24px) 0;
+  padding: clamp(6px, 1.2vh, 14px) 0;
   opacity: 0;
-  transition: opacity 0.8s ease 1.2s;
+  transition: opacity 0.8s ease 0.8s;
 }
 .is-visible .footer-bar { opacity: 0.35; }
-.detail-mode .footer-bar { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
+.revealed .footer-bar { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
 
 .footer-text {
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: clamp(8px, 1.2vw, 10px);
 }
 
-/* ============================
-   DETAIL PANEL — slides from LEFT (mirror of login-panel)
-   ============================ */
-.detail-panel {
-  position: fixed;
-  top: 0; left: 0; bottom: 0;
-  width: 50%;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: clamp(24px, 4vw, 48px);
-  overflow-y: auto;
-  opacity: 0;
-  transform: translateX(-60px);
-  pointer-events: none;
-  transition: opacity 1s ease 0.5s, transform 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.5s;
-}
-.detail-mode .detail-panel {
-  opacity: 1;
-  transform: translateX(0);
-  pointer-events: auto;
-}
-
-.detail-back {
-  position: absolute;
-  top: clamp(20px, 3.5vw, 36px);
-  right: clamp(20px, 3vw, 40px);
-  display: flex; align-items: center; gap: 8px;
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 13px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--gold);
-  opacity: 0.7;
-  background: none; border: none;
-  cursor: pointer;
-  transition: opacity 0.3s, gap 0.3s;
-}
-.detail-back:hover { opacity: 1; gap: 12px; }
-
-.detail-wrap {
-  width: 100%;
-  max-width: 420px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.detail-title {
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
-  font-weight: 400;
-  letter-spacing: 0.15em;
-  text-align: center;
-}
-
-.detail-ornament {
-  display: flex; justify-content: center;
-}
-.detail-ornament-line {
-  width: 50px; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
-}
-
-.detail-info {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-.detail-meta-item {
-  font-size: 0.85rem;
-  opacity: 0.45;
-}
-
-.detail-divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold-faint), transparent);
-}
-
-.detail-section-title {
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 1.05rem;
-  font-weight: 400;
-  letter-spacing: 0.04em;
-  margin-bottom: 10px;
-  color: var(--gold);
-}
-
-.detail-prose {
-  font-size: 0.9rem;
-  line-height: 1.75;
-  opacity: 0.6;
-}
-
-.detail-cta {
-  font-size: 0.9rem;
-  opacity: 0.5;
-  text-align: center;
-}
-.detail-cta strong {
-  opacity: 1;
-  color: var(--gold);
-}
-
 /* Mobile */
 @media (max-width: 768px) {
-  .detail-panel {
+  .offres-panel {
     width: 100%;
-    padding: clamp(16px, 3vw, 32px);
   }
-  .detail-mode .watermark {
+  .revealed .watermark {
     display: none;
   }
 }
