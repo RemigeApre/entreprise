@@ -261,7 +261,7 @@ async function handleLogin() {
   --terracotta: #B74D34;
   --cream: #F7F0DE;
   --ink: #2c2419;
-  --transition: 1.6s cubic-bezier(0.25, 0.1, 0.25, 1);
+  --transition: 1.4s cubic-bezier(0.4, 0, 0.2, 1);
 
   height: 100%;
   display: flex;
@@ -300,18 +300,16 @@ async function handleLogin() {
 .watermark {
   position: fixed;
   top: 50%; left: 50%;
-  transform: translate(-50%, -50%) scale(1);
+  transform: translate(-50%, -50%);
   width: clamp(500px, 100vmin, 920px);
   height: clamp(500px, 100vmin, 920px);
   pointer-events: none; z-index: 0;
-  will-change: transform, opacity;
-  transition: transform var(--transition);
+  transition: left var(--transition), width var(--transition), height var(--transition);
 }
 .watermark-img {
   width: 100%; height: 100%;
   object-fit: contain;
   opacity: 0.04;
-  will-change: opacity, filter;
   transition: opacity var(--transition), filter var(--transition);
 }
 :global(.dark) .watermark-img {
@@ -319,9 +317,11 @@ async function handleLogin() {
   opacity: 0.055;
 }
 
-/* Login mode — logo slides left via transform only (GPU), full color */
+/* Login mode — logo slides left, half visible, full color */
 .login-mode .watermark {
-  transform: translate(-50%, -50%) translateX(-50%) scale(1.2);
+  left: 0;
+  width: clamp(600px, 100vh, 1100px);
+  height: clamp(600px, 100vh, 1100px);
 }
 .login-mode .watermark-img {
   opacity: 1;
@@ -340,9 +340,9 @@ async function handleLogin() {
   inset: clamp(10px, 2.5vw, 22px);
   border: 1px solid var(--gold-faint);
   pointer-events: none; z-index: 0;
-  transition: opacity 1.2s ease;
+  transition: opacity var(--transition);
 }
-.login-mode .frame { opacity: 0; }
+.login-mode .frame { opacity: 0.3; }
 
 .corner { position: absolute; width: 26px; height: 26px; }
 .corner--tl { top: -1px; left: -1px; border-top: 1.5px solid var(--gold-dim); border-left: 1.5px solid var(--gold-dim); }
@@ -405,7 +405,7 @@ async function handleLogin() {
   transition: opacity 1s ease 0.6s;
 }
 .is-visible .spine { opacity: 1; }
-.login-mode .spine { opacity: 0; pointer-events: none; transition: opacity 1s ease; }
+.login-mode .spine { opacity: 0; pointer-events: none; transition: opacity 0.8s ease; }
 
 .spine--left { left: clamp(10px, 2.2vw, 20px); }
 .spine--right { right: clamp(10px, 2.2vw, 20px); }
@@ -470,12 +470,11 @@ async function handleLogin() {
   z-index: 2;
   width: 100%;
   padding: 0 clamp(50px, 8vw, 100px);
-  will-change: opacity, transform;
-  transition: opacity 1.2s ease, transform 1.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+  transition: opacity 1s ease, transform 1s ease;
 }
 .login-mode .center {
   opacity: 0;
-  transform: translateY(-20px);
+  transform: translateY(-30px);
   pointer-events: none;
 }
 
@@ -589,7 +588,7 @@ async function handleLogin() {
   transition: opacity 0.8s ease 0.9s;
 }
 .is-visible .mobile-nav { opacity: 1; }
-.login-mode .mobile-nav { opacity: 0; pointer-events: none; transition: opacity 1s ease; }
+.login-mode .mobile-nav { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
 
 @media (max-width: 899px) {
   .mobile-nav { display: flex; }
@@ -646,7 +645,7 @@ async function handleLogin() {
 }
 .is-visible .footer-bar { opacity: 0.35; }
 .footer-bar:hover { opacity: 0.6; }
-.login-mode .footer-bar { opacity: 0; pointer-events: none; transition: opacity 1s ease; }
+.login-mode .footer-bar { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
 
 .footer-text {
   font-family: 'Crimson Pro', Georgia, serif;
@@ -678,10 +677,9 @@ async function handleLogin() {
   justify-content: center;
   padding: clamp(24px, 4vw, 48px);
   opacity: 0;
-  transform: translateX(40px);
+  transform: translateX(60px);
   pointer-events: none;
-  will-change: opacity, transform;
-  transition: opacity 1.4s ease 0.4s, transform 1.6s cubic-bezier(0.25, 0.1, 0.25, 1) 0.4s;
+  transition: opacity 1s ease 0.5s, transform 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.5s;
 }
 .login-mode .login-panel {
   opacity: 1;
@@ -834,9 +832,6 @@ async function handleLogin() {
     left: 50%;
     width: clamp(350px, 90vmin, 600px);
     height: clamp(350px, 90vmin, 600px);
-  }
-  .login-mode .watermark-img {
-    opacity: 0.08;
   }
 }
 
