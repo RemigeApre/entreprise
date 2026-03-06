@@ -58,7 +58,7 @@ const revealed = ref(false)
 onMounted(() => {
   requestAnimationFrame(() => {
     visible.value = true
-    setTimeout(() => { revealed.value = true }, 1200)
+    revealed.value = true
   })
 })
 
@@ -121,29 +121,7 @@ function formatDate(date: string) {
       </NuxtLink>
     </header>
 
-    <!-- CENTER — identical structure to index.vue .center -->
-    <div class="center">
-      <div class="center-inner">
-        <h1 class="title">
-          <span class="title-main">Recrute</span>
-          <span class="title-main">ment</span>
-        </h1>
-
-        <div class="ornament">
-          <div class="ornament-line" />
-          <span class="ornament-glyph">G</span>
-          <div class="ornament-line" />
-        </div>
-
-        <p class="motto">Rejoignez le groupe Le Geai.</p>
-        <p class="motto-sub">Decouvrez les opportunites au sein de nos poles.</p>
-      </div>
-    </div>
-
-    <!-- FOOTER — identical to index.vue -->
-    <div class="footer-bar">
-      <span class="footer-text">&copy; {{ new Date().getFullYear() }} Groupe Le Geai</span>
-    </div>
+    <!-- No center text for recrutement — direct reveal -->
 
     <!-- OFFRES PANEL — mirror of .login-panel -->
     <!-- login-panel: position fixed, top 0, RIGHT 0, bottom 0, width 50% -->
@@ -180,7 +158,7 @@ function formatDate(date: string) {
             v-for="(offre, i) in offres"
             :key="offre.id"
             class="offre-card"
-            :style="{ transitionDelay: `${1800 + i * 100}ms` }"
+            :style="{ transitionDelay: `${600 + i * 100}ms` }"
             @click="openDetail(offre)"
           >
             <div class="offre-top">
@@ -375,125 +353,6 @@ function formatDate(date: string) {
 }
 .top-back:hover { opacity: 1; gap: 12px; }
 
-/* ============================
-   CENTER — COPY-PASTE from index.vue
-   ============================ */
-.center {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  padding: 0 24px;
-  transition: opacity 1s ease, transform 1s ease;
-}
-/* index.vue: .login-mode .center { opacity: 0; transform: translateY(-30px); pointer-events: none; } */
-.revealed .center {
-  opacity: 0;
-  transform: translateY(-30px);
-  pointer-events: none;
-}
-
-.center-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-/* Title — same style as index.vue */
-.title {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  line-height: 1;
-  opacity: 0;
-  transform: translateY(14px);
-  transition: opacity 1s ease 0.25s, transform 1s ease 0.25s;
-}
-.is-visible .title {
-  opacity: 1;
-  transform: translateY(0);
-}
-.title-main {
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: clamp(3.2rem, 10vw, 7rem);
-  font-weight: 400;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  display: block;
-  line-height: 0.85;
-}
-
-/* Ornament — same as index.vue */
-.ornament {
-  display: flex; align-items: center; gap: 14px;
-  margin-top: clamp(8px, 1.5vh, 16px);
-  opacity: 0;
-  transition: opacity 0.8s ease 0.5s;
-}
-.is-visible .ornament { opacity: 0.5; }
-.ornament-line {
-  width: clamp(32px, 8vw, 64px);
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
-}
-.ornament-glyph {
-  font-family: 'UnifrakturCook', cursive;
-  font-size: clamp(1.1rem, 2.5vw, 1.6rem);
-  color: var(--gold);
-  line-height: 1;
-}
-
-/* Motto — same as index.vue */
-.motto {
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-style: italic;
-  font-size: clamp(1.1rem, 3.2vw, 1.6rem);
-  color: var(--gold);
-  margin-top: clamp(10px, 2vh, 22px);
-  letter-spacing: 0.05em;
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 1s ease 0.65s, transform 1s ease 0.65s;
-}
-.is-visible .motto {
-  opacity: 1;
-  transform: translateY(0);
-}
-.motto-sub {
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: clamp(0.62rem, 1.3vw, 0.78rem);
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  margin-top: 6px;
-  opacity: 0;
-  transition: opacity 0.8s ease 0.85s;
-}
-.is-visible .motto-sub { opacity: 0.4; }
-
-/* ============================
-   FOOTER — COPY-PASTE from index.vue
-   ============================ */
-.footer-bar {
-  position: relative;
-  z-index: 2;
-  display: flex; align-items: center; gap: 8px;
-  padding: clamp(6px, 1.2vh, 14px) 0;
-  opacity: 0;
-  transition: opacity 0.8s ease 1.2s;
-}
-.is-visible .footer-bar { opacity: 0.35; }
-.footer-bar:hover { opacity: 0.6; }
-/* index.vue: .login-mode .footer-bar { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; } */
-.revealed .footer-bar { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
-
-.footer-text {
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: clamp(8px, 1.2vw, 10px);
-}
 
 /* ============================
    OFFRES PANEL
