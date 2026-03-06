@@ -213,8 +213,12 @@ function formatDate(date: string) {
 .rec-watermark-img {
   width: 100%; height: 100%;
   object-fit: contain;
-  opacity: 0;
+  opacity: 0.04;
   transition: opacity var(--transition), filter var(--transition);
+}
+:global(.dark) .rec-watermark-img {
+  filter: brightness(0) invert(0.85);
+  opacity: 0.055;
 }
 
 /* Detail mode — watermark slides RIGHT, full color */
