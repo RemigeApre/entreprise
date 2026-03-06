@@ -5,6 +5,7 @@ import type { OffreEmploi } from '~/utils/types'
 definePageMeta({ layout: 'landing' })
 
 useHead({
+  htmlAttrs: { lang: 'fr' },
   link: [
     { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
     { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
@@ -57,7 +58,6 @@ const revealed = ref(false)
 onMounted(() => {
   requestAnimationFrame(() => {
     visible.value = true
-    // Auto-trigger the transition after hero shows briefly
     setTimeout(() => { revealed.value = true }, 1200)
   })
 })
@@ -82,9 +82,10 @@ function formatDate(date: string) {
 </script>
 
 <template>
+  <!-- EXACT SAME structure as index.vue, class "revealed" instead of "login-mode" -->
   <div class="landing" :class="{ 'is-visible': visible, 'revealed': revealed }">
 
-    <!-- Noise filter -->
+    <!-- Noise filter — identical to index.vue -->
     <svg class="sr-only" aria-hidden="true">
       <filter id="noise">
         <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
@@ -94,15 +95,15 @@ function formatDate(date: string) {
       <svg width="100%" height="100%"><rect width="100%" height="100%" filter="url(#noise)" /></svg>
     </div>
 
-    <!-- Vignette -->
+    <!-- Vignette — identical to index.vue -->
     <div class="vignette" aria-hidden="true" />
 
-    <!-- Watermark — slides RIGHT on reveal -->
+    <!-- Watermark — identical to index.vue -->
     <div class="watermark" aria-hidden="true">
       <img src="/logo.svg" alt="" class="watermark-img" />
     </div>
 
-    <!-- Gold frame -->
+    <!-- Gold frame — identical to index.vue -->
     <div class="frame" aria-hidden="true">
       <div class="corner corner--tl" />
       <div class="corner corner--tr" />
@@ -112,100 +113,120 @@ function formatDate(date: string) {
       <div class="frame-mark frame-mark--bottom" />
     </div>
 
-    <!-- ===== CENTER (hero — fades out) ===== -->
+    <!-- Top bar — hidden like index.vue top-bar -->
+    <header class="top-bar">
+      <NuxtLink to="/" class="top-back">
+        <UIcon name="i-lucide-arrow-left" class="size-4" />
+        <span>Retour</span>
+      </NuxtLink>
+    </header>
+
+    <!-- CENTER — identical structure to index.vue .center -->
     <div class="center">
       <div class="center-inner">
+        <h1 class="title">
+          <span class="title-main">Recrute</span>
+          <span class="title-main">ment</span>
+        </h1>
+
         <div class="ornament">
           <div class="ornament-line" />
           <span class="ornament-glyph">G</span>
           <div class="ornament-line" />
         </div>
-        <h1 class="title">Recrutement</h1>
-        <p class="motto">Decouvrez les opportunites au sein du groupe Le Geai.</p>
+
+        <p class="motto">Rejoignez le groupe Le Geai.</p>
+        <p class="motto-sub">Decouvrez les opportunites au sein de nos poles.</p>
       </div>
     </div>
 
-    <!-- ===== OFFRES PANEL (slides from LEFT) ===== -->
+    <!-- FOOTER — identical to index.vue -->
+    <div class="footer-bar">
+      <span class="footer-text">&copy; {{ new Date().getFullYear() }} Groupe Le Geai</span>
+    </div>
+
+    <!-- OFFRES PANEL — mirror of .login-panel -->
+    <!-- login-panel: position fixed, top 0, RIGHT 0, bottom 0, width 50% -->
+    <!-- offres-panel: position fixed, top 0, LEFT 0, bottom 0, width 50% -->
     <div class="offres-panel">
+      <!-- login-back: position absolute, top ..., LEFT ... -->
+      <!-- panel-back: position absolute, top ..., RIGHT ... -->
       <NuxtLink to="/" class="panel-back">
-        <UIcon name="i-lucide-arrow-left" class="size-4" />
+        <UIcon name="i-lucide-arrow-right" class="size-4" />
         <span>Retour</span>
       </NuxtLink>
 
-      <div class="panel-wrap">
+      <!-- Content — same structure as login-form-wrap -->
+      <div class="panel-content">
         <h2 class="panel-title">Recrutement</h2>
         <div class="panel-ornament">
           <div class="panel-ornament-line" />
         </div>
 
         <!-- Loading -->
-        <div v-if="status === 'pending'" class="loading">
-          <div class="spinner" />
+        <div v-if="status === 'pending'" class="panel-loading">
+          <div class="panel-spinner" />
         </div>
 
         <!-- Empty -->
-        <div v-else-if="!offres?.length" class="empty">
-          <p class="empty-title">Aucune offre pour le moment</p>
-          <p class="empty-text">Revenez bientot, de nouvelles opportunites sont en preparation.</p>
+        <div v-else-if="!offres?.length" class="panel-empty">
+          <p class="panel-empty-title">Aucune offre pour le moment</p>
+          <p class="panel-empty-text">Revenez bientot, de nouvelles opportunites sont en preparation.</p>
         </div>
 
-        <!-- Job listings -->
-        <div v-else class="offres-list">
+        <!-- Offres -->
+        <div v-else class="panel-offres">
           <article
             v-for="(offre, i) in offres"
             :key="offre.id"
             class="offre-card"
-            :style="{ transitionDelay: `${1800 + i * 120}ms` }"
+            :style="{ transitionDelay: `${1800 + i * 100}ms` }"
             @click="openDetail(offre)"
           >
-            <div class="offre-header">
-              <div>
-                <h2 class="offre-title">{{ offre.titre }}</h2>
-                <div class="offre-meta">
-                  <span v-if="offre.localisation">{{ offre.localisation }}</span>
-                  <span v-if="formatSalaire(offre)">{{ formatSalaire(offre) }}</span>
-                  <span v-if="offre.date_publication">{{ formatDate(offre.date_publication) }}</span>
-                </div>
-              </div>
+            <div class="offre-top">
+              <h3 class="offre-title">{{ offre.titre }}</h3>
               <span class="offre-badge">{{ offre.type_contrat }}</span>
             </div>
-            <p class="offre-desc" v-html="offre.description" />
+            <div class="offre-meta">
+              <span v-if="offre.localisation">{{ offre.localisation }}</span>
+              <span v-if="formatSalaire(offre)">{{ formatSalaire(offre) }}</span>
+            </div>
           </article>
         </div>
       </div>
     </div>
 
-    <!-- Detail slideover -->
+    <!-- Slideover for detail -->
     <USlideover v-model:open="isSlideoverOpen">
       <template #content>
-        <div v-if="selectedOffre" class="slideover-content">
-          <div class="slideover-header">
-            <h2 class="slideover-title">{{ selectedOffre.titre }}</h2>
-            <span class="offre-badge">{{ selectedOffre.type_contrat }}</span>
-          </div>
+        <div v-if="selectedOffre" class="slideover-inner">
+          <h2 class="slideover-title">{{ selectedOffre.titre }}</h2>
+          <span class="offre-badge">{{ selectedOffre.type_contrat }}</span>
+
           <div class="slideover-meta">
             <span v-if="selectedOffre.localisation">{{ selectedOffre.localisation }}</span>
             <span v-if="formatSalaire(selectedOffre)">{{ formatSalaire(selectedOffre) }}</span>
+            <span v-if="selectedOffre.date_publication">{{ formatDate(selectedOffre.date_publication) }}</span>
           </div>
 
-          <div class="slideover-divider" />
+          <div class="slideover-sep" />
 
-          <div>
-            <h3 class="slideover-section-title">Description</h3>
+          <div v-if="selectedOffre.description">
+            <h3 class="slideover-heading">Description</h3>
             <div class="slideover-prose" v-html="selectedOffre.description" />
           </div>
 
           <div v-if="selectedOffre.competences_requises">
-            <h3 class="slideover-section-title">Competences requises</h3>
+            <h3 class="slideover-heading">Competences requises</h3>
             <div class="slideover-prose" v-html="selectedOffre.competences_requises" />
           </div>
 
           <div v-if="selectedOffre.avantages">
-            <h3 class="slideover-section-title">Avantages</h3>
+            <h3 class="slideover-heading">Avantages</h3>
             <div class="slideover-prose" v-html="selectedOffre.avantages" />
           </div>
 
-          <div class="slideover-divider" />
+          <div class="slideover-sep" />
 
           <p class="slideover-cta">
             Pour postuler, envoyez votre CV a
@@ -214,22 +235,18 @@ function formatDate(date: string) {
         </div>
       </template>
     </USlideover>
-
-    <!-- Footer -->
-    <div class="footer-bar">
-      <span class="footer-text">&copy; {{ new Date().getFullYear() }} Groupe Le Geai</span>
-    </div>
   </div>
 </template>
 
 <style scoped>
 /* ============================
-   BASE — identical to index.vue
+   BASE — COPY-PASTE from index.vue
    ============================ */
 .landing {
   --gold: #AF8F3C;
   --gold-dim: rgba(175, 143, 60, 0.28);
   --gold-faint: rgba(175, 143, 60, 0.10);
+  --terracotta: #B74D34;
   --cream: #F7F0DE;
   --ink: #2c2419;
   --transition: 1.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -246,7 +263,7 @@ function formatDate(date: string) {
 :global(.dark) .landing { color: var(--cream); }
 
 /* ============================
-   LAYERS — identical to index.vue
+   LAYERS — COPY-PASTE from index.vue
    ============================ */
 .noise-layer {
   position: fixed; inset: 0;
@@ -265,7 +282,7 @@ function formatDate(date: string) {
 }
 
 /* ============================
-   WATERMARK — identical to index.vue but slides RIGHT
+   WATERMARK — COPY-PASTE from index.vue
    ============================ */
 .watermark {
   position: fixed;
@@ -287,7 +304,11 @@ function formatDate(date: string) {
   opacity: 0.055;
 }
 
-/* Revealed — logo slides RIGHT (mirror of login left: 0) */
+/*
+ * MIRROR of index.vue login-mode watermark:
+ *   .login-mode .watermark { left: 0; }        → slides LEFT
+ *   .revealed   .watermark { left: 100%; }      → slides RIGHT
+ */
 .revealed .watermark {
   left: 100%;
   width: clamp(600px, 100vh, 1100px);
@@ -303,7 +324,7 @@ function formatDate(date: string) {
 }
 
 /* ============================
-   FRAME — identical to index.vue
+   FRAME — COPY-PASTE from index.vue
    ============================ */
 .frame {
   position: fixed;
@@ -312,6 +333,7 @@ function formatDate(date: string) {
   pointer-events: none; z-index: 0;
   transition: opacity var(--transition);
 }
+/* index.vue: .login-mode .frame { opacity: 0.3; } */
 .revealed .frame { opacity: 0.3; }
 
 .corner { position: absolute; width: 26px; height: 26px; }
@@ -325,7 +347,36 @@ function formatDate(date: string) {
 .frame-mark--bottom { bottom: -1px; }
 
 /* ============================
-   CENTER (hero — fades out like login-mode .center)
+   TOP BAR — based on index.vue .top-bar
+   ============================ */
+.top-bar {
+  position: fixed;
+  top: clamp(18px, 3.5vw, 32px);
+  left: clamp(18px, 3.5vw, 32px);
+  z-index: 10;
+  display: flex; gap: 10px; align-items: center;
+  opacity: 0;
+  transition: opacity 0.8s ease 0.2s;
+}
+.is-visible .top-bar { opacity: 1; }
+/* index.vue: .login-mode .top-bar { opacity: 0; pointer-events: none; } */
+.revealed .top-bar { opacity: 0; pointer-events: none; }
+
+.top-back {
+  display: flex; align-items: center; gap: 8px;
+  text-decoration: none;
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0.7;
+  transition: opacity 0.3s, gap 0.3s;
+}
+.top-back:hover { opacity: 1; gap: 12px; }
+
+/* ============================
+   CENTER — COPY-PASTE from index.vue
    ============================ */
 .center {
   flex: 1;
@@ -338,6 +389,7 @@ function formatDate(date: string) {
   padding: 0 24px;
   transition: opacity 1s ease, transform 1s ease;
 }
+/* index.vue: .login-mode .center { opacity: 0; transform: translateY(-30px); pointer-events: none; } */
 .revealed .center {
   opacity: 0;
   transform: translateY(-30px);
@@ -351,14 +403,38 @@ function formatDate(date: string) {
   text-align: center;
 }
 
+/* Title — same style as index.vue */
+.title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 1s ease 0.25s, transform 1s ease 0.25s;
+}
+.is-visible .title {
+  opacity: 1;
+  transform: translateY(0);
+}
+.title-main {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: clamp(3.2rem, 10vw, 7rem);
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  display: block;
+  line-height: 0.85;
+}
+
+/* Ornament — same as index.vue */
 .ornament {
   display: flex; align-items: center; gap: 14px;
-  margin-bottom: clamp(8px, 1.5vh, 16px);
+  margin-top: clamp(8px, 1.5vh, 16px);
   opacity: 0;
-  transition: opacity 0.8s ease 0.3s;
+  transition: opacity 0.8s ease 0.5s;
 }
 .is-visible .ornament { opacity: 0.5; }
-
 .ornament-line {
   width: clamp(32px, 8vw, 64px);
   height: 1px;
@@ -371,33 +447,67 @@ function formatDate(date: string) {
   line-height: 1;
 }
 
-.title {
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: clamp(2.4rem, 6vw, 4rem);
-  font-weight: 400;
-  letter-spacing: 0.15em;
-  opacity: 0;
-  transform: translateY(14px);
-  transition: opacity 1s ease 0.15s, transform 1s ease 0.15s;
-}
-.is-visible .title {
-  opacity: 1;
-  transform: translateY(0);
-}
-
+/* Motto — same as index.vue */
 .motto {
   font-family: 'IM Fell DW Pica', Georgia, serif;
   font-style: italic;
-  font-size: clamp(0.9rem, 2vw, 1.1rem);
-  line-height: 1.7;
-  margin-top: 12px;
+  font-size: clamp(1.1rem, 3.2vw, 1.6rem);
+  color: var(--gold);
+  margin-top: clamp(10px, 2vh, 22px);
+  letter-spacing: 0.05em;
   opacity: 0;
-  transition: opacity 0.8s ease 0.5s;
+  transform: translateY(8px);
+  transition: opacity 1s ease 0.65s, transform 1s ease 0.65s;
 }
-.is-visible .motto { opacity: 0.5; }
+.is-visible .motto {
+  opacity: 1;
+  transform: translateY(0);
+}
+.motto-sub {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: clamp(0.62rem, 1.3vw, 0.78rem);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 6px;
+  opacity: 0;
+  transition: opacity 0.8s ease 0.85s;
+}
+.is-visible .motto-sub { opacity: 0.4; }
 
 /* ============================
-   OFFRES PANEL — slides from LEFT (mirror of login-panel from right)
+   FOOTER — COPY-PASTE from index.vue
+   ============================ */
+.footer-bar {
+  position: relative;
+  z-index: 2;
+  display: flex; align-items: center; gap: 8px;
+  padding: clamp(6px, 1.2vh, 14px) 0;
+  opacity: 0;
+  transition: opacity 0.8s ease 1.2s;
+}
+.is-visible .footer-bar { opacity: 0.35; }
+.footer-bar:hover { opacity: 0.6; }
+/* index.vue: .login-mode .footer-bar { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; } */
+.revealed .footer-bar { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
+
+.footer-text {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: clamp(8px, 1.2vw, 10px);
+}
+
+/* ============================
+   OFFRES PANEL
+   Mirror of index.vue .login-panel
+
+   index.vue login-panel:
+     position: fixed; top: 0; right: 0; bottom: 0; width: 50%;
+     opacity: 0; transform: translateX(60px);
+     transition: opacity 1s ease 0.5s, transform 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.5s;
+
+   Mirror:
+     position: fixed; top: 0; left: 0; bottom: 0; width: 50%;
+     opacity: 0; transform: translateX(-60px);
+     same transition
    ============================ */
 .offres-panel {
   position: fixed;
@@ -407,25 +517,30 @@ function formatDate(date: string) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   padding: clamp(24px, 4vw, 48px);
-  padding-top: clamp(60px, 8vh, 80px);
   overflow-y: auto;
   opacity: 0;
   transform: translateX(-60px);
   pointer-events: none;
   transition: opacity 1s ease 0.5s, transform 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.5s;
 }
+/* index.vue: .login-mode .login-panel { opacity: 1; transform: translateX(0); pointer-events: auto; } */
 .revealed .offres-panel {
   opacity: 1;
   transform: translateX(0);
   pointer-events: auto;
 }
 
+/*
+ * PANEL BACK — mirror of index.vue .login-back
+ * index.vue: position: absolute; top: ...; left: ...;
+ * mirror:    position: absolute; top: ...; right: ...;
+ */
 .panel-back {
-  position: fixed;
+  position: absolute;
   top: clamp(20px, 3.5vw, 36px);
-  left: clamp(20px, 3vw, 40px);
+  right: clamp(20px, 3vw, 40px);
   display: flex; align-items: center; gap: 8px;
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: 13px;
@@ -433,18 +548,23 @@ function formatDate(date: string) {
   text-transform: uppercase;
   text-decoration: none;
   color: var(--gold);
-  opacity: 0;
-  z-index: 30;
+  opacity: 0.7;
   transition: opacity 0.3s, gap 0.3s;
 }
-.revealed .panel-back { opacity: 0.7; }
 .panel-back:hover { opacity: 1; gap: 12px; }
 
-.panel-wrap {
+/*
+ * PANEL CONTENT — mirror of index.vue .login-form-wrap
+ * index.vue: width: 100%; max-width: 380px;
+ */
+.panel-content {
   width: 100%;
-  max-width: 480px;
+  max-width: 420px;
 }
 
+/*
+ * PANEL TITLE — mirror of index.vue .login-title
+ */
 .panel-title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
   font-size: clamp(1.8rem, 3.5vw, 2.6rem);
@@ -454,6 +574,9 @@ function formatDate(date: string) {
   margin-bottom: 10px;
 }
 
+/*
+ * PANEL ORNAMENT — mirror of index.vue .login-ornament
+ */
 .panel-ornament {
   display: flex; justify-content: center;
   margin-bottom: clamp(24px, 4vh, 40px);
@@ -464,108 +587,79 @@ function formatDate(date: string) {
 }
 
 /* Loading */
-.loading {
+.panel-loading {
   display: flex; justify-content: center; padding: 40px 0;
 }
-.spinner {
-  width: 24px; height: 24px;
+.panel-spinner {
+  width: 16px; height: 16px;
   border: 1.5px solid var(--gold-dim);
   border-top-color: var(--gold);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
 
 /* Empty */
-.empty {
+.panel-empty {
   text-align: center;
-  padding: 40px 0;
 }
-.empty-title {
+.panel-empty-title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 1.1rem;
-  margin-bottom: 8px;
+  font-size: 1rem;
+  margin-bottom: 6px;
 }
-.empty-text {
-  font-size: 0.88rem;
+.panel-empty-text {
+  font-size: 0.85rem;
   opacity: 0.4;
 }
 
-/* Offres list */
-.offres-list {
+/*
+ * OFFRE CARDS — styled like login-field items
+ */
+.panel-offres {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .offre-card {
-  padding: 20px;
-  border: 1px solid var(--gold-faint);
+  padding: 16px 20px;
+  border: 1px solid var(--gold-dim);
   cursor: pointer;
-  position: relative;
   opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s;
+  transform: translateY(8px);
+  transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s, background 0.3s;
 }
 .revealed .offre-card {
   opacity: 1;
   transform: translateY(0);
 }
+.offre-card:hover {
+  border-color: var(--gold);
+  background: rgba(175, 143, 60, 0.04);
+}
+:global(.dark) .offre-card:hover {
+  background: rgba(175, 143, 60, 0.08);
+}
 
-.offre-card::before,
-.offre-card::after {
-  content: '';
-  position: absolute;
-  width: 0; height: 0;
-  opacity: 0;
-  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-              height 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-              opacity 0.4s ease;
-}
-.offre-card::before {
-  top: 0; left: 0;
-  border-top: 1px solid var(--gold);
-  border-left: 1px solid var(--gold);
-}
-.offre-card::after {
-  bottom: 0; right: 0;
-  border-bottom: 1px solid var(--gold);
-  border-right: 1px solid var(--gold);
-}
-.offre-card:hover::before,
-.offre-card:hover::after {
-  width: 20px; height: 16px;
-  opacity: 0.6;
-}
-.offre-card:hover { border-color: var(--gold-dim); }
-
-.offre-header {
+.offre-top {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 10px;
+  margin-bottom: 4px;
 }
 
 .offre-title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 400;
   letter-spacing: 0.04em;
   transition: color 0.3s;
 }
 .offre-card:hover .offre-title { color: var(--gold); }
 
-.offre-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 4px;
-  font-size: 0.78rem;
-  opacity: 0.4;
-}
-
 .offre-badge {
+  font-family: 'Crimson Pro', Georgia, serif;
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -576,41 +670,30 @@ function formatDate(date: string) {
   flex-shrink: 0;
 }
 
-.offre-desc {
-  font-size: 0.85rem;
-  line-height: 1.6;
+.offre-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.78rem;
   opacity: 0.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 /* ============================
-   SLIDEOVER (detail view)
+   SLIDEOVER
    ============================ */
-.slideover-content {
+.slideover-inner {
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 20px;
   font-family: 'Crimson Pro', Georgia, serif;
 }
-
-.slideover-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-}
-
 .slideover-title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
   font-size: 1.3rem;
   font-weight: 400;
   letter-spacing: 0.06em;
 }
-
 .slideover-meta {
   display: flex;
   flex-wrap: wrap;
@@ -618,13 +701,11 @@ function formatDate(date: string) {
   font-size: 0.85rem;
   opacity: 0.45;
 }
-
-.slideover-divider {
+.slideover-sep {
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--gold-faint), transparent);
 }
-
-.slideover-section-title {
+.slideover-heading {
   font-family: 'IM Fell DW Pica', Georgia, serif;
   font-size: 1rem;
   font-weight: 400;
@@ -632,13 +713,11 @@ function formatDate(date: string) {
   margin-bottom: 8px;
   color: var(--gold);
 }
-
 .slideover-prose {
   font-size: 0.88rem;
   line-height: 1.7;
   opacity: 0.6;
 }
-
 .slideover-cta {
   font-size: 0.88rem;
   opacity: 0.5;
@@ -649,31 +728,31 @@ function formatDate(date: string) {
 }
 
 /* ============================
-   FOOTER — identical to index.vue
+   RESPONSIVE — mirror of index.vue
+
+   index.vue:
+     @media (max-width: 899px) {
+       .login-panel { width: 100%; }
+       .login-mode .watermark { left: 50%; smaller size }
+     }
    ============================ */
-.footer-bar {
-  position: relative;
-  z-index: 2;
-  display: flex; align-items: center; gap: 8px;
-  padding: clamp(6px, 1.2vh, 14px) 0;
-  opacity: 0;
-  transition: opacity 0.8s ease 0.8s;
-}
-.is-visible .footer-bar { opacity: 0.35; }
-.revealed .footer-bar { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
-
-.footer-text {
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: clamp(8px, 1.2vw, 10px);
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-/* Mobile */
-@media (max-width: 768px) {
+@media (max-height: 580px) {
+  .title-main { font-size: clamp(2rem, 7vw, 3.5rem); }
+  .motto { font-size: clamp(0.9rem, 2.2vw, 1.1rem); }
+}
+
+@media (max-width: 899px) {
   .offres-panel {
     width: 100%;
   }
   .revealed .watermark {
-    display: none;
+    left: 50%;
+    width: clamp(350px, 90vmin, 600px);
+    height: clamp(350px, 90vmin, 600px);
   }
 }
 </style>
