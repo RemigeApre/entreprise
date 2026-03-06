@@ -2,9 +2,9 @@
 definePageMeta({ layout: 'public' })
 
 useSeoMeta({
-  title: 'A propos - Le Geai',
+  title: 'Notre identite - Le Geai',
   description: 'Decouvrez les valeurs, la vision et le manifeste du groupe Le Geai. Edition, informatique et medias reunis sous une meme ambition.',
-  ogTitle: 'Le Geai - Nos valeurs',
+  ogTitle: 'Le Geai - Notre identite',
   ogDescription: 'Un groupe fonde sur l\'exigence, la creativite et l\'accessibilite.'
 })
 
@@ -64,10 +64,17 @@ const branches = [
         class="text-center max-w-2xl transition-all duration-1000 ease-out"
         :class="visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'"
       >
+        <!-- Ornament -->
+        <div class="flex items-center justify-center gap-3 mb-6 opacity-40">
+          <div class="w-10 h-px bg-stone-400 dark:bg-stone-600" />
+          <div class="size-1.5 rotate-45 bg-stone-400 dark:bg-stone-600" />
+          <div class="w-10 h-px bg-stone-400 dark:bg-stone-600" />
+        </div>
+
         <h1 class="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-          Un groupe, trois visions
+          Notre identite
         </h1>
-        <div class="w-12 h-px bg-gradient-to-r from-transparent via-amber-400/60 to-transparent mx-auto mt-5 mb-4" />
+        <div class="w-14 h-px bg-gradient-to-r from-transparent via-[var(--color-brand-gold)]/50 to-transparent mx-auto mt-5 mb-4" />
         <p class="text-stone-500 dark:text-stone-400 text-base sm:text-lg leading-relaxed max-w-lg mx-auto">
           Le Geai reunit des savoir-faire complementaires autour d'une conviction commune : creer avec exigence, partager avec sincerite.
         </p>
@@ -92,7 +99,7 @@ const branches = [
             :style="{ transitionDelay: `${300 + i * 150}ms` }"
           >
             <div class="flex items-start gap-4">
-              <div class="size-10 rounded-xl bg-stone-100 dark:bg-stone-800/60 flex items-center justify-center shrink-0">
+              <div class="size-10 rounded-xl bg-stone-100 dark:bg-stone-800/60 flex items-center justify-center shrink-0 border border-stone-200/60 dark:border-stone-700/40">
                 <UIcon :name="val.icon" class="size-5 text-stone-500 dark:text-stone-400" />
               </div>
               <div>

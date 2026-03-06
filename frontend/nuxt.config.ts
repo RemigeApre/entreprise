@@ -34,7 +34,11 @@ export default defineNuxtConfig({
         'lucide:triangle-alert',
         'lucide:ellipsis',
         'lucide:arrow-up-down',
-        'lucide:external-link'
+        'lucide:external-link',
+        'lucide:heart',
+        'lucide:mail',
+        'lucide:share-2',
+        'lucide:message-circle'
       ],
       sizeLimitKb: 0
     }
@@ -51,6 +55,7 @@ export default defineNuxtConfig({
     '/api/**': { proxy: 'http://directus:8055/**' },
     '/': { prerender: true },
     '/le-geai': { prerender: true },
+    '/soutenir': { prerender: true },
     '/recrutement': { prerender: false },
     '/dashboard/**': { ssr: false },
     '/planning/**': { ssr: false },
