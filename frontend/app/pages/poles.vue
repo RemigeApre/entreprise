@@ -14,10 +14,10 @@ useHead({
 })
 
 useSeoMeta({
-  title: 'L\u2019entreprise \u2014 Le Geai',
-  description: 'Decouvrez les valeurs, la vision et les poles du groupe Le Geai.',
-  ogTitle: 'Le Geai \u2014 L\u2019entreprise',
-  ogDescription: 'Un groupe fonde sur l\u2019exigence, la creativite et l\u2019accessibilite.'
+  title: 'Nos poles \u2014 Le Geai',
+  description: 'Edition, informatique et medias : decouvrez les trois poles du groupe Le Geai.',
+  ogTitle: 'Le Geai \u2014 Nos poles',
+  ogDescription: 'Trois poles complementaires au service de la creation.'
 })
 
 const visible = ref(false)
@@ -30,11 +30,10 @@ onMounted(() => {
   })
 })
 
-const values = [
-  { numeral: 'I', title: 'Exigence', text: 'Chaque detail compte. Nous ne livrons que ce dont nous sommes fiers, du premier pixel a la derniere ligne de code.' },
-  { numeral: 'II', title: 'Accessibilite', text: 'Si un utilisateur ne s\u2019y retrouve pas, c\u2019est nous qui avons echoue. La simplicite est notre complexite.' },
-  { numeral: 'III', title: 'Creativite', text: 'L\u2019innovation nait au croisement des disciplines. Edition, technologie et medias se nourrissent mutuellement.' },
-  { numeral: 'IV', title: 'Integrite', text: 'Des engagements tenus, une transparence totale. La confiance se construit sur la constance.' }
+const branches = [
+  { title: 'Edition', desc: 'Maison d\u2019edition dediee aux ouvrages qui marquent. Romans, essais et beaux livres, avec une exigence editoriale sans concession.', status: 'En refonte' },
+  { title: 'Informatique', desc: 'Sites web, applications et solutions numeriques sur mesure. Conception, developpement et hebergement pour entreprises et particuliers.', href: 'https://legeai-informatique.fr' },
+  { title: 'Medias', desc: 'Production de contenus et journalisme independant. Analyses, reportages et formats originaux au croisement des cultures.', href: 'https://bergfrid.com' }
 ]
 </script>
 
@@ -54,7 +53,7 @@ const values = [
     <!-- Vignette -->
     <div class="vignette" aria-hidden="true" />
 
-    <!-- Watermark — goes DOWN on reveal -->
+    <!-- Watermark — goes UP on reveal -->
     <div class="watermark" aria-hidden="true">
       <img src="/logo.svg" alt="" class="watermark-img" />
     </div>
@@ -81,8 +80,8 @@ const values = [
     <div class="center">
       <div class="center-inner">
         <h1 class="title">
-          <span class="title-main">L'entre</span>
-          <span class="title-main">prise</span>
+          <span class="title-main">Nos</span>
+          <span class="title-main">Poles</span>
         </h1>
 
         <div class="ornament">
@@ -91,8 +90,8 @@ const values = [
           <div class="ornament-line" />
         </div>
 
-        <p class="motto">Creer avec exigence, partager avec sincerite.</p>
-        <p class="motto-sub">Les valeurs du groupe Le Geai.</p>
+        <p class="motto">Trois disciplines, une vision commune.</p>
+        <p class="motto-sub">Edition, informatique et medias.</p>
       </div>
     </div>
 
@@ -101,30 +100,35 @@ const values = [
       <span class="footer-text">&copy; {{ new Date().getFullYear() }} Groupe Le Geai</span>
     </div>
 
-    <!-- VALEURS PANEL — slides from TOP (logo goes down = content from top) -->
-    <div class="valeurs-panel">
+    <!-- POLES PANEL — slides from BOTTOM (logo goes up = content from bottom) -->
+    <div class="poles-panel">
       <NuxtLink to="/" class="panel-back">
         <UIcon name="i-lucide-arrow-left" class="size-4" />
         <span>Retour</span>
       </NuxtLink>
 
       <div class="panel-content">
-        <h2 class="panel-title">Nos valeurs</h2>
+        <h2 class="panel-title">Nos poles</h2>
         <div class="panel-ornament">
           <div class="panel-ornament-line" />
         </div>
 
-        <div class="valeurs-grid">
-          <div
-            v-for="(val, i) in values"
-            :key="val.title"
-            class="valeur-card"
+        <div class="poles-grid">
+          <a
+            v-for="(branch, i) in branches"
+            :key="branch.title"
+            :href="branch.href || undefined"
+            :target="branch.href ? '_blank' : undefined"
+            :rel="branch.href ? 'noopener noreferrer' : undefined"
+            class="pole-card"
+            :class="{ 'pole-card--disabled': !branch.href }"
             :style="{ transitionDelay: `${1800 + i * 120}ms` }"
           >
-            <span class="valeur-numeral">{{ val.numeral }}</span>
-            <h3 class="valeur-title">{{ val.title }}</h3>
-            <p class="valeur-text">{{ val.text }}</p>
-          </div>
+            <h3 class="pole-title">{{ branch.title }}</h3>
+            <p class="pole-desc">{{ branch.desc }}</p>
+            <span v-if="branch.href" class="pole-link-label">Visiter&thinsp;&#x2197;</span>
+            <span v-else-if="branch.status" class="pole-status">{{ branch.status }}</span>
+          </a>
         </div>
       </div>
     </div>
@@ -174,10 +178,11 @@ const values = [
 }
 
 /* ============================
-   WATERMARK — goes DOWN and disappears
-   login:       left: 50% → 0     (slides left, half visible)
-   recrutement: left: 50% → 100%  (slides right, half visible)
-   valeurs:     top: 50% → 150%   (slides down, fully disappears)
+   WATERMARK — goes UP and disappears
+   login:       left: 50% → 0      (slides left, half visible)
+   recrutement: left: 50% → 100%   (slides right, half visible)
+   valeurs:     top: 50% → 150%    (slides down, disappears)
+   poles:       top: 50% → -50%    (slides up, disappears)
    ============================ */
 .watermark {
   position: fixed;
@@ -200,7 +205,7 @@ const values = [
 }
 
 .revealed .watermark {
-  top: 150%;
+  top: -50%;
 }
 .revealed .watermark-img {
   opacity: 0;
@@ -372,14 +377,15 @@ const values = [
 }
 
 /* ============================
-   VALEURS PANEL — slides from TOP
-   (logo goes DOWN → content comes from TOP)
+   POLES PANEL — slides from BOTTOM
+   (logo goes UP → content comes from BOTTOM)
 
-   login-panel:  fixed top:0 right:0 bottom:0  width:50%  translateX(60px)
-   recru-panel:  fixed top:0 left:0  bottom:0  width:50%  translateX(-60px)
-   valeurs-panel: fixed top:0 left:0  right:0  bottom:0   translateY(-60px)
+   login-panel:   fixed top:0 right:0 bottom:0  width:50%   translateX(60px)
+   recru-panel:   fixed top:0 left:0  bottom:0  width:50%   translateX(-60px)
+   valeurs-panel: fixed inset:0                              translateY(-60px)
+   poles-panel:   fixed inset:0                              translateY(60px)
    ============================ */
-.valeurs-panel {
+.poles-panel {
   position: fixed;
   inset: 0;
   z-index: 20;
@@ -390,11 +396,11 @@ const values = [
   padding: clamp(24px, 4vw, 48px);
   overflow-y: auto;
   opacity: 0;
-  transform: translateY(-60px);
+  transform: translateY(60px);
   pointer-events: none;
   transition: opacity 1s ease 0.5s, transform 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.5s;
 }
-.revealed .valeurs-panel {
+.revealed .poles-panel {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
@@ -441,55 +447,73 @@ const values = [
   background: linear-gradient(90deg, transparent, var(--gold), transparent);
 }
 
-/* Valeurs grid */
-.valeurs-grid {
+/* Poles grid */
+.poles-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
 }
 
-.valeur-card {
-  padding: 24px;
+.pole-card {
+  display: flex;
+  flex-direction: column;
+  padding: 28px 24px;
   border: 1px solid var(--gold-dim);
+  text-decoration: none;
+  color: inherit;
   opacity: 0;
   transform: translateY(8px);
   transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s, background 0.3s;
 }
-.revealed .valeur-card {
+.revealed .pole-card {
   opacity: 1;
   transform: translateY(0);
 }
-.valeur-card:hover {
+.pole-card:not(.pole-card--disabled):hover {
   border-color: var(--gold);
   background: rgba(175, 143, 60, 0.04);
 }
-:global(.dark) .valeur-card:hover {
+:global(.dark) .pole-card:not(.pole-card--disabled):hover {
   background: rgba(175, 143, 60, 0.08);
 }
-
-.valeur-numeral {
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 0.8rem;
-  color: var(--gold);
-  opacity: 0.5;
-  display: block;
-  margin-bottom: 10px;
+.pole-card--disabled {
+  cursor: default;
 }
 
-.valeur-title {
+.pole-title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 400;
   letter-spacing: 0.06em;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   transition: color 0.3s;
 }
-.valeur-card:hover .valeur-title { color: var(--gold); }
+.pole-card:not(.pole-card--disabled):hover .pole-title { color: var(--gold); }
 
-.valeur-text {
-  font-size: 0.85rem;
+.pole-desc {
+  font-size: 0.88rem;
   line-height: 1.7;
   opacity: 0.45;
+  margin-bottom: 16px;
+  flex: 1;
+}
+
+.pole-link-label {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0.6;
+  transition: opacity 0.3s;
+}
+.pole-card:hover .pole-link-label { opacity: 1; }
+
+.pole-status {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 12px;
+  font-style: italic;
+  opacity: 0.3;
 }
 
 /* ============================
@@ -500,8 +524,8 @@ const values = [
   .motto { font-size: clamp(0.9rem, 2.2vw, 1.1rem); }
 }
 
-@media (max-width: 640px) {
-  .valeurs-grid {
+@media (max-width: 768px) {
+  .poles-grid {
     grid-template-columns: 1fr;
   }
 }

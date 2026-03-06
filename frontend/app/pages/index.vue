@@ -54,8 +54,6 @@ const t = computed(() => lang.value === 'fr' ? {
   retour: 'Back'
 })
 
-const polesOpen = ref(false)
-
 const visible = ref(false)
 onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
 
@@ -165,16 +163,10 @@ async function handleLogin() {
 
           <div class="nav-divider" aria-hidden="true" />
 
-          <div class="nav-item nav-item--poles" @click="polesOpen = !polesOpen">
+          <NuxtLink to="/poles" class="nav-item">
             <span class="nav-numeral" aria-hidden="true">III</span>
             <span class="nav-label">{{ t.poles }}</span>
-            <!-- Poles dropdown -->
-            <div class="poles-dropdown" :class="{ 'is-open': polesOpen }">
-              <a href="https://legeai-informatique.fr" target="_blank" rel="noopener noreferrer" class="pole-link">Informatique&thinsp;&#x2197;</a>
-              <a href="https://bergfrid.com" target="_blank" rel="noopener noreferrer" class="pole-link">Medias&thinsp;&#x2197;</a>
-              <span class="pole-link pole-link--muted">Edition</span>
-            </div>
-          </div>
+          </NuxtLink>
         </nav>
       </div>
     </div>
@@ -604,60 +596,6 @@ async function handleLogin() {
   height: 40px;
   opacity: 0.6;
   box-shadow: 0 0 8px rgba(175, 143, 60, 0.3);
-}
-
-/* Poles dropdown */
-.nav-item--poles {
-  user-select: none;
-}
-
-.poles-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%) translateY(4px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 14px 24px;
-  background: var(--cream);
-  border: 1px solid var(--gold-faint);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s, transform 0.3s;
-  z-index: 30;
-}
-:global(.dark) .poles-dropdown {
-  background: #1F2C23;
-}
-.poles-dropdown.is-open {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateX(-50%) translateY(8px);
-}
-
-.pole-link {
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  text-decoration: none;
-  color: var(--gold);
-  opacity: 0.7;
-  padding: 4px 0;
-  white-space: nowrap;
-  transition: opacity 0.2s;
-}
-.pole-link:hover { opacity: 1; }
-
-.pole-link--muted {
-  opacity: 0.3;
-  color: inherit;
-  cursor: default;
-  font-style: italic;
-  text-transform: none;
-  letter-spacing: 0.06em;
 }
 
 @media (max-width: 500px) {
