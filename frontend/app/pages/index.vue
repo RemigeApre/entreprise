@@ -34,21 +34,21 @@ function toggleLang() { lang.value = lang.value === 'fr' ? 'en' : 'fr' }
 
 const t = computed(() => lang.value === 'fr' ? {
   motto: 'L\u2019obscurite nourrit la flamme.',
-  copyright: `\u00A9 ${new Date().getFullYear()} Groupe Le Geai`,
+  copyright: `\u00A9 ${new Date().getFullYear()} Le Geai`,
   identite: 'Notre identite',
   editions: 'Editions',
   editions_note: 'en construction',
-  informatique: 'Le Geai Informatique',
+  informatique: 'Informatique',
   bergfrid: 'Bergfrid',
   recrutement: 'Recrutement',
   soutenir: 'Nous soutenir'
 } : {
   motto: 'Darkness feeds the flame.',
-  copyright: `\u00A9 ${new Date().getFullYear()} Groupe Le Geai`,
+  copyright: `\u00A9 ${new Date().getFullYear()} Le Geai`,
   identite: 'Our identity',
   editions: 'Publishing',
   editions_note: 'coming soon',
-  informatique: 'Le Geai Tech',
+  informatique: 'Tech',
   bergfrid: 'Bergfrid',
   recrutement: 'Careers',
   soutenir: 'Support us'
@@ -63,14 +63,12 @@ onMounted(() => {
 <template>
   <div class="landing" :class="{ 'is-visible': visible }">
 
-    <!-- SVG noise filter -->
+    <!-- Noise filter -->
     <svg class="sr-only" aria-hidden="true">
       <filter id="noise">
         <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
       </filter>
     </svg>
-
-    <!-- Noise texture overlay -->
     <div class="noise-layer" aria-hidden="true">
       <svg width="100%" height="100%"><rect width="100%" height="100%" filter="url(#noise)" /></svg>
     </div>
@@ -78,7 +76,7 @@ onMounted(() => {
     <!-- Vignette -->
     <div class="vignette" aria-hidden="true" />
 
-    <!-- Background watermark logo — IMPOSING -->
+    <!-- Watermark — massive -->
     <div class="watermark" aria-hidden="true">
       <img src="/logo.svg" alt="" class="watermark-img" />
     </div>
@@ -91,105 +89,85 @@ onMounted(() => {
       <div class="corner corner--br" />
       <div class="frame-mark frame-mark--top" />
       <div class="frame-mark frame-mark--bottom" />
-      <div class="frame-mark frame-mark--left" />
-      <div class="frame-mark frame-mark--right" />
     </div>
 
-    <!-- ============ TOP-RIGHT : Connexion + Theme ============ -->
+    <!-- ===== TOP-RIGHT : key + theme ===== -->
     <header class="top-bar">
-      <button
-        class="top-icon"
-        :aria-label="isDark ? 'Mode clair' : 'Mode sombre'"
-        @click="toggleTheme"
-      >
+      <button class="top-btn" :aria-label="isDark ? 'Mode clair' : 'Mode sombre'" @click="toggleTheme">
         <UIcon :name="isDark ? 'i-lucide-sun' : 'i-lucide-moon'" class="size-4" />
       </button>
-      <NuxtLink to="/login" class="top-icon top-icon--key" aria-label="Connexion">
+      <NuxtLink to="/login" class="top-btn top-btn--key" aria-label="Connexion">
         <UIcon name="i-lucide-key-round" class="size-4" />
       </NuxtLink>
     </header>
 
-    <!-- ============ ZONE 1 : En-tete ============ -->
-    <div class="zone zone--header">
-      <h1 class="landing-title">LE GEAI</h1>
-
-      <div class="ornament-divider">
-        <div class="ornament-line" />
-        <span class="ornament-glyph">G</span>
-        <div class="ornament-line" />
+    <!-- ===== SPINE NAV — left (desktop) ===== -->
+    <div class="spine spine--left">
+      <div class="spine-track">
+        <NuxtLink to="/le-geai" class="spine-link">{{ t.identite }}</NuxtLink>
+        <span class="spine-dot" aria-hidden="true">&middot;</span>
+        <NuxtLink to="/recrutement" class="spine-link">{{ t.recrutement }}</NuxtLink>
+        <span class="spine-dot" aria-hidden="true">&middot;</span>
+        <NuxtLink to="/soutenir" class="spine-link spine-link--warm">{{ t.soutenir }}</NuxtLink>
       </div>
-
-      <p class="landing-motto">
-        <span class="motto-latin">Obscuritas nutrit flammam.</span>
-      </p>
-      <p class="landing-motto-sub">{{ t.motto }}</p>
     </div>
 
-    <!-- ============ ZONE 2 : Navigation — Table des matieres ============ -->
-    <nav class="zone zone--nav" aria-label="Navigation principale">
-      <ul class="nav-list">
-        <!-- Active internal links -->
-        <li class="nav-entry" :style="{ '--i': 0 }">
-          <NuxtLink to="/le-geai" class="nav-link">
-            <span class="nav-bullet">&loz;</span>
-            <span class="nav-text">{{ t.identite }}</span>
-          </NuxtLink>
-        </li>
+    <!-- ===== SPINE NAV — right (desktop) ===== -->
+    <div class="spine spine--right">
+      <div class="spine-track">
+        <a href="https://legeai-informatique.fr" target="_blank" rel="noopener noreferrer" class="spine-link">{{ t.informatique }}</a>
+        <span class="spine-dot" aria-hidden="true">&middot;</span>
+        <a href="https://bergfrid.com" target="_blank" rel="noopener noreferrer" class="spine-link">{{ t.bergfrid }}</a>
+        <span class="spine-dot" aria-hidden="true">&middot;</span>
+        <span class="spine-link spine-link--muted">{{ t.editions }}</span>
+      </div>
+    </div>
 
-        <li class="nav-entry" :style="{ '--i': 1 }">
-          <NuxtLink to="/recrutement" class="nav-link">
-            <span class="nav-bullet">&loz;</span>
-            <span class="nav-text">{{ t.recrutement }}</span>
-          </NuxtLink>
-        </li>
+    <!-- ===== CENTER ===== -->
+    <div class="center">
+      <div class="center-inner">
+        <!-- Subtitle -->
+        <p class="subtitle">Edition &middot; Informatique &middot; Medias</p>
 
-        <li class="nav-entry" :style="{ '--i': 2 }">
-          <NuxtLink to="/soutenir" class="nav-link nav-link--warm">
-            <span class="nav-bullet">&loz;</span>
-            <span class="nav-text">{{ t.soutenir }}</span>
-          </NuxtLink>
-        </li>
+        <!-- Title -->
+        <h1 class="title">LE&ensp;GEAI</h1>
 
-        <!-- Separator -->
-        <li class="nav-separator" :style="{ '--i': 3 }" aria-hidden="true">
-          <div class="sep-line" />
-        </li>
+        <!-- Ornament -->
+        <div class="ornament">
+          <div class="ornament-line" />
+          <span class="ornament-glyph">G</span>
+          <div class="ornament-line" />
+        </div>
 
-        <!-- External links -->
-        <li class="nav-entry" :style="{ '--i': 4 }">
-          <a href="https://legeai-informatique.fr" target="_blank" rel="noopener noreferrer" class="nav-link">
-            <span class="nav-bullet">&loz;</span>
-            <span class="nav-text">{{ t.informatique }}</span>
-            <span class="nav-arrow">&nearr;</span>
-          </a>
-        </li>
+        <!-- Motto -->
+        <p class="motto">Obscuritas nutrit flammam.</p>
+        <p class="motto-sub">{{ t.motto }}</p>
+      </div>
+    </div>
 
-        <li class="nav-entry" :style="{ '--i': 5 }">
-          <a href="https://bergfrid.com" target="_blank" rel="noopener noreferrer" class="nav-link">
-            <span class="nav-bullet">&loz;</span>
-            <span class="nav-text">{{ t.bergfrid }}</span>
-            <span class="nav-arrow">&nearr;</span>
-          </a>
-        </li>
-
-        <!-- Disabled -->
-        <li class="nav-entry" :style="{ '--i': 6 }">
-          <span class="nav-link nav-link--disabled">
-            <span class="nav-bullet">&loz;</span>
-            <span class="nav-text">{{ t.editions }}</span>
-            <span class="nav-note">&mdash; {{ t.editions_note }}</span>
-          </span>
-        </li>
-      </ul>
+    <!-- ===== MOBILE NAV ===== -->
+    <nav class="mobile-nav" aria-label="Navigation">
+      <div class="mnav-row">
+        <NuxtLink to="/le-geai" class="mnav-link">{{ t.identite }}</NuxtLink>
+        <span class="mnav-sep">&middot;</span>
+        <NuxtLink to="/recrutement" class="mnav-link">{{ t.recrutement }}</NuxtLink>
+        <span class="mnav-sep">&middot;</span>
+        <NuxtLink to="/soutenir" class="mnav-link mnav-link--warm">{{ t.soutenir }}</NuxtLink>
+      </div>
+      <div class="mnav-row mnav-row--secondary">
+        <a href="https://legeai-informatique.fr" target="_blank" rel="noopener noreferrer" class="mnav-link">{{ t.informatique }}&thinsp;&nearr;</a>
+        <span class="mnav-sep">&middot;</span>
+        <a href="https://bergfrid.com" target="_blank" rel="noopener noreferrer" class="mnav-link">{{ t.bergfrid }}&thinsp;&nearr;</a>
+        <span class="mnav-sep">&middot;</span>
+        <span class="mnav-link mnav-link--muted">{{ t.editions }}</span>
+      </div>
     </nav>
 
-    <!-- ============ ZONE 3 : Pied de page ============ -->
-    <div class="zone zone--footer">
-      <div class="footer-row">
-        <span class="footer-text">{{ t.copyright }}</span>
-        <span class="footer-sep">&middot;</span>
-        <button class="footer-btn" @click="toggleLang">{{ lang === 'fr' ? 'EN' : 'FR' }}</button>
-      </div>
+    <!-- ===== FOOTER ===== -->
+    <div class="footer-bar">
+      <span class="footer-text">{{ t.copyright }}</span>
+      <span class="footer-sep">&middot;</span>
+      <button class="footer-btn" @click="toggleLang">{{ lang === 'fr' ? 'EN' : 'FR' }}</button>
     </div>
   </div>
 </template>
@@ -204,7 +182,6 @@ onMounted(() => {
   --gold-faint: rgba(175, 143, 60, 0.10);
   --terracotta: #B74D34;
   --cream: #F7F0DE;
-  --green: #1F2C23;
   --ink: #2c2419;
 
   height: 100%;
@@ -217,503 +194,375 @@ onMounted(() => {
   overflow: hidden;
 }
 
-:global(.dark) .landing {
-  color: var(--cream);
-}
+:global(.dark) .landing { color: var(--cream); }
 
 /* ============================
    LAYERS
    ============================ */
 .noise-layer {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0.02;
-  mix-blend-mode: overlay;
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 1;
+  opacity: 0.02; mix-blend-mode: overlay;
 }
-
-:global(.dark) .noise-layer {
-  opacity: 0.035;
-}
+:global(.dark) .noise-layer { opacity: 0.035; }
 
 .vignette {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  background: radial-gradient(ellipse at center, transparent 35%, rgba(44, 36, 25, 0.06) 100%);
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 1;
+  background: radial-gradient(ellipse at center, transparent 30%, rgba(44, 36, 25, 0.07) 100%);
 }
-
 :global(.dark) .vignette {
-  background: radial-gradient(ellipse at center, transparent 25%, rgba(14, 21, 15, 0.35) 100%);
+  background: radial-gradient(ellipse at center, transparent 20%, rgba(10, 16, 11, 0.4) 100%);
 }
 
 /* ============================
-   WATERMARK — IMPOSING
+   WATERMARK
    ============================ */
 .watermark {
   position: fixed;
-  top: 50%;
-  left: 50%;
+  top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  width: clamp(380px, 90vmin, 760px);
-  height: clamp(380px, 90vmin, 760px);
-  pointer-events: none;
-  z-index: 0;
+  width: clamp(400px, 95vmin, 820px);
+  height: clamp(400px, 95vmin, 820px);
+  pointer-events: none; z-index: 0;
 }
-
 .watermark-img {
-  width: 100%;
-  height: 100%;
+  width: 100%; height: 100%;
   object-fit: contain;
   opacity: 0.04;
   transition: opacity 0.4s ease, filter 0.4s ease;
 }
-
 :global(.dark) .watermark-img {
-  filter: brightness(0) invert(0.88);
-  opacity: 0.05;
+  filter: brightness(0) invert(0.85);
+  opacity: 0.055;
 }
 
 /* ============================
-   GOLD FRAME
+   FRAME
    ============================ */
 .frame {
   position: fixed;
-  inset: clamp(10px, 2.5vw, 20px);
+  inset: clamp(10px, 2.5vw, 22px);
   border: 1px solid var(--gold-faint);
-  pointer-events: none;
-  z-index: 0;
+  pointer-events: none; z-index: 0;
 }
-
-.corner {
-  position: absolute;
-  width: 24px;
-  height: 24px;
-}
-
+.corner { position: absolute; width: 26px; height: 26px; }
 .corner--tl { top: -1px; left: -1px; border-top: 1.5px solid var(--gold-dim); border-left: 1.5px solid var(--gold-dim); }
 .corner--tr { top: -1px; right: -1px; border-top: 1.5px solid var(--gold-dim); border-right: 1.5px solid var(--gold-dim); }
 .corner--bl { bottom: -1px; left: -1px; border-bottom: 1.5px solid var(--gold-dim); border-left: 1.5px solid var(--gold-dim); }
 .corner--br { bottom: -1px; right: -1px; border-bottom: 1.5px solid var(--gold-dim); border-right: 1.5px solid var(--gold-dim); }
-
-.frame-mark {
-  position: absolute;
-  background: var(--gold-dim);
-}
-
-.frame-mark--top,
-.frame-mark--bottom {
-  width: 1px;
-  height: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
+.frame-mark { position: absolute; background: var(--gold-dim); }
+.frame-mark--top, .frame-mark--bottom { width: 1px; height: 10px; left: 50%; transform: translateX(-50%); }
 .frame-mark--top { top: -1px; }
 .frame-mark--bottom { bottom: -1px; }
-
-.frame-mark--left,
-.frame-mark--right {
-  width: 8px;
-  height: 1px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.frame-mark--left { left: -1px; }
-.frame-mark--right { right: -1px; }
 
 /* ============================
    TOP-RIGHT BAR
    ============================ */
 .top-bar {
   position: fixed;
-  top: clamp(18px, 3.5vw, 30px);
-  right: clamp(18px, 3.5vw, 30px);
+  top: clamp(18px, 3.5vw, 32px);
+  right: clamp(18px, 3.5vw, 32px);
   z-index: 10;
-  display: flex;
-  gap: 10px;
-  align-items: center;
+  display: flex; gap: 10px; align-items: center;
   opacity: 0;
   transition: opacity 0.8s ease 0.2s;
 }
+.is-visible .top-bar { opacity: 1; }
 
-.is-visible .top-bar {
-  opacity: 1;
-}
-
-.top-icon {
-  width: 38px;
-  height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.top-btn {
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
   border: 1px solid var(--gold-dim);
   border-radius: 50%;
   color: var(--gold);
   background: transparent;
   cursor: pointer;
-  transition: color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
-  opacity: 0.7;
+  opacity: 0.65;
+  transition: opacity 0.3s, border-color 0.3s, background 0.3s;
 }
-
-.top-icon:hover {
+.top-btn:hover {
   opacity: 1;
   border-color: var(--gold);
-  background: rgba(175, 143, 60, 0.06);
+  background: rgba(175, 143, 60, 0.07);
 }
+:global(.dark) .top-btn:hover { background: rgba(175, 143, 60, 0.12); }
 
-:global(.dark) .top-icon:hover {
-  background: rgba(175, 143, 60, 0.1);
-}
-
-.top-icon--key {
+.top-btn--key {
   border-color: var(--gold);
   opacity: 0.85;
 }
+.top-btn--key:hover { opacity: 1; background: rgba(175, 143, 60, 0.1); }
+:global(.dark) .top-btn--key:hover { background: rgba(175, 143, 60, 0.16); }
 
-.top-icon--key:hover {
-  background: rgba(175, 143, 60, 0.1);
-  opacity: 1;
+/* ============================
+   SPINE NAV (desktop — book-spine text along frame edges)
+   ============================ */
+.spine {
+  position: fixed;
+  top: 0; bottom: 0;
+  width: 40px;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s ease 0.6s;
+}
+.is-visible .spine { opacity: 1; }
+
+.spine--left { left: clamp(12px, 2.5vw, 22px); }
+.spine--right { right: clamp(12px, 2.5vw, 22px); }
+
+.spine-track {
+  display: flex; align-items: center; gap: 14px;
+  white-space: nowrap;
+  pointer-events: auto;
 }
 
-:global(.dark) .top-icon--key:hover {
-  background: rgba(175, 143, 60, 0.15);
+.spine--left .spine-track { transform: rotate(-90deg); }
+.spine--right .spine-track { transform: rotate(90deg); }
+
+.spine-link {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: inherit;
+  opacity: 0.35;
+  transition: opacity 0.3s, color 0.3s;
+  padding: 4px 0;
+}
+.spine-link:hover {
+  opacity: 1;
+  color: var(--gold);
+}
+
+.spine-link--warm:hover { color: var(--terracotta); }
+
+.spine-link--muted {
+  opacity: 0.15;
+  cursor: default;
+  font-style: italic;
+  letter-spacing: 0.08em;
+  text-transform: none;
+}
+
+.spine-dot {
+  font-size: 8px;
+  opacity: 0.2;
+  color: var(--gold);
+}
+
+@media (max-width: 899px) {
+  .spine { display: none; }
 }
 
 /* ============================
-   ZONES LAYOUT
+   CENTER
    ============================ */
-.zone {
+.center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
   z-index: 2;
   width: 100%;
+  padding: 0 clamp(50px, 8vw, 100px);
+}
+
+@media (max-width: 899px) {
+  .center { padding: 0 24px; }
+}
+
+.center-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
+  text-align: center;
 }
 
-.zone--header {
-  flex: 3 1 0%;
-  justify-content: flex-end;
-  padding-bottom: clamp(8px, 1.5vh, 20px);
-}
-
-.zone--nav {
-  flex: 5 1 0%;
-  justify-content: center;
-  padding: 0 24px;
-}
-
-.zone--footer {
-  flex: 0 0 auto;
-  justify-content: center;
-  padding: clamp(8px, 1.5vh, 16px) 0;
-}
-
-/* ============================
-   HEADER
-   ============================ */
-.landing-title {
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: clamp(1.8rem, 4.5vw, 3rem);
-  font-weight: 400;
-  letter-spacing: 0.35em;
+/* Subtitle */
+.subtitle {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: clamp(0.55rem, 1.2vw, 0.7rem);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
   opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 0.9s ease 0.2s, transform 0.9s ease 0.2s;
+  transition: opacity 0.8s ease 0.15s;
+  margin-bottom: clamp(8px, 1.5vh, 16px);
 }
+.is-visible .subtitle { opacity: 0.3; }
 
-.is-visible .landing-title {
+/* Title — MASSIVE */
+.title {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: clamp(2.8rem, 9vw, 6rem);
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  line-height: 1;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 1s ease 0.25s, transform 1s ease 0.25s;
+}
+.is-visible .title {
   opacity: 1;
   transform: translateY(0);
 }
 
-.ornament-divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: clamp(6px, 1vh, 12px);
+/* Ornament */
+.ornament {
+  display: flex; align-items: center; gap: 14px;
+  margin-top: clamp(8px, 1.5vh, 16px);
   opacity: 0;
-  transition: opacity 0.8s ease 0.45s;
+  transition: opacity 0.8s ease 0.5s;
 }
-
-.is-visible .ornament-divider {
-  opacity: 0.55;
-}
+.is-visible .ornament { opacity: 0.5; }
 
 .ornament-line {
-  width: clamp(28px, 7vw, 56px);
+  width: clamp(32px, 8vw, 64px);
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--gold), transparent);
 }
-
 .ornament-glyph {
   font-family: 'UnifrakturCook', cursive;
-  font-size: clamp(1rem, 2.2vw, 1.4rem);
+  font-size: clamp(1.1rem, 2.5vw, 1.6rem);
   color: var(--gold);
   line-height: 1;
 }
 
-.landing-motto {
+/* Motto */
+.motto {
   font-family: 'IM Fell DW Pica', Georgia, serif;
   font-style: italic;
-  font-size: clamp(1rem, 2.8vw, 1.35rem);
-  text-align: center;
-  margin-top: clamp(8px, 1.5vh, 18px);
+  font-size: clamp(1.1rem, 3.2vw, 1.6rem);
+  color: var(--gold);
+  margin-top: clamp(10px, 2vh, 22px);
+  letter-spacing: 0.05em;
   opacity: 0;
   transform: translateY(8px);
-  transition: opacity 0.9s ease 0.6s, transform 0.9s ease 0.6s;
-  letter-spacing: 0.05em;
+  transition: opacity 1s ease 0.65s, transform 1s ease 0.65s;
 }
-
-.is-visible .landing-motto {
+.is-visible .motto {
   opacity: 1;
   transform: translateY(0);
 }
 
-.motto-latin {
-  color: var(--gold);
-}
-
-.landing-motto-sub {
+.motto-sub {
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: clamp(0.6rem, 1.3vw, 0.75rem);
-  text-align: center;
-  margin-top: 3px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  margin-top: 4px;
   opacity: 0;
-  transition: opacity 0.8s ease 0.8s;
+  transition: opacity 0.8s ease 0.85s;
 }
-
-.is-visible .landing-motto-sub {
-  opacity: 0.35;
-}
+.is-visible .motto-sub { opacity: 0.3; }
 
 /* ============================
-   NAVIGATION — Table des matieres
+   MOBILE NAV
    ============================ */
-.nav-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
+.mobile-nav {
+  display: none;
   flex-direction: column;
   align-items: center;
-  gap: clamp(6px, 1.2vh, 12px);
-}
-
-.nav-entry {
-  opacity: 0;
-  transform: translateY(10px);
-  transition:
-    opacity 0.5s ease calc(0.8s + var(--i) * 0.07s),
-    transform 0.5s ease calc(0.8s + var(--i) * 0.07s);
-}
-
-.is-visible .nav-entry {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.nav-separator {
-  opacity: 0;
-  transition: opacity 0.5s ease calc(0.8s + var(--i) * 0.07s);
-  padding: clamp(2px, 0.4vh, 6px) 0;
-}
-
-.is-visible .nav-separator {
-  opacity: 1;
-}
-
-.sep-line {
-  width: clamp(20px, 5vw, 36px);
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
-  margin: 0 auto;
-}
-
-/* Nav link base */
-.nav-link {
-  display: inline-flex;
-  align-items: center;
-  gap: clamp(6px, 1.2vw, 10px);
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: clamp(0.95rem, 2.4vw, 1.15rem);
-  letter-spacing: 0.05em;
-  text-decoration: none;
-  color: inherit;
-  opacity: 0.55;
-  transition: opacity 0.3s ease, color 0.3s ease;
+  gap: 6px;
   position: relative;
-  padding: 2px 0;
-}
-
-.nav-link:hover {
-  opacity: 1;
-  color: var(--gold);
-}
-
-/* Gold underline on hover */
-.nav-link::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 50%;
-  right: 50%;
-  height: 1px;
-  background: var(--gold);
+  z-index: 2;
+  padding-bottom: clamp(6px, 1vh, 12px);
   opacity: 0;
-  transition: left 0.3s ease, right 0.3s ease, opacity 0.3s ease;
+  transition: opacity 0.8s ease 0.9s;
+}
+.is-visible .mobile-nav { opacity: 1; }
+
+@media (max-width: 899px) {
+  .mobile-nav { display: flex; }
 }
 
-.nav-link:hover::after {
-  left: 0;
-  right: 0;
-  opacity: 0.5;
+.mnav-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
-/* Bullet — small gold lozenge */
-.nav-bullet {
-  font-size: 0.5em;
-  color: var(--gold);
-  opacity: 0.5;
-  transition: opacity 0.3s ease;
-  line-height: 1;
-}
-
-.nav-link:hover .nav-bullet {
-  opacity: 1;
-}
-
-/* Arrow for external links */
-.nav-arrow {
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.7em;
-  opacity: 0.3;
-  transition: opacity 0.3s ease;
-}
-
-.nav-link:hover .nav-arrow {
+.mnav-row--secondary {
   opacity: 0.7;
 }
 
-/* Warm accent (Nous soutenir) */
-.nav-link--warm:hover {
-  color: var(--terracotta);
-}
-
-.nav-link--warm:hover::after {
-  background: var(--terracotta);
-}
-
-.nav-link--warm:hover .nav-bullet {
-  color: var(--terracotta);
-}
-
-/* Disabled (Editions) */
-.nav-link--disabled {
-  opacity: 0.25;
-  cursor: default;
-}
-
-.nav-link--disabled:hover {
-  opacity: 0.25;
-  color: inherit;
-}
-
-.nav-link--disabled::after {
-  display: none;
-}
-
-.nav-note {
+.mnav-link {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.7em;
+  font-size: clamp(10px, 2.5vw, 12px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: inherit;
+  opacity: 0.45;
+  transition: opacity 0.3s, color 0.3s;
+  padding: 2px 0;
+}
+.mnav-link:hover, .mnav-link:active {
+  opacity: 1;
+  color: var(--gold);
+}
+
+.mnav-link--warm:hover, .mnav-link--warm:active { color: var(--terracotta); }
+
+.mnav-link--muted {
+  opacity: 0.2;
+  cursor: default;
   font-style: italic;
-  opacity: 0.6;
-  letter-spacing: 0.02em;
+  text-transform: none;
+  letter-spacing: 0.04em;
+}
+
+.mnav-sep {
+  font-size: 8px;
+  opacity: 0.2;
 }
 
 /* ============================
    FOOTER
    ============================ */
-.footer-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.footer-bar {
+  position: relative;
+  z-index: 2;
+  display: flex; align-items: center; gap: 8px;
+  padding: clamp(6px, 1.2vh, 14px) 0;
   opacity: 0;
-  transition: opacity 0.8s ease 1.4s;
+  transition: opacity 0.8s ease 1.2s;
 }
-
-.is-visible .footer-row {
-  opacity: 0.3;
-}
-
-.footer-row:hover {
-  opacity: 0.6;
-}
+.is-visible .footer-bar { opacity: 0.25; }
+.footer-bar:hover { opacity: 0.55; }
 
 .footer-text {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: clamp(8px, 1.3vw, 10px);
+  font-size: clamp(8px, 1.2vw, 10px);
 }
-
-.footer-sep {
-  font-size: 7px;
-  opacity: 0.4;
-}
-
+.footer-sep { font-size: 7px; opacity: 0.4; }
 .footer-btn {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: clamp(8px, 1.3vw, 10px);
-  background: none;
-  border: none;
-  color: inherit;
-  cursor: pointer;
-  padding: 2px 4px;
+  font-size: clamp(8px, 1.2vw, 10px);
+  background: none; border: none; color: inherit;
+  cursor: pointer; padding: 2px 4px;
   letter-spacing: 0.05em;
-  transition: opacity 0.2s ease;
-  display: inline-flex;
-  align-items: center;
+  transition: opacity 0.2s;
+  display: inline-flex; align-items: center;
 }
-
-.footer-btn:hover {
-  opacity: 1;
-}
+.footer-btn:hover { opacity: 1; }
 
 /* ============================
    RESPONSIVE
    ============================ */
 @media (max-height: 580px) {
-  .landing-title {
-    font-size: clamp(1.2rem, 3vw, 1.8rem);
-  }
-
-  .landing-motto {
-    font-size: clamp(0.85rem, 2vw, 1rem);
-  }
-
-  .nav-list {
-    gap: 4px;
-  }
-
-  .nav-link {
-    font-size: clamp(0.85rem, 2vw, 1rem);
-  }
+  .title { font-size: clamp(1.8rem, 6vw, 3rem); }
+  .motto { font-size: clamp(0.9rem, 2.2vw, 1.1rem); }
 }
 
 @media (max-width: 379px) {
-  .top-bar {
-    top: 12px;
-    right: 12px;
-  }
-
-  .top-icon {
-    width: 34px;
-    height: 34px;
-  }
+  .top-bar { top: 12px; right: 12px; }
+  .top-btn { width: 36px; height: 36px; }
 }
 </style>
