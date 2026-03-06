@@ -48,7 +48,8 @@ export default defineNuxtConfig({
         'lucide:moon',
         'lucide:book-open',
         'lucide:feather',
-        'lucide:user'
+        'lucide:user',
+        'lucide:arrow-left'
       ],
       sizeLimitKb: 0
     }

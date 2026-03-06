@@ -23,10 +23,10 @@ useSeoMeta({
   ogSiteName: 'Le Geai'
 })
 
-const colorMode = useColorMode()
-const isDark = computed(() => colorMode.value === 'dark')
-function toggleTheme() {
-  colorMode.preference = isDark.value ? 'light' : 'dark'
+const { login: doLogin, user } = useAuth()
+
+if (user.value) {
+  await navigateTo('/dashboard')
 }
 
 const lang = ref<'fr' | 'en'>('fr')
@@ -37,31 +37,68 @@ const t = computed(() => lang.value === 'fr' ? {
   copyright: `\u00A9 ${new Date().getFullYear()} Le Geai`,
   identite: 'Notre identite',
   editions: 'Editions',
-  editions_note: 'en construction',
   informatique: 'Informatique',
   bergfrid: 'Bergfrid',
   recrutement: 'Recrutement',
-  soutenir: 'Nous soutenir'
+  connecter: 'Se connecter',
+  email: 'Email',
+  motdepasse: 'Mot de passe',
+  erreur: 'Email ou mot de passe incorrect',
+  retour: 'Retour'
 } : {
   motto: 'Darkness feeds the flame.',
   copyright: `\u00A9 ${new Date().getFullYear()} Le Geai`,
   identite: 'Our identity',
   editions: 'Publishing',
-  editions_note: 'coming soon',
   informatique: 'Tech',
   bergfrid: 'Bergfrid',
   recrutement: 'Careers',
-  soutenir: 'Support us'
+  connecter: 'Sign in',
+  email: 'Email',
+  motdepasse: 'Password',
+  erreur: 'Invalid email or password',
+  retour: 'Back'
 })
 
 const visible = ref(false)
-onMounted(() => {
-  requestAnimationFrame(() => { visible.value = true })
-})
+onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
+
+// Login
+const loginMode = ref(false)
+const email = ref('')
+const password = ref('')
+const loading = ref(false)
+const error = ref('')
+
+function openLogin() {
+  loginMode.value = true
+  nextTick(() => {
+    const input = document.querySelector('.login-panel input[type="email"]') as HTMLInputElement
+    if (input) setTimeout(() => input.focus(), 600)
+  })
+}
+
+function closeLogin() {
+  loginMode.value = false
+  error.value = ''
+}
+
+async function handleLogin() {
+  loading.value = true
+  error.value = ''
+  try {
+    await doLogin(email.value, password.value)
+    await navigateTo('/dashboard')
+  } catch {
+    error.value = t.value.erreur
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <template>
-  <div class="landing" :class="{ 'is-visible': visible }">
+  <div class="landing" :class="{ 'is-visible': visible, 'login-mode': loginMode }">
 
     <!-- Noise filter -->
     <svg class="sr-only" aria-hidden="true">
@@ -76,7 +113,7 @@ onMounted(() => {
     <!-- Vignette -->
     <div class="vignette" aria-hidden="true" />
 
-    <!-- Watermark — massive -->
+    <!-- Watermark — massive, animates to left on login -->
     <div class="watermark" aria-hidden="true">
       <img src="/logo.svg" alt="" class="watermark-img" />
     </div>
@@ -91,14 +128,11 @@ onMounted(() => {
       <div class="frame-mark frame-mark--bottom" />
     </div>
 
-    <!-- ===== TOP-RIGHT : key + theme ===== -->
+    <!-- ===== TOP-RIGHT : key ===== -->
     <header class="top-bar">
-      <button class="top-btn" :aria-label="isDark ? 'Mode clair' : 'Mode sombre'" @click="toggleTheme">
-        <UIcon :name="isDark ? 'i-lucide-sun' : 'i-lucide-moon'" class="size-4" />
-      </button>
-      <NuxtLink to="/login" class="top-btn top-btn--key" aria-label="Connexion">
+      <button class="top-btn top-btn--key" aria-label="Connexion" @click="openLogin">
         <UIcon name="i-lucide-key-round" class="size-4" />
-      </NuxtLink>
+      </button>
     </header>
 
     <!-- ===== SPINE NAV — left (desktop) ===== -->
@@ -107,8 +141,6 @@ onMounted(() => {
         <NuxtLink to="/le-geai" class="spine-link">{{ t.identite }}</NuxtLink>
         <span class="spine-sep" aria-hidden="true">—</span>
         <NuxtLink to="/recrutement" class="spine-link">{{ t.recrutement }}</NuxtLink>
-        <span class="spine-sep" aria-hidden="true">—</span>
-        <NuxtLink to="/soutenir" class="spine-link spine-link--warm">{{ t.soutenir }}</NuxtLink>
       </div>
     </nav>
 
@@ -126,21 +158,18 @@ onMounted(() => {
     <!-- ===== CENTER ===== -->
     <div class="center">
       <div class="center-inner">
-        <!-- Title -->
         <h1 class="title">
           <span class="title-main">Le</span>
           <span class="title-main">Geai</span>
           <span class="title-sub">groupe</span>
         </h1>
 
-        <!-- Ornament -->
         <div class="ornament">
           <div class="ornament-line" />
           <span class="ornament-glyph">G</span>
           <div class="ornament-line" />
         </div>
 
-        <!-- Motto -->
         <p class="motto">Obscuritas nutrit flammam.</p>
         <p class="motto-sub">{{ t.motto }}</p>
       </div>
@@ -152,8 +181,6 @@ onMounted(() => {
         <NuxtLink to="/le-geai" class="mnav-link">{{ t.identite }}</NuxtLink>
         <span class="mnav-sep">&middot;</span>
         <NuxtLink to="/recrutement" class="mnav-link">{{ t.recrutement }}</NuxtLink>
-        <span class="mnav-sep">&middot;</span>
-        <NuxtLink to="/soutenir" class="mnav-link mnav-link--warm">{{ t.soutenir }}</NuxtLink>
       </div>
       <div class="mnav-row mnav-row--secondary">
         <a href="https://legeai-informatique.fr" target="_blank" rel="noopener noreferrer" class="mnav-link">{{ t.informatique }}&thinsp;&nearr;</a>
@@ -170,6 +197,56 @@ onMounted(() => {
       <span class="footer-sep">&middot;</span>
       <button class="footer-btn" @click="toggleLang">{{ lang === 'fr' ? 'EN' : 'FR' }}</button>
     </div>
+
+    <!-- ===== LOGIN PANEL ===== -->
+    <div class="login-panel">
+      <button class="login-back" @click="closeLogin" :aria-label="t.retour">
+        <UIcon name="i-lucide-arrow-left" class="size-4" />
+        <span>{{ t.retour }}</span>
+      </button>
+
+      <div class="login-form-wrap">
+        <h2 class="login-title">{{ t.connecter }}</h2>
+        <div class="login-ornament">
+          <div class="login-ornament-line" />
+        </div>
+
+        <form class="login-form" @submit.prevent="handleLogin">
+          <div class="login-field">
+            <label class="login-label" for="login-email">{{ t.email }}</label>
+            <input
+              id="login-email"
+              v-model="email"
+              type="email"
+              required
+              autocomplete="email"
+              class="login-input"
+              placeholder="votre@email.fr"
+            />
+          </div>
+
+          <div class="login-field">
+            <label class="login-label" for="login-password">{{ t.motdepasse }}</label>
+            <input
+              id="login-password"
+              v-model="password"
+              type="password"
+              required
+              autocomplete="current-password"
+              class="login-input"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <p v-if="error" class="login-error">{{ error }}</p>
+
+          <button type="submit" class="login-submit" :disabled="loading">
+            <span v-if="loading" class="login-spinner" />
+            <span v-else>{{ t.connecter }}</span>
+          </button>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -184,6 +261,7 @@ onMounted(() => {
   --terracotta: #B74D34;
   --cream: #F7F0DE;
   --ink: #2c2419;
+  --transition: 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 
   height: 100%;
   display: flex;
@@ -226,16 +304,30 @@ onMounted(() => {
   width: clamp(400px, 95vmin, 820px);
   height: clamp(400px, 95vmin, 820px);
   pointer-events: none; z-index: 0;
+  transition: left var(--transition), width var(--transition), height var(--transition);
 }
 .watermark-img {
   width: 100%; height: 100%;
   object-fit: contain;
   opacity: 0.04;
-  transition: opacity 0.4s ease, filter 0.4s ease;
+  transition: opacity var(--transition), filter 0.4s ease;
 }
 :global(.dark) .watermark-img {
   filter: brightness(0) invert(0.85);
   opacity: 0.055;
+}
+
+/* Login mode — logo slides left, half visible */
+.login-mode .watermark {
+  left: 0;
+  width: clamp(500px, 90vh, 900px);
+  height: clamp(500px, 90vh, 900px);
+}
+.login-mode .watermark-img {
+  opacity: 0.12;
+}
+:global(.dark) .login-mode .watermark-img {
+  opacity: 0.14;
 }
 
 /* ============================
@@ -246,7 +338,10 @@ onMounted(() => {
   inset: clamp(10px, 2.5vw, 22px);
   border: 1px solid var(--gold-faint);
   pointer-events: none; z-index: 0;
+  transition: opacity var(--transition);
 }
+.login-mode .frame { opacity: 0.3; }
+
 .corner { position: absolute; width: 26px; height: 26px; }
 .corner--tl { top: -1px; left: -1px; border-top: 1.5px solid var(--gold-dim); border-left: 1.5px solid var(--gold-dim); }
 .corner--tr { top: -1px; right: -1px; border-top: 1.5px solid var(--gold-dim); border-right: 1.5px solid var(--gold-dim); }
@@ -270,40 +365,32 @@ onMounted(() => {
   transition: opacity 0.8s ease 0.2s;
 }
 .is-visible .top-bar { opacity: 1; }
+.login-mode .top-bar { opacity: 0; pointer-events: none; }
 
 .top-btn {
   width: 40px; height: 40px;
   display: flex; align-items: center; justify-content: center;
-  border: 1px solid var(--gold-dim);
+  border: 1px solid var(--gold);
   border-radius: 50%;
   color: var(--gold);
   background: transparent;
   cursor: pointer;
-  opacity: 0.7;
-  transition: opacity 0.3s, border-color 0.3s, background 0.3s, transform 0.3s;
+  opacity: 0.9;
+  transition: opacity 0.3s, background 0.3s;
 }
 .top-btn:hover {
   opacity: 1;
-  border-color: var(--gold);
-  background: rgba(175, 143, 60, 0.07);
+  background: rgba(175, 143, 60, 0.1);
 }
 .top-btn:focus-visible {
   opacity: 1;
-  border-color: var(--gold);
   outline: 1px solid var(--gold-dim);
   outline-offset: 3px;
 }
-:global(.dark) .top-btn:hover { background: rgba(175, 143, 60, 0.12); }
-
-.top-btn--key {
-  border-color: var(--gold);
-  opacity: 0.9;
-}
-.top-btn--key:hover { opacity: 1; background: rgba(175, 143, 60, 0.1); }
-:global(.dark) .top-btn--key:hover { background: rgba(175, 143, 60, 0.16); }
+:global(.dark) .top-btn:hover { background: rgba(175, 143, 60, 0.16); }
 
 /* ============================
-   SPINE NAV (desktop — book-spine along frame edges)
+   SPINE NAV
    ============================ */
 .spine {
   position: fixed;
@@ -316,6 +403,7 @@ onMounted(() => {
   transition: opacity 1s ease 0.6s;
 }
 .is-visible .spine { opacity: 1; }
+.login-mode .spine { opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
 
 .spine--left { left: clamp(10px, 2.2vw, 20px); }
 .spine--right { right: clamp(10px, 2.2vw, 20px); }
@@ -338,7 +426,7 @@ onMounted(() => {
   color: var(--gold);
   opacity: 0.75;
   padding: 6px 2px;
-  transition: opacity 0.3s, color 0.3s;
+  transition: opacity 0.3s;
 }
 .spine-link:hover, .spine-link:focus-visible {
   opacity: 1;
@@ -347,8 +435,6 @@ onMounted(() => {
   outline: 1px solid var(--gold-dim);
   outline-offset: 4px;
 }
-
-.spine-link--warm { color: var(--terracotta); }
 
 .spine-link--muted {
   opacity: 0.3;
@@ -382,6 +468,12 @@ onMounted(() => {
   z-index: 2;
   width: 100%;
   padding: 0 clamp(50px, 8vw, 100px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.login-mode .center {
+  opacity: 0;
+  transform: translateY(-30px);
+  pointer-events: none;
 }
 
 @media (max-width: 899px) {
@@ -494,6 +586,7 @@ onMounted(() => {
   transition: opacity 0.8s ease 0.9s;
 }
 .is-visible .mobile-nav { opacity: 1; }
+.login-mode .mobile-nav { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
 
 @media (max-width: 899px) {
   .mobile-nav { display: flex; }
@@ -507,9 +600,7 @@ onMounted(() => {
   justify-content: center;
 }
 
-.mnav-row--secondary {
-  opacity: 0.7;
-}
+.mnav-row--secondary { opacity: 0.7; }
 
 .mnav-link {
   font-family: 'Crimson Pro', Georgia, serif;
@@ -517,17 +608,12 @@ onMounted(() => {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   text-decoration: none;
-  color: inherit;
-  opacity: 0.6;
-  transition: opacity 0.3s, color 0.3s;
+  color: var(--gold);
+  opacity: 0.7;
+  transition: opacity 0.3s;
   padding: 4px 2px;
 }
-.mnav-link:hover, .mnav-link:active {
-  opacity: 1;
-  color: var(--gold);
-}
-
-.mnav-link--warm:hover, .mnav-link--warm:active { color: var(--terracotta); }
+.mnav-link:hover, .mnav-link:active { opacity: 1; }
 
 .mnav-link--muted {
   opacity: 0.3;
@@ -535,11 +621,13 @@ onMounted(() => {
   font-style: italic;
   text-transform: none;
   letter-spacing: 0.04em;
+  color: inherit;
 }
 
 .mnav-sep {
   font-size: 8px;
-  opacity: 0.2;
+  opacity: 0.25;
+  color: var(--gold);
 }
 
 /* ============================
@@ -555,6 +643,7 @@ onMounted(() => {
 }
 .is-visible .footer-bar { opacity: 0.35; }
 .footer-bar:hover { opacity: 0.6; }
+.login-mode .footer-bar { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
 
 .footer-text {
   font-family: 'Crimson Pro', Georgia, serif;
@@ -573,11 +662,172 @@ onMounted(() => {
 .footer-btn:hover { opacity: 1; }
 
 /* ============================
+   LOGIN PANEL
+   ============================ */
+.login-panel {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: 50%;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(24px, 4vw, 48px);
+  opacity: 0;
+  transform: translateX(40px);
+  pointer-events: none;
+  transition: opacity 0.7s ease 0.15s, transform 0.7s cubic-bezier(0.4, 0, 0.2, 1) 0.15s;
+}
+.login-mode .login-panel {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.login-back {
+  position: absolute;
+  top: clamp(20px, 3.5vw, 36px);
+  left: clamp(20px, 3vw, 40px);
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0.6;
+  background: none; border: none;
+  cursor: pointer;
+  transition: opacity 0.3s;
+}
+.login-back:hover { opacity: 1; }
+
+.login-form-wrap {
+  width: 100%;
+  max-width: 320px;
+}
+
+.login-title {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.login-ornament {
+  display: flex; justify-content: center;
+  margin-bottom: clamp(24px, 4vh, 40px);
+}
+.login-ornament-line {
+  width: 40px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.login-label {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+.login-input {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  padding: 12px 16px;
+  background: transparent;
+  border: 1px solid var(--gold-dim);
+  border-radius: 0;
+  color: inherit;
+  outline: none;
+  transition: border-color 0.3s;
+}
+.login-input::placeholder {
+  color: inherit;
+  opacity: 0.25;
+}
+.login-input:focus {
+  border-color: var(--gold);
+}
+
+.login-error {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 13px;
+  color: var(--terracotta);
+  text-align: center;
+}
+
+.login-submit {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 14px 24px;
+  background: transparent;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+  margin-top: 4px;
+}
+.login-submit:hover:not(:disabled) {
+  background: var(--gold);
+  color: var(--cream);
+}
+:global(.dark) .login-submit:hover:not(:disabled) {
+  color: var(--ink);
+}
+.login-submit:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.login-spinner {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 1.5px solid var(--gold-dim);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================
    RESPONSIVE
    ============================ */
 @media (max-height: 580px) {
   .title-main { font-size: clamp(2rem, 7vw, 3.5rem); }
   .motto { font-size: clamp(0.9rem, 2.2vw, 1.1rem); }
+}
+
+@media (max-width: 899px) {
+  .login-panel {
+    width: 100%;
+  }
+  .login-mode .watermark {
+    left: 50%;
+    opacity: 0.06;
+    width: clamp(300px, 80vmin, 500px);
+    height: clamp(300px, 80vmin, 500px);
+  }
 }
 
 @media (max-width: 379px) {
