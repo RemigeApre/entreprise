@@ -1,21 +1,10 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'public' })
 
-useHead({
-  link: [
-    { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-    { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-    {
-      rel: 'stylesheet',
-      href: 'https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IM+Fell+DW+Pica:ital@0;1&family=UnifrakturCook:wght@700&display=swap'
-    }
-  ]
-})
-
 useSeoMeta({
-  title: 'L\u2019entreprise - Le Geai',
+  title: 'L\u2019entreprise \u2014 Le Geai',
   description: 'Decouvrez les valeurs, la vision et les poles du groupe Le Geai.',
-  ogTitle: 'Le Geai - L\u2019entreprise',
+  ogTitle: 'Le Geai \u2014 L\u2019entreprise',
   ogDescription: 'Un groupe fonde sur l\u2019exigence, la creativite et l\u2019accessibilite.'
 })
 
@@ -37,36 +26,30 @@ const branches = [
 </script>
 
 <template>
-  <div class="page-entreprise">
+  <div class="page-entreprise" :class="{ 'is-visible': visible }">
     <!-- Hero -->
     <section class="hero">
-      <div
-        class="hero-inner"
-        :class="visible ? 'is-visible' : ''"
-      >
-        <div class="hero-ornament">
-          <div class="hero-line" />
-          <span class="hero-glyph">G</span>
-          <div class="hero-line" />
-        </div>
-        <h1 class="hero-title">L'entreprise</h1>
-        <p class="hero-sub">
-          Le Geai reunit des savoir-faire complementaires autour d'une conviction commune&nbsp;:
-          creer avec exigence, partager avec sincerite.
-        </p>
+      <div class="hero-ornament">
+        <div class="hero-line" />
+        <span class="hero-glyph">G</span>
+        <div class="hero-line" />
       </div>
+      <h1 class="hero-title">L'entreprise</h1>
+      <p class="hero-sub">
+        Le Geai reunit des savoir-faire complementaires autour d'une conviction commune&nbsp;:
+        creer avec exigence, partager avec sincerite.
+      </p>
     </section>
 
     <!-- Values -->
     <section class="section">
-      <h2 class="section-label" :class="visible ? 'is-visible' : ''">Nos valeurs</h2>
+      <h2 class="section-label">Nos valeurs</h2>
       <div class="values-grid">
         <div
           v-for="(val, i) in values"
           :key="val.title"
           class="value-card"
-          :class="visible ? 'is-visible' : ''"
-          :style="{ transitionDelay: `${300 + i * 150}ms` }"
+          :style="{ transitionDelay: `${400 + i * 150}ms` }"
         >
           <span class="value-numeral">{{ val.numeral }}</span>
           <h3 class="value-title">{{ val.title }}</h3>
@@ -77,14 +60,13 @@ const branches = [
 
     <!-- Branches -->
     <section class="section">
-      <h2 class="section-label" :class="visible ? 'is-visible' : ''">Nos poles</h2>
+      <h2 class="section-label section-label--delay">Nos poles</h2>
       <div class="branches-grid">
         <div
           v-for="(branch, i) in branches"
           :key="branch.title"
           class="branch-card"
-          :class="visible ? 'is-visible' : ''"
-          :style="{ transitionDelay: `${500 + i * 150}ms` }"
+          :style="{ transitionDelay: `${700 + i * 150}ms` }"
         >
           <h3 class="branch-title">{{ branch.title }}</h3>
           <p class="branch-desc">{{ branch.desc }}</p>
@@ -104,6 +86,9 @@ const branches = [
 
     <!-- Footer -->
     <footer class="page-footer">
+      <div class="footer-ornament">
+        <div class="footer-line" />
+      </div>
       <p>&copy; {{ new Date().getFullYear() }} Groupe Le Geai</p>
     </footer>
   </div>
@@ -119,51 +104,54 @@ const branches = [
 
 /* Hero */
 .hero {
-  padding: clamp(60px, 10vh, 120px) clamp(24px, 5vw, 48px) clamp(40px, 6vh, 80px);
+  padding: clamp(60px, 12vh, 140px) clamp(24px, 5vw, 48px) clamp(40px, 6vh, 80px);
   text-align: center;
-}
-.hero-inner {
-  max-width: 600px;
-  margin: 0 auto;
-  opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 1s ease, transform 1s ease;
-}
-.hero-inner.is-visible {
-  opacity: 1;
-  transform: translateY(0);
 }
 
 .hero-ornament {
-  display: flex; align-items: center; justify-content: center; gap: 12px;
-  margin-bottom: 20px;
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  margin-bottom: 24px;
+  opacity: 0;
+  transition: opacity 0.8s ease 0.3s;
 }
+.is-visible .hero-ornament { opacity: 0.5; }
+
 .hero-line {
-  width: 40px; height: 1px;
+  width: clamp(32px, 8vw, 64px); height: 1px;
   background: linear-gradient(90deg, transparent, var(--gold), transparent);
 }
 .hero-glyph {
   font-family: 'UnifrakturCook', cursive;
-  font-size: 1.4rem;
+  font-size: clamp(1.1rem, 2.5vw, 1.6rem);
   color: var(--gold);
   line-height: 1;
 }
 
 .hero-title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-size: clamp(2.4rem, 6vw, 4rem);
   font-weight: 400;
-  letter-spacing: 0.12em;
-  margin-bottom: 16px;
+  letter-spacing: 0.15em;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 1s ease 0.1s, transform 1s ease 0.1s;
+}
+.is-visible .hero-title {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .hero-sub {
-  font-size: clamp(0.9rem, 2vw, 1.05rem);
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-style: italic;
+  font-size: clamp(0.9rem, 2vw, 1.1rem);
   line-height: 1.7;
-  opacity: 0.55;
-  max-width: 480px;
-  margin: 0 auto;
+  opacity: 0;
+  max-width: 520px;
+  margin: 16px auto 0;
+  transition: opacity 0.8s ease 0.5s;
 }
+.is-visible .hero-sub { opacity: 0.5; }
 
 /* Section */
 .section {
@@ -181,27 +169,56 @@ const branches = [
   opacity: 0;
   color: var(--gold);
   margin-bottom: clamp(28px, 4vh, 44px);
-  transition: opacity 0.8s ease;
+  transition: opacity 0.8s ease 0.3s;
 }
-.section-label.is-visible { opacity: 0.6; }
+.is-visible .section-label { opacity: 0.6; }
+.section-label--delay { transition-delay: 0.6s; }
 
 /* Values */
 .values-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: clamp(20px, 3vw, 32px);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: clamp(16px, 3vw, 24px);
 }
 
 .value-card {
-  padding: 24px;
+  padding: 28px 24px;
   border: 1px solid var(--gold-faint);
+  position: relative;
   opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 0.7s ease, transform 0.7s ease, border-color 0.3s;
+  transform: translateY(14px);
+  transition: opacity 0.7s ease, transform 0.7s ease, border-color 0.4s;
 }
-.value-card.is-visible {
+.is-visible .value-card {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* Corner accents on cards */
+.value-card::before,
+.value-card::after {
+  content: '';
+  position: absolute;
+  width: 16px; height: 16px;
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.3s;
+  opacity: 0;
+}
+.value-card::before {
+  top: -1px; left: -1px;
+  border-top: 1px solid var(--gold);
+  border-left: 1px solid var(--gold);
+}
+.value-card::after {
+  bottom: -1px; right: -1px;
+  border-bottom: 1px solid var(--gold);
+  border-right: 1px solid var(--gold);
+}
+.value-card:hover::before,
+.value-card:hover::after {
+  width: 22px; height: 22px;
+  opacity: 0.5;
 }
 .value-card:hover { border-color: var(--gold-dim); }
 
@@ -211,7 +228,12 @@ const branches = [
   color: var(--gold);
   opacity: 0.5;
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  transition: opacity 0.3s, text-shadow 0.4s;
+}
+.value-card:hover .value-numeral {
+  opacity: 0.8;
+  text-shadow: 0 0 12px rgba(175, 143, 60, 0.3);
 }
 
 .value-title {
@@ -219,13 +241,15 @@ const branches = [
   font-size: 1.15rem;
   font-weight: 400;
   letter-spacing: 0.06em;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  transition: color 0.3s;
 }
+.value-card:hover .value-title { color: var(--gold); }
 
 .value-text {
   font-size: 0.88rem;
-  line-height: 1.65;
-  opacity: 0.5;
+  line-height: 1.7;
+  opacity: 0.45;
 }
 
 /* Branches */
@@ -236,15 +260,41 @@ const branches = [
 }
 
 .branch-card {
-  padding: 24px;
+  padding: 28px 24px;
   border: 1px solid var(--gold-faint);
+  position: relative;
   opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 0.7s ease, transform 0.7s ease, border-color 0.3s;
+  transform: translateY(14px);
+  transition: opacity 0.7s ease, transform 0.7s ease, border-color 0.4s;
 }
-.branch-card.is-visible {
+.is-visible .branch-card {
   opacity: 1;
   transform: translateY(0);
+}
+.branch-card::before,
+.branch-card::after {
+  content: '';
+  position: absolute;
+  width: 16px; height: 16px;
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.3s;
+  opacity: 0;
+}
+.branch-card::before {
+  top: -1px; left: -1px;
+  border-top: 1px solid var(--gold);
+  border-left: 1px solid var(--gold);
+}
+.branch-card::after {
+  bottom: -1px; right: -1px;
+  border-bottom: 1px solid var(--gold);
+  border-right: 1px solid var(--gold);
+}
+.branch-card:hover::before,
+.branch-card:hover::after {
+  width: 22px; height: 22px;
+  opacity: 0.5;
 }
 .branch-card:hover { border-color: var(--gold-dim); }
 
@@ -253,28 +303,32 @@ const branches = [
   font-size: 1.1rem;
   font-weight: 400;
   letter-spacing: 0.06em;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  transition: color 0.3s;
 }
+.branch-card:hover .branch-title { color: var(--gold); }
 
 .branch-desc {
   font-size: 0.88rem;
-  line-height: 1.6;
-  opacity: 0.5;
-  margin-bottom: 14px;
+  line-height: 1.65;
+  opacity: 0.45;
+  margin-bottom: 16px;
 }
 
 .branch-link {
+  font-family: 'Crimson Pro', Georgia, serif;
   font-size: 12px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   text-decoration: none;
   color: var(--gold);
-  opacity: 0.7;
-  transition: opacity 0.3s;
+  opacity: 0.6;
+  transition: opacity 0.3s, letter-spacing 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.branch-link:hover { opacity: 1; }
+.branch-link:hover { opacity: 1; letter-spacing: 0.22em; }
 
 .branch-status {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
   font-size: 12px;
   font-style: italic;
   opacity: 0.3;
@@ -283,9 +337,21 @@ const branches = [
 /* Footer */
 .page-footer {
   text-align: center;
-  padding: 24px;
+  padding: clamp(32px, 6vh, 56px) 24px 24px;
+}
+
+.footer-ornament {
+  display: flex; justify-content: center;
+  margin-bottom: 16px;
+}
+.footer-line {
+  width: 40px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+}
+
+.page-footer p {
   font-size: 11px;
-  opacity: 0.25;
-  letter-spacing: 0.05em;
+  opacity: 0.2;
+  letter-spacing: 0.08em;
 }
 </style>

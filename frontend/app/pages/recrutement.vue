@@ -4,21 +4,10 @@ import type { OffreEmploi } from '~/utils/types'
 
 definePageMeta({ layout: 'public' })
 
-useHead({
-  link: [
-    { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-    { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-    {
-      rel: 'stylesheet',
-      href: 'https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IM+Fell+DW+Pica:ital@0;1&family=UnifrakturCook:wght@700&display=swap'
-    }
-  ]
-})
-
 useSeoMeta({
-  title: 'Recrutement - Le Geai',
+  title: 'Recrutement \u2014 Le Geai',
   description: 'Decouvrez les offres d\'emploi du groupe Le Geai.',
-  ogTitle: 'Recrutement - Le Geai',
+  ogTitle: 'Recrutement \u2014 Le Geai',
   ogDescription: 'Rejoignez-nous. Decouvrez les opportunites au sein du groupe Le Geai.'
 })
 
@@ -74,23 +63,18 @@ function formatDate(date: string) {
 </script>
 
 <template>
-  <div class="page-recrutement">
+  <div class="page-recrutement" :class="{ 'is-visible': visible }">
     <!-- Hero -->
     <section class="hero">
-      <div
-        class="hero-inner"
-        :class="visible ? 'is-visible' : ''"
-      >
-        <div class="hero-ornament">
-          <div class="hero-line" />
-          <span class="hero-glyph">G</span>
-          <div class="hero-line" />
-        </div>
-        <h1 class="hero-title">Recrutement</h1>
-        <p class="hero-sub">
-          Decouvrez les opportunites au sein du groupe Le Geai.
-        </p>
+      <div class="hero-ornament">
+        <div class="hero-line" />
+        <span class="hero-glyph">G</span>
+        <div class="hero-line" />
       </div>
+      <h1 class="hero-title">Recrutement</h1>
+      <p class="hero-sub">
+        Decouvrez les opportunites au sein du groupe Le Geai.
+      </p>
     </section>
 
     <!-- Content -->
@@ -101,11 +85,7 @@ function formatDate(date: string) {
       </div>
 
       <!-- Empty -->
-      <div
-        v-else-if="!offres?.length"
-        class="empty"
-        :class="visible ? 'is-visible' : ''"
-      >
+      <div v-else-if="!offres?.length" class="empty">
         <p class="empty-title">Aucune offre pour le moment</p>
         <p class="empty-text">Revenez bientot, de nouvelles opportunites sont en preparation.</p>
       </div>
@@ -116,8 +96,7 @@ function formatDate(date: string) {
           v-for="(offre, i) in offres"
           :key="offre.id"
           class="offre-card"
-          :class="visible ? 'is-visible' : ''"
-          :style="{ transitionDelay: `${300 + i * 100}ms` }"
+          :style="{ transitionDelay: `${400 + i * 120}ms` }"
           @click="openDetail(offre)"
         >
           <div class="offre-header">
@@ -178,6 +157,9 @@ function formatDate(date: string) {
 
     <!-- Footer -->
     <footer class="page-footer">
+      <div class="footer-ornament">
+        <div class="footer-line" />
+      </div>
       <p>&copy; {{ new Date().getFullYear() }} Groupe Le Geai</p>
     </footer>
   </div>
@@ -188,55 +170,59 @@ function formatDate(date: string) {
   --gold: #AF8F3C;
   --gold-dim: rgba(175, 143, 60, 0.28);
   --gold-faint: rgba(175, 143, 60, 0.10);
-  --terracotta: #B74D34;
   font-family: 'Crimson Pro', Georgia, serif;
 }
 
 /* Hero */
 .hero {
-  padding: clamp(60px, 10vh, 120px) clamp(24px, 5vw, 48px) clamp(40px, 6vh, 80px);
+  padding: clamp(60px, 12vh, 140px) clamp(24px, 5vw, 48px) clamp(40px, 6vh, 80px);
   text-align: center;
-}
-.hero-inner {
-  max-width: 600px;
-  margin: 0 auto;
-  opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 1s ease, transform 1s ease;
-}
-.hero-inner.is-visible {
-  opacity: 1;
-  transform: translateY(0);
 }
 
 .hero-ornament {
-  display: flex; align-items: center; justify-content: center; gap: 12px;
-  margin-bottom: 20px;
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  margin-bottom: 24px;
+  opacity: 0;
+  transition: opacity 0.8s ease 0.3s;
 }
+.is-visible .hero-ornament { opacity: 0.5; }
+
 .hero-line {
-  width: 40px; height: 1px;
+  width: clamp(32px, 8vw, 64px); height: 1px;
   background: linear-gradient(90deg, transparent, var(--gold), transparent);
 }
 .hero-glyph {
   font-family: 'UnifrakturCook', cursive;
-  font-size: 1.4rem;
+  font-size: clamp(1.1rem, 2.5vw, 1.6rem);
   color: var(--gold);
   line-height: 1;
 }
 
 .hero-title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-size: clamp(2.4rem, 6vw, 4rem);
   font-weight: 400;
-  letter-spacing: 0.12em;
-  margin-bottom: 16px;
+  letter-spacing: 0.15em;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 1s ease 0.1s, transform 1s ease 0.1s;
+}
+.is-visible .hero-title {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .hero-sub {
-  font-size: clamp(0.9rem, 2vw, 1.05rem);
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-style: italic;
+  font-size: clamp(0.9rem, 2vw, 1.1rem);
   line-height: 1.7;
-  opacity: 0.55;
+  opacity: 0;
+  max-width: 480px;
+  margin: 16px auto 0;
+  transition: opacity 0.8s ease 0.5s;
 }
+.is-visible .hero-sub { opacity: 0.5; }
 
 /* Section */
 .section {
@@ -265,7 +251,7 @@ function formatDate(date: string) {
   opacity: 0;
   transition: opacity 0.7s ease 0.3s;
 }
-.empty.is-visible { opacity: 1; }
+.is-visible .empty { opacity: 1; }
 .empty-title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
   font-size: 1.1rem;
@@ -273,7 +259,7 @@ function formatDate(date: string) {
 }
 .empty-text {
   font-size: 0.88rem;
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
 /* Offres */
@@ -284,16 +270,44 @@ function formatDate(date: string) {
 }
 
 .offre-card {
-  padding: 24px;
+  padding: 28px 24px;
   border: 1px solid var(--gold-faint);
   cursor: pointer;
+  position: relative;
   opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 0.7s ease, transform 0.7s ease, border-color 0.3s;
+  transform: translateY(14px);
+  transition: opacity 0.7s ease, transform 0.7s ease, border-color 0.4s;
 }
-.offre-card.is-visible {
+.is-visible .offre-card {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* Corner accents */
+.offre-card::before,
+.offre-card::after {
+  content: '';
+  position: absolute;
+  width: 16px; height: 16px;
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.3s;
+  opacity: 0;
+}
+.offre-card::before {
+  top: -1px; left: -1px;
+  border-top: 1px solid var(--gold);
+  border-left: 1px solid var(--gold);
+}
+.offre-card::after {
+  bottom: -1px; right: -1px;
+  border-bottom: 1px solid var(--gold);
+  border-right: 1px solid var(--gold);
+}
+.offre-card:hover::before,
+.offre-card:hover::after {
+  width: 22px; height: 22px;
+  opacity: 0.5;
 }
 .offre-card:hover { border-color: var(--gold-dim); }
 
@@ -337,7 +351,7 @@ function formatDate(date: string) {
 .offre-desc {
   font-size: 0.88rem;
   line-height: 1.6;
-  opacity: 0.45;
+  opacity: 0.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -377,7 +391,7 @@ function formatDate(date: string) {
 
 .slideover-divider {
   height: 1px;
-  background: var(--gold-faint);
+  background: linear-gradient(90deg, transparent, var(--gold-faint), transparent);
 }
 
 .slideover-section-title {
@@ -407,9 +421,21 @@ function formatDate(date: string) {
 /* Footer */
 .page-footer {
   text-align: center;
-  padding: 24px;
+  padding: clamp(32px, 6vh, 56px) 24px 24px;
+}
+
+.footer-ornament {
+  display: flex; justify-content: center;
+  margin-bottom: 16px;
+}
+.footer-line {
+  width: 40px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+}
+
+.page-footer p {
   font-size: 11px;
-  opacity: 0.25;
-  letter-spacing: 0.05em;
+  opacity: 0.2;
+  letter-spacing: 0.08em;
 }
 </style>
