@@ -25,9 +25,7 @@ useSeoMeta({
 
 const { login: doLogin, user } = useAuth()
 
-if (user.value) {
-  await navigateTo('/dashboard')
-}
+// Logged-in users can still see the landing page — no auto-redirect
 
 const lang = ref<'fr' | 'en'>('fr')
 function toggleLang() { lang.value = lang.value === 'fr' ? 'en' : 'fr' }

@@ -38,21 +38,26 @@ const { data: offres, status } = useAsyncData('offres-publiques', async () => {
 })
 
 const selectedOffre = ref<OffreEmploi | null>(null)
-const isSlideoverOpen = ref(false)
+const detailMode = ref(false)
 
 const visible = ref(false)
 onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
 
 function openDetail(offre: OffreEmploi) {
   selectedOffre.value = offre
-  isSlideoverOpen.value = true
+  detailMode.value = true
+}
+
+function closeDetail() {
+  detailMode.value = false
+  setTimeout(() => { selectedOffre.value = null }, 1400)
 }
 
 function formatSalaire(offre: OffreEmploi) {
   if (!offre.salaire_min && !offre.salaire_max) return null
   const periodeLabel = offre.salaire_periode === 'mois' ? '/mois' : offre.salaire_periode === 'annee' ? '/an' : '/h'
   if (offre.salaire_min && offre.salaire_max) {
-    return `${offre.salaire_min.toLocaleString('fr-FR')} - ${offre.salaire_max.toLocaleString('fr-FR')} EUR${periodeLabel}`
+    return `${offre.salaire_min.toLocaleString('fr-FR')} \u2013 ${offre.salaire_max.toLocaleString('fr-FR')} EUR${periodeLabel}`
   }
   return `${(offre.salaire_min || offre.salaire_max)!.toLocaleString('fr-FR')} EUR${periodeLabel}`
 }
@@ -63,105 +68,121 @@ function formatDate(date: string) {
 </script>
 
 <template>
-  <div class="page-recrutement" :class="{ 'is-visible': visible }">
-    <!-- Hero -->
-    <section class="hero">
-      <div class="hero-ornament">
-        <div class="hero-line" />
-        <span class="hero-glyph">G</span>
-        <div class="hero-line" />
-      </div>
-      <h1 class="hero-title">Recrutement</h1>
-      <p class="hero-sub">
-        Decouvrez les opportunites au sein du groupe Le Geai.
-      </p>
-    </section>
+  <div
+    class="page-recrutement"
+    :class="{ 'is-visible': visible, 'detail-mode': detailMode }"
+  >
+    <!-- Watermark (own copy for animation control) -->
+    <div class="rec-watermark" aria-hidden="true">
+      <img src="/logo.svg" alt="" class="rec-watermark-img" />
+    </div>
 
-    <!-- Content -->
-    <section class="section">
-      <!-- Loading -->
-      <div v-if="status === 'pending'" class="loading">
-        <div class="spinner" />
-      </div>
-
-      <!-- Empty -->
-      <div v-else-if="!offres?.length" class="empty">
-        <p class="empty-title">Aucune offre pour le moment</p>
-        <p class="empty-text">Revenez bientot, de nouvelles opportunites sont en preparation.</p>
-      </div>
-
-      <!-- Job listings -->
-      <div v-else class="offres-list">
-        <article
-          v-for="(offre, i) in offres"
-          :key="offre.id"
-          class="offre-card"
-          :style="{ transitionDelay: `${400 + i * 120}ms` }"
-          @click="openDetail(offre)"
-        >
-          <div class="offre-header">
-            <div>
-              <h2 class="offre-title">{{ offre.titre }}</h2>
-              <div class="offre-meta">
-                <span v-if="offre.localisation">{{ offre.localisation }}</span>
-                <span v-if="formatSalaire(offre)">{{ formatSalaire(offre) }}</span>
-                <span v-if="offre.date_publication">{{ formatDate(offre.date_publication) }}</span>
-              </div>
-            </div>
-            <span class="offre-badge">{{ offre.type_contrat }}</span>
-          </div>
-          <p class="offre-desc" v-html="offre.description" />
-        </article>
-      </div>
-    </section>
-
-    <!-- Detail slideover -->
-    <USlideover v-model:open="isSlideoverOpen">
-      <template #content>
-        <div v-if="selectedOffre" class="slideover-content">
-          <div class="slideover-header">
-            <h2 class="slideover-title">{{ selectedOffre.titre }}</h2>
-            <span class="offre-badge">{{ selectedOffre.type_contrat }}</span>
-          </div>
-          <div class="slideover-meta">
-            <span v-if="selectedOffre.localisation">{{ selectedOffre.localisation }}</span>
-            <span v-if="formatSalaire(selectedOffre)">{{ formatSalaire(selectedOffre) }}</span>
-          </div>
-
-          <div class="slideover-divider" />
-
-          <div>
-            <h3 class="slideover-section-title">Description</h3>
-            <div class="slideover-prose" v-html="selectedOffre.description" />
-          </div>
-
-          <div v-if="selectedOffre.competences_requises">
-            <h3 class="slideover-section-title">Competences requises</h3>
-            <div class="slideover-prose" v-html="selectedOffre.competences_requises" />
-          </div>
-
-          <div v-if="selectedOffre.avantages">
-            <h3 class="slideover-section-title">Avantages</h3>
-            <div class="slideover-prose" v-html="selectedOffre.avantages" />
-          </div>
-
-          <div class="slideover-divider" />
-
-          <p class="slideover-cta">
-            Pour postuler, envoyez votre CV a
-            <strong>recrutement@legeai-editions.com</strong>
-          </p>
+    <!-- Main content — fades out in detail mode -->
+    <div class="rec-main">
+      <!-- Hero -->
+      <section class="hero">
+        <div class="hero-ornament">
+          <div class="hero-line" />
+          <span class="hero-glyph">G</span>
+          <div class="hero-line" />
         </div>
-      </template>
-    </USlideover>
+        <h1 class="hero-title">Recrutement</h1>
+        <p class="hero-sub">
+          Decouvrez les opportunites au sein du groupe Le Geai.
+        </p>
+      </section>
 
-    <!-- Footer -->
-    <footer class="page-footer">
-      <div class="footer-ornament">
-        <div class="footer-line" />
+      <!-- Content -->
+      <section class="section">
+        <!-- Loading -->
+        <div v-if="status === 'pending'" class="loading">
+          <div class="spinner" />
+        </div>
+
+        <!-- Empty -->
+        <div v-else-if="!offres?.length" class="empty">
+          <p class="empty-title">Aucune offre pour le moment</p>
+          <p class="empty-text">Revenez bientot, de nouvelles opportunites sont en preparation.</p>
+        </div>
+
+        <!-- Job listings -->
+        <div v-else class="offres-list">
+          <article
+            v-for="(offre, i) in offres"
+            :key="offre.id"
+            class="offre-card"
+            :style="{ transitionDelay: detailMode ? '0ms' : `${400 + i * 120}ms` }"
+            @click="openDetail(offre)"
+          >
+            <div class="offre-header">
+              <div>
+                <h2 class="offre-title">{{ offre.titre }}</h2>
+                <div class="offre-meta">
+                  <span v-if="offre.localisation">{{ offre.localisation }}</span>
+                  <span v-if="formatSalaire(offre)">{{ formatSalaire(offre) }}</span>
+                  <span v-if="offre.date_publication">{{ formatDate(offre.date_publication) }}</span>
+                </div>
+              </div>
+              <span class="offre-badge">{{ offre.type_contrat }}</span>
+            </div>
+            <p class="offre-desc" v-html="offre.description" />
+          </article>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="page-footer">
+        <div class="footer-ornament">
+          <div class="footer-line" />
+        </div>
+        <p>&copy; {{ new Date().getFullYear() }} Groupe Le Geai</p>
+      </footer>
+    </div>
+
+    <!-- Detail panel — slides in from LEFT (mirrored from login) -->
+    <div class="detail-panel">
+      <button class="detail-back" @click="closeDetail">
+        <span class="detail-back-arrow">&rarr;</span>
+        <span>Retour</span>
+      </button>
+
+      <div v-if="selectedOffre" class="detail-wrap">
+        <div class="detail-header">
+          <h2 class="detail-title">{{ selectedOffre.titre }}</h2>
+          <span class="offre-badge">{{ selectedOffre.type_contrat }}</span>
+        </div>
+
+        <div class="detail-meta">
+          <span v-if="selectedOffre.localisation">{{ selectedOffre.localisation }}</span>
+          <span v-if="formatSalaire(selectedOffre)">{{ formatSalaire(selectedOffre) }}</span>
+          <span v-if="selectedOffre.date_publication">{{ formatDate(selectedOffre.date_publication) }}</span>
+        </div>
+
+        <div class="detail-divider" />
+
+        <div>
+          <h3 class="detail-section-title">Description</h3>
+          <div class="detail-prose" v-html="selectedOffre.description" />
+        </div>
+
+        <div v-if="selectedOffre.competences_requises">
+          <h3 class="detail-section-title">Competences requises</h3>
+          <div class="detail-prose" v-html="selectedOffre.competences_requises" />
+        </div>
+
+        <div v-if="selectedOffre.avantages">
+          <h3 class="detail-section-title">Avantages</h3>
+          <div class="detail-prose" v-html="selectedOffre.avantages" />
+        </div>
+
+        <div class="detail-divider" />
+
+        <p class="detail-cta">
+          Pour postuler, envoyez votre CV a
+          <strong>recrutement@legeai-editions.com</strong>
+        </p>
       </div>
-      <p>&copy; {{ new Date().getFullYear() }} Groupe Le Geai</p>
-    </footer>
+    </div>
   </div>
 </template>
 
@@ -170,7 +191,59 @@ function formatDate(date: string) {
   --gold: #AF8F3C;
   --gold-dim: rgba(175, 143, 60, 0.28);
   --gold-faint: rgba(175, 143, 60, 0.10);
+  --transition: 1.4s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: 'Crimson Pro', Georgia, serif;
+  position: relative;
+  min-height: 100dvh;
+}
+
+/* ============================
+   WATERMARK (mirrored — slides RIGHT)
+   ============================ */
+.rec-watermark {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(400px, 60vw, 700px);
+  height: clamp(400px, 60vw, 700px);
+  pointer-events: none;
+  z-index: 0;
+  transition: left var(--transition), width var(--transition), height var(--transition);
+}
+.rec-watermark-img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity var(--transition), filter var(--transition);
+}
+
+/* Detail mode — watermark slides RIGHT, full color */
+.detail-mode .rec-watermark {
+  left: 100%;
+  width: clamp(600px, 100vh, 1100px);
+  height: clamp(600px, 100vh, 1100px);
+}
+.detail-mode .rec-watermark-img {
+  opacity: 1;
+  filter: none;
+}
+:global(.dark) .detail-mode .rec-watermark-img {
+  opacity: 1;
+  filter: none;
+}
+
+/* ============================
+   MAIN CONTENT — fades out
+   ============================ */
+.rec-main {
+  position: relative;
+  z-index: 2;
+  transition: opacity 1s ease, transform 1s ease;
+}
+.detail-mode .rec-main {
+  opacity: 0;
+  transform: translateY(-30px);
+  pointer-events: none;
 }
 
 /* Hero */
@@ -358,30 +431,76 @@ function formatDate(date: string) {
   overflow: hidden;
 }
 
-/* Slideover */
-.slideover-content {
-  padding: 24px;
+/* ============================
+   DETAIL PANEL (slides from LEFT — mirrored login)
+   ============================ */
+.detail-panel {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: 50%;
+  z-index: 20;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  font-family: 'Crimson Pro', Georgia, serif;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(24px, 4vw, 48px);
+  overflow-y: auto;
+  opacity: 0;
+  transform: translateX(-60px);
+  pointer-events: none;
+  transition: opacity 1s ease 0.5s, transform 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.5s;
+}
+.detail-mode .detail-panel {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
 }
 
-.slideover-header {
+.detail-back {
+  position: absolute;
+  top: clamp(20px, 3.5vw, 36px);
+  right: clamp(20px, 3vw, 40px);
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0.7;
+  background: none; border: none;
+  cursor: pointer;
+  transition: opacity 0.3s, gap 0.3s;
+}
+.detail-back:hover { opacity: 1; gap: 12px; }
+.detail-back-arrow {
+  font-size: 16px;
+  transition: transform 0.3s;
+}
+.detail-back:hover .detail-back-arrow { transform: translateX(2px); }
+
+.detail-wrap {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.detail-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
 }
 
-.slideover-title {
+.detail-title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 1.3rem;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
   font-weight: 400;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
 }
 
-.slideover-meta {
+.detail-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
@@ -389,31 +508,31 @@ function formatDate(date: string) {
   opacity: 0.45;
 }
 
-.slideover-divider {
+.detail-divider {
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--gold-faint), transparent);
 }
 
-.slideover-section-title {
+.detail-section-title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 400;
   letter-spacing: 0.04em;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   color: var(--gold);
 }
 
-.slideover-prose {
-  font-size: 0.88rem;
-  line-height: 1.7;
+.detail-prose {
+  font-size: 0.9rem;
+  line-height: 1.75;
   opacity: 0.6;
 }
 
-.slideover-cta {
-  font-size: 0.88rem;
+.detail-cta {
+  font-size: 0.9rem;
   opacity: 0.5;
 }
-.slideover-cta strong {
+.detail-cta strong {
   opacity: 1;
   color: var(--gold);
 }
@@ -423,6 +542,7 @@ function formatDate(date: string) {
   text-align: center;
   padding: clamp(32px, 6vh, 56px) 24px 24px;
 }
+.detail-mode .page-footer { opacity: 0; }
 
 .footer-ornament {
   display: flex; justify-content: center;
@@ -437,5 +557,16 @@ function formatDate(date: string) {
   font-size: 11px;
   opacity: 0.2;
   letter-spacing: 0.08em;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .detail-panel {
+    width: 100%;
+    padding: clamp(16px, 3vw, 32px);
+  }
+  .detail-mode .rec-watermark {
+    display: none;
+  }
 }
 </style>
