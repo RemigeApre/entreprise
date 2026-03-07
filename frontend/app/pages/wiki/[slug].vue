@@ -9,6 +9,14 @@ const slug = route.params.slug as string
 
 const { data: page, status, refresh } = useAsyncData(`wiki-${slug}`, () => getPage(slug))
 
+// ---- Reading time ----
+const readingTimeMin = computed(() => {
+  if (!page.value?.contenu) return 0
+  const text = page.value.contenu.replace(/<[^>]*>/g, '').replace(/&[^;]+;/g, ' ').trim()
+  const words = text.split(/\s+/).filter(Boolean).length
+  return Math.max(1, Math.ceil(words / 200))
+})
+
 // ---- Edition ----
 const isEditing = ref(false)
 const editContent = ref('')
@@ -65,7 +73,7 @@ async function confirmDelete() {
   }
 }
 
-// ---- Injection d'IDs dans les headings pour la table des matieres ----
+// ---- IDs dans les headings pour la table des matieres ----
 const processedContent = computed(() => {
   if (!page.value?.contenu) return ''
   return page.value.contenu.replace(
@@ -86,6 +94,28 @@ function formatDate(dateStr: string | null): string {
     year: 'numeric'
   })
 }
+
+// ---- Mobile TOC ----
+const showMobileToc = ref(false)
+
+// ---- Keyboard shortcut for edit ----
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'e' && (e.ctrlKey || e.metaKey) && isDirecteur.value && !isEditing.value) {
+    e.preventDefault()
+    startEditing()
+  }
+  if (e.key === 'Escape' && isEditing.value) {
+    cancelEditing()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+})
 </script>
 
 <template>
@@ -101,6 +131,17 @@ function formatDate(dateStr: string | null): string {
         />
       </template>
       <template #right>
+        <!-- Mobile TOC toggle -->
+        <UButton
+          v-if="page && !isEditing"
+          icon="i-lucide-list"
+          variant="ghost"
+          color="neutral"
+          size="sm"
+          class="lg:hidden"
+          title="Sommaire"
+          @click="showMobileToc = true"
+        />
         <template v-if="isDirecteur && page && !isEditing">
           <UButton
             label="Modifier"
@@ -153,35 +194,58 @@ function formatDate(dateStr: string | null): string {
       <div v-else class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         <!-- Mode lecture -->
         <template v-if="!isEditing">
-          <div class="flex gap-8">
+          <!-- Breadcrumb -->
+          <nav class="flex items-center gap-1.5 text-xs text-stone-400 dark:text-stone-600 mb-6">
+            <NuxtLink to="/wiki" class="hover:text-[#AF8F3C] transition-colors">Wiki</NuxtLink>
+            <UIcon name="i-lucide-chevron-right" class="size-3" />
+            <span class="text-stone-600 dark:text-stone-400 truncate">{{ page.titre }}</span>
+          </nav>
+
+          <div class="flex gap-10">
             <!-- Contenu principal -->
             <div class="flex-1 min-w-0">
               <!-- En-tete -->
-              <div class="flex items-center gap-3 mb-8">
-                <div class="size-10 rounded-lg bg-[rgba(175,143,60,0.06)] dark:bg-[rgba(175,143,60,0.06)] flex items-center justify-center">
-                  <UIcon :name="page.icone || 'i-lucide-file-text'" class="size-5 text-stone-600 dark:text-stone-400" />
+              <div class="wiki-article-header">
+                <div
+                  class="size-12 rounded-xl flex items-center justify-center shrink-0"
+                  :style="{ background: (page.couleur || '#AF8F3C') + '12' }"
+                >
+                  <UIcon
+                    :name="page.icone || 'i-lucide-file-text'"
+                    class="size-6"
+                    :style="{ color: page.couleur || '#AF8F3C' }"
+                  />
                 </div>
-                <h1 class="font-heading text-2xl font-bold text-stone-900 dark:text-white">{{ page.titre }}</h1>
+                <div class="min-w-0">
+                  <h1 class="font-heading text-2xl sm:text-3xl font-bold text-stone-900 dark:text-white leading-tight">
+                    {{ page.titre }}
+                  </h1>
+                  <div class="flex items-center gap-3 mt-2 text-xs text-stone-400 dark:text-stone-500">
+                    <span class="flex items-center gap-1">
+                      <UIcon name="i-lucide-clock" class="size-3" />
+                      {{ readingTimeMin }} min de lecture
+                    </span>
+                    <span v-if="page.date_updated" class="flex items-center gap-1">
+                      <UIcon name="i-lucide-pencil" class="size-3" />
+                      Mis a jour le {{ formatDate(page.date_updated) }}
+                    </span>
+                    <span v-else-if="page.date_created" class="flex items-center gap-1">
+                      <UIcon name="i-lucide-calendar" class="size-3" />
+                      Cree le {{ formatDate(page.date_created) }}
+                    </span>
+                  </div>
+                </div>
               </div>
+
+              <!-- Separateur -->
+              <div class="wiki-article-divider" />
 
               <!-- Contenu HTML -->
-              <div class="prose prose-stone dark:prose-invert prose-sm max-w-none" v-html="processedContent" />
-
-              <!-- Meta -->
-              <div v-if="page.date_updated || page.date_created" class="mt-10 pt-6 border-t border-[rgba(175,143,60,0.08)]">
-                <p class="text-xs text-stone-400 dark:text-stone-600">
-                  <template v-if="page.date_updated">
-                    Derniere mise a jour le {{ formatDate(page.date_updated) }}
-                  </template>
-                  <template v-else>
-                    Cree le {{ formatDate(page.date_created) }}
-                  </template>
-                </p>
-              </div>
+              <div class="wiki-article-content prose prose-stone dark:prose-invert prose-sm sm:prose-base max-w-none" v-html="processedContent" />
             </div>
 
-            <!-- Table des matieres (sidebar) -->
-            <div class="w-56 shrink-0 sticky top-6 self-start">
+            <!-- Table des matieres (sidebar, desktop) -->
+            <div class="w-56 shrink-0 sticky top-6 self-start hidden lg:block">
               <WikiToc :html="page.contenu" />
             </div>
           </div>
@@ -209,6 +273,25 @@ function formatDate(dateStr: string | null): string {
         </template>
       </div>
     </div>
+
+    <!-- Mobile TOC slideover -->
+    <USlideover v-model:open="showMobileToc" side="right" class="lg:hidden">
+      <template #content>
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Sommaire</h3>
+            <UButton
+              icon="i-lucide-x"
+              variant="ghost"
+              color="neutral"
+              size="xs"
+              @click="showMobileToc = false"
+            />
+          </div>
+          <WikiToc v-if="page" :html="page.contenu" :force-visible="true" @navigate="showMobileToc = false" />
+        </div>
+      </template>
+    </USlideover>
 
     <!-- Modal confirmation suppression -->
     <UModal v-model:open="showDeleteConfirm">
@@ -238,3 +321,87 @@ function formatDate(dateStr: string | null): string {
     </UModal>
   </div>
 </template>
+
+<style scoped>
+.wiki-article-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.wiki-article-divider {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(175, 143, 60, 0.15), rgba(175, 143, 60, 0.03), transparent);
+  margin: 24px 0;
+}
+
+/* Enhanced prose styles for wiki content */
+.wiki-article-content :deep(h2) {
+  font-family: 'Crimson Pro', serif;
+  margin-top: 2em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid rgba(175, 143, 60, 0.1);
+}
+
+.wiki-article-content :deep(h3) {
+  font-family: 'Crimson Pro', serif;
+  margin-top: 1.5em;
+}
+
+.wiki-article-content :deep(blockquote) {
+  border-left-color: rgba(175, 143, 60, 0.3);
+  font-style: italic;
+}
+
+.wiki-article-content :deep(a) {
+  color: #AF8F3C;
+  text-decoration: underline;
+  text-decoration-color: rgba(175, 143, 60, 0.3);
+  text-underline-offset: 2px;
+}
+.wiki-article-content :deep(a:hover) {
+  text-decoration-color: #AF8F3C;
+}
+
+.wiki-article-content :deep(table) {
+  border-collapse: collapse;
+  width: 100%;
+}
+.wiki-article-content :deep(th),
+.wiki-article-content :deep(td) {
+  border: 1px solid rgba(175, 143, 60, 0.12);
+  padding: 8px 12px;
+}
+.wiki-article-content :deep(th) {
+  background: rgba(175, 143, 60, 0.04);
+  font-weight: 600;
+}
+
+.wiki-article-content :deep(img) {
+  border-radius: 10px;
+  border: 1px solid rgba(175, 143, 60, 0.08);
+}
+
+.wiki-article-content :deep(mark) {
+  background: rgba(175, 143, 60, 0.2);
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+.wiki-article-content :deep(code:not(pre code)) {
+  background: rgba(175, 143, 60, 0.06);
+  border: 1px solid rgba(175, 143, 60, 0.08);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 0.85em;
+}
+
+.wiki-article-content :deep(pre) {
+  border: 1px solid rgba(175, 143, 60, 0.08);
+  border-radius: 8px;
+}
+
+.wiki-article-content :deep(hr) {
+  border-color: rgba(175, 143, 60, 0.1);
+}
+</style>
