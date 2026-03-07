@@ -619,6 +619,8 @@ const userMenuItems = computed(() => [
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 /* ============================
