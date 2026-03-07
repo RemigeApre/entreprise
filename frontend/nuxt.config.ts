@@ -12,6 +12,7 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   icon: {
+    localApiEndpoint: '/_nuxt_icon',
     clientBundle: {
       scan: true,
       include: [
