@@ -2,7 +2,7 @@
 import type { MonitoredSite, MonitoredSiteUser, UserProfile } from '~/utils/types'
 import type { SiteStatus } from '~/composables/useSiteMonitor'
 
-definePageMeta({ middleware: ['auth'] })
+definePageMeta({})
 
 const { isDirecteur } = useAuth()
 const { userSites, loadUserSites, checkSiteStatus, sitesLoaded, getSiteUsers, addSiteUser, removeSiteUser } = useSiteMonitor()
