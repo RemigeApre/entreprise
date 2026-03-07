@@ -6,6 +6,14 @@ import type {
 } from '~/utils/types'
 import { PROJECT_STATUTS, TASK_STATUTS, TASK_PRIORITES, PROJECT_ROLES } from '~/utils/constants'
 
+definePageMeta({
+  validate: (route) => {
+    const reserved = ['status', 'tickets', 'nouveau']
+    const id = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id
+    return !reserved.includes(id)
+  }
+})
+
 const route = useRoute()
 const { $directus } = useNuxtApp()
 const { user, isDirecteur } = useAuth()
