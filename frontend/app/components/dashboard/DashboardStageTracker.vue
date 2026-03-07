@@ -120,7 +120,7 @@ onMounted(load)
       <div v-for="s in stagiaires" :key="s.user.id">
         <NuxtLink
           :to="`/equipe/${s.user.id}`"
-          class="block p-3 -mx-1 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors"
+          class="block p-3 -mx-1 rounded-lg hover:bg-[rgba(175,143,60,0.04)] dark:hover:bg-[rgba(175,143,60,0.04)] transition-colors"
         >
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-2">
@@ -132,13 +132,13 @@ onMounted(load)
             </span>
           </div>
 
-          <div v-if="s.loading" class="h-2 bg-stone-100 dark:bg-stone-800 rounded-full animate-pulse" />
+          <div v-if="s.loading" class="h-2 bg-[rgba(175,143,60,0.06)] dark:bg-[rgba(175,143,60,0.06)] rounded-full animate-pulse" />
 
           <div v-else-if="s.stats" class="space-y-1.5">
             <!-- Barre gratification -->
             <div class="flex items-center gap-2">
               <span class="text-[10px] text-stone-400 w-12 shrink-0">Gratif.</span>
-              <div class="flex-1 h-1.5 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
+              <div class="flex-1 h-1.5 bg-[rgba(175,143,60,0.06)] dark:bg-[rgba(175,143,60,0.06)] rounded-full overflow-hidden">
                 <div
                   class="h-full rounded-full transition-all"
                   :class="progressColor(s.stats.totalDays, s.limits.gratifDays)"
@@ -153,7 +153,7 @@ onMounted(load)
             <!-- Barre duree contrat -->
             <div class="flex items-center gap-2">
               <span class="text-[10px] text-stone-400 w-12 shrink-0">Contrat</span>
-              <div class="flex-1 h-1.5 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
+              <div class="flex-1 h-1.5 bg-[rgba(175,143,60,0.06)] dark:bg-[rgba(175,143,60,0.06)] rounded-full overflow-hidden">
                 <div
                   class="h-full rounded-full transition-all bg-primary"
                   :style="{ width: pct(s.stats.totalDays, s.limits.maxDays) + '%' }"

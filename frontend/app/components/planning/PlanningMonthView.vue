@@ -168,10 +168,10 @@ onMounted(() => {
           class="min-h-[56px] rounded-lg border transition-colors p-1"
           :class="[
             !day.isCurrentMonth
-              ? 'bg-stone-50/50 dark:bg-stone-900/30 border-transparent opacity-40'
+              ? 'bg-[rgba(175,143,60,0.02)] border-transparent opacity-40'
               : day.isToday
-                ? 'border-amber-400 dark:border-amber-600 bg-amber-50/30 dark:bg-amber-950/20'
-                : 'border-stone-200 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700',
+                ? 'border-[#af8f3c]/40 bg-[rgba(175,143,60,0.06)]'
+                : 'border-[rgba(175,143,60,0.08)] hover:border-[rgba(175,143,60,0.2)]',
             day.disabled ? 'opacity-40 cursor-not-allowed' : ''
           ]"
         >

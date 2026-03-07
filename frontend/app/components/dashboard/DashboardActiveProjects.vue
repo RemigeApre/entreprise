@@ -62,7 +62,7 @@ onMounted(load)
         v-for="project in myProjects.slice(0, 4)"
         :key="project.id"
         :to="`/projets/${project.id}`"
-        class="flex items-center justify-between p-2 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors"
+        class="flex items-center justify-between p-2 rounded-lg hover:bg-[rgba(175,143,60,0.04)] dark:hover:bg-[rgba(175,143,60,0.04)] transition-colors"
       >
         <div class="min-w-0">
           <p class="text-sm font-medium truncate">{{ project.nom }}</p>

@@ -78,7 +78,7 @@ onMounted(async () => {
       <div
         v-for="site in userSites"
         :key="site.id"
-        class="flex items-center justify-between p-2 rounded-lg bg-stone-50 dark:bg-stone-800/50"
+        class="flex items-center justify-between p-2 rounded-lg bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)]"
       >
         <div class="flex items-center gap-2.5 min-w-0">
           <span

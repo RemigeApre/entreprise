@@ -104,7 +104,7 @@
             <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Logo et armoiries</h3>
           </template>
           <div class="flex flex-col sm:flex-row items-center gap-6">
-            <div class="shrink-0 p-6 bg-stone-50 dark:bg-stone-800/50 rounded-lg">
+            <div class="shrink-0 p-6 bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)] rounded-lg">
               <img src="/logo.svg" alt="Armoiries Le Geai" class="w-32 h-32" />
             </div>
             <div class="prose prose-stone dark:prose-invert prose-sm max-w-none space-y-2">
@@ -137,7 +137,7 @@
               <p class="text-xs text-stone-500 dark:text-stone-400">#1f2c23</p>
             </div>
             <div class="text-center">
-              <div class="h-20 rounded-lg mb-2 border border-stone-200 dark:border-stone-700" style="background-color: #f7f0de" />
+              <div class="h-20 rounded-lg mb-2 border border-[rgba(175,143,60,0.1)]" style="background-color: #f7f0de" />
               <p class="text-xs font-semibold text-stone-900 dark:text-white">Lune de lait</p>
               <p class="text-xs text-stone-500 dark:text-stone-400">#f7f0de</p>
             </div>

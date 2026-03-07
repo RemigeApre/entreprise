@@ -292,7 +292,7 @@ onUnmounted(() => {
               <div
                 v-for="entry in siteUsers"
                 :key="entry.id"
-                class="flex items-center justify-between p-2 rounded-lg bg-stone-50 dark:bg-stone-800/50"
+                class="flex items-center justify-between p-2 rounded-lg bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)]"
               >
                 <span class="text-sm text-stone-700 dark:text-stone-300">{{ getUserName(entry) }}</span>
                 <button

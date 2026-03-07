@@ -424,11 +424,11 @@ function pct(value: number, max: number) {
           </template>
           <div class="space-y-5">
             <div class="grid grid-cols-3 gap-4">
-              <div class="text-center p-3 rounded-lg bg-stone-50 dark:bg-stone-800/50">
+              <div class="text-center p-3 rounded-lg bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)]">
                 <p class="text-2xl font-bold text-stone-900 dark:text-white">{{ stats.workDays }}</p>
                 <p class="text-xs text-stone-500 dark:text-stone-400">jours travailles</p>
               </div>
-              <div class="text-center p-3 rounded-lg bg-stone-50 dark:bg-stone-800/50">
+              <div class="text-center p-3 rounded-lg bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)]">
                 <p class="text-2xl font-bold text-stone-900 dark:text-white">{{ stats.workHours.toFixed(1) }}h</p>
                 <p class="text-xs text-stone-500 dark:text-stone-400">heures travaillees</p>
               </div>
@@ -436,7 +436,7 @@ function pct(value: number, max: number) {
                 <p class="text-2xl font-bold text-sky-600 dark:text-sky-400">{{ stats.schoolDays }}</p>
                 <p class="text-xs text-stone-500 dark:text-stone-400">jours ecole</p>
               </div>
-              <div v-else class="text-center p-3 rounded-lg bg-stone-50 dark:bg-stone-800/50">
+              <div v-else class="text-center p-3 rounded-lg bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)]">
                 <p class="text-2xl font-bold text-stone-900 dark:text-white">{{ stats.totalDays }}</p>
                 <p class="text-xs text-stone-500 dark:text-stone-400">jours presents</p>
               </div>
@@ -454,7 +454,7 @@ function pct(value: number, max: number) {
                     <span class="text-xs text-stone-400 ml-1">({{ stats.totalHours.toFixed(0) }} / {{ stageLimits.gratifHours }}h)</span>
                   </span>
                 </div>
-                <div class="h-2 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
+                <div class="h-2 bg-[rgba(175,143,60,0.06)] dark:bg-[rgba(175,143,60,0.06)] rounded-full overflow-hidden">
                   <div
                     class="h-full rounded-full transition-all"
                     :class="pct(stats.totalDays, stageLimits.gratifDays) >= 90 ? 'bg-red-500' : pct(stats.totalDays, stageLimits.gratifDays) >= 70 ? 'bg-amber-500' : 'bg-emerald-500'"
@@ -472,7 +472,7 @@ function pct(value: number, max: number) {
                     <span class="text-xs text-stone-400 ml-1">({{ stats.totalHours.toFixed(0) }} / {{ stageLimits.maxHours }}h)</span>
                   </span>
                 </div>
-                <div class="h-2 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
+                <div class="h-2 bg-[rgba(175,143,60,0.06)] dark:bg-[rgba(175,143,60,0.06)] rounded-full overflow-hidden">
                   <div class="h-full rounded-full transition-all bg-primary" :style="{ width: pct(stats.totalDays, stageLimits.maxDays) + '%' }" />
                 </div>
               </div>
@@ -497,7 +497,7 @@ function pct(value: number, max: number) {
                 <USelectMenu v-model="calcType" :items="calcTypeOptions" value-key="value" />
               </UFormField>
             </div>
-            <div v-if="calcResult" class="flex items-center gap-6 p-3 rounded-lg bg-stone-50 dark:bg-stone-800/50">
+            <div v-if="calcResult" class="flex items-center gap-6 p-3 rounded-lg bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)]">
               <div class="text-center">
                 <p class="text-xl font-bold text-stone-900 dark:text-white">{{ calcResult.workDays }}</p>
                 <p class="text-xs text-stone-500 dark:text-stone-400">{{ calcType === 'demi_journee' ? 'demi-journees' : 'jours' }}</p>

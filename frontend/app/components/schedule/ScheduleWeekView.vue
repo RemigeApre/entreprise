@@ -136,12 +136,12 @@ onUnmounted(() => {
 <template>
   <div class="overflow-x-auto">
     <!-- Header: day names -->
-    <div class="grid grid-cols-[56px_repeat(5,1fr)] gap-px bg-stone-200 dark:bg-stone-700 border border-stone-200 dark:border-stone-700 rounded-t-lg overflow-hidden">
-      <div class="bg-white dark:bg-stone-950 p-1.5" />
+    <div class="grid grid-cols-[56px_repeat(5,1fr)] gap-px bg-[rgba(175,143,60,0.1)] dark:bg-[rgba(175,143,60,0.08)] border border-[rgba(175,143,60,0.1)] rounded-t-lg overflow-hidden">
+      <div class="bg-[#f7f0de]/50 dark:bg-[#1a2520]/60 p-1.5" />
       <div
         v-for="day in weekDays"
         :key="formatDate(day)"
-        class="bg-white dark:bg-stone-950 text-center py-1.5 px-1"
+        class="bg-[#f7f0de]/50 dark:bg-[#1a2520]/60 text-center py-1.5 px-1"
       >
         <p
           class="text-[11px] font-medium uppercase"
@@ -160,10 +160,10 @@ onUnmounted(() => {
 
     <!-- Time grid -->
     <div
-      class="grid grid-cols-[56px_repeat(5,1fr)] gap-px bg-stone-200 dark:bg-stone-700 border-x border-b border-stone-200 dark:border-stone-700 rounded-b-lg overflow-hidden"
+      class="grid grid-cols-[56px_repeat(5,1fr)] gap-px bg-[rgba(175,143,60,0.1)] dark:bg-[rgba(175,143,60,0.08)] border-x border-b border-[rgba(175,143,60,0.1)] rounded-b-lg overflow-hidden"
     >
       <!-- Hours column + day columns -->
-      <div class="bg-white dark:bg-stone-950 relative" :style="{ height: `${hours.length * HOUR_HEIGHT}px` }">
+      <div class="bg-[#f7f0de]/50 dark:bg-[#1a2520]/60 relative" :style="{ height: `${hours.length * HOUR_HEIGHT}px` }">
         <div
           v-for="hour in hours"
           :key="hour"
@@ -178,7 +178,7 @@ onUnmounted(() => {
       <div
         v-for="(day, dayIdx) in weekDays"
         :key="'col-' + formatDate(day)"
-        class="bg-white dark:bg-stone-950 relative"
+        class="bg-[#f7f0de]/50 dark:bg-[#1a2520]/60 relative"
         :style="{ height: `${hours.length * HOUR_HEIGHT}px` }"
         @click="handleGridClick(day, $event)"
       >
@@ -186,7 +186,7 @@ onUnmounted(() => {
         <div
           v-for="hour in hours"
           :key="'line-' + hour"
-          class="absolute left-0 right-0 border-t border-stone-100 dark:border-stone-800/50"
+          class="absolute left-0 right-0 border-t border-[rgba(175,143,60,0.06)]"
           :style="{ top: `${(hour - START_HOUR) * HOUR_HEIGHT}px` }"
         />
         <!-- Half-hour lines -->

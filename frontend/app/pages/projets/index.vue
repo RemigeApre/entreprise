@@ -180,11 +180,11 @@ function getMemberName(member: { utilisateur: UserProfile | string }) {
                   :key="member.id"
                   :alt="getMemberName(member)"
                   size="xs"
-                  class="ring-2 ring-white dark:ring-stone-900"
+                  class="ring-2 ring-[#f7f0de] dark:ring-[#1a2520]"
                 />
                 <span
                   v-if="getMembers(project).length > 3"
-                  class="inline-flex items-center justify-center size-6 rounded-full bg-stone-100 dark:bg-stone-800 text-xs font-medium text-stone-600 dark:text-stone-300 ring-2 ring-white dark:ring-stone-900"
+                  class="inline-flex items-center justify-center size-6 rounded-full bg-stone-100 dark:bg-stone-800 text-xs font-medium text-stone-600 dark:text-stone-300 ring-2 ring-[#f7f0de] dark:ring-[#1a2520]"
                 >
                   +{{ getMembers(project).length - 3 }}
                 </span>

@@ -46,7 +46,7 @@ const selectedRing = 'ring-2 ring-primary ring-offset-1 dark:ring-offset-stone-9
 const slotClasses = computed(() => {
   const sel = props.selected ? ` ${selectedRing}` : ''
   if (props.disabled) {
-    return 'border-dashed border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/50 text-stone-300 dark:text-stone-600 cursor-not-allowed'
+    return 'border-dashed border-[rgba(175,143,60,0.1)] bg-[rgba(175,143,60,0.03)] text-stone-300 dark:text-stone-600 cursor-not-allowed'
   }
   if (hasFill.value) {
     const c = colorConfig.value!

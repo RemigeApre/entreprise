@@ -85,9 +85,9 @@ const toolbarButtons = computed<ToolbarButton[]>(() => {
 </script>
 
 <template>
-  <div class="border border-stone-200 dark:border-stone-700 rounded-lg overflow-hidden">
+  <div class="border border-[rgba(175,143,60,0.1)] rounded-lg overflow-hidden">
     <!-- Toolbar -->
-    <div class="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50">
+    <div class="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-[rgba(175,143,60,0.1)] bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)]">
       <button
         v-for="btn in toolbarButtons"
         :key="btn.title"
@@ -96,7 +96,7 @@ const toolbarButtons = computed<ToolbarButton[]>(() => {
         class="flex items-center justify-center size-8 rounded transition-colors"
         :class="btn.isActive?.()
           ? 'bg-primary/10 text-primary'
-          : 'text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700 hover:text-stone-900 dark:hover:text-white'"
+          : 'text-stone-500 dark:text-stone-400 hover:bg-[rgba(175,143,60,0.08)] dark:hover:bg-[rgba(175,143,60,0.08)] hover:text-stone-900 dark:hover:text-white'"
         @click="btn.action"
       >
         <UIcon :name="btn.icon" class="size-4" />

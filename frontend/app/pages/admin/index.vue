@@ -160,7 +160,7 @@ onMounted(scanDuplicates)
 
           <div v-else class="space-y-3">
             <!-- Wiki -->
-            <div class="flex items-center justify-between p-3 rounded-lg bg-stone-50 dark:bg-stone-900/50">
+            <div class="flex items-center justify-between p-3 rounded-lg bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)]">
               <div class="flex items-center gap-3">
                 <div class="size-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                   <UIcon name="i-lucide-book-open" class="size-4 text-blue-600 dark:text-blue-400" />
@@ -188,7 +188,7 @@ onMounted(scanDuplicates)
             </div>
 
             <!-- Categories -->
-            <div class="flex items-center justify-between p-3 rounded-lg bg-stone-50 dark:bg-stone-900/50">
+            <div class="flex items-center justify-between p-3 rounded-lg bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)]">
               <div class="flex items-center gap-3">
                 <div class="size-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
                   <UIcon name="i-lucide-tags" class="size-4 text-purple-600 dark:text-purple-400" />
@@ -216,7 +216,7 @@ onMounted(scanDuplicates)
             </div>
 
             <!-- Sites -->
-            <div class="flex items-center justify-between p-3 rounded-lg bg-stone-50 dark:bg-stone-900/50">
+            <div class="flex items-center justify-between p-3 rounded-lg bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)]">
               <div class="flex items-center gap-3">
                 <div class="size-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
                   <UIcon name="i-lucide-activity" class="size-4 text-amber-600 dark:text-amber-400" />

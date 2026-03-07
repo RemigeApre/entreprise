@@ -55,17 +55,21 @@ const adminRow = computed(() => {
 <template>
   <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
     <!-- Greeting -->
-    <div class="text-center pt-4 pb-2">
-      <h1 class="text-2xl sm:text-3xl font-bold font-heading text-stone-900 dark:text-white tracking-tight">
+    <div class="text-center pt-6 pb-4">
+      <h1 class="font-heading text-2xl sm:text-3xl tracking-wide text-[#2c2419] dark:text-[#e8e0d0] opacity-80">
         {{ greeting }}, {{ userDisplayName }}
       </h1>
-      <p class="text-sm text-stone-400 dark:text-stone-500 mt-1">{{ greetingSubtext }}</p>
+      <div class="flex items-center justify-center gap-3 mt-2">
+        <div class="w-8 h-px bg-gradient-to-r from-transparent via-[#af8f3c] to-transparent opacity-30" />
+        <p class="text-sm text-[#af8f3c] opacity-50 tracking-wider">{{ greetingSubtext }}</p>
+        <div class="w-8 h-px bg-gradient-to-r from-transparent via-[#af8f3c] to-transparent opacity-30" />
+      </div>
     </div>
 
     <!-- Notifications (toujours pleine largeur) -->
     <div v-if="isVisible('notifications')" class="relative group">
       <button
-        class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+        class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-[#f5efe0] dark:bg-[#1a2520] border border-[rgba(175,143,60,0.1)] text-[#af8f3c]/40 hover:text-[#b74d34] hover:border-[#b74d34]/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
         title="Masquer"
         @click="hideModule('notifications')"
       >
@@ -82,7 +86,7 @@ const adminRow = computed(() => {
     >
       <div v-if="planningRow.a" class="relative group">
         <button
-          class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-[#f5efe0] dark:bg-[#1a2520] border border-[rgba(175,143,60,0.1)] text-[#af8f3c]/40 hover:text-[#b74d34] hover:border-[#b74d34]/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
           title="Masquer"
           @click="hideModule('weekSummary')"
         >
@@ -92,7 +96,7 @@ const adminRow = computed(() => {
       </div>
       <div v-if="planningRow.b" class="relative group">
         <button
-          class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-[#f5efe0] dark:bg-[#1a2520] border border-[rgba(175,143,60,0.1)] text-[#af8f3c]/40 hover:text-[#b74d34] hover:border-[#b74d34]/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
           title="Masquer"
           @click="hideModule('presence')"
         >
@@ -110,7 +114,7 @@ const adminRow = computed(() => {
     >
       <div v-if="projectsRow.a" class="relative group">
         <button
-          class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-[#f5efe0] dark:bg-[#1a2520] border border-[rgba(175,143,60,0.1)] text-[#af8f3c]/40 hover:text-[#b74d34] hover:border-[#b74d34]/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
           title="Masquer"
           @click="hideModule('activeProjects')"
         >
@@ -120,7 +124,7 @@ const adminRow = computed(() => {
       </div>
       <div v-if="projectsRow.b" class="relative group">
         <button
-          class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-[#f5efe0] dark:bg-[#1a2520] border border-[rgba(175,143,60,0.1)] text-[#af8f3c]/40 hover:text-[#b74d34] hover:border-[#b74d34]/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
           title="Masquer"
           @click="hideModule('prospectSummary')"
         >
@@ -133,7 +137,7 @@ const adminRow = computed(() => {
     <!-- Site status (only if user has sites) -->
     <div v-if="hasSites && isVisible('siteStatus')" class="relative group">
       <button
-        class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+        class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-[#f5efe0] dark:bg-[#1a2520] border border-[rgba(175,143,60,0.1)] text-[#af8f3c]/40 hover:text-[#b74d34] hover:border-[#b74d34]/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
         title="Masquer"
         @click="hideModule('siteStatus')"
       >
@@ -150,7 +154,7 @@ const adminRow = computed(() => {
     >
       <div v-if="adminRow.a" class="relative group">
         <button
-          class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-[#f5efe0] dark:bg-[#1a2520] border border-[rgba(175,143,60,0.1)] text-[#af8f3c]/40 hover:text-[#b74d34] hover:border-[#b74d34]/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
           title="Masquer"
           @click="hideModule('stageTracker')"
         >
@@ -160,7 +164,7 @@ const adminRow = computed(() => {
       </div>
       <div v-if="adminRow.b" class="relative group">
         <button
-          class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          class="absolute -top-1 -right-1 z-10 size-6 rounded-full bg-[#f5efe0] dark:bg-[#1a2520] border border-[rgba(175,143,60,0.1)] text-[#af8f3c]/40 hover:text-[#b74d34] hover:border-[#b74d34]/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
           title="Masquer"
           @click="hideModule('jobListings')"
         >

@@ -146,7 +146,7 @@ onMounted(load)
           <tr
             v-for="member in filteredMembers"
             :key="member.id"
-            class="border-t border-stone-100 dark:border-stone-800"
+            class="border-t border-[rgba(175,143,60,0.06)]"
           >
             <td class="py-2 pr-3 whitespace-nowrap">
               <NuxtLink
@@ -190,7 +190,7 @@ onMounted(load)
       </p>
 
       <!-- Legend -->
-      <div class="flex flex-wrap gap-3 mt-4 pt-3 border-t border-stone-100 dark:border-stone-800">
+      <div class="flex flex-wrap gap-3 mt-4 pt-3 border-t border-[rgba(175,143,60,0.06)]">
         <div
           v-for="item in legendItems"
           :key="item.label"

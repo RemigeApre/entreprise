@@ -86,7 +86,7 @@ onUnmounted(() => {
           class="text-left w-full py-1 px-2 rounded transition-colors truncate"
           :class="activeId === item.id
             ? 'text-primary bg-primary/5 font-medium'
-            : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-stone-800'"
+            : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-[rgba(175,143,60,0.06)] dark:hover:bg-[rgba(175,143,60,0.06)]'"
           @click="scrollTo(item.id)"
         >
           {{ item.text }}

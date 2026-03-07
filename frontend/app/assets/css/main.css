@@ -2,8 +2,8 @@
 @import "@nuxt/ui";
 
 @theme static {
-  --font-sans: 'Source Sans 3', 'Inter', sans-serif;
-  --font-serif: 'Playfair Display', 'Georgia', serif;
+  --font-sans: 'Crimson Pro', Georgia, serif;
+  --font-serif: 'IM Fell DW Pica', Georgia, serif;
   --color-brand-gold: #af8f3c;
   --color-brand-green: #1f2c23;
   --color-brand-cream: #f7f0de;
@@ -12,22 +12,26 @@
   --color-brand-ink: #2c2419;
 }
 
-/* ===== Dark Academia Theme ===== */
+/* ===== Typography ===== */
 
 .font-heading {
   font-family: var(--font-serif);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.01em;
 }
 
-/* Warm backgrounds */
+.font-fraktur {
+  font-family: 'UnifrakturCook', cursive;
+}
+
+/* ===== Warm backgrounds ===== */
+
 .bg-academia {
-  background-color: oklch(0.97 0.005 80);
+  background-color: var(--color-brand-cream);
 }
 .dark .bg-academia {
-  background-color: oklch(0.17 0.01 60);
+  background-color: var(--color-brand-green);
 }
 
-/* Subtle warm texture via CSS gradient */
 .bg-paper {
   background-image:
     radial-gradient(ellipse at 20% 50%, oklch(0.96 0.01 80 / 0.5), transparent 50%),
@@ -39,7 +43,7 @@
     radial-gradient(ellipse at 80% 20%, oklch(0.18 0.015 40 / 0.2), transparent 50%);
 }
 
-/* Logo watermark background — contain:paint clips fixed-position children so they can't overlap the tab bar */
+/* Logo watermark background */
 .bg-watermark {
   contain: paint;
 }
@@ -55,29 +59,81 @@
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  opacity: 0.03;
+  opacity: 0.025;
   pointer-events: none;
   z-index: 0;
 }
 .dark .bg-watermark::before {
-  opacity: 0.04;
+  filter: brightness(0) invert(0.85);
+  opacity: 0.035;
 }
 
-/* Card warm hover */
+/* ===== Noise texture overlay for intranet ===== */
+
+.intranet-noise {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.018;
+  mix-blend-mode: overlay;
+}
+.dark .intranet-noise {
+  opacity: 0.03;
+}
+
+/* ===== Vignette overlay ===== */
+
+.intranet-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(44, 36, 25, 0.06) 100%);
+}
+.dark .intranet-vignette {
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(10, 16, 11, 0.25) 100%);
+}
+
+/* ===== Card warm hover ===== */
+
 .card-hover-warm {
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
 }
 .card-hover-warm:hover {
-  box-shadow: 0 4px 24px oklch(0.75 0.08 70 / 0.15);
+  box-shadow: 0 4px 24px rgba(175, 143, 60, 0.1);
   transform: translateY(-1px);
+  border-color: rgba(175, 143, 60, 0.25);
 }
 .dark .card-hover-warm:hover {
-  box-shadow: 0 4px 24px oklch(0.45 0.08 55 / 0.2);
+  box-shadow: 0 4px 24px rgba(175, 143, 60, 0.08);
+  border-color: rgba(175, 143, 60, 0.2);
 }
 
 /* Gold accent line */
 .border-gold {
   border-color: var(--color-brand-gold);
+}
+
+/* ===== Gold separator ===== */
+
+.separator-gold {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-brand-gold), transparent);
+  opacity: 0.2;
+}
+
+/* ===== Intranet UCard overrides ===== */
+
+.intranet-root :where([data-slot="card"]) {
+  background-color: rgba(247, 240, 222, 0.5);
+  border-color: rgba(175, 143, 60, 0.1);
+  box-shadow: 0 1px 3px rgba(44, 36, 25, 0.04);
+}
+.dark .intranet-root :where([data-slot="card"]) {
+  background-color: rgba(26, 37, 32, 0.6);
+  border-color: rgba(175, 143, 60, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 /* ===== Public page animations ===== */
@@ -100,7 +156,6 @@
   animation: logo-ring-pulse 6s ease-in-out infinite;
 }
 
-/* Nav indicator entrance */
 .nav-indicator {
   animation: nav-slide-in 0.3s ease-out;
 }

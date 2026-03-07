@@ -179,7 +179,7 @@ function getRoleColor(name: string) {
             :to="`/equipe/${myCard.id}`"
             class="block group"
           >
-            <div class="flex items-center gap-3 p-3 rounded-lg border border-primary/20 bg-primary/5 dark:bg-primary/5 hover:bg-primary/10 transition-colors">
+            <div class="flex items-center gap-3 p-3 rounded-lg border border-[rgba(175,143,60,0.15)] bg-[rgba(175,143,60,0.04)] hover:bg-[rgba(175,143,60,0.08)] transition-colors">
               <UAvatar :alt="getUserName(myCard)" size="md" />
               <div class="flex-1 min-w-0">
                 <p class="font-semibold text-stone-900 dark:text-white text-sm group-hover:text-primary transition-colors">
@@ -215,12 +215,12 @@ function getRoleColor(name: string) {
           <!-- Toggle groupement -->
           <div class="flex items-center gap-2">
             <span class="text-xs text-stone-400 dark:text-stone-500 uppercase tracking-wider font-semibold">Trier par</span>
-            <div class="flex rounded-lg border border-stone-200 dark:border-stone-700 overflow-hidden">
+            <div class="flex rounded-lg border border-[rgba(175,143,60,0.12)] overflow-hidden">
               <button
                 class="px-3 py-1 text-xs font-medium transition-colors"
                 :class="groupBy === 'contrat'
-                  ? 'bg-primary text-white'
-                  : 'text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'"
+                  ? 'bg-[#af8f3c] text-white'
+                  : 'text-[#2c2419]/50 dark:text-[#e8e0d0]/50 hover:bg-[rgba(175,143,60,0.06)]'"
                 @click="groupBy = 'contrat'"
               >
                 Contrat
@@ -228,8 +228,8 @@ function getRoleColor(name: string) {
               <button
                 class="px-3 py-1 text-xs font-medium transition-colors"
                 :class="groupBy === 'pole'
-                  ? 'bg-primary text-white'
-                  : 'text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'"
+                  ? 'bg-[#af8f3c] text-white'
+                  : 'text-[#2c2419]/50 dark:text-[#e8e0d0]/50 hover:bg-[rgba(175,143,60,0.06)]'"
                 @click="groupBy = 'pole'"
               >
                 Pole
@@ -251,7 +251,7 @@ function getRoleColor(name: string) {
                   :to="`/equipe/${member.id}`"
                   class="group"
                 >
-                  <div class="flex items-center gap-3 p-3 rounded-lg border border-stone-200 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors">
+                  <div class="flex items-center gap-3 p-3 rounded-lg border border-[rgba(175,143,60,0.08)] hover:border-[rgba(175,143,60,0.2)] hover:bg-[rgba(175,143,60,0.04)] dark:hover:bg-[rgba(175,143,60,0.04)] transition-colors">
                     <UAvatar :alt="getUserName(member)" size="md" />
                     <div class="min-w-0 flex-1">
                       <p class="font-medium text-sm text-stone-900 dark:text-white truncate group-hover:text-primary transition-colors">
@@ -303,7 +303,7 @@ function getRoleColor(name: string) {
                 :to="`/equipe/${member.id}`"
                 class="group"
               >
-                <div class="flex items-center gap-3 p-3 rounded-lg border border-stone-200 dark:border-stone-800 opacity-50 hover:opacity-80 transition-all">
+                <div class="flex items-center gap-3 p-3 rounded-lg border border-[rgba(175,143,60,0.06)] opacity-50 hover:opacity-80 transition-all">
                   <UAvatar :alt="getUserName(member)" size="md" />
                   <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2">

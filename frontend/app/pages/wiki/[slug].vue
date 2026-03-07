@@ -158,7 +158,7 @@ function formatDate(dateStr: string | null): string {
             <div class="flex-1 min-w-0">
               <!-- En-tete -->
               <div class="flex items-center gap-3 mb-8">
-                <div class="size-10 rounded-lg bg-stone-100 dark:bg-stone-800/50 flex items-center justify-center">
+                <div class="size-10 rounded-lg bg-[rgba(175,143,60,0.06)] dark:bg-[rgba(175,143,60,0.06)] flex items-center justify-center">
                   <UIcon :name="page.icone || 'i-lucide-file-text'" class="size-5 text-stone-600 dark:text-stone-400" />
                 </div>
                 <h1 class="font-heading text-2xl font-bold text-stone-900 dark:text-white">{{ page.titre }}</h1>
@@ -168,7 +168,7 @@ function formatDate(dateStr: string | null): string {
               <div class="prose prose-stone dark:prose-invert prose-sm max-w-none" v-html="processedContent" />
 
               <!-- Meta -->
-              <div v-if="page.date_updated || page.date_created" class="mt-10 pt-6 border-t border-stone-200 dark:border-stone-800">
+              <div v-if="page.date_updated || page.date_created" class="mt-10 pt-6 border-t border-[rgba(175,143,60,0.08)]">
                 <p class="text-xs text-stone-400 dark:text-stone-600">
                   <template v-if="page.date_updated">
                     Derniere mise a jour le {{ formatDate(page.date_updated) }}

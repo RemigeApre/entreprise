@@ -421,17 +421,17 @@ onMounted(() => {
             {{ currentMonthLabel }}
           </span>
           <!-- View mode toggle -->
-          <div class="flex items-center rounded-lg border border-stone-200 dark:border-stone-700 overflow-hidden">
+          <div class="flex items-center rounded-lg border border-[rgba(175,143,60,0.12)] overflow-hidden">
             <button
               class="flex items-center justify-center size-7 transition-colors"
-              :class="viewMode === 'week' ? 'bg-primary/10 text-primary' : 'text-stone-400 dark:text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800'"
+              :class="viewMode === 'week' ? 'bg-primary/10 text-primary' : 'text-stone-400 dark:text-stone-500 hover:bg-[rgba(175,143,60,0.06)] dark:hover:bg-[rgba(175,143,60,0.06)]'"
               @click="viewMode = 'week'"
             >
               <UIcon name="i-lucide-rows-3" class="size-3.5" />
             </button>
             <button
               class="flex items-center justify-center size-7 transition-colors"
-              :class="viewMode === 'month' ? 'bg-primary/10 text-primary' : 'text-stone-400 dark:text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800'"
+              :class="viewMode === 'month' ? 'bg-primary/10 text-primary' : 'text-stone-400 dark:text-stone-500 hover:bg-[rgba(175,143,60,0.06)] dark:hover:bg-[rgba(175,143,60,0.06)]'"
               @click="viewMode = 'month'"
             >
               <UIcon name="i-lucide-grid-3x3" class="size-3.5" />
@@ -446,7 +446,7 @@ onMounted(() => {
             class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors"
             :class="activeAction === action.key
               ? 'bg-primary text-white'
-              : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700'"
+              : 'bg-[rgba(175,143,60,0.06)] text-[#2c2419]/60 dark:text-[#e8e0d0]/50 hover:bg-[rgba(175,143,60,0.12)]'"
             @click="activeAction = action.key"
           >
             <UIcon :name="action.icon" class="size-3.5" />
@@ -543,7 +543,7 @@ onMounted(() => {
     >
       <div
         v-if="modifSelections.size > 0"
-        class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 shadow-lg"
+        class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[#f7f0de] dark:bg-[#1a2520] border border-[rgba(175,143,60,0.12)] shadow-lg"
       >
         <span class="text-sm text-stone-600 dark:text-stone-300">
           {{ modifSelections.size }} creneau(x) selectionne(s)
@@ -577,7 +577,7 @@ onMounted(() => {
             <div
               v-for="slot in sortedModifSlots"
               :key="modifSlotKey(slot.date, slot.periode)"
-              class="flex items-center justify-between p-2 rounded-lg bg-stone-50 dark:bg-stone-800/50 text-sm"
+              class="flex items-center justify-between p-2 rounded-lg bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)] text-sm"
             >
               <div>
                 <span class="font-medium text-stone-900 dark:text-white">

@@ -100,7 +100,7 @@ function formatDateFr(date: string) {
             class="block"
           >
             <div
-              class="flex items-center gap-4 rounded-lg border border-stone-200 dark:border-stone-800 p-4 transition-all hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/30 dark:hover:bg-amber-950/20"
+              class="flex items-center gap-4 rounded-lg border border-[rgba(175,143,60,0.1)] p-4 transition-all hover:border-[rgba(175,143,60,0.25)] hover:bg-[rgba(175,143,60,0.04)]"
             >
               <!-- Left: info -->
               <div class="flex-1 min-w-0">

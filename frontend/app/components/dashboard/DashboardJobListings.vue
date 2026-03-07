@@ -86,7 +86,7 @@ onMounted(load)
           v-for="offre in offres.slice(0, 5)"
           :key="offre.id"
           :to="`/offres/${offre.id}`"
-          class="flex items-center justify-between p-2 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors"
+          class="flex items-center justify-between p-2 rounded-lg hover:bg-[rgba(175,143,60,0.04)] dark:hover:bg-[rgba(175,143,60,0.04)] transition-colors"
         >
           <div class="flex items-center gap-2 min-w-0">
             <span

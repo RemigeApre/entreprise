@@ -104,7 +104,7 @@ function formatDate(dateStr: string | null): string {
             <UCard class="h-full transition-shadow hover:shadow-md">
               <div class="flex flex-col h-full">
                 <div class="flex items-center gap-3 mb-3">
-                  <div class="size-9 rounded-lg bg-stone-100 dark:bg-stone-800/50 flex items-center justify-center shrink-0">
+                  <div class="size-9 rounded-lg bg-[rgba(175,143,60,0.06)] dark:bg-[rgba(175,143,60,0.06)] flex items-center justify-center shrink-0">
                     <UIcon :name="page.icone || 'i-lucide-file-text'" class="size-4.5 text-stone-600 dark:text-stone-400" />
                   </div>
                   <h3 class="font-semibold text-stone-900 dark:text-white group-hover:text-primary transition-colors truncate">

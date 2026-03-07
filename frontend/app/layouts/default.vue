@@ -8,6 +8,17 @@ const mobileOpen = ref(false)
 const { isVisible, show, hide, hiddenCount, showAll, planningMode, setPlanningMode, presenceMode, setPresenceMode } = useDashboardPreferences()
 const { hasSites } = useSiteMonitor()
 
+useHead({
+  link: [
+    { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+    { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+    {
+      rel: 'stylesheet',
+      href: 'https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=IM+Fell+DW+Pica:ital@0;1&family=UnifrakturCook:wght@700&display=swap'
+    }
+  ]
+})
+
 watch(() => route.fullPath, () => { mobileOpen.value = false })
 
 const isDark = computed({
@@ -108,7 +119,6 @@ function isDomainActive(domain: Domain) {
 function isTabActive(tab: DomainTab) {
   const path = route.path
   if (!(path === tab.to || path.startsWith(tab.to + '/'))) return false
-  // Longest prefix match: check if a more specific tab matches
   const longerMatch = activeTabs.value.find(t =>
     t.to !== tab.to &&
     t.to.length > tab.to.length &&
@@ -138,71 +148,70 @@ const userMenuItems = computed(() => [
 </script>
 
 <template>
-  <div class="flex h-dvh overflow-hidden bg-white dark:bg-stone-950">
+  <div class="intranet-root">
+    <!-- Noise overlay -->
+    <svg class="sr-only" aria-hidden="true">
+      <filter id="intranet-noise">
+        <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+      </filter>
+    </svg>
+    <div class="intranet-noise" aria-hidden="true">
+      <svg width="100%" height="100%"><rect width="100%" height="100%" filter="url(#intranet-noise)" /></svg>
+    </div>
+
+    <!-- Vignette -->
+    <div class="intranet-vignette" aria-hidden="true" />
 
     <!-- ========================================================== -->
-    <!-- DESKTOP: Icon Rail                                         -->
+    <!-- DESKTOP: Sidebar                                           -->
     <!-- ========================================================== -->
-    <aside class="hidden lg:flex flex-col items-center w-[60px] shrink-0 border-r border-stone-200 dark:border-stone-800 bg-stone-50/80 dark:bg-stone-900/40">
-      <!-- Logo = Dashboard -->
+    <aside class="sidebar">
+      <!-- Logo glyph -->
       <UTooltip text="Tableau de bord" :delay-duration="300">
-        <NuxtLink to="/dashboard" class="flex items-center justify-center h-14 shrink-0 group">
-          <img
-            src="/logo.svg"
-            alt="Le Geai"
-            class="size-8 transition-all duration-200"
-            :class="isOnDashboard
-              ? 'scale-110'
-              : 'grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105'"
-          />
+        <NuxtLink to="/dashboard" class="sidebar-logo" :class="{ 'is-active': isOnDashboard }">
+          <span class="sidebar-glyph">G</span>
         </NuxtLink>
       </UTooltip>
 
-      <div class="w-8 h-px bg-stone-200 dark:bg-stone-800 mb-2" />
+      <div class="sidebar-sep" />
 
       <!-- Domain icons -->
-      <nav class="flex-1 flex flex-col items-center gap-1 px-2 py-1">
+      <nav class="sidebar-nav">
         <UTooltip v-for="domain in domains" :key="domain.id" :text="domain.label" :delay-duration="300">
           <NuxtLink
             :to="domain.to"
-            class="flex items-center justify-center size-10 rounded-lg transition-all duration-150"
-            :class="isDomainActive(domain)
-              ? 'bg-primary/10 text-primary shadow-sm'
-              : 'text-stone-400 dark:text-stone-500 hover:bg-stone-200/60 dark:hover:bg-stone-800/60 hover:text-stone-700 dark:hover:text-stone-300'"
+            class="sidebar-icon"
+            :class="{ 'is-active': isDomainActive(domain) }"
           >
-            <UIcon :name="domain.icon" class="size-5" />
+            <UIcon :name="domain.icon" class="size-[18px]" />
           </NuxtLink>
         </UTooltip>
       </nav>
 
-      <!-- Bottom: theme + settings + user -->
-      <div class="flex flex-col items-center gap-1.5 pb-3 px-2">
+      <!-- Bottom actions -->
+      <div class="sidebar-bottom">
         <UTooltip :text="isDark ? 'Mode clair' : 'Mode sombre'" :delay-duration="300">
-          <button
-            class="flex items-center justify-center size-9 rounded-lg text-stone-400 dark:text-stone-500 hover:bg-stone-200/60 dark:hover:bg-stone-800/60 hover:text-stone-700 dark:hover:text-stone-300 transition-colors"
-            @click="isDark = !isDark"
-          >
+          <button class="sidebar-icon" @click="isDark = !isDark">
             <UIcon :name="isDark ? 'i-lucide-sun' : 'i-lucide-moon'" class="size-4" />
           </button>
         </UTooltip>
+
         <UPopover>
           <UTooltip text="Parametres" :delay-duration="300">
-            <button
-              class="relative flex items-center justify-center size-9 rounded-lg text-stone-400 dark:text-stone-500 hover:bg-stone-200/60 dark:hover:bg-stone-800/60 hover:text-stone-700 dark:hover:text-stone-300 transition-colors"
-            >
+            <button class="sidebar-icon">
               <UIcon name="i-lucide-settings" class="size-4" />
             </button>
           </UTooltip>
           <template #content>
-            <div class="p-3 w-64 space-y-4 max-h-[70vh] overflow-y-auto">
-              <div class="space-y-2">
-                <p class="text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Modules</p>
+            <div class="settings-popover">
+              <div class="settings-section">
+                <p class="settings-label">Modules</p>
                 <label
                   v-for="mod in DASHBOARD_MODULES"
                   :key="mod.key"
-                  class="flex items-center justify-between gap-2 cursor-pointer"
+                  class="settings-row"
                 >
-                  <span class="text-sm text-stone-700 dark:text-stone-300">{{ mod.label }}</span>
+                  <span class="settings-text">{{ mod.label }}</span>
                   <USwitch
                     :model-value="isVisible(mod.key)"
                     size="xs"
@@ -211,66 +220,60 @@ const userMenuItems = computed(() => [
                 </label>
                 <button
                   v-if="hiddenCount > 0"
-                  class="text-xs text-primary hover:underline"
+                  class="settings-reset"
                   @click="showAll()"
                 >
                   Tout reafficher
                 </button>
               </div>
-              <div class="h-px bg-stone-200 dark:bg-stone-700" />
-              <div class="space-y-1.5">
-                <p class="text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Affichage planning</p>
-                <div class="space-y-1">
-                  <label
-                    v-for="opt in PLANNING_DISPLAY_OPTIONS"
-                    :key="opt.value"
-                    class="flex items-center gap-2 cursor-pointer text-sm text-stone-700 dark:text-stone-300"
-                  >
-                    <input
-                      type="radio"
-                      name="planning-mode"
-                      :value="opt.value"
-                      :checked="planningMode === opt.value"
-                      class="accent-primary"
-                      @change="setPlanningMode(opt.value)"
-                    />
-                    {{ opt.label }}
-                  </label>
-                </div>
+              <div class="separator-gold" />
+              <div class="settings-section">
+                <p class="settings-label">Affichage planning</p>
+                <label
+                  v-for="opt in PLANNING_DISPLAY_OPTIONS"
+                  :key="opt.value"
+                  class="settings-radio"
+                >
+                  <input
+                    type="radio"
+                    name="planning-mode"
+                    :value="opt.value"
+                    :checked="planningMode === opt.value"
+                    @change="setPlanningMode(opt.value)"
+                  />
+                  {{ opt.label }}
+                </label>
               </div>
-              <div class="h-px bg-stone-200 dark:bg-stone-700" />
-              <div class="space-y-1.5">
-                <p class="text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Affichage presence</p>
-                <div class="space-y-1">
-                  <label
-                    v-for="opt in PRESENCE_DISPLAY_OPTIONS"
-                    :key="opt.value"
-                    class="flex items-center gap-2 cursor-pointer text-sm text-stone-700 dark:text-stone-300"
-                  >
-                    <input
-                      type="radio"
-                      name="presence-mode"
-                      :value="opt.value"
-                      :checked="presenceMode === opt.value"
-                      class="accent-primary"
-                      @change="setPresenceMode(opt.value)"
-                    />
-                    {{ opt.label }}
-                  </label>
-                </div>
+              <div class="separator-gold" />
+              <div class="settings-section">
+                <p class="settings-label">Affichage presence</p>
+                <label
+                  v-for="opt in PRESENCE_DISPLAY_OPTIONS"
+                  :key="opt.value"
+                  class="settings-radio"
+                >
+                  <input
+                    type="radio"
+                    name="presence-mode"
+                    :value="opt.value"
+                    :checked="presenceMode === opt.value"
+                    @change="setPresenceMode(opt.value)"
+                  />
+                  {{ opt.label }}
+                </label>
               </div>
             </div>
           </template>
         </UPopover>
+
         <UDropdownMenu :items="userMenuItems">
           <button
-            class="flex items-center justify-center size-9 rounded-lg hover:bg-stone-200/60 dark:hover:bg-stone-800/60 transition-colors"
-            :class="isDirecteur ? 'ring-1 ring-amber-400/50' : ''"
+            class="sidebar-avatar"
+            :class="{ 'is-director': isDirecteur }"
           >
             <UAvatar
               :alt="userDisplayName"
               size="xs"
-              :class="isDirecteur ? 'ring-2 ring-amber-500' : ''"
             />
           </button>
         </UDropdownMenu>
@@ -280,46 +283,38 @@ const userMenuItems = computed(() => [
     <!-- ========================================================== -->
     <!-- Main Content Area                                          -->
     <!-- ========================================================== -->
-    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <div class="main-area">
 
-      <!-- Domain tab bar (desktop, shown when ≥ 2 tabs) -->
-      <div v-if="activeTabs.length >= 2" class="hidden lg:block border-b border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-950 shrink-0 relative z-10">
-        <div class="flex items-end px-4">
-          <div class="flex items-end gap-0.5 -mb-px">
+      <!-- Domain tab bar (desktop, shown when >= 2 tabs) -->
+      <div v-if="activeTabs.length >= 2" class="tab-bar">
+        <div class="tab-bar-inner">
+          <div class="tab-list">
             <template v-for="tab in activeTabs" :key="tab.to">
-              <span
-                v-if="tab.disabled"
-                class="flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-t-lg border border-b-0 border-transparent text-stone-300 dark:text-stone-700 cursor-not-allowed shrink-0"
-              >
-                <UIcon :name="tab.icon" class="size-4" />
+              <span v-if="tab.disabled" class="tab-item is-disabled">
+                <UIcon :name="tab.icon" class="size-3.5" />
                 {{ tab.label }}
               </span>
               <NuxtLink
                 v-else
                 :to="tab.to"
-                class="flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-t-lg border border-b-0 transition-colors shrink-0"
-                :class="isTabActive(tab)
-                  ? 'border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 text-stone-900 dark:text-white cursor-default'
-                  : 'border-transparent text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-50 dark:hover:bg-stone-900/50 cursor-pointer'"
+                class="tab-item"
+                :class="{ 'is-active': isTabActive(tab) }"
               >
-                <UIcon :name="tab.icon" class="size-4" />
+                <UIcon :name="tab.icon" class="size-3.5" />
                 {{ tab.label }}
               </NuxtLink>
             </template>
           </div>
-          <div id="page-actions" class="ml-auto flex items-center gap-2 pb-1.5" />
+          <div id="page-actions" class="ml-auto flex items-center gap-2" />
         </div>
       </div>
 
       <!-- Page content -->
-      <div class="flex-1 overflow-hidden bg-watermark flex flex-col">
+      <div class="page-content bg-watermark">
         <!-- Mobile menu button -->
-        <div class="fixed top-3 left-3 z-50 lg:hidden">
-          <button
-            class="flex items-center justify-center size-10 rounded-lg bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm active:scale-95 transition-transform"
-            @click="mobileOpen = true"
-          >
-            <UIcon name="i-lucide-menu" class="size-5 text-stone-700 dark:text-stone-300" />
+        <div class="mobile-menu-btn">
+          <button class="mobile-menu-trigger" @click="mobileOpen = true">
+            <UIcon name="i-lucide-menu" class="size-5" />
           </button>
         </div>
         <slot />
@@ -330,7 +325,6 @@ const userMenuItems = computed(() => [
     <!-- MOBILE: Slide-in drawer                                    -->
     <!-- ========================================================== -->
     <Teleport to="body">
-      <!-- Backdrop -->
       <Transition
         enter-active-class="transition-opacity duration-200"
         leave-active-class="transition-opacity duration-200"
@@ -344,69 +338,51 @@ const userMenuItems = computed(() => [
         />
       </Transition>
 
-      <!-- Drawer panel -->
       <Transition
         enter-active-class="transition-transform duration-250 ease-out"
         leave-active-class="transition-transform duration-200 ease-in"
         enter-from-class="-translate-x-full"
         leave-to-class="-translate-x-full"
       >
-        <aside
-          v-if="mobileOpen"
-          class="fixed inset-y-0 left-0 z-[61] w-72 bg-white dark:bg-stone-900 shadow-2xl lg:hidden flex flex-col overflow-y-auto"
-        >
+        <aside v-if="mobileOpen" class="mobile-drawer">
           <!-- Drawer header -->
-          <div class="flex items-center justify-between px-4 h-14 border-b border-stone-200 dark:border-stone-800 shrink-0">
-            <NuxtLink to="/dashboard" class="flex items-center gap-2" @click="mobileOpen = false">
-              <img src="/logo.svg" alt="Le Geai" class="size-7" />
-              <span class="font-heading font-bold text-lg tracking-tight">Le Geai</span>
+          <div class="drawer-header">
+            <NuxtLink to="/dashboard" class="drawer-logo" @click="mobileOpen = false">
+              <span class="font-fraktur text-2xl text-[var(--gold)] leading-none">G</span>
+              <span class="font-heading text-lg tracking-wide">Le Geai</span>
             </NuxtLink>
-            <button
-              class="flex items-center justify-center size-8 rounded-md text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
-              @click="mobileOpen = false"
-            >
+            <button class="drawer-close" @click="mobileOpen = false">
               <UIcon name="i-lucide-x" class="size-4" />
             </button>
           </div>
 
           <!-- Drawer navigation -->
-          <nav class="flex-1 px-3 py-4 space-y-5">
+          <nav class="drawer-nav">
             <div v-for="domain in domains" :key="domain.id">
-              <!-- Domain with no tabs: single link -->
               <NuxtLink
                 v-if="domain.tabs.length === 0"
                 :to="domain.to"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-                :class="isDomainActive(domain)
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'"
+                class="drawer-link"
+                :class="{ 'is-active': isDomainActive(domain) }"
                 @click="mobileOpen = false"
               >
                 <UIcon :name="domain.icon" class="size-5" />
                 {{ domain.label }}
               </NuxtLink>
 
-              <!-- Domain with tabs: section header + sub-links -->
               <template v-else>
-                <p class="text-[11px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider px-3 mb-1">
-                  {{ domain.label }}
-                </p>
+                <p class="drawer-section-title">{{ domain.label }}</p>
                 <div class="space-y-0.5">
                   <template v-for="tab in domain.tabs" :key="tab.to">
-                    <span
-                      v-if="tab.disabled"
-                      class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-stone-300 dark:text-stone-700 cursor-not-allowed"
-                    >
+                    <span v-if="tab.disabled" class="drawer-link is-disabled">
                       <UIcon :name="tab.icon" class="size-4" />
                       {{ tab.label }}
                     </span>
                     <NuxtLink
                       v-else
                       :to="tab.to"
-                      class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors"
-                      :class="isTabActive(tab)
-                        ? 'bg-primary/10 text-primary font-medium'
-                        : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'"
+                      class="drawer-link"
+                      :class="{ 'is-active': isTabActive(tab) }"
                       @click="mobileOpen = false"
                     >
                       <UIcon :name="tab.icon" class="size-4" />
@@ -419,81 +395,55 @@ const userMenuItems = computed(() => [
           </nav>
 
           <!-- Drawer footer -->
-          <div class="border-t border-stone-200 dark:border-stone-800 px-3 py-3 shrink-0 space-y-2">
-            <div class="flex items-center justify-between px-2">
-              <button
-                class="flex items-center gap-2 text-sm text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 transition-colors"
-                @click="isDark = !isDark"
-              >
-                <UIcon :name="isDark ? 'i-lucide-sun' : 'i-lucide-moon'" class="size-4" />
-                {{ isDark ? 'Mode clair' : 'Mode sombre' }}
-              </button>
-            </div>
-            <!-- Settings: dashboard modules -->
-            <div class="px-2 py-2 rounded-lg bg-stone-50 dark:bg-stone-800/50 space-y-3">
-              <div class="space-y-2">
-                <p class="text-[11px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Modules</p>
-                <label
-                  v-for="mod in DASHBOARD_MODULES"
-                  :key="mod.key"
-                  class="flex items-center justify-between gap-2 cursor-pointer"
-                >
-                  <span class="text-xs text-stone-600 dark:text-stone-400">{{ mod.label }}</span>
+          <div class="drawer-footer">
+            <button class="drawer-theme-btn" @click="isDark = !isDark">
+              <UIcon :name="isDark ? 'i-lucide-sun' : 'i-lucide-moon'" class="size-4" />
+              {{ isDark ? 'Mode clair' : 'Mode sombre' }}
+            </button>
+
+            <div class="drawer-settings">
+              <div class="settings-section">
+                <p class="settings-label">Modules</p>
+                <label v-for="mod in DASHBOARD_MODULES" :key="mod.key" class="settings-row">
+                  <span class="settings-text text-xs">{{ mod.label }}</span>
                   <USwitch
                     :model-value="isVisible(mod.key)"
                     size="xs"
                     @update:model-value="$event ? show(mod.key) : hide(mod.key)"
                   />
                 </label>
-                <button
-                  v-if="hiddenCount > 0"
-                  class="text-xs text-primary hover:underline"
-                  @click="showAll()"
-                >
+                <button v-if="hiddenCount > 0" class="settings-reset" @click="showAll()">
                   Tout reafficher
                 </button>
               </div>
-              <div class="h-px bg-stone-200 dark:bg-stone-700" />
-              <div class="space-y-1.5">
-                <p class="text-[11px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Planning</p>
-                <label
-                  v-for="opt in PLANNING_DISPLAY_OPTIONS"
-                  :key="opt.value"
-                  class="flex items-center gap-2 cursor-pointer text-xs text-stone-600 dark:text-stone-400"
-                >
-                  <input type="radio" name="mobile-planning-mode" :value="opt.value" :checked="planningMode === opt.value" class="accent-primary" @change="setPlanningMode(opt.value)" />
+              <div class="separator-gold" />
+              <div class="settings-section">
+                <p class="settings-label">Planning</p>
+                <label v-for="opt in PLANNING_DISPLAY_OPTIONS" :key="opt.value" class="settings-radio text-xs">
+                  <input type="radio" name="mobile-planning-mode" :value="opt.value" :checked="planningMode === opt.value" @change="setPlanningMode(opt.value)" />
                   {{ opt.label }}
                 </label>
               </div>
-              <div class="h-px bg-stone-200 dark:bg-stone-700" />
-              <div class="space-y-1.5">
-                <p class="text-[11px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">Presence</p>
-                <label
-                  v-for="opt in PRESENCE_DISPLAY_OPTIONS"
-                  :key="opt.value"
-                  class="flex items-center gap-2 cursor-pointer text-xs text-stone-600 dark:text-stone-400"
-                >
-                  <input type="radio" name="mobile-presence-mode" :value="opt.value" :checked="presenceMode === opt.value" class="accent-primary" @change="setPresenceMode(opt.value)" />
+              <div class="separator-gold" />
+              <div class="settings-section">
+                <p class="settings-label">Presence</p>
+                <label v-for="opt in PRESENCE_DISPLAY_OPTIONS" :key="opt.value" class="settings-radio text-xs">
+                  <input type="radio" name="mobile-presence-mode" :value="opt.value" :checked="presenceMode === opt.value" @change="setPresenceMode(opt.value)" />
                   {{ opt.label }}
                 </label>
               </div>
             </div>
+
             <NuxtLink
               to="/profil"
-              class="flex items-center gap-3 px-2 py-2 rounded-lg text-sm text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+              class="drawer-profile"
               @click="mobileOpen = false"
             >
-              <UAvatar
-                :alt="userDisplayName"
-                size="xs"
-                :class="isDirecteur ? 'ring-2 ring-amber-500' : ''"
-              />
+              <UAvatar :alt="userDisplayName" size="xs" />
               <span class="truncate">{{ userDisplayName }}</span>
             </NuxtLink>
-            <button
-              class="flex items-center gap-3 w-full px-2 py-2 rounded-lg text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-              @click="logout()"
-            >
+
+            <button class="drawer-logout" @click="logout()">
               <UIcon name="i-lucide-log-out" class="size-4" />
               Se deconnecter
             </button>
@@ -503,3 +453,537 @@ const userMenuItems = computed(() => [
     </Teleport>
   </div>
 </template>
+
+<style scoped>
+/* ============================
+   CSS Variables
+   ============================ */
+.intranet-root {
+  --gold: #AF8F3C;
+  --gold-dim: rgba(175, 143, 60, 0.25);
+  --gold-faint: rgba(175, 143, 60, 0.08);
+  --cream: #F7F0DE;
+  --ink: #2c2419;
+  --sidebar-w: 56px;
+
+  display: flex;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--cream);
+  color: var(--ink);
+  font-family: 'Crimson Pro', Georgia, serif;
+}
+:global(.dark) .intranet-root {
+  background-color: #1a2520;
+  color: #e8e0d0;
+}
+
+/* ============================
+   SIDEBAR
+   ============================ */
+.sidebar {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  padding: 10px 0 12px;
+  border-right: 1px solid var(--gold-faint);
+  background: linear-gradient(180deg, rgba(247, 240, 222, 0.6) 0%, rgba(245, 239, 224, 0.4) 100%);
+  position: relative;
+  z-index: 10;
+}
+:global(.dark) .sidebar {
+  background: linear-gradient(180deg, rgba(26, 37, 32, 0.9) 0%, rgba(20, 30, 25, 0.95) 100%);
+  border-color: rgba(175, 143, 60, 0.12);
+}
+
+@media (min-width: 1024px) {
+  .sidebar { display: flex; }
+}
+
+/* Logo */
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 4px;
+  transition: transform 0.3s ease;
+}
+.sidebar-logo:hover { transform: scale(1.08); }
+.sidebar-logo.is-active { transform: scale(1.1); }
+
+.sidebar-glyph {
+  font-family: 'UnifrakturCook', cursive;
+  font-size: 1.5rem;
+  color: var(--gold);
+  opacity: 0.5;
+  line-height: 1;
+  transition: opacity 0.3s;
+}
+.sidebar-logo:hover .sidebar-glyph,
+.sidebar-logo.is-active .sidebar-glyph {
+  opacity: 1;
+}
+
+.sidebar-sep {
+  width: 24px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0.25;
+  margin: 6px 0;
+}
+
+/* Nav icons */
+.sidebar-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+}
+
+.sidebar-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  color: var(--ink);
+  opacity: 0.35;
+  transition: all 0.25s ease;
+  position: relative;
+}
+:global(.dark) .sidebar-icon {
+  color: #e8e0d0;
+  opacity: 0.4;
+}
+.sidebar-icon:hover {
+  opacity: 0.7;
+  background: var(--gold-faint);
+}
+.sidebar-icon.is-active {
+  opacity: 1;
+  color: var(--gold);
+  background: rgba(175, 143, 60, 0.1);
+}
+.sidebar-icon.is-active::after {
+  content: '';
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 16px;
+  background: var(--gold);
+  border-radius: 1px;
+  opacity: 0.6;
+}
+
+/* Bottom section */
+.sidebar-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+}
+
+.sidebar-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+.sidebar-avatar:hover {
+  background: var(--gold-faint);
+}
+.sidebar-avatar.is-director :deep(span) {
+  box-shadow: 0 0 0 2px var(--gold);
+  border-radius: 9999px;
+}
+
+/* ============================
+   MAIN AREA
+   ============================ */
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ============================
+   TAB BAR
+   ============================ */
+.tab-bar {
+  display: none;
+  border-bottom: 1px solid var(--gold-faint);
+  background: rgba(247, 240, 222, 0.5);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+:global(.dark) .tab-bar {
+  background: rgba(26, 37, 32, 0.6);
+  border-color: rgba(175, 143, 60, 0.1);
+}
+
+@media (min-width: 1024px) {
+  .tab-bar { display: block; }
+}
+
+.tab-bar-inner {
+  display: flex;
+  align-items: end;
+  padding: 0 20px;
+}
+
+.tab-list {
+  display: flex;
+  align-items: end;
+  gap: 0;
+}
+
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ink);
+  opacity: 0.4;
+  position: relative;
+  transition: opacity 0.25s, color 0.25s;
+  white-space: nowrap;
+}
+:global(.dark) .tab-item {
+  color: #e8e0d0;
+}
+.tab-item:hover {
+  opacity: 0.7;
+}
+.tab-item.is-active {
+  opacity: 1;
+  color: var(--gold);
+}
+.tab-item.is-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 16px;
+  right: 16px;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.tab-item.is-disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+}
+
+/* ============================
+   PAGE CONTENT
+   ============================ */
+.page-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Mobile menu */
+.mobile-menu-btn {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 50;
+  display: block;
+}
+@media (min-width: 1024px) {
+  .mobile-menu-btn { display: none; }
+}
+
+.mobile-menu-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(247, 240, 222, 0.9);
+  border: 1px solid var(--gold-faint);
+  color: var(--ink);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s, box-shadow 0.2s;
+}
+:global(.dark) .mobile-menu-trigger {
+  background: rgba(26, 37, 32, 0.9);
+  color: #e8e0d0;
+  border-color: rgba(175, 143, 60, 0.15);
+}
+.mobile-menu-trigger:active {
+  transform: scale(0.95);
+}
+
+/* ============================
+   MOBILE DRAWER
+   ============================ */
+.mobile-drawer {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 61;
+  width: 280px;
+  background: var(--cream);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+:global(.dark) .mobile-drawer {
+  background: #1a2520;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+}
+
+@media (min-width: 1024px) {
+  .mobile-drawer { display: none; }
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--gold-faint);
+  flex-shrink: 0;
+}
+
+.drawer-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.drawer-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  color: var(--ink);
+  opacity: 0.4;
+  transition: opacity 0.2s, background 0.2s;
+}
+:global(.dark) .drawer-close { color: #e8e0d0; }
+.drawer-close:hover {
+  opacity: 0.8;
+  background: var(--gold-faint);
+}
+
+.drawer-nav {
+  flex: 1;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.drawer-section-title {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--gold);
+  opacity: 0.6;
+  padding: 0 12px;
+  margin-bottom: 4px;
+}
+
+.drawer-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-decoration: none;
+  color: var(--ink);
+  opacity: 0.55;
+  transition: all 0.2s;
+}
+:global(.dark) .drawer-link { color: #e8e0d0; }
+.drawer-link:hover {
+  opacity: 0.85;
+  background: var(--gold-faint);
+}
+.drawer-link.is-active {
+  opacity: 1;
+  color: var(--gold);
+  background: rgba(175, 143, 60, 0.08);
+}
+.drawer-link.is-disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+}
+
+.drawer-footer {
+  border-top: 1px solid var(--gold-faint);
+  padding: 12px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.drawer-theme-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  font-size: 13px;
+  color: var(--ink);
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+:global(.dark) .drawer-theme-btn { color: #e8e0d0; }
+.drawer-theme-btn:hover { opacity: 0.8; }
+
+.drawer-settings {
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(175, 143, 60, 0.04);
+  border: 1px solid var(--gold-faint);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+:global(.dark) .drawer-settings {
+  background: rgba(175, 143, 60, 0.03);
+}
+
+.drawer-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-decoration: none;
+  color: inherit;
+  opacity: 0.7;
+  transition: opacity 0.2s, background 0.2s;
+}
+.drawer-profile:hover {
+  opacity: 1;
+  background: var(--gold-faint);
+}
+
+.drawer-logout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--color-brand-terracotta);
+  opacity: 0.7;
+  transition: opacity 0.2s, background 0.2s;
+}
+.drawer-logout:hover {
+  opacity: 1;
+  background: rgba(183, 77, 52, 0.06);
+}
+
+/* ============================
+   SETTINGS POPOVER (shared)
+   ============================ */
+.settings-popover {
+  padding: 12px;
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--gold);
+  opacity: 0.7;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.settings-text {
+  font-size: 13px;
+  color: var(--ink);
+  opacity: 0.7;
+}
+:global(.dark) .settings-text { color: #e8e0d0; }
+
+.settings-reset {
+  font-size: 12px;
+  color: var(--gold);
+  opacity: 0.7;
+  text-align: left;
+  transition: opacity 0.2s;
+}
+.settings-reset:hover { opacity: 1; }
+
+.settings-radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--ink);
+  opacity: 0.7;
+}
+:global(.dark) .settings-radio { color: #e8e0d0; }
+.settings-radio input[type="radio"] {
+  accent-color: var(--gold);
+}
+</style>
+
+<style>
+/* Global styles for intranet root background */
+html:has(.intranet-root) {
+  background-color: #F7F0DE;
+  transition: background-color 0.3s ease;
+}
+html.dark:has(.intranet-root) {
+  background-color: #1a2520;
+}
+</style>
