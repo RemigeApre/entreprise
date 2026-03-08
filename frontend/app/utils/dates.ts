@@ -76,6 +76,27 @@ export function getNextWorkingDay(date: Date): Date {
   return d
 }
 
+export function isWeekend(date: Date): boolean {
+  const day = date.getDay()
+  return day === 0 || day === 6
+}
+
+export function isFriday(date: Date): boolean {
+  return date.getDay() === 5
+}
+
+export function getCurrentOrNextMonday(date: Date): Date {
+  if (isWeekend(date)) {
+    return getMonday(getNextWorkingDay(date))
+  }
+  return getMonday(date)
+}
+
+export function getTodayOrNextWorkingDay(date: Date): Date {
+  if (isWeekend(date)) return getNextWorkingDay(date)
+  return date
+}
+
 export function isPastDate(dateStr: string): boolean {
   return dateStr < formatDate(new Date())
 }

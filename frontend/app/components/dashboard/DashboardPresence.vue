@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PlanningEntry, UserProfile } from '~/utils/types'
 import { PLANNING_TYPES, PLANNING_COLORS } from '~/utils/constants'
-import { formatDate, getNextWorkingDay } from '~/utils/dates'
+import { formatDate, getNextWorkingDay, isWeekend, getTodayOrNextWorkingDay } from '~/utils/dates'
 
 const { user } = useAuth()
 const { getTeamEntries } = usePlanning()
@@ -17,9 +17,14 @@ interface PersonPresence {
   apres_midi: { type: string; key: string } | null
 }
 
-const today = new Date()
-const nextDay = getNextWorkingDay(today)
-const todayStr = formatDate(today)
+const now = new Date()
+const isWeekendNow = isWeekend(now)
+
+// Si weekend, on montre le prochain jour ouvre (lundi)
+const effectiveToday = getTodayOrNextWorkingDay(now)
+const nextDay = getNextWorkingDay(effectiveToday)
+
+const effectiveTodayStr = formatDate(effectiveToday)
 const nextDayStr = formatDate(nextDay)
 
 const todayPresences = ref<PersonPresence[]>([])
@@ -61,9 +66,9 @@ async function load() {
   try {
     const users = await getActiveUsers()
     const userIds = users.map(u => u.id)
-    const endDate = presenceMode.value === 'todayNext' ? nextDayStr : todayStr
-    const entries = await getTeamEntries(userIds, todayStr, endDate)
-    todayPresences.value = buildPresences(users, entries, todayStr)
+    const endDate = presenceMode.value === 'todayNext' ? nextDayStr : effectiveTodayStr
+    const entries = await getTeamEntries(userIds, effectiveTodayStr, endDate)
+    todayPresences.value = buildPresences(users, entries, effectiveTodayStr)
     if (presenceMode.value === 'todayNext') {
       nextDayPresences.value = buildPresences(users, entries, nextDayStr)
     }
@@ -82,6 +87,14 @@ function getStatusLabel(slot: { type: string; key: string } | null): string {
   if (!slot) return ''
   const t = PLANNING_TYPES[slot.key as keyof typeof PLANNING_TYPES]
   return t?.label || ''
+}
+
+function getTodayLabel(): string {
+  if (isWeekendNow) {
+    const dayName = effectiveToday.toLocaleDateString('fr-FR', { weekday: 'long' })
+    return dayName.charAt(0).toUpperCase() + dayName.slice(1)
+  }
+  return 'Aujourd\'hui'
 }
 
 function getNextDayLabel(): string {
@@ -103,7 +116,7 @@ onMounted(load)
   <UCard>
     <template #header>
       <div class="flex items-center justify-between">
-        <h3 class="text-sm font-semibold">Qui est la</h3>
+        <h3 class="text-sm font-semibold">Qui est la{{ isWeekendNow ? ' lundi' : '' }}</h3>
         <UButton label="Equipe" variant="link" size="xs" to="/equipe" trailing-icon="i-lucide-arrow-right" />
       </div>
     </template>
@@ -113,10 +126,10 @@ onMounted(load)
     </div>
 
     <div v-else>
-      <!-- Aujourd'hui -->
+      <!-- Jour principal -->
       <div>
         <p class="text-[11px] font-medium text-primary mb-1.5">
-          Aujourd'hui
+          {{ getTodayLabel() }}
           <span class="text-stone-400 font-normal ml-1">{{ countPresent(todayPresences) }} present{{ countPresent(todayPresences) > 1 ? 's' : '' }}</span>
         </p>
         <p v-if="!todayPresences.length" class="text-[11px] text-stone-400 italic">Aucun planning renseigne</p>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PlanningEntry } from '~/utils/types'
-import { getMonday, addDays, getWeekDays, getWeekNumber, formatDate, isDateInContractPeriod } from '~/utils/dates'
+import { getMonday, addDays, getWeekDays, getWeekNumber, formatDate, isDateInContractPeriod, isWeekend } from '~/utils/dates'
 
 const props = defineProps<{
   entries: PlanningEntry[]
