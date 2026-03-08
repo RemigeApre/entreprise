@@ -71,8 +71,9 @@ const selectedUserId = ref('')
 
 function getUserName(entry: MonitoredSiteUser): string {
   const u = entry.utilisateur
-  if (!u || typeof u === 'string') return u as string
-  return [u.first_name, u.last_name].filter(Boolean).join(' ') || u.email
+  if (!u) return '(inconnu)'
+  if (typeof u === 'string') return u
+  return [u.first_name, u.last_name].filter(Boolean).join(' ') || u.email || '(sans nom)'
 }
 
 async function openUsersModal(site: MonitoredSite) {

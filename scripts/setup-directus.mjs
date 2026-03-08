@@ -844,9 +844,11 @@ async function setupPermissions(roleIds) {
       { collection: 'schedule_entries', action: 'update', fields: ['*'], permissions: { utilisateur: { _eq: '$CURRENT_USER' } } },
       { collection: 'schedule_entries', action: 'delete', permissions: { utilisateur: { _eq: '$CURRENT_USER' } } },
 
-      // Monitored sites: read active
+      // Monitored sites: read active, manage users
       { collection: 'monitored_sites', action: 'read', fields: ['*'], permissions: { actif: { _eq: true } } },
+      { collection: 'monitored_sites_users', action: 'create', fields: ['*'], permissions: {} },
       { collection: 'monitored_sites_users', action: 'read', fields: ['*'], permissions: {} },
+      { collection: 'monitored_sites_users', action: 'delete', permissions: {} },
 
       // Offres emploi: read published
       { collection: 'offres_emploi', action: 'read', fields: ['*'], permissions: { publie: { _eq: true } } }
