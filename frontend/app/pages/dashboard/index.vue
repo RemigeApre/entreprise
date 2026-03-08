@@ -45,23 +45,45 @@ function hideModule(key: DashboardModule) {
     <!-- ═══ CONTENT ═══ -->
     <div class="dash-content">
       <!-- Notifications (full width) -->
-      <div v-if="isVisible('notifications')" class="dash-full relative group">
+      <div v-if="isVisible('notifications')" class="relative group">
         <button class="dash-hide-btn" title="Masquer" @click="hideModule('notifications')">
           <UIcon name="i-lucide-x" class="size-3.5" />
         </button>
         <DashboardNotifications />
       </div>
 
-      <!-- Row 1: Ma semaine (wide) + Presence + Sites -->
-      <div class="dash-row-top">
-        <div v-if="isVisible('weekSummary')" class="dash-wide relative group">
-          <button class="dash-hide-btn" title="Masquer" @click="hideModule('weekSummary')">
-            <UIcon name="i-lucide-x" class="size-3.5" />
-          </button>
-          <DashboardWeekSummary />
+      <!-- ═══ MAIN LAYOUT: 2 colonnes ═══ -->
+      <div class="dash-cols">
+        <!-- ── Colonne gauche (large) ── -->
+        <div class="dash-col-left">
+          <!-- Ma semaine -->
+          <div v-if="isVisible('weekSummary')" class="relative group">
+            <button class="dash-hide-btn" title="Masquer" @click="hideModule('weekSummary')">
+              <UIcon name="i-lucide-x" class="size-3.5" />
+            </button>
+            <DashboardWeekSummary />
+          </div>
+
+          <!-- Projets actifs -->
+          <div v-if="isVisible('activeProjects')" class="relative group">
+            <button class="dash-hide-btn" title="Masquer" @click="hideModule('activeProjects')">
+              <UIcon name="i-lucide-x" class="size-3.5" />
+            </button>
+            <DashboardActiveProjects />
+          </div>
+
+          <!-- Stages (admin) -->
+          <div v-if="isDirecteur && isVisible('stageTracker')" class="relative group">
+            <button class="dash-hide-btn" title="Masquer" @click="hideModule('stageTracker')">
+              <UIcon name="i-lucide-x" class="size-3.5" />
+            </button>
+            <DashboardStageTracker />
+          </div>
         </div>
 
-        <div class="dash-side">
+        <!-- ── Colonne droite (etroite) ── -->
+        <div class="dash-col-right">
+          <!-- Presence -->
           <div v-if="isVisible('presence')" class="relative group">
             <button class="dash-hide-btn" title="Masquer" @click="hideModule('presence')">
               <UIcon name="i-lucide-x" class="size-3.5" />
@@ -69,43 +91,45 @@ function hideModule(key: DashboardModule) {
             <DashboardPresence />
           </div>
 
+          <!-- Sites -->
           <div v-if="hasSites && isVisible('siteStatus')" class="relative group">
             <button class="dash-hide-btn" title="Masquer" @click="hideModule('siteStatus')">
               <UIcon name="i-lucide-x" class="size-3.5" />
             </button>
             <DashboardSiteStatus />
           </div>
-        </div>
-      </div>
 
-      <!-- Row 2: projets, prospection, admin -->
-      <div class="dash-row-bottom">
-        <div v-if="isVisible('activeProjects')" class="relative group">
-          <button class="dash-hide-btn" title="Masquer" @click="hideModule('activeProjects')">
-            <UIcon name="i-lucide-x" class="size-3.5" />
-          </button>
-          <DashboardActiveProjects />
-        </div>
+          <!-- Prospection -->
+          <div v-if="isVisible('prospectSummary')" class="relative group">
+            <button class="dash-hide-btn" title="Masquer" @click="hideModule('prospectSummary')">
+              <UIcon name="i-lucide-x" class="size-3.5" />
+            </button>
+            <DashboardProspectSummary />
+          </div>
 
-        <div v-if="isVisible('prospectSummary')" class="relative group">
-          <button class="dash-hide-btn" title="Masquer" @click="hideModule('prospectSummary')">
-            <UIcon name="i-lucide-x" class="size-3.5" />
-          </button>
-          <DashboardProspectSummary />
-        </div>
+          <!-- Notes -->
+          <div v-if="isVisible('notes')" class="relative group">
+            <button class="dash-hide-btn" title="Masquer" @click="hideModule('notes')">
+              <UIcon name="i-lucide-x" class="size-3.5" />
+            </button>
+            <DashboardNotes />
+          </div>
 
-        <div v-if="isDirecteur && isVisible('stageTracker')" class="relative group">
-          <button class="dash-hide-btn" title="Masquer" @click="hideModule('stageTracker')">
-            <UIcon name="i-lucide-x" class="size-3.5" />
-          </button>
-          <DashboardStageTracker />
-        </div>
+          <!-- Tickets -->
+          <div v-if="isVisible('tickets')" class="relative group">
+            <button class="dash-hide-btn" title="Masquer" @click="hideModule('tickets')">
+              <UIcon name="i-lucide-x" class="size-3.5" />
+            </button>
+            <DashboardTickets />
+          </div>
 
-        <div v-if="isDirecteur && isVisible('jobListings')" class="relative group">
-          <button class="dash-hide-btn" title="Masquer" @click="hideModule('jobListings')">
-            <UIcon name="i-lucide-x" class="size-3.5" />
-          </button>
-          <DashboardJobListings />
+          <!-- Offres (admin) -->
+          <div v-if="isDirecteur && isVisible('jobListings')" class="relative group">
+            <button class="dash-hide-btn" title="Masquer" @click="hideModule('jobListings')">
+              <UIcon name="i-lucide-x" class="size-3.5" />
+            </button>
+            <DashboardJobListings />
+          </div>
         </div>
       </div>
     </div>
@@ -143,49 +167,25 @@ function hideModule(key: DashboardModule) {
   .dash-content { padding: 4px 16px 24px; }
 }
 
-.dash-full {
-  flex-shrink: 0;
-}
-
-/* ═══ ROW TOP: semaine (2/3) + sidebar (1/3) ═══ */
-.dash-row-top {
+/* ═══ 2-COL LAYOUT ═══ */
+.dash-cols {
   display: grid;
   grid-template-columns: 3fr 2fr;
   gap: 14px;
   align-items: start;
 }
 @media (max-width: 900px) {
-  .dash-row-top {
+  .dash-cols {
     grid-template-columns: 1fr;
   }
 }
 
-.dash-wide {
-  min-width: 0;
-}
-
-.dash-side {
+.dash-col-left,
+.dash-col-right {
   display: flex;
   flex-direction: column;
   gap: 14px;
   min-width: 0;
-}
-
-/* ═══ ROW BOTTOM: grille classique ═══ */
-.dash-row-bottom {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-}
-@media (min-width: 1200px) {
-  .dash-row-bottom {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-@media (max-width: 640px) {
-  .dash-row-bottom {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* ═══ HIDE BUTTON ═══ */

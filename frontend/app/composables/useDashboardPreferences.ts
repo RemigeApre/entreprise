@@ -7,6 +7,8 @@ export type DashboardModule =
   | 'jobListings'
   | 'presence'
   | 'siteStatus'
+  | 'notes'
+  | 'tickets'
 
 export type PlanningDisplayMode = 'week' | 'today' | 'todayNext'
 export type PresenceDisplayMode = 'today' | 'todayNext'
@@ -19,7 +21,9 @@ export const DASHBOARD_MODULES: { key: DashboardModule; label: string }[] = [
   { key: 'prospectSummary', label: 'Prospection' },
   { key: 'stageTracker', label: 'Suivi des stagiaires' },
   { key: 'jobListings', label: 'Offres d\'emploi' },
-  { key: 'siteStatus', label: 'Etat des sites' }
+  { key: 'siteStatus', label: 'Etat des sites' },
+  { key: 'notes', label: 'Notes' },
+  { key: 'tickets', label: 'Tickets' }
 ]
 
 export const PLANNING_DISPLAY_OPTIONS: { value: PlanningDisplayMode; label: string }[] = [
