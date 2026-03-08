@@ -13,29 +13,20 @@ const entries = ref<PlanningEntry[]>([])
 const today = new Date()
 const currentMonday = getMonday(today)
 
-// Jours a afficher selon le mode
 const displayDays = computed(() => {
-  if (planningMode.value === 'week') {
-    return getWeekDays(currentMonday)
-  }
-  if (planningMode.value === 'today') {
-    return [today]
-  }
-  // todayNext
+  if (planningMode.value === 'week') return getWeekDays(currentMonday)
+  if (planningMode.value === 'today') return [today]
   return [today, getNextWorkingDay(today)]
 })
 
 const headerLabel = computed(() => {
-  if (planningMode.value === 'week') return 'Ma semaine'
-  if (planningMode.value === 'today') return 'Mon planning'
-  return 'Mon planning'
+  return planningMode.value === 'week' ? 'Ma semaine' : 'Mon planning'
 })
 
 async function load() {
   if (!user.value) return
   loading.value = true
   try {
-    // Toujours charger la semaine entiere (on filtre cote client)
     const friday = addDays(currentMonday, 4)
     entries.value = await getEntries(user.value.id, formatDate(currentMonday), formatDate(friday))
   } finally {
@@ -83,10 +74,8 @@ function getSlotLabel(entry: PlanningEntry | undefined): string {
   return PLANNING_TYPES[entry.type]?.label || ''
 }
 
-// Format jour pour les modes compact
 function getDayLabel(date: Date): string {
   if (isToday(date)) return 'Aujourd\'hui'
-  // Check si c'est demain ou lundi prochain, etc.
   const tomorrow = getNextWorkingDay(new Date())
   if (formatDate(date) === formatDate(tomorrow)) {
     const dayName = date.toLocaleDateString('fr-FR', { weekday: 'long' })
@@ -99,105 +88,48 @@ onMounted(load)
 </script>
 
 <template>
-  <UCard class="dash-card-inner">
+  <UCard>
     <template #header>
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <div class="dash-card-icon">
-            <UIcon name="i-lucide-calendar-days" class="size-3.5" />
-          </div>
-          <h3 class="text-sm font-semibold">{{ headerLabel }}</h3>
-        </div>
-        <UButton
-          label="Calendrier"
-          variant="link"
-          size="xs"
-          to="/planning"
-          trailing-icon="i-lucide-arrow-right"
-        />
+        <h3 class="text-sm font-semibold">{{ headerLabel }}</h3>
+        <UButton label="Calendrier" variant="link" size="xs" to="/planning" trailing-icon="i-lucide-arrow-right" />
       </div>
     </template>
 
-    <div v-if="loading" class="flex justify-center py-6">
-      <UIcon name="i-lucide-loader-2" class="size-5 animate-spin text-primary" />
+    <div v-if="loading" class="flex items-center justify-center h-16">
+      <UIcon name="i-lucide-loader-2" class="size-4 animate-spin text-primary" />
     </div>
 
-    <!-- Mode semaine : grille 5 colonnes -->
-    <div v-else-if="planningMode === 'week'" class="grid grid-cols-5 gap-1.5">
-      <div
-        v-for="day in displayDays"
-        :key="formatDate(day)"
-        class="text-center"
-      >
-        <p
-          class="text-[11px] font-medium uppercase mb-2 tracking-wide"
-          :class="isToday(day) ? 'text-primary font-bold' : 'text-stone-400 dark:text-stone-500'"
-        >
+    <!-- Mode semaine -->
+    <div v-else-if="planningMode === 'week'" class="grid grid-cols-5 gap-1">
+      <div v-for="day in displayDays" :key="formatDate(day)" class="text-center">
+        <p class="text-[10px] font-medium uppercase mb-1" :class="isToday(day) ? 'text-primary font-bold' : 'text-stone-400'">
           {{ formatDateShortFr(day) }}
         </p>
-        <!-- AM -->
-        <div
-          class="h-8 rounded-lg text-[10px] flex items-center justify-center mb-1.5 font-medium transition-colors"
-          :class="getSlotClasses(getEntry(day, 'matin'))"
-        >
-          <UIcon
-            v-if="getEntry(day, 'matin')"
-            :name="getSlotIcon(getEntry(day, 'matin'))"
-            class="size-3.5"
-          />
-          <span v-else class="text-[10px]">-</span>
+        <div class="h-7 rounded text-[10px] flex items-center justify-center mb-1" :class="getSlotClasses(getEntry(day, 'matin'))">
+          <UIcon v-if="getEntry(day, 'matin')" :name="getSlotIcon(getEntry(day, 'matin'))" class="size-3" />
+          <span v-else>-</span>
         </div>
-        <!-- PM -->
-        <div
-          class="h-8 rounded-lg text-[10px] flex items-center justify-center font-medium transition-colors"
-          :class="getSlotClasses(getEntry(day, 'apres_midi'))"
-        >
-          <UIcon
-            v-if="getEntry(day, 'apres_midi')"
-            :name="getSlotIcon(getEntry(day, 'apres_midi'))"
-            class="size-3.5"
-          />
-          <span v-else class="text-[10px]">-</span>
+        <div class="h-7 rounded text-[10px] flex items-center justify-center" :class="getSlotClasses(getEntry(day, 'apres_midi'))">
+          <UIcon v-if="getEntry(day, 'apres_midi')" :name="getSlotIcon(getEntry(day, 'apres_midi'))" class="size-3" />
+          <span v-else>-</span>
         </div>
       </div>
     </div>
 
-    <!-- Mode today / todayNext : affichage compact horizontal -->
-    <div v-else class="space-y-3">
-      <div
-        v-for="day in displayDays"
-        :key="formatDate(day)"
-        class="flex items-center gap-3"
-      >
-        <p
-          class="text-xs font-medium w-24 shrink-0"
-          :class="isToday(day) ? 'text-primary font-bold' : 'text-stone-500 dark:text-stone-400'"
-        >
+    <!-- Mode today / todayNext -->
+    <div v-else class="space-y-2">
+      <div v-for="day in displayDays" :key="formatDate(day)" class="flex items-center gap-3">
+        <p class="text-xs font-medium w-20 shrink-0" :class="isToday(day) ? 'text-primary font-bold' : 'text-stone-400'">
           {{ getDayLabel(day) }}
         </p>
-        <div class="flex gap-2 flex-1">
-          <!-- Matin -->
-          <div
-            class="flex-1 h-10 rounded-lg flex items-center justify-center gap-1.5 text-xs font-medium transition-colors"
-            :class="getSlotClasses(getEntry(day, 'matin'))"
-          >
-            <UIcon
-              v-if="getEntry(day, 'matin')"
-              :name="getSlotIcon(getEntry(day, 'matin'))"
-              class="size-3.5"
-            />
+        <div class="flex gap-1.5 flex-1">
+          <div class="flex-1 h-8 rounded flex items-center justify-center gap-1 text-[11px] font-medium" :class="getSlotClasses(getEntry(day, 'matin'))">
+            <UIcon v-if="getEntry(day, 'matin')" :name="getSlotIcon(getEntry(day, 'matin'))" class="size-3" />
             <span>{{ getEntry(day, 'matin') ? getSlotLabel(getEntry(day, 'matin')) : '-' }}</span>
           </div>
-          <!-- Apres-midi -->
-          <div
-            class="flex-1 h-10 rounded-lg flex items-center justify-center gap-1.5 text-xs font-medium transition-colors"
-            :class="getSlotClasses(getEntry(day, 'apres_midi'))"
-          >
-            <UIcon
-              v-if="getEntry(day, 'apres_midi')"
-              :name="getSlotIcon(getEntry(day, 'apres_midi'))"
-              class="size-3.5"
-            />
+          <div class="flex-1 h-8 rounded flex items-center justify-center gap-1 text-[11px] font-medium" :class="getSlotClasses(getEntry(day, 'apres_midi'))">
+            <UIcon v-if="getEntry(day, 'apres_midi')" :name="getSlotIcon(getEntry(day, 'apres_midi'))" class="size-3" />
             <span>{{ getEntry(day, 'apres_midi') ? getSlotLabel(getEntry(day, 'apres_midi')) : '-' }}</span>
           </div>
         </div>
@@ -205,19 +137,3 @@ onMounted(load)
     </div>
   </UCard>
 </template>
-
-<style scoped>
-.dash-card-inner :deep(.u-card) {
-  overflow: visible;
-}
-.dash-card-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  background: rgba(175, 143, 60, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #AF8F3C;
-}
-</style>

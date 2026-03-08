@@ -235,7 +235,7 @@ function onDragEnd(e: DragEvent) {
 
       <!-- ── Sidebar droite (sticky) ── -->
       <div class="dash-sidebar">
-        <!-- Sites status (minimalist) -->
+        <!-- Sites status -->
         <div v-if="hasSites && isVisible('siteStatus')" class="relative group">
           <button class="dash-hide-btn" title="Masquer" @click="hideModule('siteStatus')">
             <UIcon name="i-lucide-x" class="size-3.5" />
@@ -243,35 +243,22 @@ function onDragEnd(e: DragEvent) {
           <UCard>
             <template #header>
               <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <UIcon name="i-lucide-globe" class="size-3.5 text-[#AF8F3C]/60" />
-                  <h3 class="text-xs font-semibold">Sites</h3>
-                </div>
-                <NuxtLink to="/projets/status" class="text-[10px] text-[#AF8F3C]/50 hover:text-[#AF8F3C] transition-colors">
-                  Details
-                </NuxtLink>
+                <h3 class="text-sm font-semibold">Sites</h3>
+                <UButton label="Details" variant="link" size="xs" to="/projets/status" trailing-icon="i-lucide-arrow-right" />
               </div>
             </template>
-
-            <div class="space-y-1">
+            <div class="space-y-0.5">
               <NuxtLink
                 v-for="site in userSites"
                 :key="site.id"
                 to="/projets/status"
-                class="flex items-center gap-2.5 px-1.5 py-1 rounded-md hover:bg-[rgba(175,143,60,0.04)] transition-colors"
+                class="flex items-center gap-2 py-1 px-1 rounded hover:bg-[rgba(175,143,60,0.04)] transition-colors"
               >
                 <span
-                  class="size-2 rounded-full flex-shrink-0 transition-colors"
-                  :class="siteStatuses[site.url] === true ? 'bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.4)]' : siteStatuses[site.url] === false ? 'bg-red-500 shadow-[0_0_4px_rgba(239,68,68,0.4)]' : 'bg-stone-300 dark:bg-stone-600 animate-pulse'"
+                  class="size-2 rounded-full shrink-0"
+                  :class="siteStatuses[site.url] === true ? 'bg-emerald-500' : siteStatuses[site.url] === false ? 'bg-red-500' : 'bg-stone-300 dark:bg-stone-600 animate-pulse'"
                 />
-                <span class="text-xs text-stone-600 dark:text-stone-400 truncate">{{ site.nom }}</span>
-                <span
-                  v-if="siteStatuses[site.url] !== undefined && siteStatuses[site.url] !== null"
-                  class="text-[10px] ml-auto shrink-0"
-                  :class="siteStatuses[site.url] ? 'text-emerald-500/70' : 'text-red-500/70'"
-                >
-                  {{ siteStatuses[site.url] ? 'OK' : 'Down' }}
-                </span>
+                <span class="text-[12px] text-stone-600 dark:text-stone-400 truncate">{{ site.nom }}</span>
               </NuxtLink>
             </div>
           </UCard>
@@ -347,6 +334,22 @@ function onDragEnd(e: DragEvent) {
   position: relative;
   min-width: 0;
   transition: transform 0.15s, opacity 0.15s;
+}
+
+/* Fixed height for half-width cards */
+.dash-card--half :deep(> .u-card),
+.dash-card--half :deep(> div > .u-card) {
+  height: 220px;
+  display: flex;
+  flex-direction: column;
+}
+.dash-card--half :deep(.u-card > div:last-child) {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.dash-card--half :deep(.u-card > div:last-child::-webkit-scrollbar) {
+  display: none;
 }
 
 .dash-card--full {

@@ -75,7 +75,6 @@ async function load() {
       }
     })
 
-    // Load stats in parallel
     await Promise.all(stagiaires.value.map(async (s) => {
       try {
         const startDate = s.user.date_debut_contrat || `${new Date().getFullYear()}-01-01`
@@ -101,110 +100,65 @@ onMounted(load)
   <UCard>
     <template #header>
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <div class="dash-card-icon">
-            <UIcon name="i-lucide-graduation-cap" class="size-3.5" />
-          </div>
-          <h3 class="text-sm font-semibold">Suivi stages</h3>
-          <UBadge v-if="stagiaires.length" variant="subtle" size="xs" color="primary">
-            {{ stagiaires.length }}
-          </UBadge>
-        </div>
+        <h3 class="text-sm font-semibold">Suivi stages</h3>
+        <UBadge v-if="stagiaires.length" variant="subtle" size="xs">
+          {{ stagiaires.length }} stagiaire{{ stagiaires.length > 1 ? 's' : '' }}
+        </UBadge>
       </div>
     </template>
 
-    <div v-if="loading" class="flex justify-center py-6">
-      <UIcon name="i-lucide-loader-2" class="size-5 text-primary animate-spin" />
+    <div v-if="loading" class="flex items-center justify-center h-16">
+      <UIcon name="i-lucide-loader-2" class="size-4 text-primary animate-spin" />
     </div>
 
-    <div v-else-if="!stagiaires.length" class="text-center py-5">
-      <div class="dash-empty-icon">
-        <UIcon name="i-lucide-graduation-cap" class="size-5 text-[#AF8F3C]/30" />
-      </div>
-      <p class="text-sm text-stone-400 dark:text-stone-500">Aucun stagiaire actif</p>
-    </div>
+    <p v-else-if="!stagiaires.length" class="text-[12px] text-stone-400 text-center py-4">Aucun stagiaire actif</p>
 
-    <div v-else class="space-y-4">
-      <div v-for="s in stagiaires" :key="s.user.id">
-        <NuxtLink
-          :to="`/equipe/${s.user.id}`"
-          class="block p-3 -mx-1 rounded-lg hover:bg-[rgba(175,143,60,0.04)] dark:hover:bg-[rgba(175,143,60,0.04)] transition-colors"
-        >
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-              <UAvatar :alt="getUserName(s.user)" size="xs" />
-              <span class="text-sm font-medium text-stone-900 dark:text-white">{{ getUserName(s.user) }}</span>
+    <div v-else class="space-y-3">
+      <NuxtLink
+        v-for="s in stagiaires"
+        :key="s.user.id"
+        :to="`/equipe/${s.user.id}`"
+        class="block p-2 -mx-1 rounded hover:bg-[rgba(175,143,60,0.04)] transition-colors"
+      >
+        <div class="flex items-center justify-between mb-1.5">
+          <div class="flex items-center gap-2">
+            <UAvatar :alt="getUserName(s.user)" size="xs" />
+            <span class="text-[12px] font-medium">{{ getUserName(s.user) }}</span>
+          </div>
+          <span v-if="s.stats" class="text-[11px] text-stone-400">
+            {{ s.stats.totalDays }}j / {{ s.stats.totalHours.toFixed(0) }}h
+          </span>
+        </div>
+
+        <div v-if="s.loading" class="h-1.5 bg-[rgba(175,143,60,0.06)] rounded-full animate-pulse" />
+
+        <div v-else-if="s.stats" class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] text-stone-400 w-10 shrink-0">Gratif.</span>
+            <div class="flex-1 h-1 bg-[rgba(175,143,60,0.06)] rounded-full overflow-hidden">
+              <div class="h-full rounded-full" :class="progressColor(s.stats.totalDays, s.limits.gratifDays)" :style="{ width: pct(s.stats.totalDays, s.limits.gratifDays) + '%' }" />
             </div>
-            <span v-if="s.stats" class="text-xs text-stone-500 dark:text-stone-400">
-              {{ s.stats.totalDays }}j / {{ s.stats.totalHours.toFixed(0) }}h
+            <span class="text-[10px] font-medium w-7 text-right" :class="s.stats.totalDays >= s.limits.gratifDays ? 'text-red-500' : 'text-stone-400'">
+              {{ pct(s.stats.totalDays, s.limits.gratifDays) }}%
             </span>
           </div>
-
-          <div v-if="s.loading" class="h-2 bg-[rgba(175,143,60,0.06)] dark:bg-[rgba(175,143,60,0.06)] rounded-full animate-pulse" />
-
-          <div v-else-if="s.stats" class="space-y-1.5">
-            <!-- Barre gratification -->
-            <div class="flex items-center gap-2">
-              <span class="text-[10px] text-stone-400 w-12 shrink-0">Gratif.</span>
-              <div class="flex-1 h-1.5 bg-[rgba(175,143,60,0.06)] dark:bg-[rgba(175,143,60,0.06)] rounded-full overflow-hidden">
-                <div
-                  class="h-full rounded-full transition-all"
-                  :class="progressColor(s.stats.totalDays, s.limits.gratifDays)"
-                  :style="{ width: pct(s.stats.totalDays, s.limits.gratifDays) + '%' }"
-                />
-              </div>
-              <span class="text-[10px] font-medium w-8 text-right" :class="s.stats.totalDays >= s.limits.gratifDays ? 'text-red-500' : 'text-stone-500'">
-                {{ pct(s.stats.totalDays, s.limits.gratifDays) }}%
-              </span>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] text-stone-400 w-10 shrink-0">Contrat</span>
+            <div class="flex-1 h-1 bg-[rgba(175,143,60,0.06)] rounded-full overflow-hidden">
+              <div class="h-full rounded-full bg-primary" :style="{ width: pct(s.stats.totalDays, s.limits.maxDays) + '%' }" />
             </div>
-
-            <!-- Barre duree contrat -->
-            <div class="flex items-center gap-2">
-              <span class="text-[10px] text-stone-400 w-12 shrink-0">Contrat</span>
-              <div class="flex-1 h-1.5 bg-[rgba(175,143,60,0.06)] dark:bg-[rgba(175,143,60,0.06)] rounded-full overflow-hidden">
-                <div
-                  class="h-full rounded-full transition-all bg-primary"
-                  :style="{ width: pct(s.stats.totalDays, s.limits.maxDays) + '%' }"
-                />
-              </div>
-              <span class="text-[10px] font-medium text-stone-500 w-8 text-right">
-                {{ pct(s.stats.totalDays, s.limits.maxDays) }}%
-              </span>
-            </div>
-
-            <!-- Alerte si seuil atteint -->
-            <p v-if="s.stats.totalDays >= s.limits.gratifDays" class="text-[11px] text-red-500 font-medium mt-1">
-              Gratification obligatoire
-            </p>
-            <p v-else class="text-[11px] text-stone-400 mt-0.5">
-              {{ s.limits.gratifDays - s.stats.totalDays }}j avant gratification
-            </p>
+            <span class="text-[10px] font-medium text-stone-400 w-7 text-right">
+              {{ pct(s.stats.totalDays, s.limits.maxDays) }}%
+            </span>
           </div>
-        </NuxtLink>
-      </div>
+          <p v-if="s.stats.totalDays >= s.limits.gratifDays" class="text-[10px] text-red-500 font-medium">
+            Gratification obligatoire
+          </p>
+          <p v-else class="text-[10px] text-stone-400">
+            {{ s.limits.gratifDays - s.stats.totalDays }}j avant gratification
+          </p>
+        </div>
+      </NuxtLink>
     </div>
   </UCard>
 </template>
-
-<style scoped>
-.dash-card-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  background: rgba(175, 143, 60, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #AF8F3C;
-}
-.dash-empty-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: rgba(175, 143, 60, 0.06);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 8px;
-}
-</style>

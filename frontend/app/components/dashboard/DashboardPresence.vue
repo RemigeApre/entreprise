@@ -19,7 +19,6 @@ interface PersonPresence {
 
 const today = new Date()
 const nextDay = getNextWorkingDay(today)
-
 const todayStr = formatDate(today)
 const nextDayStr = formatDate(nextDay)
 
@@ -33,32 +32,18 @@ function getDisplayKey(entry: PlanningEntry): string {
 
 function buildPresences(users: UserProfile[], entries: PlanningEntry[], dateStr: string): PersonPresence[] {
   const result: PersonPresence[] = []
-
   for (const u of users) {
-    if (u.id === user.value?.id) continue // On ne se montre pas soi-meme
-
+    if (u.id === user.value?.id) continue
     const userEntries = entries.filter(e => {
       const entryUserId = typeof e.utilisateur === 'string' ? e.utilisateur : e.utilisateur?.id
       return entryUserId === u.id && e.date === dateStr
     })
-
     const matin = userEntries.find(e => e.periode === 'matin')
     const apres_midi = userEntries.find(e => e.periode === 'apres_midi')
-
-    // Si aucune entree, on ne l'affiche pas (non renseigne)
     if (!matin && !apres_midi) continue
-
     const name = [u.first_name, u.last_name].filter(Boolean).join(' ') || u.email
-
-    result.push({
-      id: u.id,
-      name,
-      matin: matin ? { type: matin.type, key: getDisplayKey(matin) } : null,
-      apres_midi: apres_midi ? { type: apres_midi.type, key: getDisplayKey(apres_midi) } : null
-    })
+    result.push({ id: u.id, name, matin: matin ? { type: matin.type, key: getDisplayKey(matin) } : null, apres_midi: apres_midi ? { type: apres_midi.type, key: getDisplayKey(apres_midi) } : null })
   }
-
-  // Trier : presents en premier (travail/teletravail), puis le reste
   const presentTypes = ['travail', 'teletravail', 'ecole']
   result.sort((a, b) => {
     const aPresent = (a.matin && presentTypes.includes(a.matin.key)) || (a.apres_midi && presentTypes.includes(a.apres_midi.key))
@@ -67,7 +52,6 @@ function buildPresences(users: UserProfile[], entries: PlanningEntry[], dateStr:
     if (!aPresent && bPresent) return 1
     return a.name.localeCompare(b.name)
   })
-
   return result
 }
 
@@ -77,10 +61,8 @@ async function load() {
   try {
     const users = await getActiveUsers()
     const userIds = users.map(u => u.id)
-
     const endDate = presenceMode.value === 'todayNext' ? nextDayStr : todayStr
     const entries = await getTeamEntries(userIds, todayStr, endDate)
-
     todayPresences.value = buildPresences(users, entries, todayStr)
     if (presenceMode.value === 'todayNext') {
       nextDayPresences.value = buildPresences(users, entries, nextDayStr)
@@ -107,12 +89,10 @@ function getNextDayLabel(): string {
   return dayName.charAt(0).toUpperCase() + dayName.slice(1)
 }
 
-// Compteurs
 function countPresent(presences: PersonPresence[]): number {
   const presentTypes = ['travail', 'teletravail']
   return presences.filter(p =>
-    (p.matin && presentTypes.includes(p.matin.key)) ||
-    (p.apres_midi && presentTypes.includes(p.apres_midi.key))
+    (p.matin && presentTypes.includes(p.matin.key)) || (p.apres_midi && presentTypes.includes(p.apres_midi.key))
   ).length
 }
 
@@ -123,74 +103,46 @@ onMounted(load)
   <UCard>
     <template #header>
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <div class="dash-card-icon">
-            <UIcon name="i-lucide-users" class="size-3.5" />
-          </div>
-          <h3 class="text-sm font-semibold">Qui est la</h3>
-        </div>
-        <UButton
-          label="Equipe"
-          variant="link"
-          size="xs"
-          to="/equipe"
-          trailing-icon="i-lucide-arrow-right"
-        />
+        <h3 class="text-sm font-semibold">Qui est la</h3>
+        <UButton label="Equipe" variant="link" size="xs" to="/equipe" trailing-icon="i-lucide-arrow-right" />
       </div>
     </template>
 
-    <div v-if="loading" class="flex justify-center py-6">
-      <UIcon name="i-lucide-loader-2" class="size-5 animate-spin text-primary" />
+    <div v-if="loading" class="flex items-center justify-center h-16">
+      <UIcon name="i-lucide-loader-2" class="size-4 animate-spin text-primary" />
     </div>
 
-    <div v-else class="space-y-4">
+    <div v-else>
       <!-- Aujourd'hui -->
       <div>
-        <div class="flex items-center gap-2 mb-2.5">
-          <p class="text-xs font-semibold text-primary tracking-wide">Aujourd'hui</p>
-          <UBadge variant="subtle" size="xs" color="primary">
-            {{ countPresent(todayPresences) }}
-          </UBadge>
-        </div>
-        <div v-if="todayPresences.length === 0" class="text-xs text-stone-400 dark:text-stone-500 py-2 italic">
-          Aucun planning renseigne
-        </div>
-        <div v-else class="space-y-1">
-          <div
-            v-for="p in todayPresences"
-            :key="p.id"
-            class="flex items-center gap-2.5 text-xs py-1 px-1.5 rounded-md hover:bg-[rgba(175,143,60,0.04)] transition-colors"
-          >
-            <div class="flex gap-1 shrink-0">
-              <span class="size-2 rounded-full transition-colors" :class="getDotClass(p.matin)" :title="'Matin : ' + getStatusLabel(p.matin)" />
-              <span class="size-2 rounded-full transition-colors" :class="getDotClass(p.apres_midi)" :title="'Apres-midi : ' + getStatusLabel(p.apres_midi)" />
+        <p class="text-[11px] font-medium text-primary mb-1.5">
+          Aujourd'hui
+          <span class="text-stone-400 font-normal ml-1">{{ countPresent(todayPresences) }} present{{ countPresent(todayPresences) > 1 ? 's' : '' }}</span>
+        </p>
+        <p v-if="!todayPresences.length" class="text-[11px] text-stone-400 italic">Aucun planning renseigne</p>
+        <div v-else class="space-y-0.5">
+          <div v-for="p in todayPresences" :key="p.id" class="flex items-center gap-2 text-[12px] py-0.5">
+            <div class="flex gap-0.5 shrink-0">
+              <span class="size-1.5 rounded-full" :class="getDotClass(p.matin)" :title="'Matin : ' + getStatusLabel(p.matin)" />
+              <span class="size-1.5 rounded-full" :class="getDotClass(p.apres_midi)" :title="'AM : ' + getStatusLabel(p.apres_midi)" />
             </div>
             <span class="text-stone-700 dark:text-stone-300 truncate">{{ p.name }}</span>
           </div>
         </div>
       </div>
 
-      <!-- Prochain jour (si mode todayNext) -->
-      <div v-if="presenceMode === 'todayNext'">
-        <USeparator class="mb-3" />
-        <div class="flex items-center gap-2 mb-2.5">
-          <p class="text-xs font-semibold text-stone-500 dark:text-stone-400 tracking-wide">{{ getNextDayLabel() }}</p>
-          <UBadge variant="subtle" size="xs" color="neutral">
-            {{ countPresent(nextDayPresences) }}
-          </UBadge>
-        </div>
-        <div v-if="nextDayPresences.length === 0" class="text-xs text-stone-400 dark:text-stone-500 py-2 italic">
-          Aucun planning renseigne
-        </div>
-        <div v-else class="space-y-1">
-          <div
-            v-for="p in nextDayPresences"
-            :key="p.id"
-            class="flex items-center gap-2.5 text-xs py-1 px-1.5 rounded-md hover:bg-[rgba(175,143,60,0.04)] transition-colors"
-          >
-            <div class="flex gap-1 shrink-0">
-              <span class="size-2 rounded-full transition-colors" :class="getDotClass(p.matin)" :title="'Matin : ' + getStatusLabel(p.matin)" />
-              <span class="size-2 rounded-full transition-colors" :class="getDotClass(p.apres_midi)" :title="'Apres-midi : ' + getStatusLabel(p.apres_midi)" />
+      <!-- Prochain jour -->
+      <div v-if="presenceMode === 'todayNext'" class="mt-3 pt-3 border-t border-stone-100 dark:border-stone-800">
+        <p class="text-[11px] font-medium text-stone-500 mb-1.5">
+          {{ getNextDayLabel() }}
+          <span class="text-stone-400 font-normal ml-1">{{ countPresent(nextDayPresences) }} present{{ countPresent(nextDayPresences) > 1 ? 's' : '' }}</span>
+        </p>
+        <p v-if="!nextDayPresences.length" class="text-[11px] text-stone-400 italic">Aucun planning renseigne</p>
+        <div v-else class="space-y-0.5">
+          <div v-for="p in nextDayPresences" :key="p.id" class="flex items-center gap-2 text-[12px] py-0.5">
+            <div class="flex gap-0.5 shrink-0">
+              <span class="size-1.5 rounded-full" :class="getDotClass(p.matin)" :title="'Matin : ' + getStatusLabel(p.matin)" />
+              <span class="size-1.5 rounded-full" :class="getDotClass(p.apres_midi)" :title="'AM : ' + getStatusLabel(p.apres_midi)" />
             </div>
             <span class="text-stone-700 dark:text-stone-300 truncate">{{ p.name }}</span>
           </div>
@@ -199,16 +151,3 @@ onMounted(load)
     </div>
   </UCard>
 </template>
-
-<style scoped>
-.dash-card-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  background: rgba(175, 143, 60, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #AF8F3C;
-}
-</style>
