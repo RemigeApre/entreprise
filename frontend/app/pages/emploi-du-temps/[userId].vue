@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { readUser } from '@directus/sdk'
 import type { ScheduleEntry, ScheduleCategorie, UserProfile } from '~/utils/types'
-import { getMonday, addDays, formatDate, getWeekNumber, generateRecurrenceDates } from '~/utils/dates'
+import { getMonday, addDays, formatDate, getWeekNumber, generateRecurrenceDates, getCurrentOrNextMonday } from '~/utils/dates'
 import { SCHEDULE_CATEGORIES, SCHEDULE_COLORS, RECURRENCE_OPTIONS } from '~/utils/constants'
 import type { RecurrenceType } from '~/utils/constants'
 
@@ -16,7 +16,7 @@ const userId = route.params.userId as string
 const targetUser = ref<UserProfile | null>(null)
 const entries = ref<ScheduleEntry[]>([])
 const loading = ref(true)
-const currentMonday = ref(getMonday(new Date()))
+const currentMonday = ref(getCurrentOrNextMonday(new Date()))
 const weekNumber = ref(getWeekNumber(new Date()))
 
 const weekViewRef = ref<{

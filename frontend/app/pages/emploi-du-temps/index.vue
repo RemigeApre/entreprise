@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ScheduleEntry, ScheduleCategorie } from '~/utils/types'
-import { getMonday, addDays, formatDate, getWeekNumber, generateRecurrenceDates } from '~/utils/dates'
+import { getMonday, addDays, formatDate, getWeekNumber, generateRecurrenceDates, getCurrentOrNextMonday } from '~/utils/dates'
 import { SCHEDULE_CATEGORIES, SCHEDULE_COLORS, RECURRENCE_OPTIONS } from '~/utils/constants'
 import type { RecurrenceType } from '~/utils/constants'
 
@@ -10,7 +10,7 @@ const toast = useToast()
 
 const entries = ref<ScheduleEntry[]>([])
 const loading = ref(false)
-const currentMonday = ref(getMonday(new Date()))
+const currentMonday = ref(getCurrentOrNextMonday(new Date()))
 const weekNumber = ref(getWeekNumber(new Date()))
 
 const weekViewRef = ref<{
