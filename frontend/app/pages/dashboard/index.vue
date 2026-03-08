@@ -31,104 +31,118 @@ function hideModule(key: DashboardModule) {
   hide(key)
 }
 
-// ─── Module definitions ────────────────────────
-interface ModuleDef {
+// ─── Card definitions (center area) ────────────────────────
+interface CardDef {
   key: DashboardModule
   condition: () => boolean
 }
 
-const leftDefs: ModuleDef[] = [
+const cardDefs: CardDef[] = [
   { key: 'weekSummary', condition: () => true },
-  { key: 'activeProjects', condition: () => true },
-  { key: 'stageTracker', condition: () => isDirecteur.value }
-]
-
-const rightDefs: ModuleDef[] = [
   { key: 'presence', condition: () => true },
+  { key: 'activeProjects', condition: () => true },
   { key: 'siteStatus', condition: () => hasSites.value },
   { key: 'prospectSummary', condition: () => true },
+  { key: 'stageTracker', condition: () => isDirecteur.value },
   { key: 'jobListings', condition: () => isDirecteur.value }
 ]
 
-// ─── Ordering (persisted in localStorage) ────────────────────────
-const ORDER_KEY = 'dashboard-module-order'
+// ─── Persisted order + sizes ────────────────────────
+const LAYOUT_KEY = 'dashboard-layout'
 
-const leftOrder = ref<DashboardModule[]>(leftDefs.map(d => d.key))
-const rightOrder = ref<DashboardModule[]>(rightDefs.map(d => d.key))
+type CardSize = 'full' | 'half'
+
+const cardOrder = ref<DashboardModule[]>(cardDefs.map(d => d.key))
+const cardSizes = ref<Record<string, CardSize>>({
+  weekSummary: 'full',
+  presence: 'half',
+  activeProjects: 'half',
+  siteStatus: 'half',
+  prospectSummary: 'half',
+  stageTracker: 'full',
+  jobListings: 'half'
+})
 
 if (import.meta.client) {
-  const stored = localStorage.getItem(ORDER_KEY)
+  const stored = localStorage.getItem(LAYOUT_KEY)
   if (stored) {
     try {
-      const parsed = JSON.parse(stored) as { left: DashboardModule[]; right: DashboardModule[] }
-      if (parsed.left?.length) leftOrder.value = parsed.left
-      if (parsed.right?.length) rightOrder.value = parsed.right
+      const parsed = JSON.parse(stored) as { order: DashboardModule[]; sizes: Record<string, CardSize> }
+      if (parsed.order?.length) cardOrder.value = parsed.order
+      if (parsed.sizes) cardSizes.value = { ...cardSizes.value, ...parsed.sizes }
     } catch { /* ignore */ }
   }
 }
 
-function persistOrder() {
+function persistLayout() {
   if (import.meta.client) {
-    localStorage.setItem(ORDER_KEY, JSON.stringify({ left: leftOrder.value, right: rightOrder.value }))
+    localStorage.setItem(LAYOUT_KEY, JSON.stringify({ order: cardOrder.value, sizes: cardSizes.value }))
   }
 }
 
-function orderedKeys(defs: ModuleDef[], order: DashboardModule[]): DashboardModule[] {
+function getSize(key: DashboardModule): CardSize {
+  return cardSizes.value[key] || 'half'
+}
+
+function toggleSize(key: DashboardModule) {
+  cardSizes.value[key] = getSize(key) === 'full' ? 'half' : 'full'
+  cardSizes.value = { ...cardSizes.value }
+  persistLayout()
+}
+
+// Visible cards in order
+const visibleCards = computed(() => {
   const result: DashboardModule[] = []
-  for (const key of order) {
-    const def = defs.find(d => d.key === key)
+  for (const key of cardOrder.value) {
+    const def = cardDefs.find(d => d.key === key)
     if (def && def.condition() && isVisible(key)) result.push(key)
   }
-  // Add any missing
-  for (const def of defs) {
+  for (const def of cardDefs) {
     if (def.condition() && isVisible(def.key) && !result.includes(def.key)) {
       result.push(def.key)
     }
   }
   return result
-}
-
-const leftKeys = computed(() => orderedKeys(leftDefs, leftOrder.value))
-const rightKeys = computed(() => orderedKeys(rightDefs, rightOrder.value))
+})
 
 // ─── Drag & drop ────────────────────────
-const dragColumn = ref<'left' | 'right' | null>(null)
 const dragIndex = ref(-1)
 const dropIndex = ref(-1)
 
-function onDragStart(col: 'left' | 'right', index: number, e: DragEvent) {
-  dragColumn.value = col
+function onDragStart(index: number, e: DragEvent) {
   dragIndex.value = index
   if (e.dataTransfer) {
     e.dataTransfer.effectAllowed = 'move'
     e.dataTransfer.setData('text/plain', '')
   }
+  // Make the drag image semi-transparent
+  const el = e.target as HTMLElement
+  requestAnimationFrame(() => el.classList.add('is-dragging'))
 }
 
-function onDragOver(col: 'left' | 'right', index: number, e: DragEvent) {
-  if (dragColumn.value !== col) return
+function onDragOver(index: number, e: DragEvent) {
   e.preventDefault()
   dropIndex.value = index
 }
 
-function onDragEnd() {
-  if (dragColumn.value && dragIndex.value >= 0 && dropIndex.value >= 0 && dragIndex.value !== dropIndex.value) {
-    const order = dragColumn.value === 'left' ? leftOrder.value : rightOrder.value
-    const visibleKeys = (dragColumn.value === 'left' ? leftKeys : rightKeys).value
+function onDragEnd(e: DragEvent) {
+  const el = e.target as HTMLElement
+  el.classList.remove('is-dragging')
 
-    const fromKey = visibleKeys[dragIndex.value]
-    const toKey = visibleKeys[dropIndex.value]
+  if (dragIndex.value >= 0 && dropIndex.value >= 0 && dragIndex.value !== dropIndex.value) {
+    const keys = visibleCards.value
+    const fromKey = keys[dragIndex.value]
+    const toKey = keys[dropIndex.value]
     if (fromKey && toKey) {
-      const fromIdx = order.indexOf(fromKey)
-      const toIdx = order.indexOf(toKey)
+      const fromIdx = cardOrder.value.indexOf(fromKey)
+      const toIdx = cardOrder.value.indexOf(toKey)
       if (fromIdx >= 0 && toIdx >= 0) {
-        order.splice(fromIdx, 1)
-        order.splice(toIdx, 0, fromKey)
-        persistOrder()
+        cardOrder.value.splice(fromIdx, 1)
+        cardOrder.value.splice(toIdx, 0, fromKey)
+        persistLayout()
       }
     }
   }
-  dragColumn.value = null
   dragIndex.value = -1
   dropIndex.value = -1
 }
@@ -144,81 +158,82 @@ function onDragEnd() {
       <p class="text-xs text-[#af8f3c]/50 tracking-wider mt-0.5">{{ greetingSubtext }}</p>
     </div>
 
-    <!-- ═══ CONTENT ═══ -->
-    <div class="dash-content">
-      <!-- Notifications (full width) -->
-      <div v-if="isVisible('notifications')" class="relative group">
-        <button class="dash-hide-btn" title="Masquer" @click="hideModule('notifications')">
-          <UIcon name="i-lucide-x" class="size-3.5" />
-        </button>
-        <DashboardNotifications />
-      </div>
-
-      <!-- ═══ MAIN LAYOUT: 2 colonnes ═══ -->
-      <div class="dash-cols">
-        <!-- ── Colonne gauche ── -->
-        <div class="dash-col">
-          <div
-            v-for="(key, i) in leftKeys"
-            :key="key"
-            class="dash-card-wrap group"
-            :class="{ 'is-drag-over': dragColumn === 'left' && dropIndex === i && dragIndex !== i }"
-            draggable="true"
-            @dragstart="onDragStart('left', i, $event)"
-            @dragover="onDragOver('left', i, $event)"
-            @dragend="onDragEnd"
-          >
-            <div class="dash-drag-handle">
-              <UIcon name="i-lucide-grip-vertical" class="size-3.5" />
-            </div>
-            <button class="dash-hide-btn" title="Masquer" @click="hideModule(key)">
-              <UIcon name="i-lucide-x" class="size-3.5" />
-            </button>
-            <DashboardWeekSummary v-if="key === 'weekSummary'" />
-            <DashboardActiveProjects v-else-if="key === 'activeProjects'" />
-            <DashboardStageTracker v-else-if="key === 'stageTracker'" />
-          </div>
+    <!-- ═══ BODY: center scroll + right sticky ═══ -->
+    <div class="dash-body">
+      <!-- ── Centre (scrollable) ── -->
+      <div class="dash-center">
+        <!-- Notifications (full width, not draggable) -->
+        <div v-if="isVisible('notifications')" class="dash-card dash-card--full relative group">
+          <button class="dash-hide-btn" title="Masquer" @click="hideModule('notifications')">
+            <UIcon name="i-lucide-x" class="size-3.5" />
+          </button>
+          <DashboardNotifications />
         </div>
 
-        <!-- ── Colonne droite ── -->
-        <div class="dash-col">
-          <!-- Notes & Tickets : fixes en haut -->
-          <div v-if="isVisible('notes')" class="relative group">
-            <button class="dash-hide-btn" title="Masquer" @click="hideModule('notes')">
-              <UIcon name="i-lucide-x" class="size-3.5" />
-            </button>
-            <DashboardNotes />
-          </div>
-
-          <div v-if="isVisible('tickets')" class="relative group">
-            <button class="dash-hide-btn" title="Masquer" @click="hideModule('tickets')">
-              <UIcon name="i-lucide-x" class="size-3.5" />
-            </button>
-            <DashboardTickets />
-          </div>
-
-          <!-- Modules draggables -->
+        <!-- Cartes draggables en flex wrap -->
+        <div class="dash-wrap">
           <div
-            v-for="(key, i) in rightKeys"
+            v-for="(key, i) in visibleCards"
             :key="key"
-            class="dash-card-wrap group"
-            :class="{ 'is-drag-over': dragColumn === 'right' && dropIndex === i && dragIndex !== i }"
+            class="dash-card group"
+            :class="[
+              getSize(key) === 'full' ? 'dash-card--full' : 'dash-card--half',
+              { 'is-drag-over': dropIndex === i && dragIndex !== i },
+              { 'is-dragging': dragIndex === i }
+            ]"
             draggable="true"
-            @dragstart="onDragStart('right', i, $event)"
-            @dragover="onDragOver('right', i, $event)"
-            @dragend="onDragEnd"
+            @dragstart="onDragStart(i, $event)"
+            @dragover="onDragOver(i, $event)"
+            @dragend="onDragEnd($event)"
           >
+            <!-- Drag handle -->
             <div class="dash-drag-handle">
               <UIcon name="i-lucide-grip-vertical" class="size-3.5" />
             </div>
+
+            <!-- Size toggle -->
+            <button
+              class="dash-size-btn"
+              :title="getSize(key) === 'full' ? 'Demi-largeur' : 'Pleine largeur'"
+              @click.stop="toggleSize(key)"
+            >
+              <UIcon
+                :name="getSize(key) === 'full' ? 'i-lucide-columns-2' : 'i-lucide-square'"
+                class="size-3"
+              />
+            </button>
+
+            <!-- Hide -->
             <button class="dash-hide-btn" title="Masquer" @click="hideModule(key)">
               <UIcon name="i-lucide-x" class="size-3.5" />
             </button>
-            <DashboardPresence v-if="key === 'presence'" />
+
+            <!-- Component -->
+            <DashboardWeekSummary v-if="key === 'weekSummary'" />
+            <DashboardPresence v-else-if="key === 'presence'" />
+            <DashboardActiveProjects v-else-if="key === 'activeProjects'" />
             <DashboardSiteStatus v-else-if="key === 'siteStatus'" />
             <DashboardProspectSummary v-else-if="key === 'prospectSummary'" />
+            <DashboardStageTracker v-else-if="key === 'stageTracker'" />
             <DashboardJobListings v-else-if="key === 'jobListings'" />
           </div>
+        </div>
+      </div>
+
+      <!-- ── Sidebar droite (sticky) ── -->
+      <div class="dash-sidebar">
+        <div v-if="isVisible('notes')" class="relative group">
+          <button class="dash-hide-btn" title="Masquer" @click="hideModule('notes')">
+            <UIcon name="i-lucide-x" class="size-3.5" />
+          </button>
+          <DashboardNotes />
+        </div>
+
+        <div v-if="isVisible('tickets')" class="relative group">
+          <button class="dash-hide-btn" title="Masquer" @click="hideModule('tickets')">
+            <UIcon name="i-lucide-x" class="size-3.5" />
+          </button>
+          <DashboardTickets />
         </div>
       </div>
     </div>
@@ -229,9 +244,9 @@ function onDragEnd() {
 /* ═══ PAGE ═══ */
 .dash-page {
   flex: 1;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 /* ═══ HEADER ═══ */
@@ -243,83 +258,164 @@ function onDragEnd() {
   .dash-header { padding: 14px 16px 8px; }
 }
 
-/* ═══ CONTENT ═══ */
-.dash-content {
+/* ═══ BODY: center + sidebar ═══ */
+.dash-body {
   flex: 1;
-  overflow-y: auto;
-  padding: 4px 24px 32px;
   display: flex;
-  flex-direction: column;
   gap: 14px;
+  overflow: hidden;
+  padding: 0 24px 0 24px;
 }
 @media (max-width: 768px) {
-  .dash-content { padding: 4px 16px 24px; }
-}
-
-/* ═══ 2-COL LAYOUT ═══ */
-.dash-cols {
-  display: grid;
-  grid-template-columns: 3fr 2fr;
-  gap: 14px;
-  align-items: start;
-}
-@media (max-width: 900px) {
-  .dash-cols {
-    grid-template-columns: 1fr;
+  .dash-body {
+    flex-direction: column;
+    padding: 0 16px;
+    overflow-y: auto;
   }
 }
 
-.dash-col {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+/* ═══ CENTER (scrollable) ═══ */
+.dash-center {
+  flex: 1;
   min-width: 0;
+  overflow-y: auto;
+  padding-bottom: 32px;
+  padding-right: 2px;
 }
 
-/* ═══ DRAGGABLE CARD ═══ */
-.dash-card-wrap {
+/* ═══ FLEX WRAP ═══ */
+.dash-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+/* ═══ CARD SIZES ═══ */
+.dash-card {
   position: relative;
-  transition: transform 0.15s, box-shadow 0.15s;
+  min-width: 0;
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+.dash-card--full {
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.dash-card--half {
+  width: calc(50% - 7px);
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .dash-card--half {
+    width: 100%;
+  }
+}
+
+/* ═══ DRAG STATES ═══ */
+.dash-card[draggable="true"] {
   cursor: grab;
 }
-.dash-card-wrap:active {
+.dash-card[draggable="true"]:active {
   cursor: grabbing;
 }
 
-.dash-card-wrap.is-drag-over {
-  transform: translateY(4px);
+.dash-card.is-dragging {
+  opacity: 0.4;
 }
-.dash-card-wrap.is-drag-over::before {
+
+.dash-card.is-drag-over::before {
   content: '';
   position: absolute;
   top: -9px;
-  left: 12px;
-  right: 12px;
+  left: 8px;
+  right: 8px;
   height: 2px;
   border-radius: 1px;
   background: #AF8F3C;
   z-index: 20;
 }
 
-/* Drag handle */
+/* ═══ DRAG HANDLE ═══ */
 .dash-drag-handle {
   position: absolute;
-  top: 50%;
-  left: -6px;
-  transform: translateY(-50%);
+  top: 12px;
+  left: 8px;
   z-index: 10;
   width: 18px;
-  height: 32px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(175, 143, 60, 0.2);
+  color: rgba(175, 143, 60, 0.15);
   opacity: 0;
   transition: opacity 0.15s, color 0.15s;
   pointer-events: none;
 }
 .group:hover .dash-drag-handle {
   opacity: 1;
+}
+
+/* ═══ SIZE TOGGLE ═══ */
+.dash-size-btn {
+  position: absolute;
+  top: -4px;
+  right: 24px;
+  z-index: 10;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background: #f5efe0;
+  border: 1px solid rgba(175, 143, 60, 0.1);
+  color: rgba(175, 143, 60, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+:global(.dark) .dash-size-btn {
+  background: #1a2520;
+}
+.group:hover .dash-size-btn { opacity: 1; }
+.dash-size-btn:hover {
+  color: #AF8F3C;
+  border-color: rgba(175, 143, 60, 0.25);
+}
+
+/* ═══ SIDEBAR (sticky) ═══ */
+.dash-sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 32px;
+  max-height: 100%;
+  overflow-y: auto;
+}
+@media (max-width: 768px) {
+  .dash-sidebar {
+    width: 100%;
+    position: static;
+    flex-direction: row;
+    overflow-y: visible;
+  }
+  .dash-sidebar > * {
+    flex: 1;
+    min-width: 0;
+  }
+}
+@media (max-width: 1100px) and (min-width: 769px) {
+  .dash-sidebar {
+    width: 240px;
+  }
 }
 
 /* ═══ HIDE BUTTON ═══ */
