@@ -246,7 +246,7 @@ function onDragEnd(e: DragEvent) {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 /* ═══ HEADER ═══ */
@@ -260,27 +260,22 @@ function onDragEnd(e: DragEvent) {
 
 /* ═══ BODY: center + sidebar ═══ */
 .dash-body {
-  flex: 1;
   display: flex;
   gap: 14px;
-  overflow: hidden;
-  padding: 0 24px 0 24px;
+  padding: 0 24px 32px;
+  align-items: flex-start;
 }
 @media (max-width: 768px) {
   .dash-body {
     flex-direction: column;
-    padding: 0 16px;
-    overflow-y: auto;
+    padding: 0 16px 24px;
   }
 }
 
-/* ═══ CENTER (scrollable) ═══ */
+/* ═══ CENTER ═══ */
 .dash-center {
   flex: 1;
   min-width: 0;
-  overflow-y: auto;
-  padding-bottom: 32px;
-  padding-right: 2px;
 }
 
 /* ═══ FLEX WRAP ═══ */
@@ -289,6 +284,7 @@ function onDragEnd(e: DragEvent) {
   flex-wrap: wrap;
   gap: 14px;
   margin-top: 14px;
+  align-items: flex-start;
 }
 
 /* ═══ CARD SIZES ═══ */
@@ -300,12 +296,10 @@ function onDragEnd(e: DragEvent) {
 
 .dash-card--full {
   width: 100%;
-  flex-shrink: 0;
 }
 
 .dash-card--half {
   width: calc(50% - 7px);
-  flex-shrink: 0;
 }
 
 @media (max-width: 900px) {
@@ -392,20 +386,15 @@ function onDragEnd(e: DragEvent) {
   flex-shrink: 0;
   position: sticky;
   top: 0;
-  align-self: flex-start;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding-bottom: 32px;
-  max-height: 100%;
-  overflow-y: auto;
 }
 @media (max-width: 768px) {
   .dash-sidebar {
     width: 100%;
     position: static;
     flex-direction: row;
-    overflow-y: visible;
   }
   .dash-sidebar > * {
     flex: 1;
