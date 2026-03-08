@@ -31,35 +31,31 @@ function hideModule(key: DashboardModule) {
   hide(key)
 }
 
-// ─── Module registry ────────────────────────
-// Maps module keys to their component name and visibility condition
+// ─── Module definitions ────────────────────────
 interface ModuleDef {
   key: DashboardModule
-  component: string
   condition: () => boolean
-  column: 'left' | 'right'
 }
 
-const allModules: ModuleDef[] = [
-  { key: 'weekSummary', component: 'DashboardWeekSummary', column: 'left', condition: () => true },
-  { key: 'activeProjects', component: 'DashboardActiveProjects', column: 'left', condition: () => true },
-  { key: 'stageTracker', component: 'DashboardStageTracker', column: 'left', condition: () => isDirecteur.value },
-  { key: 'presence', component: 'DashboardPresence', column: 'right', condition: () => true },
-  { key: 'siteStatus', component: 'DashboardSiteStatus', column: 'right', condition: () => hasSites.value },
-  { key: 'prospectSummary', component: 'DashboardProspectSummary', column: 'right', condition: () => true },
-  { key: 'jobListings', component: 'DashboardJobListings', column: 'right', condition: () => isDirecteur.value }
+const leftDefs: ModuleDef[] = [
+  { key: 'weekSummary', condition: () => true },
+  { key: 'activeProjects', condition: () => true },
+  { key: 'stageTracker', condition: () => isDirecteur.value }
+]
+
+const rightDefs: ModuleDef[] = [
+  { key: 'presence', condition: () => true },
+  { key: 'siteStatus', condition: () => hasSites.value },
+  { key: 'prospectSummary', condition: () => true },
+  { key: 'jobListings', condition: () => isDirecteur.value }
 ]
 
 // ─── Ordering (persisted in localStorage) ────────────────────────
 const ORDER_KEY = 'dashboard-module-order'
 
-const defaultLeftOrder: DashboardModule[] = ['weekSummary', 'activeProjects', 'stageTracker']
-const defaultRightOrder: DashboardModule[] = ['presence', 'siteStatus', 'prospectSummary', 'jobListings']
+const leftOrder = ref<DashboardModule[]>(leftDefs.map(d => d.key))
+const rightOrder = ref<DashboardModule[]>(rightDefs.map(d => d.key))
 
-const leftOrder = ref<DashboardModule[]>([...defaultLeftOrder])
-const rightOrder = ref<DashboardModule[]>([...defaultRightOrder])
-
-// Load from localStorage
 if (import.meta.client) {
   const stored = localStorage.getItem(ORDER_KEY)
   if (stored) {
@@ -77,31 +73,23 @@ function persistOrder() {
   }
 }
 
-// Visible modules in order
-const leftModules = computed(() => {
-  const ordered = leftOrder.value
-    .map(key => allModules.find(m => m.key === key))
-    .filter((m): m is ModuleDef => !!m && m.condition() && isVisible(m.key))
-  // Add any missing left modules
-  for (const m of allModules) {
-    if (m.column === 'left' && m.condition() && isVisible(m.key) && !ordered.find(o => o.key === m.key)) {
-      ordered.push(m)
+function orderedKeys(defs: ModuleDef[], order: DashboardModule[]): DashboardModule[] {
+  const result: DashboardModule[] = []
+  for (const key of order) {
+    const def = defs.find(d => d.key === key)
+    if (def && def.condition() && isVisible(key)) result.push(key)
+  }
+  // Add any missing
+  for (const def of defs) {
+    if (def.condition() && isVisible(def.key) && !result.includes(def.key)) {
+      result.push(def.key)
     }
   }
-  return ordered
-})
+  return result
+}
 
-const rightModules = computed(() => {
-  const ordered = rightOrder.value
-    .map(key => allModules.find(m => m.key === key))
-    .filter((m): m is ModuleDef => !!m && m.condition() && isVisible(m.key))
-  for (const m of allModules) {
-    if (m.column === 'right' && m.condition() && isVisible(m.key) && !ordered.find(o => o.key === m.key)) {
-      ordered.push(m)
-    }
-  }
-  return ordered
-})
+const leftKeys = computed(() => orderedKeys(leftDefs, leftOrder.value))
+const rightKeys = computed(() => orderedKeys(rightDefs, rightOrder.value))
 
 // ─── Drag & drop ────────────────────────
 const dragColumn = ref<'left' | 'right' | null>(null)
@@ -113,7 +101,7 @@ function onDragStart(col: 'left' | 'right', index: number, e: DragEvent) {
   dragIndex.value = index
   if (e.dataTransfer) {
     e.dataTransfer.effectAllowed = 'move'
-    e.dataTransfer.setData('text/plain', '') // Required for Firefox
+    e.dataTransfer.setData('text/plain', '')
   }
 }
 
@@ -126,7 +114,7 @@ function onDragOver(col: 'left' | 'right', index: number, e: DragEvent) {
 function onDragEnd() {
   if (dragColumn.value && dragIndex.value >= 0 && dropIndex.value >= 0 && dragIndex.value !== dropIndex.value) {
     const order = dragColumn.value === 'left' ? leftOrder.value : rightOrder.value
-    const visibleKeys = (dragColumn.value === 'left' ? leftModules : rightModules).value.map(m => m.key)
+    const visibleKeys = (dragColumn.value === 'left' ? leftKeys : rightKeys).value
 
     const fromKey = visibleKeys[dragIndex.value]
     const toKey = visibleKeys[dropIndex.value]
@@ -144,16 +132,6 @@ function onDragEnd() {
   dragIndex.value = -1
   dropIndex.value = -1
 }
-
-// ─── Component resolver ────────────────────────
-const componentMap: Record<string, ReturnType<typeof resolveComponent>> = {}
-onMounted(() => {
-  for (const m of allModules) {
-    componentMap[m.component] = resolveComponent(m.component)
-  }
-  componentMap['DashboardNotes'] = resolveComponent('DashboardNotes')
-  componentMap['DashboardTickets'] = resolveComponent('DashboardTickets')
-})
 </script>
 
 <template>
@@ -168,7 +146,7 @@ onMounted(() => {
 
     <!-- ═══ CONTENT ═══ -->
     <div class="dash-content">
-      <!-- Notifications (full width, not draggable) -->
+      <!-- Notifications (full width) -->
       <div v-if="isVisible('notifications')" class="relative group">
         <button class="dash-hide-btn" title="Masquer" @click="hideModule('notifications')">
           <UIcon name="i-lucide-x" class="size-3.5" />
@@ -181,12 +159,10 @@ onMounted(() => {
         <!-- ── Colonne gauche ── -->
         <div class="dash-col">
           <div
-            v-for="(mod, i) in leftModules"
-            :key="mod.key"
+            v-for="(key, i) in leftKeys"
+            :key="key"
             class="dash-card-wrap group"
-            :class="{
-              'is-drag-over': dragColumn === 'left' && dropIndex === i && dragIndex !== i
-            }"
+            :class="{ 'is-drag-over': dragColumn === 'left' && dropIndex === i && dragIndex !== i }"
             draggable="true"
             @dragstart="onDragStart('left', i, $event)"
             @dragover="onDragOver('left', i, $event)"
@@ -195,16 +171,18 @@ onMounted(() => {
             <div class="dash-drag-handle">
               <UIcon name="i-lucide-grip-vertical" class="size-3.5" />
             </div>
-            <button class="dash-hide-btn" title="Masquer" @click="hideModule(mod.key)">
+            <button class="dash-hide-btn" title="Masquer" @click="hideModule(key)">
               <UIcon name="i-lucide-x" class="size-3.5" />
             </button>
-            <component :is="mod.component" />
+            <DashboardWeekSummary v-if="key === 'weekSummary'" />
+            <DashboardActiveProjects v-else-if="key === 'activeProjects'" />
+            <DashboardStageTracker v-else-if="key === 'stageTracker'" />
           </div>
         </div>
 
         <!-- ── Colonne droite ── -->
         <div class="dash-col">
-          <!-- Notes & Tickets : fixes en haut, pas draggables -->
+          <!-- Notes & Tickets : fixes en haut -->
           <div v-if="isVisible('notes')" class="relative group">
             <button class="dash-hide-btn" title="Masquer" @click="hideModule('notes')">
               <UIcon name="i-lucide-x" class="size-3.5" />
@@ -221,12 +199,10 @@ onMounted(() => {
 
           <!-- Modules draggables -->
           <div
-            v-for="(mod, i) in rightModules"
-            :key="mod.key"
+            v-for="(key, i) in rightKeys"
+            :key="key"
             class="dash-card-wrap group"
-            :class="{
-              'is-drag-over': dragColumn === 'right' && dropIndex === i && dragIndex !== i
-            }"
+            :class="{ 'is-drag-over': dragColumn === 'right' && dropIndex === i && dragIndex !== i }"
             draggable="true"
             @dragstart="onDragStart('right', i, $event)"
             @dragover="onDragOver('right', i, $event)"
@@ -235,10 +211,13 @@ onMounted(() => {
             <div class="dash-drag-handle">
               <UIcon name="i-lucide-grip-vertical" class="size-3.5" />
             </div>
-            <button class="dash-hide-btn" title="Masquer" @click="hideModule(mod.key)">
+            <button class="dash-hide-btn" title="Masquer" @click="hideModule(key)">
               <UIcon name="i-lucide-x" class="size-3.5" />
             </button>
-            <component :is="mod.component" />
+            <DashboardPresence v-if="key === 'presence'" />
+            <DashboardSiteStatus v-else-if="key === 'siteStatus'" />
+            <DashboardProspectSummary v-else-if="key === 'prospectSummary'" />
+            <DashboardJobListings v-else-if="key === 'jobListings'" />
           </div>
         </div>
       </div>
@@ -301,12 +280,9 @@ onMounted(() => {
 .dash-card-wrap {
   position: relative;
   transition: transform 0.15s, box-shadow 0.15s;
-}
-
-.dash-card-wrap[draggable="true"] {
   cursor: grab;
 }
-.dash-card-wrap[draggable="true"]:active {
+.dash-card-wrap:active {
   cursor: grabbing;
 }
 
@@ -344,9 +320,6 @@ onMounted(() => {
 }
 .group:hover .dash-drag-handle {
   opacity: 1;
-}
-.dash-drag-handle:hover {
-  color: rgba(175, 143, 60, 0.5);
 }
 
 /* ═══ HIDE BUTTON ═══ */
