@@ -13,10 +13,11 @@ const toast = useToast()
 const userId = route.params.userId as string
 
 // --- View mode ---
-type ViewMode = 'week' | 'month'
+type ViewMode = 'week' | 'timetable' | 'month'
 const viewMode = ref<ViewMode>('week')
 
 const weekViewRef = ref<{ weekNumber: number; weekLabel: string; previousWeek: () => void; nextWeek: () => void; goToToday: () => void } | null>(null)
+const timetableRef = ref<{ weekNumber: number; weekLabel: string; previousWeek: () => void; nextWeek: () => void; goToToday: () => void } | null>(null)
 const monthViewRef = ref<{ previousMonth: () => void; nextMonth: () => void; goToToday: () => void } | null>(null)
 
 // --- Target user ---
@@ -117,16 +118,19 @@ async function loadMonthEntries(year: number, month: number) {
 
 // --- Navigation ---
 function navigatePrev() {
-  if (viewMode.value === 'week') weekViewRef.value?.previousWeek()
-  else monthViewRef.value?.previousMonth()
+  if (viewMode.value === 'month') monthViewRef.value?.previousMonth()
+  else if (viewMode.value === 'timetable') timetableRef.value?.previousWeek()
+  else weekViewRef.value?.previousWeek()
 }
 function navigateNext() {
-  if (viewMode.value === 'week') weekViewRef.value?.nextWeek()
-  else monthViewRef.value?.nextMonth()
+  if (viewMode.value === 'month') monthViewRef.value?.nextMonth()
+  else if (viewMode.value === 'timetable') timetableRef.value?.nextWeek()
+  else weekViewRef.value?.nextWeek()
 }
 function navigateToday() {
-  if (viewMode.value === 'week') weekViewRef.value?.goToToday()
-  else monthViewRef.value?.goToToday()
+  if (viewMode.value === 'month') monthViewRef.value?.goToToday()
+  else if (viewMode.value === 'timetable') timetableRef.value?.goToToday()
+  else weekViewRef.value?.goToToday()
 }
 
 // --- Admin: add entry ---
@@ -289,7 +293,7 @@ onMounted(async () => {
           size="xs"
           to="/planning"
         />
-        <UTooltip v-if="isDirecteur && viewMode === 'week'" text="Copier la semaine precedente">
+        <UTooltip v-if="isDirecteur && viewMode !== 'month'" text="Copier la semaine precedente">
           <UButton
             icon="i-lucide-copy"
             color="neutral"
@@ -318,28 +322,41 @@ onMounted(async () => {
             <UButton label="Aujourd'hui" color="neutral" variant="soft" size="xs" @click="navigateToday" />
             <UButton icon="i-lucide-chevron-right" color="neutral" variant="ghost" size="xs" @click="navigateNext" />
           </div>
-          <span v-if="viewMode === 'week'" class="text-sm font-medium text-stone-500 dark:text-stone-400">
-            S{{ weekNumber }} <span class="text-stone-300 dark:text-stone-600 mx-0.5">·</span> {{ weekLabel }}
-          </span>
-          <span v-else class="text-sm font-medium text-stone-500 dark:text-stone-400 capitalize">
+          <span v-if="viewMode === 'month'" class="text-sm font-medium text-stone-500 dark:text-stone-400 capitalize">
             {{ currentMonthLabel }}
+          </span>
+          <span v-else class="text-sm font-medium text-stone-500 dark:text-stone-400">
+            S{{ weekNumber }} <span class="text-stone-300 dark:text-stone-600 mx-0.5">·</span> {{ weekLabel }}
           </span>
           <!-- View mode toggle -->
           <div class="flex items-center rounded-lg border border-[rgba(175,143,60,0.12)] overflow-hidden">
-            <button
-              class="flex items-center justify-center size-7 transition-colors"
-              :class="viewMode === 'week' ? 'bg-primary/10 text-primary' : 'text-stone-400 dark:text-stone-500 hover:bg-[rgba(175,143,60,0.06)] dark:hover:bg-[rgba(175,143,60,0.06)]'"
-              @click="viewMode = 'week'"
-            >
-              <UIcon name="i-lucide-rows-3" class="size-3.5" />
-            </button>
-            <button
-              class="flex items-center justify-center size-7 transition-colors"
-              :class="viewMode === 'month' ? 'bg-primary/10 text-primary' : 'text-stone-400 dark:text-stone-500 hover:bg-[rgba(175,143,60,0.06)] dark:hover:bg-[rgba(175,143,60,0.06)]'"
-              @click="viewMode = 'month'"
-            >
-              <UIcon name="i-lucide-grid-3x3" class="size-3.5" />
-            </button>
+            <UTooltip text="Semaine">
+              <button
+                class="flex items-center justify-center size-7 transition-colors"
+                :class="viewMode === 'week' ? 'bg-primary/10 text-primary' : 'text-stone-400 dark:text-stone-500 hover:bg-[rgba(175,143,60,0.06)]'"
+                @click="viewMode = 'week'"
+              >
+                <UIcon name="i-lucide-rows-3" class="size-3.5" />
+              </button>
+            </UTooltip>
+            <UTooltip text="Emploi du temps">
+              <button
+                class="flex items-center justify-center size-7 transition-colors"
+                :class="viewMode === 'timetable' ? 'bg-primary/10 text-primary' : 'text-stone-400 dark:text-stone-500 hover:bg-[rgba(175,143,60,0.06)]'"
+                @click="viewMode = 'timetable'"
+              >
+                <UIcon name="i-lucide-clock" class="size-3.5" />
+              </button>
+            </UTooltip>
+            <UTooltip text="Mois">
+              <button
+                class="flex items-center justify-center size-7 transition-colors"
+                :class="viewMode === 'month' ? 'bg-primary/10 text-primary' : 'text-stone-400 dark:text-stone-500 hover:bg-[rgba(175,143,60,0.06)]'"
+                @click="viewMode = 'month'"
+              >
+                <UIcon name="i-lucide-grid-3x3" class="size-3.5" />
+              </button>
+            </UTooltip>
           </div>
         </div>
 
@@ -364,6 +381,21 @@ onMounted(async () => {
       <template v-if="viewMode === 'week'">
         <PlanningWeekView
           ref="weekViewRef"
+          :entries="entries"
+          :readonly="!isDirecteur"
+          :contract-start="contractStart"
+          :contract-end="contractEnd"
+          hide-nav
+          @week-change="loadEntries"
+          @add-entry="handleAddEntry"
+          @click-entry="handleClickEntry"
+        />
+      </template>
+
+      <!-- Timetable view -->
+      <template v-else-if="viewMode === 'timetable'">
+        <PlanningTimetable
+          ref="timetableRef"
           :entries="entries"
           :readonly="!isDirecteur"
           :contract-start="contractStart"

@@ -43,7 +43,8 @@ function nextWeek() {
 }
 
 function goToToday() {
-  currentMonday.value = getMonday(new Date())
+  const effective = getEffectiveWorkDay(new Date(), ferieDates.value)
+  currentMonday.value = getMonday(effective)
   emit('weekChange', formatDate(currentMonday.value))
 }
 
