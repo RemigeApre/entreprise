@@ -101,6 +101,40 @@ export function isPastDate(dateStr: string): boolean {
   return dateStr < formatDate(new Date())
 }
 
+/**
+ * Returns the "effective" working day to highlight:
+ * - Today if weekday, before 18h, and not in ferieDates
+ * - Tomorrow (or next working day) if past 18h
+ * - Monday if weekend
+ * - Skips any dates in ferieDates
+ */
+export function getEffectiveWorkDay(now: Date = new Date(), ferieDates: Set<string> = new Set()): Date {
+  let d = new Date(now)
+  d.setHours(0, 0, 0, 0)
+
+  // After 18h → advance to next day
+  if (now.getHours() >= 18) {
+    d.setDate(d.getDate() + 1)
+  }
+
+  // Skip weekends
+  while (d.getDay() === 0 || d.getDay() === 6) {
+    d.setDate(d.getDate() + 1)
+  }
+
+  // Skip ferie days (max 30 iterations safety)
+  let safety = 0
+  while (ferieDates.has(formatDate(d)) && safety < 30) {
+    d.setDate(d.getDate() + 1)
+    while (d.getDay() === 0 || d.getDay() === 6) {
+      d.setDate(d.getDate() + 1)
+    }
+    safety++
+  }
+
+  return d
+}
+
 export function getEachDayBetween(start: string, end: string): string[] {
   const days: string[] = []
   const current = new Date(start)

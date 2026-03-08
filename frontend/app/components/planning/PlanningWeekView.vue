@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PlanningEntry } from '~/utils/types'
-import { getMonday, addDays, getWeekDays, getWeekNumber, formatDate, isDateInContractPeriod, isWeekend, getCurrentOrNextMonday } from '~/utils/dates'
+import { getMonday, addDays, getWeekDays, getWeekNumber, formatDate, isDateInContractPeriod, isWeekend, getCurrentOrNextMonday, getEffectiveWorkDay } from '~/utils/dates'
 
 const props = defineProps<{
   entries: PlanningEntry[]
@@ -74,8 +74,26 @@ function handleSlotClick(date: Date, periode: 'matin' | 'apres_midi') {
   }
 }
 
-function isToday(date: Date): boolean {
-  return formatDate(date) === formatDate(new Date())
+// Compute ferie dates from entries to skip them in effective day calc
+const ferieDates = computed(() => {
+  const dates = new Set<string>()
+  const grouped = new Map<string, number>()
+  for (const e of props.entries) {
+    if (e.type === 'ferie') {
+      grouped.set(e.date, (grouped.get(e.date) || 0) + 1)
+    }
+  }
+  // A day is fully ferie if both matin + apres_midi are ferie (2 entries)
+  for (const [date, count] of grouped) {
+    if (count >= 2) dates.add(date)
+  }
+  return dates
+})
+
+const effectiveDay = computed(() => formatDate(getEffectiveWorkDay(new Date(), ferieDates.value)))
+
+function isHighlightedDay(date: Date): boolean {
+  return formatDate(date) === effectiveDay.value
 }
 
 function getDayName(date: Date): string {
@@ -131,13 +149,13 @@ onMounted(() => {
       >
         <p
           class="text-[11px] font-medium uppercase"
-          :class="isToday(day) ? 'text-amber-600 dark:text-amber-400' : 'text-stone-500 dark:text-stone-400'"
+          :class="isHighlightedDay(day) ? 'text-amber-600 dark:text-amber-400' : 'text-stone-500 dark:text-stone-400'"
         >
           {{ getDayName(day) }}
         </p>
         <p
           class="text-xs"
-          :class="isToday(day) ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-stone-400 dark:text-stone-500'"
+          :class="isHighlightedDay(day) ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-stone-400 dark:text-stone-500'"
         >
           {{ getDayNumber(day) }}
         </p>
@@ -147,7 +165,11 @@ onMounted(() => {
       <div class="flex items-center pr-2">
         <span class="text-[11px] font-medium text-stone-500 dark:text-stone-400 whitespace-nowrap">Matin</span>
       </div>
-      <div v-for="day in weekDays" :key="'am-' + formatDate(day)">
+      <div
+        v-for="day in weekDays"
+        :key="'am-' + formatDate(day)"
+        :class="isHighlightedDay(day) ? 'bg-amber-50/60 dark:bg-amber-950/20 rounded-t-lg -mx-0.5 px-0.5' : ''"
+      >
         <PlanningDaySlot
           :entry="getEntry(day, 'matin')"
           periode="matin"
@@ -163,7 +185,11 @@ onMounted(() => {
       <div class="flex items-center pr-2">
         <span class="text-[11px] font-medium text-stone-500 dark:text-stone-400 whitespace-nowrap">Apres-midi</span>
       </div>
-      <div v-for="day in weekDays" :key="'pm-' + formatDate(day)">
+      <div
+        v-for="day in weekDays"
+        :key="'pm-' + formatDate(day)"
+        :class="isHighlightedDay(day) ? 'bg-amber-50/60 dark:bg-amber-950/20 rounded-b-lg -mx-0.5 px-0.5' : ''"
+      >
         <PlanningDaySlot
           :entry="getEntry(day, 'apres_midi')"
           periode="apres_midi"
