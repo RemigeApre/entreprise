@@ -87,11 +87,11 @@ export const CONGE_TYPES = {
 } as const
 
 export const PROSPECT_STATUTS = {
-  nouveau: { label: 'Nouveau', color: 'blue' },
-  en_cours: { label: 'En cours', color: 'yellow' },
-  converti: { label: 'Converti', color: 'green' },
-  perdu: { label: 'Perdu', color: 'red' },
-  en_pause: { label: 'En pause', color: 'neutral' }
+  a_contacter: { label: 'A contacter', color: 'neutral', icon: 'i-lucide-phone-outgoing' },
+  premier_contact: { label: 'Premier contact', color: 'blue', icon: 'i-lucide-phone-call' },
+  en_discussion: { label: 'En discussion', color: 'yellow', icon: 'i-lucide-message-square' },
+  client: { label: 'Client', color: 'green', icon: 'i-lucide-handshake' },
+  cloture: { label: 'Cloture', color: 'red', icon: 'i-lucide-x-circle' }
 } as const
 
 export const CONTACT_CANAUX = {
@@ -99,8 +99,28 @@ export const CONTACT_CANAUX = {
   telephone: { label: 'Telephone', icon: 'i-lucide-phone' },
   linkedin: { label: 'LinkedIn', icon: 'i-simple-icons-linkedin' },
   en_personne: { label: 'En personne', icon: 'i-lucide-users' },
+  site_web: { label: 'Site web', icon: 'i-lucide-globe' },
   autre: { label: 'Autre', icon: 'i-lucide-message-circle' }
 } as const
+
+export const CONTACT_RESULTATS = {
+  refus: { label: 'Refus', color: 'red', icon: 'i-lucide-x' },
+  attente: { label: 'En attente', color: 'yellow', icon: 'i-lucide-clock' },
+  retenter: { label: 'A retenter', color: 'orange', icon: 'i-lucide-refresh-cw' },
+  ligne_coupee: { label: 'Ligne coupee', color: 'neutral', icon: 'i-lucide-phone-off' },
+  positif: { label: 'Positif', color: 'green', icon: 'i-lucide-check' },
+  absent: { label: 'Absent', color: 'neutral', icon: 'i-lucide-user-x' }
+} as const
+
+export const VILLES_FRANCE = [
+  'Paris', 'Lyon', 'Marseille', 'Toulouse', 'Nice', 'Nantes', 'Strasbourg', 'Montpellier',
+  'Bordeaux', 'Lille', 'Rennes', 'Reims', 'Toulon', 'Saint-Etienne', 'Le Havre',
+  'Grenoble', 'Dijon', 'Angers', 'Nimes', 'Clermont-Ferrand', 'Aix-en-Provence',
+  'Le Mans', 'Brest', 'Tours', 'Amiens', 'Limoges', 'Metz', 'Perpignan',
+  'Besancon', 'Orleans', 'Rouen', 'Caen', 'Nancy', 'Avignon', 'Valence',
+  'Cannes', 'Antibes', 'La Rochelle', 'Chambery', 'Annecy', 'Pau', 'Bayonne',
+  'Poitiers', 'Troyes', 'Colmar', 'Mulhouse', 'Ajaccio', 'Bastia'
+] as const
 
 export const PROJECT_STATUTS = {
   brouillon: { label: 'Brouillon', color: 'neutral' },

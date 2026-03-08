@@ -72,23 +72,28 @@ export interface CongeRequest {
   user_created: string
 }
 
-export type ProspectStatut = 'nouveau' | 'en_cours' | 'converti' | 'perdu' | 'en_pause'
-export type ContactCanal = 'email' | 'telephone' | 'linkedin' | 'en_personne' | 'autre'
+export type ProspectStatut = 'a_contacter' | 'premier_contact' | 'en_discussion' | 'client' | 'cloture'
+export type ContactCanal = 'email' | 'telephone' | 'linkedin' | 'en_personne' | 'site_web' | 'autre'
+export type ContactResultat = 'refus' | 'attente' | 'retenter' | 'ligne_coupee' | 'positif' | 'absent'
 
 export interface Prospect {
   id: string
   nom_entreprise: string
+  ville: string
   secteur: string | null
   adresse: string | null
   telephone: string | null
   email: string | null
+  emails_secondaires: string | null
   site_web: string | null
-  date_premier_contact: string
+  contact_nom: string | null
   notes: string | null
   prospecteur: UserProfile | string
   statut: ProspectStatut
+  nb_contacts: number
   historique_contacts?: ContactHistory[]
   date_created: string
+  date_updated: string | null
   user_created: string
 }
 
@@ -96,6 +101,7 @@ export interface ContactHistory {
   id: string
   prospect: Prospect | string
   canal: ContactCanal
+  resultat: ContactResultat
   date_contact: string
   notes: string
   contacte_par: UserProfile | string

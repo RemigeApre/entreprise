@@ -1,12 +1,12 @@
 import { readItems, readItem, createItem, updateItem, deleteItem } from '@directus/sdk'
-import type { Prospect, ContactHistory, ContactCanal } from '~/utils/types'
+import type { Prospect, ContactHistory, ContactCanal, ContactResultat } from '~/utils/types'
 
 export function useProspects() {
   const { $directus } = useNuxtApp()
 
   const prospectFields = [
-    'id', 'nom_entreprise', 'secteur', 'adresse', 'telephone', 'email', 'site_web',
-    'date_premier_contact', 'notes', 'statut',
+    'id', 'nom_entreprise', 'ville', 'secteur', 'adresse', 'telephone', 'email',
+    'emails_secondaires', 'site_web', 'contact_nom', 'notes', 'statut', 'nb_contacts',
     'prospecteur.id', 'prospecteur.first_name', 'prospecteur.last_name',
     'date_created', 'date_updated'
   ]
@@ -23,8 +23,9 @@ export function useProspects() {
     return await $directus.request(readItem('prospects', id, {
       fields: [
         ...prospectFields,
-        'historique_contacts.id', 'historique_contacts.canal', 'historique_contacts.date_contact',
-        'historique_contacts.notes', 'historique_contacts.contacte_par.id',
+        'historique_contacts.id', 'historique_contacts.canal', 'historique_contacts.resultat',
+        'historique_contacts.date_contact', 'historique_contacts.notes',
+        'historique_contacts.contacte_par.id',
         'historique_contacts.contacte_par.first_name', 'historique_contacts.contacte_par.last_name',
         'historique_contacts.date_created'
       ]
@@ -46,6 +47,7 @@ export function useProspects() {
   async function addContact(data: {
     prospect: string
     canal: ContactCanal
+    resultat: ContactResultat
     date_contact: string
     notes: string
     contacte_par: string

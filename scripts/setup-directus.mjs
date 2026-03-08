@@ -339,20 +339,23 @@ async function createCollections() {
     fields: [
       uuidPK(),
       { field: 'nom_entreprise', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, sort: 1 } },
-      { field: 'secteur', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 2 } },
-      { field: 'adresse', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 3 } },
-      { field: 'telephone', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 4 } },
-      { field: 'email', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 5 } },
-      { field: 'site_web', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', sort: 6 } },
-      { field: 'date_premier_contact', type: 'date', schema: { is_nullable: false }, meta: { interface: 'datetime', required: true, width: 'half', sort: 7 } },
-      { field: 'notes', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-rich-text-html', sort: 8 } },
+      { field: 'ville', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, width: 'half', sort: 2 } },
+      { field: 'secteur', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 3 } },
+      { field: 'adresse', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 4 } },
+      { field: 'telephone', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 5 } },
+      { field: 'email', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 6 } },
+      { field: 'emails_secondaires', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 7, note: 'Un email par ligne' } },
+      { field: 'site_web', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', sort: 8 } },
+      { field: 'contact_nom', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', sort: 9, note: 'Nom du contact principal' } },
+      { field: 'notes', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 10 } },
+      { field: 'nb_contacts', type: 'integer', schema: { is_nullable: true, default_value: 0 }, meta: { interface: 'input', width: 'half', sort: 11 } },
       dropdown('statut', [
-        { text: 'Nouveau', value: 'nouveau' },
-        { text: 'En cours', value: 'en_cours' },
-        { text: 'Converti', value: 'converti' },
-        { text: 'Perdu', value: 'perdu' },
-        { text: 'En pause', value: 'en_pause' }
-      ], { required: true, default_value: 'nouveau', width: 'half' }),
+        { text: 'A contacter', value: 'a_contacter' },
+        { text: 'Premier contact', value: 'premier_contact' },
+        { text: 'En discussion', value: 'en_discussion' },
+        { text: 'Client', value: 'client' },
+        { text: 'Cloture', value: 'cloture' }
+      ], { required: true, default_value: 'a_contacter', width: 'half' }),
       ...systemFields()
     ]
   }, 'Collection "prospects"')
@@ -369,10 +372,19 @@ async function createCollections() {
         { text: 'Telephone', value: 'telephone' },
         { text: 'LinkedIn', value: 'linkedin' },
         { text: 'En personne', value: 'en_personne' },
+        { text: 'Site web', value: 'site_web' },
         { text: 'Autre', value: 'autre' }
       ], { required: true, width: 'half' }),
-      { field: 'date_contact', type: 'timestamp', schema: { is_nullable: false }, meta: { interface: 'datetime', required: true, width: 'half', sort: 3 } },
-      { field: 'notes', type: 'text', schema: { is_nullable: false }, meta: { interface: 'input-rich-text-html', required: true, sort: 4 } },
+      dropdown('resultat', [
+        { text: 'Refus', value: 'refus' },
+        { text: 'En attente', value: 'attente' },
+        { text: 'A retenter', value: 'retenter' },
+        { text: 'Ligne coupee', value: 'ligne_coupee' },
+        { text: 'Positif', value: 'positif' },
+        { text: 'Absent', value: 'absent' }
+      ], { required: true, default_value: 'attente', width: 'half' }),
+      { field: 'date_contact', type: 'timestamp', schema: { is_nullable: false }, meta: { interface: 'datetime', required: true, width: 'half', sort: 4 } },
+      { field: 'notes', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 5 } },
       ...systemFields()
     ]
   }, 'Collection "contacts_history"')

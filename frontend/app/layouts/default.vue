@@ -82,7 +82,7 @@ const domains = computed<Domain[]>(() => {
       prefixes: ['/prospection', '/clients'],
       tabs: [
         { label: 'Prospection', icon: 'i-lucide-target', to: '/prospection' },
-        { label: 'Clients', icon: 'i-lucide-building', to: '/clients', disabled: true }
+        { label: 'Clients', icon: 'i-lucide-building', to: '/clients' }
       ]
     })
   }
