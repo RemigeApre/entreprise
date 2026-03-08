@@ -3,7 +3,23 @@ import type { DashboardModule } from '~/composables/useDashboardPreferences'
 
 const { user, isDirecteur } = useAuth()
 const { isVisible, hide } = useDashboardPreferences()
-const { hasSites } = useSiteMonitor()
+const { hasSites, userSites, checkSiteStatus } = useSiteMonitor()
+
+// ─── Minimalist site status for sidebar ────────────────────────
+const siteStatuses = ref<Record<string, boolean | null>>({})
+
+async function checkAllSites() {
+  for (const site of userSites.value) {
+    const result = await checkSiteStatus(site.url)
+    siteStatuses.value = { ...siteStatuses.value, [site.url]: result.up }
+  }
+}
+
+if (import.meta.client) {
+  watch(userSites, (sites) => {
+    if (sites.length) checkAllSites()
+  }, { immediate: true })
+}
 
 const userDisplayName = computed(() => {
   if (!user.value) return ''
@@ -41,7 +57,6 @@ const cardDefs: CardDef[] = [
   { key: 'weekSummary', condition: () => true },
   { key: 'presence', condition: () => true },
   { key: 'activeProjects', condition: () => true },
-  { key: 'siteStatus', condition: () => hasSites.value },
   { key: 'prospectSummary', condition: () => true },
   { key: 'stageTracker', condition: () => isDirecteur.value },
   { key: 'jobListings', condition: () => isDirecteur.value }
@@ -57,7 +72,6 @@ const cardSizes = ref<Record<string, CardSize>>({
   weekSummary: 'full',
   presence: 'half',
   activeProjects: 'half',
-  siteStatus: 'half',
   prospectSummary: 'half',
   stageTracker: 'full',
   jobListings: 'half'
@@ -212,7 +226,6 @@ function onDragEnd(e: DragEvent) {
             <DashboardWeekSummary v-if="key === 'weekSummary'" />
             <DashboardPresence v-else-if="key === 'presence'" />
             <DashboardActiveProjects v-else-if="key === 'activeProjects'" />
-            <DashboardSiteStatus v-else-if="key === 'siteStatus'" />
             <DashboardProspectSummary v-else-if="key === 'prospectSummary'" />
             <DashboardStageTracker v-else-if="key === 'stageTracker'" />
             <DashboardJobListings v-else-if="key === 'jobListings'" />
@@ -222,6 +235,29 @@ function onDragEnd(e: DragEvent) {
 
       <!-- ── Sidebar droite (sticky) ── -->
       <div class="dash-sidebar">
+        <!-- Sites status (minimalist) -->
+        <div v-if="hasSites && isVisible('siteStatus')" class="relative group">
+          <button class="dash-hide-btn" title="Masquer" @click="hideModule('siteStatus')">
+            <UIcon name="i-lucide-x" class="size-3.5" />
+          </button>
+          <UCard>
+            <div class="space-y-1.5">
+              <NuxtLink
+                v-for="site in userSites"
+                :key="site.id"
+                to="/projets/status"
+                class="flex items-center gap-2 px-1 py-0.5 rounded hover:bg-[rgba(175,143,60,0.04)] transition-colors"
+              >
+                <span
+                  class="size-2 rounded-full flex-shrink-0"
+                  :class="siteStatuses[site.url] === true ? 'bg-emerald-500' : siteStatuses[site.url] === false ? 'bg-red-500' : 'bg-stone-300 dark:bg-stone-600 animate-pulse'"
+                />
+                <span class="text-xs text-stone-600 dark:text-stone-400 truncate">{{ site.nom }}</span>
+              </NuxtLink>
+            </div>
+          </UCard>
+        </div>
+
         <div v-if="isVisible('notes')" class="relative group">
           <button class="dash-hide-btn" title="Masquer" @click="hideModule('notes')">
             <UIcon name="i-lucide-x" class="size-3.5" />
