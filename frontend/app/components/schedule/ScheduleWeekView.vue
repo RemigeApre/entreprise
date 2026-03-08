@@ -29,7 +29,7 @@ const weekLabel = computed(() => {
 // --- Grid config ---
 const START_HOUR = 7
 const END_HOUR = 20
-const HOUR_HEIGHT = 56
+const HOUR_HEIGHT = 60
 const HALF_HOUR = HOUR_HEIGHT / 2
 const TOTAL_HEIGHT = (END_HOUR - START_HOUR) * HOUR_HEIGHT
 const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => i + START_HOUR)
@@ -37,11 +37,8 @@ const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => i + START_
 // Work zone boundaries
 const WORK_START_Y = (8 - START_HOUR) * HOUR_HEIGHT
 const WORK_END_Y = (18 - START_HOUR) * HOUR_HEIGHT
-const LEGAL_AM_START_Y = (8.5 - START_HOUR) * HOUR_HEIGHT
-const LEGAL_AM_END_Y = (12 - START_HOUR) * HOUR_HEIGHT
-const LUNCH_START_Y = LEGAL_AM_END_Y
+const LUNCH_START_Y = (12 - START_HOUR) * HOUR_HEIGHT
 const LUNCH_END_Y = (14 - START_HOUR) * HOUR_HEIGHT
-const LEGAL_PM_START_Y = LUNCH_END_Y
 const LEGAL_PM_END_Y = (17.5 - START_HOUR) * HOUR_HEIGHT
 
 function hourToY(h: number, m: number = 0): number {
@@ -106,7 +103,7 @@ function getEntryStyle(entry: ScheduleEntry): Record<string, string> {
   const [eh, em] = entry.heure_fin.split(':').map(Number)
   const top = hourToY(sh, sm)
   const bottom = hourToY(eh, em)
-  const height = Math.max(bottom - top, 20)
+  const height = Math.max(bottom - top, 24)
   return { top: `${top}px`, height: `${height}px` }
 }
 
@@ -164,23 +161,23 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col">
-    <!-- Sticky header -->
-    <div class="grid grid-cols-[52px_repeat(5,1fr)] border-b border-stone-200 dark:border-stone-700">
-      <div class="py-2" />
+  <div class="flex flex-col h-full min-h-0">
+    <!-- Fixed header -->
+    <div class="grid grid-cols-[56px_repeat(5,1fr)] border-b border-stone-200 dark:border-stone-700 shrink-0">
+      <div class="py-2.5" />
       <div
         v-for="day in weekDays"
         :key="formatDate(day)"
-        class="py-2 text-center border-l border-stone-200/60 dark:border-stone-700/40"
+        class="py-2.5 text-center border-l border-stone-200/60 dark:border-stone-700/40"
         :class="isHighlightedDay(day) ? 'bg-amber-50/50 dark:bg-amber-950/20' : ''"
       >
         <p
-          class="text-[11px] font-medium uppercase tracking-wide"
+          class="text-xs font-medium uppercase tracking-wide"
           :class="isHighlightedDay(day) ? 'text-amber-600 dark:text-amber-400' : 'text-stone-400 dark:text-stone-500'"
         >
           {{ getDayName(day) }}
         </p>
-        <div class="flex items-center justify-center gap-1 mt-0.5">
+        <div class="flex items-center justify-center gap-1 mt-1">
           <span
             class="inline-flex items-center justify-center rounded-full text-sm font-bold leading-none"
             :class="isHighlightedDay(day)
@@ -191,7 +188,7 @@ onUnmounted(() => {
           </span>
           <span
             v-if="!isHighlightedDay(day)"
-            class="text-[10px] text-stone-400 dark:text-stone-500"
+            class="text-[11px] text-stone-400 dark:text-stone-500"
           >
             {{ getDayMonth(day) }}
           </span>
@@ -199,9 +196,9 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- Scrollable grid -->
-    <div ref="gridRef" class="overflow-y-auto" style="max-height: 600px;">
-      <div class="grid grid-cols-[52px_repeat(5,1fr)] relative" :style="{ height: TOTAL_HEIGHT + 'px' }">
+    <!-- Scrollable grid (only this part scrolls) -->
+    <div ref="gridRef" class="flex-1 overflow-y-auto min-h-0">
+      <div class="grid grid-cols-[56px_repeat(5,1fr)] relative" :style="{ height: TOTAL_HEIGHT + 'px' }">
         <!-- Hour labels -->
         <div class="relative">
           <div
@@ -211,13 +208,13 @@ onUnmounted(() => {
             :style="{ top: hourToY(h) + 'px', height: HOUR_HEIGHT + 'px' }"
           >
             <span
-              class="absolute -top-2 right-2 text-[10px] font-medium select-none"
+              class="absolute -top-2.5 right-2 text-[11px] font-medium select-none"
               :class="(h >= 8 && h <= 18) ? 'text-stone-500 dark:text-stone-400' : 'text-stone-300 dark:text-stone-600'"
             >
               {{ String(h).padStart(2, '0') }}:00
             </span>
             <span
-              class="absolute right-2 text-[9px] text-stone-300 dark:text-stone-600 select-none"
+              class="absolute right-2 text-[10px] text-stone-300 dark:text-stone-600 select-none"
               :style="{ top: HALF_HOUR - 6 + 'px' }"
             >
               {{ String(h).padStart(2, '0') }}:30
@@ -258,7 +255,7 @@ onUnmounted(() => {
             <div class="absolute inset-0 bg-stone-50/60 dark:bg-stone-800/20" />
             <div class="absolute inset-x-0 top-0 border-t border-dashed border-stone-300/50 dark:border-stone-600/30" />
             <div class="absolute inset-x-0 bottom-0 border-t border-dashed border-stone-300/50 dark:border-stone-600/30" />
-            <span class="absolute inset-0 flex items-center justify-center text-[9px] text-stone-300 dark:text-stone-600 select-none tracking-wider uppercase">
+            <span class="absolute inset-0 flex items-center justify-center text-[10px] text-stone-300 dark:text-stone-600 select-none tracking-wider uppercase">
               Pause
             </span>
           </div>
@@ -280,22 +277,14 @@ onUnmounted(() => {
             />
           </template>
 
-          <!-- Legal time markers -->
-          <div
-            class="absolute inset-x-0 border-t-2 border-dashed border-amber-400/30 dark:border-amber-600/25"
-            :style="{ top: LEGAL_AM_START_Y + 'px' }"
-          />
+          <!-- Legal time marker: 17h30 only -->
           <div
             class="absolute inset-x-0 border-t-2 border-dashed border-amber-400/30 dark:border-amber-600/25"
             :style="{ top: LEGAL_PM_END_Y + 'px' }"
           />
           <span
-            class="absolute left-1 text-[8px] font-medium text-amber-500/60 dark:text-amber-500/40 select-none z-[1]"
-            :style="{ top: LEGAL_AM_START_Y + 2 + 'px' }"
-          >8h30</span>
-          <span
-            class="absolute right-1 text-[8px] font-medium text-amber-500/60 dark:text-amber-500/40 select-none z-[1]"
-            :style="{ top: LEGAL_PM_END_Y - 12 + 'px' }"
+            class="absolute right-1 text-[9px] font-medium text-amber-500/60 dark:text-amber-500/40 select-none z-[1]"
+            :style="{ top: LEGAL_PM_END_Y - 13 + 'px' }"
           >17h30</span>
 
           <!-- Current time red line -->
@@ -305,7 +294,7 @@ onUnmounted(() => {
               :style="{ top: currentTimeY + 'px' }"
             >
               <div class="relative h-0">
-                <div class="absolute -left-[5px] -top-[4px] size-[9px] rounded-full bg-red-500 shadow-sm" />
+                <div class="absolute -left-[5px] -top-[5px] size-[11px] rounded-full bg-red-500 shadow-sm" />
                 <div class="absolute left-0 right-0 h-[2px] bg-red-500 shadow-sm" />
               </div>
             </div>
@@ -315,20 +304,20 @@ onUnmounted(() => {
           <button
             v-for="entry in getEntriesForDay(day)"
             :key="entry.id"
-            class="absolute left-1 right-1 z-10 rounded-lg border-l-[3px] px-2 py-0.5 overflow-hidden text-left transition-opacity hover:opacity-90 cursor-pointer"
+            class="absolute left-1 right-1 z-10 rounded-lg border-l-[3px] px-2.5 py-1 overflow-hidden text-left transition-opacity hover:opacity-90 cursor-pointer"
             :class="[getEntryColors(entry).bg, getEntryColors(entry).text, getEntryColors(entry).border]"
             :style="getEntryStyle(entry)"
             @click.stop="emit('clickEntry', entry)"
           >
-            <p class="text-[11px] font-semibold truncate leading-tight">{{ entry.titre }}</p>
-            <p class="text-[9px] opacity-60 leading-tight">{{ formatTime(entry.heure_debut) }} — {{ formatTime(entry.heure_fin) }}</p>
+            <p class="text-xs font-semibold truncate leading-tight">{{ entry.titre }}</p>
+            <p class="text-[10px] opacity-60 leading-tight mt-0.5">{{ formatTime(entry.heure_debut) }} — {{ formatTime(entry.heure_fin) }}</p>
           </button>
         </div>
       </div>
     </div>
 
     <!-- Legend -->
-    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 pt-3 border-t border-stone-200/60 dark:border-stone-700/40">
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 py-2.5 border-t border-stone-200/60 dark:border-stone-700/40 shrink-0">
       <div class="flex items-center gap-1.5">
         <span class="inline-block w-3 h-1 border-t-2 border-dashed border-amber-400/60" />
         <span class="text-[10px] text-stone-400 dark:text-stone-500">Horaires legaux (7h/jour)</span>
