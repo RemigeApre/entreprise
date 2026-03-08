@@ -30,6 +30,130 @@ const greetingSubtext = computed(() => {
 function hideModule(key: DashboardModule) {
   hide(key)
 }
+
+// ─── Module registry ────────────────────────
+// Maps module keys to their component name and visibility condition
+interface ModuleDef {
+  key: DashboardModule
+  component: string
+  condition: () => boolean
+  column: 'left' | 'right'
+}
+
+const allModules: ModuleDef[] = [
+  { key: 'weekSummary', component: 'DashboardWeekSummary', column: 'left', condition: () => true },
+  { key: 'activeProjects', component: 'DashboardActiveProjects', column: 'left', condition: () => true },
+  { key: 'stageTracker', component: 'DashboardStageTracker', column: 'left', condition: () => isDirecteur.value },
+  { key: 'presence', component: 'DashboardPresence', column: 'right', condition: () => true },
+  { key: 'siteStatus', component: 'DashboardSiteStatus', column: 'right', condition: () => hasSites.value },
+  { key: 'prospectSummary', component: 'DashboardProspectSummary', column: 'right', condition: () => true },
+  { key: 'jobListings', component: 'DashboardJobListings', column: 'right', condition: () => isDirecteur.value }
+]
+
+// ─── Ordering (persisted in localStorage) ────────────────────────
+const ORDER_KEY = 'dashboard-module-order'
+
+const defaultLeftOrder: DashboardModule[] = ['weekSummary', 'activeProjects', 'stageTracker']
+const defaultRightOrder: DashboardModule[] = ['presence', 'siteStatus', 'prospectSummary', 'jobListings']
+
+const leftOrder = ref<DashboardModule[]>([...defaultLeftOrder])
+const rightOrder = ref<DashboardModule[]>([...defaultRightOrder])
+
+// Load from localStorage
+if (import.meta.client) {
+  const stored = localStorage.getItem(ORDER_KEY)
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored) as { left: DashboardModule[]; right: DashboardModule[] }
+      if (parsed.left?.length) leftOrder.value = parsed.left
+      if (parsed.right?.length) rightOrder.value = parsed.right
+    } catch { /* ignore */ }
+  }
+}
+
+function persistOrder() {
+  if (import.meta.client) {
+    localStorage.setItem(ORDER_KEY, JSON.stringify({ left: leftOrder.value, right: rightOrder.value }))
+  }
+}
+
+// Visible modules in order
+const leftModules = computed(() => {
+  const ordered = leftOrder.value
+    .map(key => allModules.find(m => m.key === key))
+    .filter((m): m is ModuleDef => !!m && m.condition() && isVisible(m.key))
+  // Add any missing left modules
+  for (const m of allModules) {
+    if (m.column === 'left' && m.condition() && isVisible(m.key) && !ordered.find(o => o.key === m.key)) {
+      ordered.push(m)
+    }
+  }
+  return ordered
+})
+
+const rightModules = computed(() => {
+  const ordered = rightOrder.value
+    .map(key => allModules.find(m => m.key === key))
+    .filter((m): m is ModuleDef => !!m && m.condition() && isVisible(m.key))
+  for (const m of allModules) {
+    if (m.column === 'right' && m.condition() && isVisible(m.key) && !ordered.find(o => o.key === m.key)) {
+      ordered.push(m)
+    }
+  }
+  return ordered
+})
+
+// ─── Drag & drop ────────────────────────
+const dragColumn = ref<'left' | 'right' | null>(null)
+const dragIndex = ref(-1)
+const dropIndex = ref(-1)
+
+function onDragStart(col: 'left' | 'right', index: number, e: DragEvent) {
+  dragColumn.value = col
+  dragIndex.value = index
+  if (e.dataTransfer) {
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', '') // Required for Firefox
+  }
+}
+
+function onDragOver(col: 'left' | 'right', index: number, e: DragEvent) {
+  if (dragColumn.value !== col) return
+  e.preventDefault()
+  dropIndex.value = index
+}
+
+function onDragEnd() {
+  if (dragColumn.value && dragIndex.value >= 0 && dropIndex.value >= 0 && dragIndex.value !== dropIndex.value) {
+    const order = dragColumn.value === 'left' ? leftOrder.value : rightOrder.value
+    const visibleKeys = (dragColumn.value === 'left' ? leftModules : rightModules).value.map(m => m.key)
+
+    const fromKey = visibleKeys[dragIndex.value]
+    const toKey = visibleKeys[dropIndex.value]
+    if (fromKey && toKey) {
+      const fromIdx = order.indexOf(fromKey)
+      const toIdx = order.indexOf(toKey)
+      if (fromIdx >= 0 && toIdx >= 0) {
+        order.splice(fromIdx, 1)
+        order.splice(toIdx, 0, fromKey)
+        persistOrder()
+      }
+    }
+  }
+  dragColumn.value = null
+  dragIndex.value = -1
+  dropIndex.value = -1
+}
+
+// ─── Component resolver ────────────────────────
+const componentMap: Record<string, ReturnType<typeof resolveComponent>> = {}
+onMounted(() => {
+  for (const m of allModules) {
+    componentMap[m.component] = resolveComponent(m.component)
+  }
+  componentMap['DashboardNotes'] = resolveComponent('DashboardNotes')
+  componentMap['DashboardTickets'] = resolveComponent('DashboardTickets')
+})
 </script>
 
 <template>
@@ -44,7 +168,7 @@ function hideModule(key: DashboardModule) {
 
     <!-- ═══ CONTENT ═══ -->
     <div class="dash-content">
-      <!-- Notifications (full width) -->
+      <!-- Notifications (full width, not draggable) -->
       <div v-if="isVisible('notifications')" class="relative group">
         <button class="dash-hide-btn" title="Masquer" @click="hideModule('notifications')">
           <UIcon name="i-lucide-x" class="size-3.5" />
@@ -54,60 +178,33 @@ function hideModule(key: DashboardModule) {
 
       <!-- ═══ MAIN LAYOUT: 2 colonnes ═══ -->
       <div class="dash-cols">
-        <!-- ── Colonne gauche (large) ── -->
-        <div class="dash-col-left">
-          <!-- Ma semaine -->
-          <div v-if="isVisible('weekSummary')" class="relative group">
-            <button class="dash-hide-btn" title="Masquer" @click="hideModule('weekSummary')">
+        <!-- ── Colonne gauche ── -->
+        <div class="dash-col">
+          <div
+            v-for="(mod, i) in leftModules"
+            :key="mod.key"
+            class="dash-card-wrap group"
+            :class="{
+              'is-drag-over': dragColumn === 'left' && dropIndex === i && dragIndex !== i
+            }"
+            draggable="true"
+            @dragstart="onDragStart('left', i, $event)"
+            @dragover="onDragOver('left', i, $event)"
+            @dragend="onDragEnd"
+          >
+            <div class="dash-drag-handle">
+              <UIcon name="i-lucide-grip-vertical" class="size-3.5" />
+            </div>
+            <button class="dash-hide-btn" title="Masquer" @click="hideModule(mod.key)">
               <UIcon name="i-lucide-x" class="size-3.5" />
             </button>
-            <DashboardWeekSummary />
-          </div>
-
-          <!-- Projets actifs -->
-          <div v-if="isVisible('activeProjects')" class="relative group">
-            <button class="dash-hide-btn" title="Masquer" @click="hideModule('activeProjects')">
-              <UIcon name="i-lucide-x" class="size-3.5" />
-            </button>
-            <DashboardActiveProjects />
-          </div>
-
-          <!-- Stages (admin) -->
-          <div v-if="isDirecteur && isVisible('stageTracker')" class="relative group">
-            <button class="dash-hide-btn" title="Masquer" @click="hideModule('stageTracker')">
-              <UIcon name="i-lucide-x" class="size-3.5" />
-            </button>
-            <DashboardStageTracker />
+            <component :is="mod.component" />
           </div>
         </div>
 
-        <!-- ── Colonne droite (etroite) ── -->
-        <div class="dash-col-right">
-          <!-- Presence -->
-          <div v-if="isVisible('presence')" class="relative group">
-            <button class="dash-hide-btn" title="Masquer" @click="hideModule('presence')">
-              <UIcon name="i-lucide-x" class="size-3.5" />
-            </button>
-            <DashboardPresence />
-          </div>
-
-          <!-- Sites -->
-          <div v-if="hasSites && isVisible('siteStatus')" class="relative group">
-            <button class="dash-hide-btn" title="Masquer" @click="hideModule('siteStatus')">
-              <UIcon name="i-lucide-x" class="size-3.5" />
-            </button>
-            <DashboardSiteStatus />
-          </div>
-
-          <!-- Prospection -->
-          <div v-if="isVisible('prospectSummary')" class="relative group">
-            <button class="dash-hide-btn" title="Masquer" @click="hideModule('prospectSummary')">
-              <UIcon name="i-lucide-x" class="size-3.5" />
-            </button>
-            <DashboardProspectSummary />
-          </div>
-
-          <!-- Notes -->
+        <!-- ── Colonne droite ── -->
+        <div class="dash-col">
+          <!-- Notes & Tickets : fixes en haut, pas draggables -->
           <div v-if="isVisible('notes')" class="relative group">
             <button class="dash-hide-btn" title="Masquer" @click="hideModule('notes')">
               <UIcon name="i-lucide-x" class="size-3.5" />
@@ -115,7 +212,6 @@ function hideModule(key: DashboardModule) {
             <DashboardNotes />
           </div>
 
-          <!-- Tickets -->
           <div v-if="isVisible('tickets')" class="relative group">
             <button class="dash-hide-btn" title="Masquer" @click="hideModule('tickets')">
               <UIcon name="i-lucide-x" class="size-3.5" />
@@ -123,12 +219,26 @@ function hideModule(key: DashboardModule) {
             <DashboardTickets />
           </div>
 
-          <!-- Offres (admin) -->
-          <div v-if="isDirecteur && isVisible('jobListings')" class="relative group">
-            <button class="dash-hide-btn" title="Masquer" @click="hideModule('jobListings')">
+          <!-- Modules draggables -->
+          <div
+            v-for="(mod, i) in rightModules"
+            :key="mod.key"
+            class="dash-card-wrap group"
+            :class="{
+              'is-drag-over': dragColumn === 'right' && dropIndex === i && dragIndex !== i
+            }"
+            draggable="true"
+            @dragstart="onDragStart('right', i, $event)"
+            @dragover="onDragOver('right', i, $event)"
+            @dragend="onDragEnd"
+          >
+            <div class="dash-drag-handle">
+              <UIcon name="i-lucide-grip-vertical" class="size-3.5" />
+            </div>
+            <button class="dash-hide-btn" title="Masquer" @click="hideModule(mod.key)">
               <UIcon name="i-lucide-x" class="size-3.5" />
             </button>
-            <DashboardJobListings />
+            <component :is="mod.component" />
           </div>
         </div>
       </div>
@@ -180,12 +290,63 @@ function hideModule(key: DashboardModule) {
   }
 }
 
-.dash-col-left,
-.dash-col-right {
+.dash-col {
   display: flex;
   flex-direction: column;
   gap: 14px;
   min-width: 0;
+}
+
+/* ═══ DRAGGABLE CARD ═══ */
+.dash-card-wrap {
+  position: relative;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.dash-card-wrap[draggable="true"] {
+  cursor: grab;
+}
+.dash-card-wrap[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.dash-card-wrap.is-drag-over {
+  transform: translateY(4px);
+}
+.dash-card-wrap.is-drag-over::before {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  border-radius: 1px;
+  background: #AF8F3C;
+  z-index: 20;
+}
+
+/* Drag handle */
+.dash-drag-handle {
+  position: absolute;
+  top: 50%;
+  left: -6px;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 18px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(175, 143, 60, 0.2);
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+  pointer-events: none;
+}
+.group:hover .dash-drag-handle {
+  opacity: 1;
+}
+.dash-drag-handle:hover {
+  color: rgba(175, 143, 60, 0.5);
 }
 
 /* ═══ HIDE BUTTON ═══ */
