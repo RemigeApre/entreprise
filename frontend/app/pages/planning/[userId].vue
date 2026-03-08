@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { readUser } from '@directus/sdk'
 import type { PlanningEntry, PlanningPeriode, PlanningType, UserProfile } from '~/utils/types'
-import { getMonday, addDays, formatDate, getWeekNumber, formatDateFr } from '~/utils/dates'
+import { getMonday, addDays, formatDate, getWeekNumber, formatDateFr, getCurrentOrNextMonday } from '~/utils/dates'
 
 const route = useRoute()
 const { $directus } = useNuxtApp()
@@ -23,7 +23,7 @@ const monthViewRef = ref<{ previousMonth: () => void; nextMonth: () => void; goT
 const targetUser = ref<UserProfile | null>(null)
 const entries = ref<PlanningEntry[]>([])
 const loading = ref(true)
-const currentMonday = ref(getMonday(new Date()))
+const currentMonday = ref(getCurrentOrNextMonday(new Date()))
 const weekNumber = ref(getWeekNumber(new Date()))
 
 const contractStart = computed(() => targetUser.value?.date_debut_contrat || null)

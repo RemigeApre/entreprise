@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PlanningEntry } from '~/utils/types'
-import { getMonday, addDays, getWeekDays, getWeekNumber, formatDate, isDateInContractPeriod, isWeekend } from '~/utils/dates'
+import { getMonday, addDays, getWeekDays, getWeekNumber, formatDate, isDateInContractPeriod, isWeekend, getCurrentOrNextMonday } from '~/utils/dates'
 
 const props = defineProps<{
   entries: PlanningEntry[]
@@ -17,7 +17,7 @@ const emit = defineEmits<{
   weekChange: [monday: string]
 }>()
 
-const currentMonday = ref(getMonday(new Date()))
+const currentMonday = ref(getCurrentOrNextMonday(new Date()))
 const weekDays = computed(() => getWeekDays(currentMonday.value))
 
 const weekNumber = computed(() => getWeekNumber(currentMonday.value))

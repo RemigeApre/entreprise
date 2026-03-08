@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PlanningEntry, PlanningPeriode, PlanningType } from '~/utils/types'
-import { getMonday, addDays, formatDate, getWeekNumber, isPastDate, formatDateFr } from '~/utils/dates'
+import { getMonday, addDays, formatDate, getWeekNumber, isPastDate, formatDateFr, getCurrentOrNextMonday } from '~/utils/dates'
 
 const { user, isDirecteur, hasSchoolDays, hasHourTracking } = useAuth()
 const { getEntries, createEntry, deleteEntry, getWorkedStats } = usePlanning()
@@ -16,7 +16,7 @@ const monthViewRef = ref<{ previousMonth: () => void; nextMonth: () => void; goT
 
 const entries = ref<PlanningEntry[]>([])
 const loading = ref(false)
-const currentMonday = ref(getMonday(new Date()))
+const currentMonday = ref(getCurrentOrNextMonday(new Date()))
 const weekNumber = ref(getWeekNumber(new Date()))
 const stats = ref({ totalHours: 0, totalDays: 0, totalHalfDays: 0 })
 

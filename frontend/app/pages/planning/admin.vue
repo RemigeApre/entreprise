@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PlanningEntry, PlanningPeriode, PlanningType, UserProfile } from '~/utils/types'
-import { formatDate, getMonday, addDays } from '~/utils/dates'
+import { formatDate, getMonday, addDays, getCurrentOrNextMonday } from '~/utils/dates'
 
 definePageMeta({ middleware: 'directeur' })
 
@@ -16,7 +16,7 @@ const selectedUserId = ref<string>('')
 const selectedUser = ref<UserProfile | null>(null)
 const entries = ref<PlanningEntry[]>([])
 const loading = ref(false)
-const currentMonday = ref(getMonday(new Date()))
+const currentMonday = ref(getCurrentOrNextMonday(new Date()))
 
 const userOptions = computed(() =>
   users.value.map(u => ({
