@@ -54,6 +54,9 @@ onMounted(fetchNotifications)
     <template #header>
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
+          <div class="dash-card-icon">
+            <UIcon name="i-lucide-bell" class="size-3.5" />
+          </div>
           <h3 class="text-sm font-semibold">Notifications</h3>
           <UBadge color="primary" variant="subtle" size="xs">{{ notifications.length }}</UBadge>
         </div>
@@ -75,3 +78,16 @@ onMounted(fetchNotifications)
     </div>
   </UCard>
 </template>
+
+<style scoped>
+.dash-card-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(175, 143, 60, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #AF8F3C;
+}
+</style>

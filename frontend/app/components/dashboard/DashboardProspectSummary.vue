@@ -39,7 +39,15 @@ onMounted(load)
   <UCard>
     <template #header>
       <div class="flex items-center justify-between">
-        <h3 class="text-sm font-semibold">Ma prospection</h3>
+        <div class="flex items-center gap-2">
+          <div class="dash-card-icon">
+            <UIcon name="i-lucide-target" class="size-3.5" />
+          </div>
+          <h3 class="text-sm font-semibold">Prospection</h3>
+          <UBadge v-if="!loading && hasProspects" variant="subtle" size="xs" color="primary">
+            {{ myProspects.length }}
+          </UBadge>
+        </div>
         <UButton
           label="Voir tout"
           variant="link"
@@ -54,8 +62,11 @@ onMounted(load)
       <UIcon name="i-lucide-loader-2" class="size-5 animate-spin text-primary" />
     </div>
 
-    <div v-else-if="!hasProspects" class="text-center py-4">
-      <p class="text-sm text-stone-500">Aucun prospect assigne</p>
+    <div v-else-if="!hasProspects" class="text-center py-5">
+      <div class="dash-empty-icon">
+        <UIcon name="i-lucide-target" class="size-5 text-[#AF8F3C]/30" />
+      </div>
+      <p class="text-sm text-stone-400 dark:text-stone-500">Aucun prospect assigne</p>
     </div>
 
     <div v-else class="space-y-2">
@@ -79,3 +90,26 @@ onMounted(load)
     </div>
   </UCard>
 </template>
+
+<style scoped>
+.dash-card-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(175, 143, 60, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #AF8F3C;
+}
+.dash-empty-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(175, 143, 60, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 8px;
+}
+</style>

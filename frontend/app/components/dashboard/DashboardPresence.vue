@@ -123,9 +123,14 @@ onMounted(load)
   <UCard>
     <template #header>
       <div class="flex items-center justify-between">
-        <h3 class="text-sm font-semibold">Qui est la</h3>
+        <div class="flex items-center gap-2">
+          <div class="dash-card-icon">
+            <UIcon name="i-lucide-users" class="size-3.5" />
+          </div>
+          <h3 class="text-sm font-semibold">Qui est la</h3>
+        </div>
         <UButton
-          label="Voir l'equipe"
+          label="Equipe"
           variant="link"
           size="xs"
           to="/equipe"
@@ -141,24 +146,24 @@ onMounted(load)
     <div v-else class="space-y-4">
       <!-- Aujourd'hui -->
       <div>
-        <div class="flex items-center gap-2 mb-2">
-          <p class="text-xs font-medium text-primary">Aujourd'hui</p>
-          <span class="text-[11px] text-stone-400 dark:text-stone-500">
-            {{ countPresent(todayPresences) }} present{{ countPresent(todayPresences) > 1 ? 's' : '' }}
-          </span>
+        <div class="flex items-center gap-2 mb-2.5">
+          <p class="text-xs font-semibold text-primary tracking-wide">Aujourd'hui</p>
+          <UBadge variant="subtle" size="xs" color="primary">
+            {{ countPresent(todayPresences) }}
+          </UBadge>
         </div>
-        <div v-if="todayPresences.length === 0" class="text-xs text-stone-400 dark:text-stone-500 py-2">
+        <div v-if="todayPresences.length === 0" class="text-xs text-stone-400 dark:text-stone-500 py-2 italic">
           Aucun planning renseigne
         </div>
-        <div v-else class="space-y-1.5">
+        <div v-else class="space-y-1">
           <div
             v-for="p in todayPresences"
             :key="p.id"
-            class="flex items-center gap-2 text-xs"
+            class="flex items-center gap-2.5 text-xs py-1 px-1.5 rounded-md hover:bg-[rgba(175,143,60,0.04)] transition-colors"
           >
             <div class="flex gap-1 shrink-0">
-              <span class="size-2 rounded-full" :class="getDotClass(p.matin)" :title="'Matin : ' + getStatusLabel(p.matin)" />
-              <span class="size-2 rounded-full" :class="getDotClass(p.apres_midi)" :title="'Apres-midi : ' + getStatusLabel(p.apres_midi)" />
+              <span class="size-2 rounded-full transition-colors" :class="getDotClass(p.matin)" :title="'Matin : ' + getStatusLabel(p.matin)" />
+              <span class="size-2 rounded-full transition-colors" :class="getDotClass(p.apres_midi)" :title="'Apres-midi : ' + getStatusLabel(p.apres_midi)" />
             </div>
             <span class="text-stone-700 dark:text-stone-300 truncate">{{ p.name }}</span>
           </div>
@@ -167,24 +172,25 @@ onMounted(load)
 
       <!-- Prochain jour (si mode todayNext) -->
       <div v-if="presenceMode === 'todayNext'">
-        <div class="flex items-center gap-2 mb-2">
-          <p class="text-xs font-medium text-stone-500 dark:text-stone-400">{{ getNextDayLabel() }}</p>
-          <span class="text-[11px] text-stone-400 dark:text-stone-500">
-            {{ countPresent(nextDayPresences) }} present{{ countPresent(nextDayPresences) > 1 ? 's' : '' }}
-          </span>
+        <USeparator class="mb-3" />
+        <div class="flex items-center gap-2 mb-2.5">
+          <p class="text-xs font-semibold text-stone-500 dark:text-stone-400 tracking-wide">{{ getNextDayLabel() }}</p>
+          <UBadge variant="subtle" size="xs" color="neutral">
+            {{ countPresent(nextDayPresences) }}
+          </UBadge>
         </div>
-        <div v-if="nextDayPresences.length === 0" class="text-xs text-stone-400 dark:text-stone-500 py-2">
+        <div v-if="nextDayPresences.length === 0" class="text-xs text-stone-400 dark:text-stone-500 py-2 italic">
           Aucun planning renseigne
         </div>
-        <div v-else class="space-y-1.5">
+        <div v-else class="space-y-1">
           <div
             v-for="p in nextDayPresences"
             :key="p.id"
-            class="flex items-center gap-2 text-xs"
+            class="flex items-center gap-2.5 text-xs py-1 px-1.5 rounded-md hover:bg-[rgba(175,143,60,0.04)] transition-colors"
           >
             <div class="flex gap-1 shrink-0">
-              <span class="size-2 rounded-full" :class="getDotClass(p.matin)" :title="'Matin : ' + getStatusLabel(p.matin)" />
-              <span class="size-2 rounded-full" :class="getDotClass(p.apres_midi)" :title="'Apres-midi : ' + getStatusLabel(p.apres_midi)" />
+              <span class="size-2 rounded-full transition-colors" :class="getDotClass(p.matin)" :title="'Matin : ' + getStatusLabel(p.matin)" />
+              <span class="size-2 rounded-full transition-colors" :class="getDotClass(p.apres_midi)" :title="'Apres-midi : ' + getStatusLabel(p.apres_midi)" />
             </div>
             <span class="text-stone-700 dark:text-stone-300 truncate">{{ p.name }}</span>
           </div>
@@ -193,3 +199,16 @@ onMounted(load)
     </div>
   </UCard>
 </template>
+
+<style scoped>
+.dash-card-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(175, 143, 60, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #AF8F3C;
+}
+</style>

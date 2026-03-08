@@ -101,10 +101,15 @@ onMounted(load)
   <UCard>
     <template #header>
       <div class="flex items-center justify-between">
-        <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Suivi stages</h3>
-        <UBadge v-if="stagiaires.length" variant="subtle" size="xs">
-          {{ stagiaires.length }} stagiaire{{ stagiaires.length > 1 ? 's' : '' }}
-        </UBadge>
+        <div class="flex items-center gap-2">
+          <div class="dash-card-icon">
+            <UIcon name="i-lucide-graduation-cap" class="size-3.5" />
+          </div>
+          <h3 class="text-sm font-semibold">Suivi stages</h3>
+          <UBadge v-if="stagiaires.length" variant="subtle" size="xs" color="primary">
+            {{ stagiaires.length }}
+          </UBadge>
+        </div>
       </div>
     </template>
 
@@ -112,8 +117,11 @@ onMounted(load)
       <UIcon name="i-lucide-loader-2" class="size-5 text-primary animate-spin" />
     </div>
 
-    <div v-else-if="!stagiaires.length" class="py-4 text-center text-sm text-stone-400 dark:text-stone-500">
-      Aucun stagiaire actif
+    <div v-else-if="!stagiaires.length" class="text-center py-5">
+      <div class="dash-empty-icon">
+        <UIcon name="i-lucide-graduation-cap" class="size-5 text-[#AF8F3C]/30" />
+      </div>
+      <p class="text-sm text-stone-400 dark:text-stone-500">Aucun stagiaire actif</p>
     </div>
 
     <div v-else class="space-y-4">
@@ -177,3 +185,26 @@ onMounted(load)
     </div>
   </UCard>
 </template>
+
+<style scoped>
+.dash-card-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(175, 143, 60, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #AF8F3C;
+}
+.dash-empty-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(175, 143, 60, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 8px;
+}
+</style>

@@ -241,18 +241,37 @@ function onDragEnd(e: DragEvent) {
             <UIcon name="i-lucide-x" class="size-3.5" />
           </button>
           <UCard>
-            <div class="space-y-1.5">
+            <template #header>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <UIcon name="i-lucide-globe" class="size-3.5 text-[#AF8F3C]/60" />
+                  <h3 class="text-xs font-semibold">Sites</h3>
+                </div>
+                <NuxtLink to="/projets/status" class="text-[10px] text-[#AF8F3C]/50 hover:text-[#AF8F3C] transition-colors">
+                  Details
+                </NuxtLink>
+              </div>
+            </template>
+
+            <div class="space-y-1">
               <NuxtLink
                 v-for="site in userSites"
                 :key="site.id"
                 to="/projets/status"
-                class="flex items-center gap-2 px-1 py-0.5 rounded hover:bg-[rgba(175,143,60,0.04)] transition-colors"
+                class="flex items-center gap-2.5 px-1.5 py-1 rounded-md hover:bg-[rgba(175,143,60,0.04)] transition-colors"
               >
                 <span
-                  class="size-2 rounded-full flex-shrink-0"
-                  :class="siteStatuses[site.url] === true ? 'bg-emerald-500' : siteStatuses[site.url] === false ? 'bg-red-500' : 'bg-stone-300 dark:bg-stone-600 animate-pulse'"
+                  class="size-2 rounded-full flex-shrink-0 transition-colors"
+                  :class="siteStatuses[site.url] === true ? 'bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.4)]' : siteStatuses[site.url] === false ? 'bg-red-500 shadow-[0_0_4px_rgba(239,68,68,0.4)]' : 'bg-stone-300 dark:bg-stone-600 animate-pulse'"
                 />
                 <span class="text-xs text-stone-600 dark:text-stone-400 truncate">{{ site.nom }}</span>
+                <span
+                  v-if="siteStatuses[site.url] !== undefined && siteStatuses[site.url] !== null"
+                  class="text-[10px] ml-auto shrink-0"
+                  :class="siteStatuses[site.url] ? 'text-emerald-500/70' : 'text-red-500/70'"
+                >
+                  {{ siteStatuses[site.url] ? 'OK' : 'Down' }}
+                </span>
               </NuxtLink>
             </div>
           </UCard>

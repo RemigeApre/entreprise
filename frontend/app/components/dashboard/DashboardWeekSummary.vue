@@ -99,12 +99,17 @@ onMounted(load)
 </script>
 
 <template>
-  <UCard>
+  <UCard class="dash-card-inner">
     <template #header>
       <div class="flex items-center justify-between">
-        <h3 class="text-sm font-semibold">{{ headerLabel }}</h3>
+        <div class="flex items-center gap-2">
+          <div class="dash-card-icon">
+            <UIcon name="i-lucide-calendar-days" class="size-3.5" />
+          </div>
+          <h3 class="text-sm font-semibold">{{ headerLabel }}</h3>
+        </div>
         <UButton
-          label="Voir le calendrier"
+          label="Calendrier"
           variant="link"
           size="xs"
           to="/planning"
@@ -118,21 +123,21 @@ onMounted(load)
     </div>
 
     <!-- Mode semaine : grille 5 colonnes -->
-    <div v-else-if="planningMode === 'week'" class="grid grid-cols-5 gap-2">
+    <div v-else-if="planningMode === 'week'" class="grid grid-cols-5 gap-1.5">
       <div
         v-for="day in displayDays"
         :key="formatDate(day)"
         class="text-center"
       >
         <p
-          class="text-[11px] font-medium uppercase mb-1.5"
-          :class="isToday(day) ? 'text-primary font-bold' : 'text-stone-500 dark:text-stone-400'"
+          class="text-[11px] font-medium uppercase mb-2 tracking-wide"
+          :class="isToday(day) ? 'text-primary font-bold' : 'text-stone-400 dark:text-stone-500'"
         >
           {{ formatDateShortFr(day) }}
         </p>
         <!-- AM -->
         <div
-          class="h-7 rounded-md text-[10px] flex items-center justify-center mb-1 font-medium"
+          class="h-8 rounded-lg text-[10px] flex items-center justify-center mb-1.5 font-medium transition-colors"
           :class="getSlotClasses(getEntry(day, 'matin'))"
         >
           <UIcon
@@ -144,7 +149,7 @@ onMounted(load)
         </div>
         <!-- PM -->
         <div
-          class="h-7 rounded-md text-[10px] flex items-center justify-center font-medium"
+          class="h-8 rounded-lg text-[10px] flex items-center justify-center font-medium transition-colors"
           :class="getSlotClasses(getEntry(day, 'apres_midi'))"
         >
           <UIcon
@@ -173,7 +178,7 @@ onMounted(load)
         <div class="flex gap-2 flex-1">
           <!-- Matin -->
           <div
-            class="flex-1 h-9 rounded-lg flex items-center justify-center gap-1.5 text-xs font-medium"
+            class="flex-1 h-10 rounded-lg flex items-center justify-center gap-1.5 text-xs font-medium transition-colors"
             :class="getSlotClasses(getEntry(day, 'matin'))"
           >
             <UIcon
@@ -185,7 +190,7 @@ onMounted(load)
           </div>
           <!-- Apres-midi -->
           <div
-            class="flex-1 h-9 rounded-lg flex items-center justify-center gap-1.5 text-xs font-medium"
+            class="flex-1 h-10 rounded-lg flex items-center justify-center gap-1.5 text-xs font-medium transition-colors"
             :class="getSlotClasses(getEntry(day, 'apres_midi'))"
           >
             <UIcon
@@ -200,3 +205,19 @@ onMounted(load)
     </div>
   </UCard>
 </template>
+
+<style scoped>
+.dash-card-inner :deep(.u-card) {
+  overflow: visible;
+}
+.dash-card-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(175, 143, 60, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #AF8F3C;
+}
+</style>

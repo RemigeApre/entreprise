@@ -40,9 +40,14 @@ onMounted(load)
   <UCard>
     <template #header>
       <div class="flex items-center justify-between">
-        <h3 class="text-sm font-semibold">Offres d'emploi</h3>
+        <div class="flex items-center gap-2">
+          <div class="dash-card-icon">
+            <UIcon name="i-lucide-briefcase" class="size-3.5" />
+          </div>
+          <h3 class="text-sm font-semibold">Offres d'emploi</h3>
+        </div>
         <UButton
-          label="Gerer les offres"
+          label="Gerer"
           variant="link"
           size="xs"
           to="/offres"
@@ -55,14 +60,16 @@ onMounted(load)
       <UIcon name="i-lucide-loader-2" class="size-5 animate-spin text-primary" />
     </div>
 
-    <div v-else-if="!offres.length" class="text-center py-4">
-      <p class="text-sm text-stone-500 dark:text-stone-400">Aucune offre d'emploi</p>
+    <div v-else-if="!offres.length" class="text-center py-5">
+      <div class="dash-empty-icon">
+        <UIcon name="i-lucide-briefcase" class="size-5 text-[#AF8F3C]/30" />
+      </div>
+      <p class="text-sm text-stone-400 dark:text-stone-500 mb-2">Aucune offre d'emploi</p>
       <UButton
         label="Creer une offre"
         icon="i-lucide-plus"
         size="xs"
         variant="soft"
-        class="mt-2"
         to="/offres/nouveau"
       />
     </div>
@@ -113,3 +120,26 @@ onMounted(load)
     </div>
   </UCard>
 </template>
+
+<style scoped>
+.dash-card-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(175, 143, 60, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #AF8F3C;
+}
+.dash-empty-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(175, 143, 60, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 8px;
+}
+</style>
