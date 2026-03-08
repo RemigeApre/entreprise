@@ -207,6 +207,25 @@ export interface MonitoredSiteUser {
   utilisateur: UserProfile | string
 }
 
+export type TicketType = 'bug' | 'faille_securite' | 'panne' | 'amelioration' | 'fonctionnalite' | 'autre'
+export type TicketStatut = 'ouvert' | 'en_cours' | 'resolu' | 'ferme'
+export type TicketPriorite = 'basse' | 'normale' | 'haute' | 'critique'
+
+export interface Ticket {
+  id: string
+  projet: Project | string
+  titre: string
+  description: string | null
+  type: TicketType
+  statut: TicketStatut
+  priorite: TicketPriorite
+  assigne_a: UserProfile | string | null
+  rapporte_par: UserProfile | string | null
+  date_created: string
+  date_updated: string | null
+  user_created: string
+}
+
 export type ScheduleCategorie = 'reunion_client' | 'reunion_interne' | 'reunion_financement' | 'indispo_perso' | 'autre'
 
 export interface ScheduleEntry {
@@ -239,5 +258,6 @@ export interface DirectusSchema {
   schedule_entries: ScheduleEntry[]
   monitored_sites: MonitoredSite[]
   monitored_sites_users: MonitoredSiteUser[]
+  project_tickets: Ticket[]
   directus_users: UserProfile[]
 }

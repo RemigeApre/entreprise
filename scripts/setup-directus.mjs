@@ -437,6 +437,39 @@ async function createCollections() {
     ]
   }, 'Collection "project_tasks"')
 
+  // ── project_tickets ──
+  await safeApi('POST', '/collections', {
+    collection: 'project_tickets',
+    schema: {},
+    meta: { icon: 'bug_report', note: 'Tickets / incidents projets', sort: 9 },
+    fields: [
+      uuidPK(),
+      { field: 'titre', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, sort: 2 } },
+      { field: 'description', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 3 } },
+      dropdown('type', [
+        { text: 'Bug', value: 'bug' },
+        { text: 'Faille securite', value: 'faille_securite' },
+        { text: 'Panne / KO', value: 'panne' },
+        { text: 'Amelioration', value: 'amelioration' },
+        { text: 'Fonctionnalite', value: 'fonctionnalite' },
+        { text: 'Autre', value: 'autre' }
+      ], { required: true, default_value: 'bug', width: 'half' }),
+      dropdown('statut', [
+        { text: 'Ouvert', value: 'ouvert' },
+        { text: 'En cours', value: 'en_cours' },
+        { text: 'Resolu', value: 'resolu' },
+        { text: 'Ferme', value: 'ferme' }
+      ], { required: true, default_value: 'ouvert', width: 'half' }),
+      dropdown('priorite', [
+        { text: 'Basse', value: 'basse' },
+        { text: 'Normale', value: 'normale' },
+        { text: 'Haute', value: 'haute' },
+        { text: 'Critique', value: 'critique' }
+      ], { required: true, default_value: 'normale', width: 'half' }),
+      ...systemFields()
+    ]
+  }, 'Collection "project_tickets"')
+
   // ── project_files (junction) ──
   await safeApi('POST', '/collections', {
     collection: 'project_files',
@@ -600,6 +633,11 @@ async function createRelations() {
     // project_tasks
     { coll: 'project_tasks', field: 'project', related: 'projects', template: '{{nom}}', one_field: 'taches' },
     { coll: 'project_tasks', field: 'assigne_a', related: 'directus_users', template: '{{first_name}} {{last_name}}' },
+
+    // project_tickets
+    { coll: 'project_tickets', field: 'projet', related: 'projects', template: '{{nom}}', one_field: 'tickets' },
+    { coll: 'project_tickets', field: 'assigne_a', related: 'directus_users', template: '{{first_name}} {{last_name}}' },
+    { coll: 'project_tickets', field: 'rapporte_par', related: 'directus_users', template: '{{first_name}} {{last_name}}' },
 
     // project_files
     { coll: 'project_files', field: 'project', related: 'projects', template: '{{nom}}', one_field: 'fichiers' },
@@ -769,6 +807,12 @@ async function setupPermissions(roleIds) {
       { collection: 'project_tasks', action: 'read', fields: ['*'], permissions: {} },
       { collection: 'project_tasks', action: 'update', fields: ['*'], permissions: {} },
       { collection: 'project_tasks', action: 'delete', permissions: { user_created: { _eq: '$CURRENT_USER' } } },
+
+      // Project tickets
+      { collection: 'project_tickets', action: 'create', fields: ['*'], permissions: {} },
+      { collection: 'project_tickets', action: 'read', fields: ['*'], permissions: {} },
+      { collection: 'project_tickets', action: 'update', fields: ['*'], permissions: {} },
+      { collection: 'project_tickets', action: 'delete', permissions: { user_created: { _eq: '$CURRENT_USER' } } },
 
       // Project files
       { collection: 'project_files', action: 'create', fields: ['*'], permissions: {} },

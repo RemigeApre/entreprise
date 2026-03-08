@@ -67,7 +67,7 @@ const domains = computed<Domain[]>(() => {
       prefixes: ['/projets'],
       tabs: [
         { label: 'Projets', icon: 'i-lucide-folder-kanban', to: '/projets' },
-        { label: 'Incidents', icon: 'i-lucide-ticket', to: '/projets/tickets', disabled: true },
+        { label: 'Tickets', icon: 'i-lucide-ticket', to: '/projets/tickets' },
         ...(hasSites.value || isDirecteur.value ? [{ label: 'Sites', icon: 'i-lucide-activity', to: '/projets/status' }] : [])
       ]
     }

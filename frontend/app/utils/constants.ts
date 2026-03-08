@@ -198,6 +198,31 @@ export const PROJECT_ROLES = [
   'Autre'
 ] as const
 
+// --- Tickets ---
+
+export const TICKET_TYPES = {
+  bug: { label: 'Bug', icon: 'i-lucide-bug', color: 'orange' },
+  faille_securite: { label: 'Faille securite', icon: 'i-lucide-shield-alert', color: 'red' },
+  panne: { label: 'Panne / KO', icon: 'i-lucide-server-crash', color: 'red' },
+  amelioration: { label: 'Amelioration', icon: 'i-lucide-sparkles', color: 'blue' },
+  fonctionnalite: { label: 'Fonctionnalite', icon: 'i-lucide-puzzle', color: 'purple' },
+  autre: { label: 'Autre', icon: 'i-lucide-ticket', color: 'neutral' }
+} as const
+
+export const TICKET_STATUTS = {
+  ouvert: { label: 'Ouvert', color: 'orange' },
+  en_cours: { label: 'En cours', color: 'blue' },
+  resolu: { label: 'Resolu', color: 'green' },
+  ferme: { label: 'Ferme', color: 'neutral' }
+} as const
+
+export const TICKET_PRIORITES = {
+  basse: { label: 'Basse', color: 'neutral', icon: 'i-lucide-arrow-down' },
+  normale: { label: 'Normale', color: 'blue', icon: 'i-lucide-minus' },
+  haute: { label: 'Haute', color: 'orange', icon: 'i-lucide-arrow-up' },
+  critique: { label: 'Critique', color: 'red', icon: 'i-lucide-alert-triangle' }
+} as const
+
 // --- Offres d'emploi ---
 
 export const CONTRACT_OPTIONS = [
