@@ -39,7 +39,6 @@ const WORK_START_Y = (8 - START_HOUR) * HOUR_HEIGHT
 const WORK_END_Y = (18 - START_HOUR) * HOUR_HEIGHT
 const LUNCH_START_Y = (12 - START_HOUR) * HOUR_HEIGHT
 const LUNCH_END_Y = (14 - START_HOUR) * HOUR_HEIGHT
-const LEGAL_PM_END_Y = (17.5 - START_HOUR) * HOUR_HEIGHT
 
 function hourToY(h: number, m: number = 0): number {
   return (h - START_HOUR) * HOUR_HEIGHT + (m / 60) * HOUR_HEIGHT
@@ -226,17 +225,17 @@ onUnmounted(() => {
         <div
           v-for="day in weekDays"
           :key="'col-' + formatDate(day)"
-          class="relative border-l border-stone-200/60 dark:border-stone-700/40"
+          class="relative border-l border-stone-200 dark:border-stone-700"
           @click="handleGridClick(day, $event)"
         >
           <!-- Grey zone: before 8h -->
           <div
-            class="absolute inset-x-0 top-0 bg-stone-100/60 dark:bg-stone-800/30"
+            class="absolute inset-x-0 top-0 bg-stone-100 dark:bg-stone-800/50"
             :style="{ height: WORK_START_Y + 'px' }"
           />
           <!-- Grey zone: after 18h -->
           <div
-            class="absolute inset-x-0 bg-stone-100/60 dark:bg-stone-800/30"
+            class="absolute inset-x-0 bg-stone-100 dark:bg-stone-800/50"
             :style="{ top: WORK_END_Y + 'px', bottom: '0' }"
           />
 
@@ -252,10 +251,10 @@ onUnmounted(() => {
             class="absolute inset-x-0"
             :style="{ top: LUNCH_START_Y + 'px', height: (LUNCH_END_Y - LUNCH_START_Y) + 'px' }"
           >
-            <div class="absolute inset-0 bg-stone-50/60 dark:bg-stone-800/20" />
-            <div class="absolute inset-x-0 top-0 border-t border-dashed border-stone-300/50 dark:border-stone-600/30" />
-            <div class="absolute inset-x-0 bottom-0 border-t border-dashed border-stone-300/50 dark:border-stone-600/30" />
-            <span class="absolute inset-0 flex items-center justify-center text-[10px] text-stone-300 dark:text-stone-600 select-none tracking-wider uppercase">
+            <div class="absolute inset-0 bg-stone-100/50 dark:bg-stone-800/30" />
+            <div class="absolute inset-x-0 top-0 border-t border-dashed border-stone-300 dark:border-stone-600" />
+            <div class="absolute inset-x-0 bottom-0 border-t border-dashed border-stone-300 dark:border-stone-600" />
+            <span class="absolute inset-0 flex items-center justify-center text-[11px] text-stone-400 dark:text-stone-500 select-none tracking-wider uppercase font-medium">
               Pause
             </span>
           </div>
@@ -265,27 +264,17 @@ onUnmounted(() => {
             <div
               class="absolute inset-x-0 border-t"
               :class="h === 8 || h === 18
-                ? 'border-stone-300/80 dark:border-stone-600/50'
+                ? 'border-stone-300 dark:border-stone-600'
                 : h >= 8 && h < 18
-                  ? 'border-stone-200/60 dark:border-stone-700/30'
-                  : 'border-stone-200/30 dark:border-stone-700/20'"
+                  ? 'border-stone-200 dark:border-stone-700'
+                  : 'border-stone-200/50 dark:border-stone-700/40'"
               :style="{ top: hourToY(h) + 'px' }"
             />
             <div
-              class="absolute inset-x-0 border-t border-dotted border-stone-200/30 dark:border-stone-700/15"
+              class="absolute inset-x-0 border-t border-dotted border-stone-200/60 dark:border-stone-700/40"
               :style="{ top: hourToY(h, 30) + 'px' }"
             />
           </template>
-
-          <!-- Legal time marker: 17h30 only -->
-          <div
-            class="absolute inset-x-0 border-t-2 border-dashed border-amber-400/30 dark:border-amber-600/25"
-            :style="{ top: LEGAL_PM_END_Y + 'px' }"
-          />
-          <span
-            class="absolute right-1 text-[9px] font-medium text-amber-500/60 dark:text-amber-500/40 select-none z-[1]"
-            :style="{ top: LEGAL_PM_END_Y - 13 + 'px' }"
-          >17h30</span>
 
           <!-- Current time red line -->
           <template v-if="isCurrentWeek && isToday(day) && currentTimeY !== null">
@@ -317,18 +306,14 @@ onUnmounted(() => {
     </div>
 
     <!-- Legend -->
-    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 py-2.5 border-t border-stone-200/60 dark:border-stone-700/40 shrink-0">
-      <div class="flex items-center gap-1.5">
-        <span class="inline-block w-3 h-1 border-t-2 border-dashed border-amber-400/60" />
-        <span class="text-[10px] text-stone-400 dark:text-stone-500">Horaires legaux (7h/jour)</span>
-      </div>
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 py-2.5 border-t border-stone-200 dark:border-stone-700 shrink-0">
       <div class="flex items-center gap-1.5">
         <span class="inline-block w-3 h-[2px] bg-red-500 rounded" />
-        <span class="text-[10px] text-stone-400 dark:text-stone-500">Heure actuelle</span>
+        <span class="text-[11px] text-stone-500 dark:text-stone-400">Heure actuelle</span>
       </div>
       <div class="flex items-center gap-1.5">
-        <span class="inline-block size-3 rounded bg-stone-100 dark:bg-stone-800/40" />
-        <span class="text-[10px] text-stone-400 dark:text-stone-500">Hors horaires</span>
+        <span class="inline-block size-3 rounded bg-stone-100 dark:bg-stone-800/50" />
+        <span class="text-[11px] text-stone-500 dark:text-stone-400">Hors horaires</span>
       </div>
     </div>
   </div>
