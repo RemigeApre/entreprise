@@ -36,46 +36,50 @@ function hideModule(key: DashboardModule) {
   <div class="dash-page">
     <!-- ═══ HEADER ═══ -->
     <div class="dash-header">
-      <div class="dash-greeting">
-        <h1 class="font-heading text-xl sm:text-2xl tracking-wide text-[#2c2419] dark:text-[#e8e0d0] opacity-80">
-          {{ greeting }}, {{ userDisplayName }}
-        </h1>
-        <p class="text-xs text-[#af8f3c]/50 tracking-wider mt-0.5">{{ greetingSubtext }}</p>
-      </div>
+      <h1 class="font-heading text-xl sm:text-2xl tracking-wide text-[#2c2419] dark:text-[#e8e0d0] opacity-80">
+        {{ greeting }}, {{ userDisplayName }}
+      </h1>
+      <p class="text-xs text-[#af8f3c]/50 tracking-wider mt-0.5">{{ greetingSubtext }}</p>
     </div>
 
     <!-- ═══ CONTENT ═══ -->
     <div class="dash-content">
       <!-- Notifications (full width) -->
       <div v-if="isVisible('notifications')" class="dash-full relative group">
-        <button
-          class="dash-hide-btn"
-          title="Masquer"
-          @click="hideModule('notifications')"
-        >
+        <button class="dash-hide-btn" title="Masquer" @click="hideModule('notifications')">
           <UIcon name="i-lucide-x" class="size-3.5" />
         </button>
         <DashboardNotifications />
       </div>
 
-      <div class="dash-grid">
-        <!-- Planning -->
-        <div v-if="isVisible('weekSummary')" class="relative group">
+      <!-- Row 1: Ma semaine (wide) + Presence + Sites -->
+      <div class="dash-row-top">
+        <div v-if="isVisible('weekSummary')" class="dash-wide relative group">
           <button class="dash-hide-btn" title="Masquer" @click="hideModule('weekSummary')">
             <UIcon name="i-lucide-x" class="size-3.5" />
           </button>
           <DashboardWeekSummary />
         </div>
 
-        <!-- Presence -->
-        <div v-if="isVisible('presence')" class="relative group">
-          <button class="dash-hide-btn" title="Masquer" @click="hideModule('presence')">
-            <UIcon name="i-lucide-x" class="size-3.5" />
-          </button>
-          <DashboardPresence />
-        </div>
+        <div class="dash-side">
+          <div v-if="isVisible('presence')" class="relative group">
+            <button class="dash-hide-btn" title="Masquer" @click="hideModule('presence')">
+              <UIcon name="i-lucide-x" class="size-3.5" />
+            </button>
+            <DashboardPresence />
+          </div>
 
-        <!-- Active Projects -->
+          <div v-if="hasSites && isVisible('siteStatus')" class="relative group">
+            <button class="dash-hide-btn" title="Masquer" @click="hideModule('siteStatus')">
+              <UIcon name="i-lucide-x" class="size-3.5" />
+            </button>
+            <DashboardSiteStatus />
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: projets, prospection, admin -->
+      <div class="dash-row-bottom">
         <div v-if="isVisible('activeProjects')" class="relative group">
           <button class="dash-hide-btn" title="Masquer" @click="hideModule('activeProjects')">
             <UIcon name="i-lucide-x" class="size-3.5" />
@@ -83,7 +87,6 @@ function hideModule(key: DashboardModule) {
           <DashboardActiveProjects />
         </div>
 
-        <!-- Prospect Summary -->
         <div v-if="isVisible('prospectSummary')" class="relative group">
           <button class="dash-hide-btn" title="Masquer" @click="hideModule('prospectSummary')">
             <UIcon name="i-lucide-x" class="size-3.5" />
@@ -91,15 +94,6 @@ function hideModule(key: DashboardModule) {
           <DashboardProspectSummary />
         </div>
 
-        <!-- Site Status -->
-        <div v-if="hasSites && isVisible('siteStatus')" class="relative group">
-          <button class="dash-hide-btn" title="Masquer" @click="hideModule('siteStatus')">
-            <UIcon name="i-lucide-x" class="size-3.5" />
-          </button>
-          <DashboardSiteStatus />
-        </div>
-
-        <!-- Stage Tracker (admin) -->
         <div v-if="isDirecteur && isVisible('stageTracker')" class="relative group">
           <button class="dash-hide-btn" title="Masquer" @click="hideModule('stageTracker')">
             <UIcon name="i-lucide-x" class="size-3.5" />
@@ -107,7 +101,6 @@ function hideModule(key: DashboardModule) {
           <DashboardStageTracker />
         </div>
 
-        <!-- Job Listings (admin) -->
         <div v-if="isDirecteur && isVisible('jobListings')" class="relative group">
           <button class="dash-hide-btn" title="Masquer" @click="hideModule('jobListings')">
             <UIcon name="i-lucide-x" class="size-3.5" />
@@ -130,51 +123,67 @@ function hideModule(key: DashboardModule) {
 
 /* ═══ HEADER ═══ */
 .dash-header {
-  padding: 20px 24px 16px;
+  padding: 20px 24px 12px;
   flex-shrink: 0;
 }
-
 @media (max-width: 768px) {
-  .dash-header {
-    padding: 14px 16px 10px;
-  }
-}
-
-.dash-greeting {
-  min-width: 0;
+  .dash-header { padding: 14px 16px 8px; }
 }
 
 /* ═══ CONTENT ═══ */
 .dash-content {
   flex: 1;
   overflow-y: auto;
-  padding: 0 24px 32px;
+  padding: 4px 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
-
 @media (max-width: 768px) {
-  .dash-content { padding: 0 16px 24px; }
+  .dash-content { padding: 4px 16px 24px; }
 }
 
-/* Full-width items (notifications) */
 .dash-full {
-  margin-bottom: 16px;
+  flex-shrink: 0;
 }
 
-/* Module grid */
-.dash-grid {
+/* ═══ ROW TOP: semaine (2/3) + sidebar (1/3) ═══ */
+.dash-row-top {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  grid-template-columns: 3fr 2fr;
+  gap: 14px;
+  align-items: start;
 }
-
-@media (min-width: 1400px) {
-  .dash-grid {
-    grid-template-columns: repeat(3, 1fr);
+@media (max-width: 900px) {
+  .dash-row-top {
+    grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 768px) {
-  .dash-grid {
+.dash-wide {
+  min-width: 0;
+}
+
+.dash-side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+/* ═══ ROW BOTTOM: grille classique ═══ */
+.dash-row-bottom {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+@media (min-width: 1200px) {
+  .dash-row-bottom {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .dash-row-bottom {
     grid-template-columns: 1fr;
   }
 }
@@ -201,9 +210,7 @@ function hideModule(key: DashboardModule) {
 :global(.dark) .dash-hide-btn {
   background: #1a2520;
 }
-
 .group:hover .dash-hide-btn { opacity: 1; }
-
 .dash-hide-btn:hover {
   color: #b74d34;
   border-color: rgba(183, 77, 52, 0.2);
