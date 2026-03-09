@@ -7,6 +7,7 @@ const route = useRoute()
 const mobileOpen = ref(false)
 const { isVisible, show, hide, hiddenCount, showAll, planningMode, setPlanningMode, presenceMode, setPresenceMode } = useDashboardPreferences()
 const { hasSites } = useSiteMonitor()
+const { toggle: searchToggle } = useGlobalSearch()
 
 useHead({
   link: [
@@ -191,6 +192,12 @@ const userMenuItems = computed(() => [
 
       <!-- Bottom actions -->
       <div class="sidebar-bottom">
+        <UTooltip text="Rechercher (Ctrl+K)" :delay-duration="300">
+          <button class="sidebar-icon" @click="searchToggle">
+            <UIcon name="i-lucide-search" class="size-4" />
+          </button>
+        </UTooltip>
+
         <UTooltip :text="isDark ? 'Mode clair' : 'Mode sombre'" :delay-duration="300">
           <button class="sidebar-icon" @click="isDark = !isDark">
             <UIcon :name="isDark ? 'i-lucide-sun' : 'i-lucide-moon'" class="size-4" />
@@ -309,6 +316,9 @@ const userMenuItems = computed(() => [
           <div id="page-actions" class="ml-auto flex items-center gap-2" />
         </div>
       </div>
+
+      <!-- Global search -->
+      <GlobalSearch />
 
       <!-- Page content -->
       <div class="page-content bg-watermark">

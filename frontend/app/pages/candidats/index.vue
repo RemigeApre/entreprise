@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Candidat, CandidatStatut } from '~/utils/types'
 import { CANDIDAT_STATUTS } from '~/utils/constants'
+import { downloadCsv } from '~/utils/csv'
 
 definePageMeta({ middleware: ['directeur'] })
 
@@ -22,9 +23,24 @@ const offreOptions = computed(() =>
   (offres.value || []).map(o => ({ label: o.titre, value: o.id }))
 )
 
+// Sort
+const { sort, toggleSort, sortItems } = useListSort<Candidat>('date_created', 'desc')
+
+const sortOptions = [
+  { label: 'Date', key: 'date_created' },
+  { label: 'Nom', key: 'nom' },
+  { label: 'Statut', key: 'statut' },
+  { label: 'Source', key: 'source' }
+]
+
+function candidatAccessor(c: Candidat, key: string): string | number | null {
+  if (key === 'nom') return `${c.nom} ${c.prenom}`
+  return (c as any)[key] ?? null
+}
+
 const filteredCandidats = computed(() => {
   if (!candidats.value) return []
-  return candidats.value.filter((c: Candidat) => {
+  const filtered = candidats.value.filter((c: Candidat) => {
     const q = search.value.toLowerCase()
     const matchesSearch = !q || [
       c.prenom, c.nom, c.email, c.telephone, c.source,
@@ -34,7 +50,11 @@ const filteredCandidats = computed(() => {
     const matchesOffre = !filterOffre.value || (typeof c.offre === 'object' && c.offre?.id === filterOffre.value)
     return matchesSearch && matchesStatut && matchesOffre
   })
+  return sortItems(filtered, candidatAccessor)
 })
+
+// Pagination
+const { paginatedItems: pagedCandidats, page, totalPages, showPagination, next, prev } = usePagination(filteredCandidats, 24)
 
 // Pipeline columns (active statuts only, exclude archive)
 const pipelineStatuts = Object.entries(CANDIDAT_STATUTS).filter(([key]) => key !== 'archive')
@@ -62,6 +82,24 @@ function getOffreTitre(c: Candidat): string {
 function formatDate(d: string): string {
   return new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
 }
+
+function exportCsv() {
+  const data = filteredCandidats.value
+  if (!data.length) return
+  const rows = data.map(c => ({
+    'Prenom': c.prenom,
+    'Nom': c.nom,
+    'Email': c.email || '',
+    'Telephone': c.telephone || '',
+    'LinkedIn': c.linkedin || '',
+    'Source': c.source || '',
+    'Statut': CANDIDAT_STATUTS[c.statut]?.label || c.statut,
+    'Offre': getOffreTitre(c),
+    'Notes': c.notes || '',
+    'Date creation': c.date_created.split('T')[0]
+  }))
+  downloadCsv(rows, `candidats_${new Date().toISOString().split('T')[0]}.csv`)
+}
 </script>
 
 <template>
@@ -69,6 +107,14 @@ function formatDate(d: string): string {
     <PageHeader title="Candidats">
       <template #right>
         <div class="flex items-center gap-2">
+          <UButton
+            icon="i-lucide-download"
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            :disabled="!filteredCandidats.length"
+            @click="exportCsv"
+          />
           <UButton
             :icon="viewMode === 'list' ? 'i-lucide-columns-3' : 'i-lucide-list'"
             color="neutral"
@@ -110,6 +156,18 @@ function formatDate(d: string): string {
           />
           <USelect v-model="filterStatut" :items="statutOptions" value-key="value" size="sm" class="w-48" placeholder="Tous les statuts" />
           <USelect v-model="filterOffre" :items="offreOptions" value-key="value" size="sm" class="w-48" placeholder="Toutes les offres" />
+          <div class="flex items-center gap-1 ml-auto">
+            <button
+              v-for="opt in sortOptions"
+              :key="opt.key"
+              class="px-2 py-1 text-xs rounded transition-colors"
+              :class="sort.key === opt.key ? 'text-primary font-semibold bg-primary/10' : 'text-stone-400 hover:text-stone-600 dark:hover:text-stone-300'"
+              @click="toggleSort(opt.key)"
+            >
+              {{ opt.label }}
+              <span v-if="sort.key === opt.key" class="ml-0.5">{{ sort.dir === 'asc' ? '&uarr;' : '&darr;' }}</span>
+            </button>
+          </div>
         </div>
 
         <!-- Loading -->
@@ -129,7 +187,7 @@ function formatDate(d: string): string {
         <!-- List View -->
         <div v-else-if="viewMode === 'list'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           <NuxtLink
-            v-for="c in filteredCandidats"
+            v-for="c in pagedCandidats"
             :key="c.id"
             :to="`/candidats/${c.id}`"
             class="block"
@@ -166,6 +224,15 @@ function formatDate(d: string): string {
               </div>
             </UCard>
           </NuxtLink>
+        </div>
+
+        <!-- Pagination (list view only) -->
+        <div v-if="viewMode === 'list' && showPagination" class="flex items-center justify-center gap-2 pt-4">
+          <UButton icon="i-lucide-chevron-left" size="xs" color="neutral" variant="ghost" :disabled="page <= 1" @click="prev" />
+          <span class="text-xs text-stone-500 dark:text-stone-400 tabular-nums">
+            {{ page }} / {{ totalPages }}
+          </span>
+          <UButton icon="i-lucide-chevron-right" size="xs" color="neutral" variant="ghost" :disabled="page >= totalPages" @click="next" />
         </div>
 
         <!-- Pipeline View -->

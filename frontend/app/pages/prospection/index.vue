@@ -2,6 +2,7 @@
 import { updateMe } from '@directus/sdk'
 import type { Prospect, ProspectStatut } from '~/utils/types'
 import { PROSPECT_STATUTS } from '~/utils/constants'
+import { downloadCsv } from '~/utils/csv'
 
 const { user, isProspecteur, fetchCurrentUser } = useAuth()
 const { $directus } = useNuxtApp()
@@ -65,9 +66,24 @@ const villeOptions = computed(() => {
   return [{ label: 'Toutes les villes', value: '' }, ...villes.map(v => ({ label: v, value: v }))]
 })
 
+// Sort
+const { sort, toggleSort, sortItems } = useListSort<Prospect>('date_created', 'desc')
+
+const sortProspectOptions = [
+  { label: 'Date', key: 'date_created' },
+  { label: 'Entreprise', key: 'nom_entreprise' },
+  { label: 'Ville', key: 'ville' },
+  { label: 'Statut', key: 'statut' },
+  { label: 'Contacts', key: 'nb_contacts' }
+]
+
+function prospectAccessor(p: Prospect, key: string): string | number | null {
+  return (p as any)[key] ?? null
+}
+
 const filteredProspects = computed(() => {
   if (!prospects.value) return []
-  return prospects.value.filter((p: Prospect) => {
+  const filtered = prospects.value.filter((p: Prospect) => {
     const q = search.value.toLowerCase()
     const matchesSearch = !q || [
       p.nom_entreprise, p.secteur, p.ville, p.contact_nom, p.email, p.telephone,
@@ -77,7 +93,10 @@ const filteredProspects = computed(() => {
     const matchesVille = !filterVille.value || p.ville === filterVille.value
     return matchesSearch && matchesStatus && matchesVille
   })
+  return sortItems(filtered, prospectAccessor)
 })
+
+const { paginatedItems: pagedProspects, page, totalPages, showPagination, next, prev } = usePagination(filteredProspects, 24)
 
 const hasFilters = computed(() => !!search.value || !!filterStatut.value || !!filterVille.value)
 
@@ -111,6 +130,26 @@ function formatDateFr(date: string | null) {
 
 function getStatutConfig(statut: ProspectStatut) {
   return PROSPECT_STATUTS[statut] || PROSPECT_STATUTS.a_contacter
+}
+
+function exportCsv() {
+  const data = filteredProspects.value
+  if (!data.length) return
+  const rows = data.map(p => ({
+    'Entreprise': p.nom_entreprise,
+    'Ville': p.ville,
+    'Secteur': p.secteur || '',
+    'Contact': p.contact_nom || '',
+    'Telephone': p.telephone || '',
+    'Email': p.email || '',
+    'Site web': p.site_web || '',
+    'Statut': PROSPECT_STATUTS[p.statut]?.label || p.statut,
+    'Nb contacts': p.nb_contacts || 0,
+    'Prospecteur': getProspecteurName(p),
+    'Notes': p.notes || '',
+    'Date creation': p.date_created?.split('T')[0] || ''
+  }))
+  downloadCsv(rows, `prospects_${new Date().toISOString().split('T')[0]}.csv`)
 }
 
 // Load quota on mount
@@ -164,6 +203,14 @@ if (import.meta.client) {
             :variant="hasQuota ? 'subtle' : 'ghost'"
             color="neutral"
             @click="openQuotaModal"
+          />
+          <UButton
+            icon="i-lucide-download"
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            :disabled="!filteredProspects.length"
+            @click="exportCsv"
           />
           <UButton
             label="Nouveau prospect"
@@ -257,6 +304,21 @@ if (import.meta.client) {
             </span>
           </div>
 
+          <!-- Sort -->
+          <div v-if="filteredProspects.length" class="flex items-center gap-1 text-xs">
+            <span class="text-stone-400 mr-1">Trier :</span>
+            <button
+              v-for="opt in sortProspectOptions"
+              :key="opt.key"
+              class="px-2 py-1 rounded transition-colors"
+              :class="sort.key === opt.key ? 'text-primary font-semibold bg-primary/10' : 'text-stone-400 hover:text-stone-600 dark:hover:text-stone-300'"
+              @click="toggleSort(opt.key)"
+            >
+              {{ opt.label }}
+              <span v-if="sort.key === opt.key">{{ sort.dir === 'asc' ? '&uarr;' : '&darr;' }}</span>
+            </button>
+          </div>
+
           <!-- Empty -->
           <div v-if="!filteredProspects.length" class="text-center py-12">
             <UIcon name="i-lucide-target" class="size-10 text-stone-300 dark:text-stone-700 mx-auto mb-3" />
@@ -283,7 +345,7 @@ if (import.meta.client) {
           <!-- Cards -->
           <div v-else class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3">
             <NuxtLink
-              v-for="prospect in filteredProspects"
+              v-for="prospect in pagedProspects"
               :key="prospect.id"
               :to="`/prospection/${prospect.id}`"
               class="block group"
@@ -345,6 +407,13 @@ if (import.meta.client) {
                 </div>
               </div>
             </NuxtLink>
+          </div>
+
+          <!-- Pagination -->
+          <div v-if="showPagination" class="flex items-center justify-center gap-2 pt-4">
+            <UButton icon="i-lucide-chevron-left" size="xs" color="neutral" variant="ghost" :disabled="page <= 1" @click="prev" />
+            <span class="text-xs text-stone-500 dark:text-stone-400 tabular-nums">{{ page }} / {{ totalPages }}</span>
+            <UButton icon="i-lucide-chevron-right" size="xs" color="neutral" variant="ghost" :disabled="page >= totalPages" @click="next" />
           </div>
         </template>
       </div>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Project, ProjectStatut, UserProfile } from '~/utils/types'
 import { PROJECT_STATUTS } from '~/utils/constants'
+import { downloadCsv } from '~/utils/csv'
 
 const { getAll } = useProjects()
 
@@ -19,6 +20,20 @@ const statutOptions = computed(() => {
   ]
 })
 
+// Sort
+const { sort, toggleSort, sortItems } = useListSort<Project>('nom', 'asc')
+
+const sortOptions = [
+  { label: 'Nom', key: 'nom' },
+  { label: 'Statut', key: 'statut' },
+  { label: 'Date debut', key: 'date_debut' },
+  { label: 'Budget', key: 'budget' }
+]
+
+function projectAccessor(p: Project, key: string): string | number | null {
+  return (p as any)[key] ?? null
+}
+
 const filteredProjects = computed(() => {
   if (!projects.value) return []
   let list = projects.value
@@ -32,8 +47,10 @@ const filteredProjects = computed(() => {
     list = list.filter((p: Project) => p.nom.toLowerCase().includes(q))
   }
 
-  return list
+  return sortItems(list, projectAccessor)
 })
+
+const { paginatedItems: pagedProjects, page, totalPages, showPagination, next, prev } = usePagination(filteredProjects, 24)
 
 function formatDateRange(project: Project) {
   if (!project.date_debut && !project.date_fin) return null
@@ -75,6 +92,22 @@ function getMemberName(member: { utilisateur: UserProfile | string }) {
   if (typeof member.utilisateur === 'string') return ''
   return [member.utilisateur.first_name, member.utilisateur.last_name].filter(Boolean).join(' ')
 }
+
+function exportCsv() {
+  const data = filteredProjects.value
+  if (!data.length) return
+  const rows = data.map(p => ({
+    'Nom': p.nom,
+    'Statut': PROJECT_STATUTS[p.statut]?.label || p.statut,
+    'Categorie': getCategoryName(p) || '',
+    'Client': getClientName(p) || '',
+    'Date debut': p.date_debut || '',
+    'Date fin': p.date_fin || '',
+    'Budget': p.budget ?? '',
+    'Membres': getMembers(p).map(m => getMemberName(m)).filter(Boolean).join(', ')
+  }))
+  downloadCsv(rows, `projets_${new Date().toISOString().split('T')[0]}.csv`)
+}
 </script>
 
 <template>
@@ -96,6 +129,13 @@ function getMemberName(member: { utilisateur: UserProfile | string }) {
             class="w-64"
           />
           <UButton
+            icon="i-lucide-download"
+            color="neutral"
+            variant="ghost"
+            :disabled="!filteredProjects.length"
+            @click="exportCsv"
+          />
+          <UButton
             label="Nouveau projet"
             icon="i-lucide-plus"
             to="/projets/nouveau"
@@ -105,6 +145,21 @@ function getMemberName(member: { utilisateur: UserProfile | string }) {
     </PageHeader>
 
     <div class="flex-1 overflow-y-auto p-4 sm:p-6">
+      <!-- Sort -->
+      <div v-if="filteredProjects.length" class="flex items-center gap-1 mb-3 text-xs">
+        <span class="text-stone-400 mr-1">Trier :</span>
+        <button
+          v-for="opt in sortOptions"
+          :key="opt.key"
+          class="px-2 py-1 rounded transition-colors"
+          :class="sort.key === opt.key ? 'text-primary font-semibold bg-primary/10' : 'text-stone-400 hover:text-stone-600 dark:hover:text-stone-300'"
+          @click="toggleSort(opt.key)"
+        >
+          {{ opt.label }}
+          <span v-if="sort.key === opt.key">{{ sort.dir === 'asc' ? '&uarr;' : '&darr;' }}</span>
+        </button>
+      </div>
+
       <div v-if="status === 'pending'" class="flex justify-center py-12">
         <UIcon name="i-lucide-loader-2" class="size-8 text-primary animate-spin" />
       </div>
@@ -116,7 +171,7 @@ function getMemberName(member: { utilisateur: UserProfile | string }) {
 
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <UCard
-          v-for="project in filteredProjects"
+          v-for="project in pagedProjects"
           :key="project.id"
           class="card-hover-warm cursor-pointer"
           @click="navigateTo(`/projets/${project.id}`)"
@@ -199,6 +254,13 @@ function getMemberName(member: { utilisateur: UserProfile | string }) {
             </div>
           </div>
         </UCard>
+      </div>
+
+      <!-- Pagination -->
+      <div v-if="showPagination" class="flex items-center justify-center gap-2 pt-4">
+        <UButton icon="i-lucide-chevron-left" size="xs" color="neutral" variant="ghost" :disabled="page <= 1" @click="prev" />
+        <span class="text-xs text-stone-500 dark:text-stone-400 tabular-nums">{{ page }} / {{ totalPages }}</span>
+        <UButton icon="i-lucide-chevron-right" size="xs" color="neutral" variant="ghost" :disabled="page >= totalPages" @click="next" />
       </div>
     </div>
   </div>
