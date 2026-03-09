@@ -73,19 +73,17 @@ const domains = computed<Domain[]>(() => {
     }
   ]
 
-  if (roleName.value !== 'Stagiaire') {
-    list.push({
-      id: 'clients',
-      label: 'Clients',
-      icon: 'i-lucide-target',
-      to: '/prospection',
-      prefixes: ['/prospection', '/clients'],
-      tabs: [
-            { label: 'Prospection', icon: 'i-lucide-target', to: '/prospection' },
-            ...(isProspecteur.value ? [{ label: 'Clients', icon: 'i-lucide-building', to: '/clients' }] : [])
-          ]
-    })
-  }
+  list.push({
+    id: 'clients',
+    label: 'Clients',
+    icon: 'i-lucide-target',
+    to: '/prospection',
+    prefixes: ['/prospection', '/clients'],
+    tabs: [
+          { label: 'Prospection', icon: 'i-lucide-target', to: '/prospection' },
+          ...(isProspecteur.value ? [{ label: 'Clients', icon: 'i-lucide-building', to: '/clients' }] : [])
+        ]
+  })
 
   list.push({
     id: 'ressources',
