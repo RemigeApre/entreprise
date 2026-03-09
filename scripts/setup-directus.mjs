@@ -971,7 +971,18 @@ async function setupPermissions(roleIds) {
       { collection: 'monitored_sites_users', action: 'delete', permissions: {} },
 
       // Offres emploi: read published
-      { collection: 'offres_emploi', action: 'read', fields: ['*'], permissions: { publie: { _eq: true } } }
+      { collection: 'offres_emploi', action: 'read', fields: ['*'], permissions: { publie: { _eq: true } } },
+
+      // Candidats: full CRUD for authenticated users (pages protegees par middleware directeur)
+      { collection: 'candidats', action: 'create', fields: ['*'], permissions: {} },
+      { collection: 'candidats', action: 'read', fields: ['*'], permissions: {} },
+      { collection: 'candidats', action: 'update', fields: ['*'], permissions: {} },
+      { collection: 'candidats', action: 'delete', permissions: {} },
+
+      // Candidat commentaires
+      { collection: 'candidat_commentaires', action: 'create', fields: ['*'], permissions: {} },
+      { collection: 'candidat_commentaires', action: 'read', fields: ['*'], permissions: {} },
+      { collection: 'candidat_commentaires', action: 'delete', permissions: {} }
     ]
 
     for (const perm of perms) {
