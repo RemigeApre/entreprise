@@ -121,26 +121,11 @@ function getUserName(u: UserProfile) {
   return [u.first_name, u.last_name].filter(Boolean).join(' ') || u.email
 }
 
-function getRoleName(u: UserProfile) {
-  if (typeof u.role === 'string') return ''
-  return u.role.name
-}
-
 function getCategoryName(u: UserProfile) {
   if (!u.categorie || typeof u.categorie === 'string') return null
   return u.categorie.nom
 }
 
-function getRoleColor(name: string) {
-  const colors: Record<string, string> = {
-    Directeur: 'red',
-    Employe: 'blue',
-    Freelance: 'orange',
-    Alternant: 'purple',
-    Stagiaire: 'yellow'
-  }
-  return colors[name] || 'neutral'
-}
 </script>
 
 <template>
@@ -187,8 +172,8 @@ function getRoleColor(name: string) {
                   <span class="text-xs font-normal text-stone-400 dark:text-stone-500 ml-1">— c'est vous</span>
                 </p>
                 <div class="flex items-center gap-1.5 mt-0.5">
-                  <UBadge :color="getRoleColor(getRoleName(myCard))" variant="subtle" size="xs">
-                    {{ getRoleName(myCard) }}
+                  <UBadge v-if="myCard.type_contrat" color="neutral" variant="subtle" size="xs">
+                    {{ myCard.type_contrat }}
                   </UBadge>
                   <UBadge v-if="getCategoryName(myCard)" variant="outline" color="neutral" size="xs">
                     {{ getCategoryName(myCard) }}
@@ -258,14 +243,11 @@ function getRoleColor(name: string) {
                         {{ getUserName(member) }}
                       </p>
                       <div class="flex items-center gap-1.5 mt-0.5">
-                        <UBadge :color="getRoleColor(getRoleName(member))" variant="subtle" size="xs">
-                          {{ getRoleName(member) }}
+                        <UBadge v-if="member.type_contrat && groupBy !== 'contrat'" color="neutral" variant="subtle" size="xs">
+                          {{ member.type_contrat }}
                         </UBadge>
                         <UBadge v-if="getCategoryName(member) && groupBy !== 'pole'" variant="outline" color="neutral" size="xs">
                           {{ getCategoryName(member) }}
-                        </UBadge>
-                        <UBadge v-if="member.type_contrat && groupBy !== 'contrat'" variant="outline" color="neutral" size="xs">
-                          {{ member.type_contrat }}
                         </UBadge>
                       </div>
                     </div>
@@ -312,9 +294,9 @@ function getRoleColor(name: string) {
                       </p>
                       <UBadge color="error" variant="subtle" size="xs">Inactif</UBadge>
                     </div>
-                    <div class="flex items-center gap-1.5 mt-0.5">
-                      <UBadge :color="getRoleColor(getRoleName(member))" variant="subtle" size="xs">
-                        {{ getRoleName(member) }}
+                    <div v-if="member.type_contrat" class="flex items-center gap-1.5 mt-0.5">
+                      <UBadge color="neutral" variant="subtle" size="xs">
+                        {{ member.type_contrat }}
                       </UBadge>
                     </div>
                   </div>
