@@ -7,8 +7,32 @@ const { user, isProspecteur, fetchCurrentUser } = useAuth()
 const { $directus } = useNuxtApp()
 const { getAll } = useProspects()
 const toast = useToast()
+const { hasQuota, objectifJour, objectifSemaine, weekContacts, todayContacts, progressSemaine, progressJour, loading: quotaLoading, loadWeekContacts, setObjectif } = useProspectQuota()
 
 const optingIn = ref(false)
+const showQuotaModal = ref(false)
+const quotaInput = ref<number | null>(null)
+const quotaSaving = ref(false)
+
+function openQuotaModal() {
+  quotaInput.value = objectifJour.value
+  showQuotaModal.value = true
+}
+
+async function saveQuota() {
+  quotaSaving.value = true
+  try {
+    const val = quotaInput.value && quotaInput.value > 0 ? quotaInput.value : null
+    await setObjectif(val)
+    await loadWeekContacts()
+    toast.add({ title: val ? `Objectif: ${val} contacts/jour` : 'Objectif desactive', color: 'success' })
+    showQuotaModal.value = false
+  } catch {
+    toast.add({ title: 'Erreur', color: 'error' })
+  } finally {
+    quotaSaving.value = false
+  }
+}
 
 async function handleOptIn() {
   if (!user.value) return
@@ -88,6 +112,11 @@ function formatDateFr(date: string | null) {
 function getStatutConfig(statut: ProspectStatut) {
   return PROSPECT_STATUTS[statut] || PROSPECT_STATUTS.a_contacter
 }
+
+// Load quota on mount
+if (import.meta.client) {
+  onMounted(loadWeekContacts)
+}
 </script>
 
 <template>
@@ -129,6 +158,14 @@ function getStatutConfig(statut: ProspectStatut) {
       <PageHeader title="Prospection">
         <template #right>
           <UButton
+            :label="hasQuota ? `${objectifJour}/j` : 'Objectif'"
+            :icon="hasQuota ? 'i-lucide-target' : 'i-lucide-settings'"
+            size="sm"
+            :variant="hasQuota ? 'subtle' : 'ghost'"
+            color="neutral"
+            @click="openQuotaModal"
+          />
+          <UButton
             label="Nouveau prospect"
             icon="i-lucide-plus"
             size="sm"
@@ -144,6 +181,38 @@ function getStatutConfig(statut: ProspectStatut) {
         </div>
 
         <template v-else>
+          <!-- Quota progress -->
+          <div v-if="hasQuota && !quotaLoading" class="rounded-xl border border-stone-200 dark:border-stone-700/60 p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-semibold text-stone-900 dark:text-white flex items-center gap-2">
+                <UIcon name="i-lucide-target" class="size-4 text-primary" />
+                Objectif de la semaine
+              </span>
+              <span class="text-sm font-bold tabular-nums" :class="weekContacts >= objectifSemaine! ? 'text-emerald-600 dark:text-emerald-400' : 'text-stone-700 dark:text-stone-300'">
+                {{ weekContacts }} / {{ objectifSemaine }}
+                <span class="text-xs font-normal text-stone-400 ml-1">contacts</span>
+              </span>
+            </div>
+            <div class="h-2.5 bg-[rgba(175,143,60,0.06)] dark:bg-[rgba(175,143,60,0.06)] rounded-full overflow-hidden">
+              <div
+                class="h-full rounded-full transition-all duration-500"
+                :class="progressSemaine >= 100 ? 'bg-emerald-500' : progressSemaine >= 60 ? 'bg-amber-500' : 'bg-primary'"
+                :style="{ width: progressSemaine + '%' }"
+              />
+            </div>
+            <div class="flex items-center justify-between text-xs text-stone-500 dark:text-stone-400">
+              <span>
+                Aujourd'hui : <strong class="text-stone-700 dark:text-stone-300">{{ todayContacts }} / {{ objectifJour }}</strong>
+              </span>
+              <span v-if="progressSemaine >= 100" class="text-emerald-600 dark:text-emerald-400 font-medium">
+                Objectif atteint !
+              </span>
+              <span v-else>
+                Reste {{ objectifSemaine! - weekContacts }} cette semaine
+              </span>
+            </div>
+          </div>
+
           <!-- Stats -->
           <div v-if="prospects && prospects.length" class="flex flex-wrap items-center gap-4 text-xs">
             <span class="text-[#2c2419]/60 dark:text-stone-400">
@@ -280,5 +349,30 @@ function getStatutConfig(statut: ProspectStatut) {
         </template>
       </div>
     </template>
+
+    <!-- Quota modal -->
+    <UModal :open="showQuotaModal" @update:open="showQuotaModal = $event">
+      <template #content>
+        <div class="p-6 space-y-4">
+          <h3 class="text-lg font-semibold text-stone-900 dark:text-white">Objectif de prospection</h3>
+          <p class="text-sm text-stone-500 dark:text-stone-400">
+            Fixez un nombre de contacts par jour ouvre.
+            L'objectif hebdomadaire sera calcule automatiquement (x5 jours).
+          </p>
+          <UFormField label="Contacts par jour">
+            <UInput v-model.number="quotaInput" type="number" :min="0" :max="100" placeholder="Ex: 5" icon="i-lucide-target" />
+          </UFormField>
+          <p v-if="quotaInput && quotaInput > 0" class="text-xs text-stone-500 dark:text-stone-400">
+            = <strong>{{ Math.ceil(quotaInput / 2) }}</strong> par demi-journee,
+            <strong>{{ quotaInput * 5 }}</strong> par semaine
+          </p>
+          <div class="flex justify-end gap-2 pt-2">
+            <UButton v-if="hasQuota" label="Desactiver" color="error" variant="ghost" size="sm" @click="quotaInput = null; saveQuota()" :loading="quotaSaving" />
+            <UButton label="Annuler" color="neutral" variant="ghost" @click="showQuotaModal = false" />
+            <UButton label="Enregistrer" icon="i-lucide-check" :loading="quotaSaving" @click="saveQuota" />
+          </div>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>

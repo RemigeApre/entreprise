@@ -23,6 +23,7 @@ export interface UserProfile {
   categorie: Category | string | null
   type_contrat: TypeContrat | null
   actif_prospection: boolean
+  objectif_prospection: number | null
   date_naissance: string | null
   visibilite_profil: VisibiliteProfil | null
 }

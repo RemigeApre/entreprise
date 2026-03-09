@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { DashboardModule } from '~/composables/useDashboardPreferences'
 
-const { user, isDirecteur } = useAuth()
+const { user, isDirecteur, isProspecteur } = useAuth()
 const { isVisible, hide } = useDashboardPreferences()
 const { hasSites, userSites, checkSiteStatus } = useSiteMonitor()
+const { hasQuota } = useProspectQuota()
 
 // ─── Minimalist site status for sidebar ────────────────────────
 const siteStatuses = ref<Record<string, boolean | null>>({})
@@ -262,6 +263,14 @@ function onDragEnd(e: DragEvent) {
               </NuxtLink>
             </div>
           </UCard>
+        </div>
+
+        <!-- Prospect quota -->
+        <div v-if="isProspecteur && hasQuota && isVisible('prospectQuota')" class="relative group">
+          <button class="dash-hide-btn" title="Masquer" @click="hideModule('prospectQuota')">
+            <UIcon name="i-lucide-x" class="size-3.5" />
+          </button>
+          <DashboardProspectQuota />
         </div>
 
         <DashboardNotes />

@@ -6,6 +6,7 @@ const route = useRoute()
 const { user, isProspecteur } = useAuth()
 if (!isProspecteur.value) navigateTo('/prospection')
 const { getById, update, addContact, remove } = useProspects()
+const { hasQuota, loadWeekContacts, todayContacts, objectifJour } = useProspectQuota()
 const toast = useToast()
 
 const prospectId = route.params.id as string
@@ -143,7 +144,13 @@ async function handleAddContact() {
 
     await update(prospectId, updates)
 
-    toast.add({ title: 'Contact ajoute', color: 'success' })
+    // Refresh quota counter
+    await loadWeekContacts()
+
+    const quotaMsg = hasQuota.value && objectifJour.value
+      ? ` (${todayContacts.value}/${objectifJour.value} aujourd'hui)`
+      : ''
+    toast.add({ title: `Contact ajoute${quotaMsg}`, color: 'success' })
     showContactModal.value = false
     contactForm.canal = 'telephone'
     contactForm.resultat = 'attente'

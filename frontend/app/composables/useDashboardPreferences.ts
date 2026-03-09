@@ -7,6 +7,7 @@ export type DashboardModule =
   | 'jobListings'
   | 'presence'
   | 'siteStatus'
+  | 'prospectQuota'
   | 'notes'
   | 'tickets'
 
@@ -21,7 +22,8 @@ export const DASHBOARD_MODULES: { key: DashboardModule; label: string }[] = [
   { key: 'prospectSummary', label: 'Prospection' },
   { key: 'stageTracker', label: 'Suivi des stagiaires' },
   { key: 'jobListings', label: 'Offres d\'emploi' },
-  { key: 'siteStatus', label: 'Etat des sites' }
+  { key: 'siteStatus', label: 'Etat des sites' },
+  { key: 'prospectQuota', label: 'Objectif prospection' }
 ]
 
 export const PLANNING_DISPLAY_OPTIONS: { value: PlanningDisplayMode; label: string }[] = [
