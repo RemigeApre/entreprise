@@ -78,7 +78,8 @@ export default defineNuxtConfig({
     '/offres/**': { ssr: false },
     '/profil/**': { ssr: false },
     '/clients/**': { ssr: false },
-    '/admin/**': { ssr: false }
+    '/admin/**': { ssr: false },
+    '/candidats/**': { ssr: false }
   },
 
   compatibilityDate: '2025-01-15',
