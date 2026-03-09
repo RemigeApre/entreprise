@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { readItems, updateMe } from '@directus/sdk'
-import type { UserProfile, VisibiliteNiveau, VisibiliteProfil } from '~/utils/types'
+import type { UserProfile, UserDocument, VisibiliteNiveau, VisibiliteProfil } from '~/utils/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -8,6 +8,7 @@ const { $directus } = useNuxtApp()
 const { user, isDirecteur, fetchCurrentUser } = useAuth()
 const { getUserById, updateExistingUser, removeUser } = useUsers()
 const { getPresenceStats } = usePlanning()
+const { getDocuments, uploadDocument, removeDocument, getFileUrl } = useUserDocuments()
 const toast = useToast()
 
 const userId = route.params.userId as string
@@ -340,6 +341,70 @@ async function handleDelete() {
   }
 }
 
+// ==================== DOCUMENTS (admin only) ====================
+const documents = ref<UserDocument[]>([])
+const docsLoading = ref(false)
+const showUploadModal = ref(false)
+const uploading = ref(false)
+const uploadName = ref('')
+const uploadFile = ref<File | null>(null)
+const fileInputRef = ref<HTMLInputElement | null>(null)
+
+async function loadDocuments() {
+  if (!isDirecteur.value) return
+  docsLoading.value = true
+  try {
+    documents.value = await getDocuments(userId)
+  } catch { /* silent */ } finally {
+    docsLoading.value = false
+  }
+}
+
+function openUploadModal() {
+  uploadName.value = ''
+  uploadFile.value = null
+  showUploadModal.value = true
+}
+
+function onFileSelect(e: Event) {
+  const input = e.target as HTMLInputElement
+  if (input.files?.length) {
+    uploadFile.value = input.files[0]
+    if (!uploadName.value) {
+      uploadName.value = input.files[0].name.replace(/\.[^.]+$/, '')
+    }
+  }
+}
+
+async function handleUpload() {
+  if (!uploadFile.value || !uploadName.value.trim()) return
+  uploading.value = true
+  try {
+    await uploadDocument(userId, uploadName.value.trim(), uploadFile.value)
+    toast.add({ title: 'Document ajoute', color: 'success' })
+    showUploadModal.value = false
+    await loadDocuments()
+  } catch {
+    toast.add({ title: 'Erreur lors de l\'upload', color: 'error' })
+  } finally {
+    uploading.value = false
+  }
+}
+
+async function handleDeleteDoc(doc: UserDocument) {
+  try {
+    await removeDocument(doc.id)
+    documents.value = documents.value.filter(d => d.id !== doc.id)
+    toast.add({ title: 'Document supprime', color: 'success' })
+  } catch {
+    toast.add({ title: 'Erreur', color: 'error' })
+  }
+}
+
+watch(member, (val) => {
+  if (val && isDirecteur.value) loadDocuments()
+}, { immediate: true })
+
 // ==================== HELPERS ====================
 function getUserName(u: UserProfile) {
   return [u.first_name, u.last_name].filter(Boolean).join(' ') || u.email
@@ -589,6 +654,63 @@ function pct(value: number, max: number) {
           </div>
         </UCard>
 
+        <!-- Documents (admin only) -->
+        <UCard v-if="isDirecteur">
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Documents</h3>
+              <UButton
+                label="Ajouter"
+                icon="i-lucide-upload"
+                size="xs"
+                @click="openUploadModal"
+              />
+            </div>
+          </template>
+
+          <div v-if="docsLoading" class="flex justify-center py-4">
+            <UIcon name="i-lucide-loader-2" class="size-4 animate-spin text-primary" />
+          </div>
+
+          <div v-else-if="!documents.length" class="text-center py-4">
+            <UIcon name="i-lucide-file-x" class="size-6 text-stone-300 dark:text-stone-700 mx-auto mb-1" />
+            <p class="text-xs text-stone-400">Aucun document</p>
+          </div>
+
+          <div v-else class="space-y-2">
+            <div
+              v-for="doc in documents"
+              :key="doc.id"
+              class="flex items-center justify-between p-2.5 rounded-lg bg-[rgba(175,143,60,0.03)] dark:bg-[rgba(175,143,60,0.02)] border border-stone-100 dark:border-stone-800"
+            >
+              <div class="flex items-center gap-2.5 min-w-0">
+                <UIcon name="i-lucide-file-text" class="size-4 text-stone-400 shrink-0" />
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-stone-800 dark:text-stone-200 truncate">{{ doc.nom }}</p>
+                  <p class="text-[11px] text-stone-400">{{ formatDateFr(doc.date_created) }}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <UButton
+                  icon="i-lucide-download"
+                  size="xs"
+                  variant="ghost"
+                  color="neutral"
+                  :href="getFileUrl(doc.fichier)"
+                  target="_blank"
+                />
+                <UButton
+                  icon="i-lucide-trash-2"
+                  size="xs"
+                  variant="ghost"
+                  color="error"
+                  @click="handleDeleteDoc(doc)"
+                />
+              </div>
+            </div>
+          </div>
+        </UCard>
+
         <!-- Quick actions -->
         <div class="flex gap-3">
           <UButton
@@ -820,6 +942,58 @@ function pct(value: number, max: number) {
           <div class="flex justify-end gap-3 pt-2">
             <UButton label="Annuler" color="neutral" variant="subtle" @click="showPasswordModal = false" />
             <UButton label="Enregistrer" icon="i-lucide-check" :loading="passwordSaving" :disabled="!passwordValid" @click="handlePasswordSubmit" />
+          </div>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Modal upload document -->
+    <UModal :open="showUploadModal" @update:open="showUploadModal = $event">
+      <template #content>
+        <div class="p-6 space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="rounded-full bg-blue-100 dark:bg-blue-900/30 p-2">
+              <UIcon name="i-lucide-upload" class="size-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <h3 class="text-lg font-semibold text-stone-900 dark:text-white">Ajouter un document</h3>
+          </div>
+
+          <UFormField label="Nom du document" required>
+            <UInput v-model="uploadName" placeholder="Ex: Convention de stage" icon="i-lucide-file-text" />
+          </UFormField>
+
+          <UFormField label="Fichier" required>
+            <div
+              class="relative flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-stone-200 dark:border-stone-700 hover:border-primary/40 transition-colors cursor-pointer"
+              @click="fileInputRef?.click()"
+            >
+              <UIcon
+                :name="uploadFile ? 'i-lucide-file-check' : 'i-lucide-upload'"
+                class="size-5"
+                :class="uploadFile ? 'text-emerald-500' : 'text-stone-400'"
+              />
+              <span class="text-sm" :class="uploadFile ? 'text-stone-800 dark:text-stone-200' : 'text-stone-400'">
+                {{ uploadFile ? uploadFile.name : 'Cliquez pour selectionner un fichier' }}
+              </span>
+              <input
+                ref="fileInputRef"
+                type="file"
+                class="hidden"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.odt,.ods,.png,.jpg,.jpeg,.txt,.csv"
+                @change="onFileSelect"
+              >
+            </div>
+          </UFormField>
+
+          <div class="flex justify-end gap-2 pt-2">
+            <UButton label="Annuler" color="neutral" variant="ghost" @click="showUploadModal = false" />
+            <UButton
+              label="Envoyer"
+              icon="i-lucide-upload"
+              :loading="uploading"
+              :disabled="!uploadFile || !uploadName.trim()"
+              @click="handleUpload"
+            />
           </div>
         </div>
       </template>

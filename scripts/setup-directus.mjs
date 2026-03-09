@@ -517,6 +517,18 @@ async function createCollections() {
     ]
   }, 'Collection "project_files"')
 
+  // ── user_documents (junction: directus_users <-> directus_files) ──
+  await safeApi('POST', '/collections', {
+    collection: 'user_documents',
+    schema: {},
+    meta: { icon: 'description', note: 'Documents associes aux utilisateurs', sort: 10, hidden: true },
+    fields: [
+      autoPK(),
+      { field: 'nom', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, sort: 2, note: 'Nom du document (ex: Convention de stage)' } },
+      ...systemFields()
+    ]
+  }, 'Collection "user_documents"')
+
   // ── notifications ──
   await safeApi('POST', '/collections', {
     collection: 'notifications',
@@ -678,6 +690,10 @@ async function createRelations() {
     // project_files
     { coll: 'project_files', field: 'project', related: 'projects', template: '{{nom}}', one_field: 'fichiers' },
     { coll: 'project_files', field: 'fichier', related: 'directus_files' },
+
+    // user_documents
+    { coll: 'user_documents', field: 'utilisateur', related: 'directus_users', template: '{{first_name}} {{last_name}}', one_field: 'documents' },
+    { coll: 'user_documents', field: 'fichier', related: 'directus_files' },
 
     // notifications
     { coll: 'notifications', field: 'utilisateur', related: 'directus_users', template: '{{first_name}} {{last_name}}' },
@@ -853,6 +869,9 @@ async function setupPermissions(roleIds) {
       // Project files
       { collection: 'project_files', action: 'create', fields: ['*'], permissions: {} },
       { collection: 'project_files', action: 'read', fields: ['*'], permissions: {} },
+
+      // User documents (read only for auth users, admin handles create/delete via role)
+      { collection: 'user_documents', action: 'read', fields: ['*'], permissions: {} },
 
       // Notifications: create, read own, update own (mark as read)
       { collection: 'notifications', action: 'create', fields: ['*'], permissions: {} },

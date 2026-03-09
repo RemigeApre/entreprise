@@ -171,6 +171,14 @@ export interface ProjectFile {
   description: string | null
 }
 
+export interface UserDocument {
+  id: number
+  utilisateur: UserProfile | string
+  fichier: string // directus_files id
+  nom: string
+  date_created: string
+}
+
 export interface OffreEmploi {
   id: string
   titre: string

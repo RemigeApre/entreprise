@@ -126,6 +126,24 @@ function getCategoryName(u: UserProfile) {
   return u.categorie.nom
 }
 
+function getCategoryColor(u: UserProfile): string | null {
+  if (!u.categorie || typeof u.categorie === 'string') return null
+  return u.categorie.couleur || null
+}
+
+const CONTRACT_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  CDI: { bg: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-700 dark:text-emerald-400', border: 'border-emerald-200 dark:border-emerald-800/40' },
+  CDD: { bg: 'bg-sky-50 dark:bg-sky-900/20', text: 'text-sky-700 dark:text-sky-400', border: 'border-sky-200 dark:border-sky-800/40' },
+  Alternance: { bg: 'bg-violet-50 dark:bg-violet-900/20', text: 'text-violet-700 dark:text-violet-400', border: 'border-violet-200 dark:border-violet-800/40' },
+  Stage: { bg: 'bg-amber-50 dark:bg-amber-900/20', text: 'text-amber-700 dark:text-amber-400', border: 'border-amber-200 dark:border-amber-800/40' },
+  Freelance: { bg: 'bg-rose-50 dark:bg-rose-900/20', text: 'text-rose-700 dark:text-rose-400', border: 'border-rose-200 dark:border-rose-800/40' }
+}
+
+function getContractStyle(contrat: string | null) {
+  if (!contrat) return CONTRACT_COLORS.CDI
+  return CONTRACT_COLORS[contrat] || { bg: 'bg-stone-50 dark:bg-stone-800/30', text: 'text-stone-600 dark:text-stone-400', border: 'border-stone-200 dark:border-stone-700' }
+}
+
 </script>
 
 <template>
@@ -171,13 +189,23 @@ function getCategoryName(u: UserProfile) {
                   {{ getUserName(myCard) }}
                   <span class="text-xs font-normal text-stone-400 dark:text-stone-500 ml-1">— c'est vous</span>
                 </p>
-                <div class="flex items-center gap-1.5 mt-0.5">
-                  <UBadge v-if="myCard.type_contrat" color="neutral" variant="subtle" size="xs">
-                    {{ myCard.type_contrat }}
-                  </UBadge>
-                  <UBadge v-if="getCategoryName(myCard)" variant="outline" color="neutral" size="xs">
+                <div class="flex items-center gap-1.5 mt-1">
+                  <span
+                    v-if="getCategoryName(myCard)"
+                    class="text-xs font-medium"
+                    :style="getCategoryColor(myCard) ? { color: getCategoryColor(myCard)! } : {}"
+                    :class="!getCategoryColor(myCard) ? 'text-stone-500 dark:text-stone-400' : ''"
+                  >
                     {{ getCategoryName(myCard) }}
-                  </UBadge>
+                  </span>
+                  <span v-if="getCategoryName(myCard) && myCard.type_contrat" class="text-stone-300 dark:text-stone-600 text-xs">·</span>
+                  <span
+                    v-if="myCard.type_contrat"
+                    class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border"
+                    :class="[getContractStyle(myCard.type_contrat).bg, getContractStyle(myCard.type_contrat).text, getContractStyle(myCard.type_contrat).border]"
+                  >
+                    {{ myCard.type_contrat }}
+                  </span>
                 </div>
               </div>
               <UIcon name="i-lucide-chevron-right" class="size-4 text-stone-300 dark:text-stone-600 group-hover:text-primary transition-colors shrink-0" />
@@ -242,13 +270,23 @@ function getCategoryName(u: UserProfile) {
                       <p class="font-medium text-sm text-stone-900 dark:text-white truncate group-hover:text-primary transition-colors">
                         {{ getUserName(member) }}
                       </p>
-                      <div class="flex items-center gap-1.5 mt-0.5">
-                        <UBadge v-if="member.type_contrat && groupBy !== 'contrat'" color="neutral" variant="subtle" size="xs">
-                          {{ member.type_contrat }}
-                        </UBadge>
-                        <UBadge v-if="getCategoryName(member) && groupBy !== 'pole'" variant="outline" color="neutral" size="xs">
+                      <div class="flex items-center gap-1.5 mt-1">
+                        <span
+                          v-if="getCategoryName(member) && groupBy !== 'pole'"
+                          class="text-xs font-medium"
+                          :style="getCategoryColor(member) ? { color: getCategoryColor(member)! } : {}"
+                          :class="!getCategoryColor(member) ? 'text-stone-500 dark:text-stone-400' : ''"
+                        >
                           {{ getCategoryName(member) }}
-                        </UBadge>
+                        </span>
+                        <span v-if="getCategoryName(member) && groupBy !== 'pole' && member.type_contrat && groupBy !== 'contrat'" class="text-stone-300 dark:text-stone-600 text-xs">·</span>
+                        <span
+                          v-if="member.type_contrat && groupBy !== 'contrat'"
+                          class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border"
+                          :class="[getContractStyle(member.type_contrat).bg, getContractStyle(member.type_contrat).text, getContractStyle(member.type_contrat).border]"
+                        >
+                          {{ member.type_contrat }}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -294,10 +332,21 @@ function getCategoryName(u: UserProfile) {
                       </p>
                       <UBadge color="error" variant="subtle" size="xs">Inactif</UBadge>
                     </div>
-                    <div v-if="member.type_contrat" class="flex items-center gap-1.5 mt-0.5">
-                      <UBadge color="neutral" variant="subtle" size="xs">
+                    <div class="flex items-center gap-1.5 mt-1">
+                      <span
+                        v-if="getCategoryName(member)"
+                        class="text-xs font-medium text-stone-500 dark:text-stone-400"
+                      >
+                        {{ getCategoryName(member) }}
+                      </span>
+                      <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 dark:text-stone-600 text-xs">·</span>
+                      <span
+                        v-if="member.type_contrat"
+                        class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border"
+                        :class="[getContractStyle(member.type_contrat).bg, getContractStyle(member.type_contrat).text, getContractStyle(member.type_contrat).border]"
+                      >
                         {{ member.type_contrat }}
-                      </UBadge>
+                      </span>
                     </div>
                   </div>
                 </div>
