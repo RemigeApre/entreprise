@@ -117,6 +117,22 @@ onMounted(scanDuplicates)
     <div class="flex-1 overflow-y-auto p-4 sm:p-6">
       <div class="max-w-2xl mx-auto space-y-6">
 
+        <!-- Extractions -->
+        <UCard>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="size-10 rounded-lg bg-[rgba(175,143,60,0.08)] flex items-center justify-center">
+                <UIcon name="i-lucide-download" class="size-5 text-[#af8f3c]" />
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-stone-900 dark:text-white">Extractions CSV</p>
+                <p class="text-xs text-stone-400 dark:text-stone-500">Presence, prospection</p>
+              </div>
+            </div>
+            <UButton label="Ouvrir" icon="i-lucide-arrow-right" variant="subtle" size="sm" to="/admin/extractions" />
+          </div>
+        </UCard>
+
         <!-- Doublons -->
         <UCard>
           <template #header>
