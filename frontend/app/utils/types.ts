@@ -249,8 +249,6 @@ export interface Candidat {
   linkedin: string | null
   source: string | null
   statut: CandidatStatut
-  ecole: string | null
-  note_evaluation: number | null
   notes: string | null
   offre: OffreEmploi | string | null
   cv: string | null

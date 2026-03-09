@@ -29,8 +29,6 @@ const editForm = reactive({
   source: null as string | null,
   statut: 'nouveau' as CandidatStatut,
   offre: null as string | null,
-  ecole: '',
-  note_evaluation: null as number | null,
   notes: ''
 })
 
@@ -51,8 +49,6 @@ function startEditing() {
   editForm.source = c.source || null
   editForm.statut = c.statut
   editForm.offre = (typeof c.offre === 'object' && c.offre?.id) || null
-  editForm.ecole = c.ecole || ''
-  editForm.note_evaluation = c.note_evaluation
   editForm.notes = c.notes || ''
   editing.value = true
 }
@@ -70,8 +66,6 @@ async function saveChanges() {
       source: editForm.source || null,
       statut: editForm.statut,
       offre: editForm.offre || null,
-      ecole: editForm.ecole.trim() || null,
-      note_evaluation: editForm.note_evaluation,
       notes: editForm.notes.trim() || null
     })
     toast.add({ title: 'Candidat mis a jour', color: 'success' })
@@ -252,10 +246,6 @@ function formatDateShort(date: string | null) {
                 </div>
                 <div class="text-right text-xs text-stone-400 dark:text-stone-500 shrink-0 space-y-0.5">
                   <p v-if="candidat.source">Source : {{ candidat.source }}</p>
-                  <p v-if="candidat.note_evaluation" class="flex items-center justify-end gap-1">
-                    <UIcon name="i-lucide-star" class="size-3.5 text-amber-500" />
-                    <span class="font-semibold text-amber-600 dark:text-amber-400">{{ candidat.note_evaluation }}/10</span>
-                  </p>
                 </div>
               </div>
 
@@ -295,10 +285,6 @@ function formatDateShort(date: string | null) {
                     <a v-if="candidat.linkedin" :href="candidat.linkedin" target="_blank" class="text-primary hover:underline truncate block">{{ candidat.linkedin }}</a>
                     <span v-else>-</span>
                   </p>
-                </div>
-                <div v-if="candidat.ecole">
-                  <span class="text-xs text-stone-400 dark:text-stone-500">Ecole</span>
-                  <p class="font-medium text-stone-800 dark:text-stone-200">{{ candidat.ecole }}</p>
                 </div>
                 <div>
                   <span class="text-xs text-stone-400 dark:text-stone-500">Cree le</span>
@@ -458,14 +444,6 @@ function formatDateShort(date: string | null) {
                 </UFormField>
                 <UFormField label="Statut">
                   <USelect v-model="editForm.statut" :items="statutOptions" value-key="value" class="w-full" />
-                </UFormField>
-              </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <UFormField label="Ecole / Universite">
-                  <UInput v-model="editForm.ecole" placeholder="Ex: Universite Lyon 1" class="w-full" />
-                </UFormField>
-                <UFormField label="Note (1-10)">
-                  <UInput v-model.number="editForm.note_evaluation" type="number" :min="1" :max="10" placeholder="1 a 10" class="w-full" />
                 </UFormField>
               </div>
               <UFormField label="Notes">

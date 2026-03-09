@@ -20,8 +20,6 @@ const form = reactive({
   source: null as string | null,
   statut: 'nouveau' as CandidatStatut,
   offre: null as string | null,
-  ecole: '',
-  note_evaluation: null as number | null,
   notes: '',
   cvFile: null as File | null
 })
@@ -70,8 +68,6 @@ async function handleSubmit() {
       source: form.source || null,
       statut: form.statut,
       offre: form.offre || null,
-      ecole: form.ecole || null,
-      note_evaluation: form.note_evaluation,
       notes: form.notes || null,
       cv: cvFileId
     })
@@ -153,14 +149,6 @@ function handleFileChange(e: Event) {
               </UFormField>
               <UFormField label="Statut">
                 <USelect v-model="form.statut" :items="statutOptions" value-key="value" class="w-full" />
-              </UFormField>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <UFormField label="Ecole / Universite">
-                <UInput v-model="form.ecole" placeholder="Ex: Universite Lyon 1" class="w-full" />
-              </UFormField>
-              <UFormField label="Note (1-10)">
-                <UInput v-model.number="form.note_evaluation" type="number" :min="1" :max="10" placeholder="1 a 10" class="w-full" />
               </UFormField>
             </div>
             <UFormField label="CV (fichier)">
