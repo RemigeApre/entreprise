@@ -121,7 +121,7 @@ export function usePlanning() {
         date: { _gte: startDate, _lte: endDate }
       },
       fields: [
-        'id', 'date', 'periode', 'type', 'statut',
+        'id', 'date', 'periode', 'type', 'statut', 'motif',
         'utilisateur.id', 'utilisateur.first_name', 'utilisateur.last_name'
       ],
       sort: ['utilisateur', 'date', 'periode'],
