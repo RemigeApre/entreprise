@@ -80,12 +80,10 @@ const domains = computed<Domain[]>(() => {
       icon: 'i-lucide-target',
       to: '/prospection',
       prefixes: ['/prospection', '/clients'],
-      tabs: isProspecteur.value
-        ? [
+      tabs: [
             { label: 'Prospection', icon: 'i-lucide-target', to: '/prospection' },
-            { label: 'Clients', icon: 'i-lucide-building', to: '/clients' }
+            ...(isProspecteur.value ? [{ label: 'Clients', icon: 'i-lucide-building', to: '/clients' }] : [])
           ]
-        : []
     })
   }
 
