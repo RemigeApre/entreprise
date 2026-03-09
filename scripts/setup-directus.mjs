@@ -840,9 +840,58 @@ async function createRelations() {
 async function setupPermissions(roleIds) {
   console.log('🔒 Configuration des permissions...')
 
+  // Cleanup duplicate policies (keep first, delete rest)
+  for (const policyName of ['Acces Public', 'Base Authentifie']) {
+    try {
+      const dupes = await api('GET', `/policies?filter[name][_eq]=${encodeURIComponent(policyName)}&limit=-1`)
+      if (dupes && dupes.length > 1) {
+        console.log(`  🧹 Nettoyage ${dupes.length - 1} doublons policy "${policyName}"`)
+        for (let i = 1; i < dupes.length; i++) {
+          try { await api('DELETE', `/policies/${dupes[i].id}`) } catch { /* ignore */ }
+        }
+      }
+    } catch { /* ignore */ }
+  }
+
+  // Helper: find or create a policy by name
+  async function findOrCreatePolicy(name, data, label) {
+    const existing = await api('GET', `/policies?filter[name][_eq]=${encodeURIComponent(name)}&limit=1`)
+    if (existing && existing.length > 0) {
+      console.log(`  ✓ ${label} (existante: ${existing[0].id})`)
+      return existing[0]
+    }
+    return await safeApi('POST', '/policies', { name, ...data }, label)
+  }
+
+  // Helper: check if permission already exists
+  async function ensurePermission(policyId, perm, label) {
+    const filter = `filter[policy][_eq]=${policyId}&filter[collection][_eq]=${perm.collection}&filter[action][_eq]=${perm.action}&limit=1`
+    const existing = await api('GET', `/permissions?${filter}`)
+    if (existing && existing.length > 0) {
+      // Update existing permission to ensure fields are current
+      await safeApi('PATCH', `/permissions/${existing[0].id}`, {
+        fields: perm.fields || ['*'],
+        permissions: perm.permissions || {},
+        ...(perm.validation ? { validation: perm.validation } : {})
+      }, `${label} (mis a jour)`)
+      return
+    }
+    await safeApi('POST', '/permissions', { policy: policyId, ...perm }, label)
+  }
+
+  // Helper: ensure access link exists
+  async function ensureAccess(roleId, policyId, label) {
+    const filter = `filter[role][_eq]=${roleId}&filter[policy][_eq]=${policyId}&limit=1`
+    const existing = await api('GET', `/access?${filter}`)
+    if (existing && existing.length > 0) {
+      console.log(`  ⊘ ${label} (existe deja)`)
+      return
+    }
+    await safeApi('POST', '/access', { role: roleId, policy: policyId }, label)
+  }
+
   // ── Public policy ──
-  const publicPolicy = await safeApi('POST', '/policies', {
-    name: 'Acces Public',
+  const publicPolicy = await findOrCreatePolicy('Acces Public', {
     icon: 'public',
     description: 'Acces pour les visiteurs non connectes',
     admin_access: false,
@@ -850,24 +899,23 @@ async function setupPermissions(roleIds) {
   }, 'Policy "Acces Public"')
 
   if (publicPolicy) {
-    // Link to public role (null)
+    // Link to public role (null) - special case, can't filter by null
     await safeApi('POST', '/access', { role: null, policy: publicPolicy.id }, 'Access public → policy')
 
     // Public permissions
-    await safeApi('POST', '/permissions', {
-      policy: publicPolicy.id, collection: 'offres_emploi', action: 'read',
+    await ensurePermission(publicPolicy.id, {
+      collection: 'offres_emploi', action: 'read',
       fields: ['*'], permissions: { publie: { _eq: true } }
     }, 'Permission: public read offres publiees')
 
-    await safeApi('POST', '/permissions', {
-      policy: publicPolicy.id, collection: 'categories', action: 'read',
+    await ensurePermission(publicPolicy.id, {
+      collection: 'categories', action: 'read',
       fields: ['*'], permissions: {}
     }, 'Permission: public read categories')
   }
 
   // ── Authenticated base policy ──
-  const authPolicy = await safeApi('POST', '/policies', {
-    name: 'Base Authentifie',
+  const authPolicy = await findOrCreatePolicy('Base Authentifie', {
     icon: 'verified_user',
     description: 'Permissions de base pour tous les utilisateurs connectes',
     admin_access: false,
@@ -878,7 +926,7 @@ async function setupPermissions(roleIds) {
     // Link to all roles (including admin roles as fallback for explicit permissions)
     for (const roleName of ['Administrator', 'Directeur', 'Employe', 'Freelance', 'Alternant', 'Stagiaire']) {
       if (roleIds[roleName]) {
-        await safeApi('POST', '/access', { role: roleIds[roleName], policy: authPolicy.id }, `Access "${roleName}" → base policy`)
+        await ensureAccess(roleIds[roleName], authPolicy.id, `Access "${roleName}" → base policy`)
       }
     }
 
@@ -986,10 +1034,7 @@ async function setupPermissions(roleIds) {
     ]
 
     for (const perm of perms) {
-      await safeApi('POST', '/permissions', {
-        policy: authPolicy.id,
-        ...perm
-      }, `Permission: ${perm.action} ${perm.collection}`)
+      await ensurePermission(authPolicy.id, perm, `Permission: ${perm.action} ${perm.collection}`)
     }
   }
 
