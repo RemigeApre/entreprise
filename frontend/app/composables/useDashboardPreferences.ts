@@ -21,9 +21,7 @@ export const DASHBOARD_MODULES: { key: DashboardModule; label: string }[] = [
   { key: 'prospectSummary', label: 'Prospection' },
   { key: 'stageTracker', label: 'Suivi des stagiaires' },
   { key: 'jobListings', label: 'Offres d\'emploi' },
-  { key: 'siteStatus', label: 'Etat des sites' },
-  { key: 'notes', label: 'Notes' },
-  { key: 'tickets', label: 'Tickets' }
+  { key: 'siteStatus', label: 'Etat des sites' }
 ]
 
 export const PLANNING_DISPLAY_OPTIONS: { value: PlanningDisplayMode; label: string }[] = [

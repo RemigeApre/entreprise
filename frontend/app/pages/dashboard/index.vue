@@ -264,19 +264,8 @@ function onDragEnd(e: DragEvent) {
           </UCard>
         </div>
 
-        <div v-if="isVisible('notes')" class="relative group">
-          <button class="dash-hide-btn" title="Masquer" @click="hideModule('notes')">
-            <UIcon name="i-lucide-x" class="size-3.5" />
-          </button>
-          <DashboardNotes />
-        </div>
-
-        <div v-if="isVisible('tickets')" class="relative group">
-          <button class="dash-hide-btn" title="Masquer" @click="hideModule('tickets')">
-            <UIcon name="i-lucide-x" class="size-3.5" />
-          </button>
-          <DashboardTickets />
-        </div>
+        <DashboardNotes />
+        <DashboardTickets />
       </div>
     </div>
   </div>

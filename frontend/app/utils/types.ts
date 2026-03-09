@@ -23,6 +23,18 @@ export interface UserProfile {
   categorie: Category | string | null
   type_contrat: TypeContrat | null
   actif_prospection: boolean
+  date_naissance: string | null
+  visibilite_profil: VisibiliteProfil | null
+}
+
+export type VisibiliteNiveau = 'tous' | 'pole' | 'admin'
+
+export interface VisibiliteProfil {
+  telephone?: VisibiliteNiveau
+  linkedin?: VisibiliteNiveau
+  localisation?: VisibiliteNiveau
+  bio?: VisibiliteNiveau
+  date_naissance?: VisibiliteNiveau
 }
 
 export interface Role {

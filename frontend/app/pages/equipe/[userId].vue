@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { readItems, updateMe } from '@directus/sdk'
-import type { UserProfile } from '~/utils/types'
+import type { UserProfile, VisibiliteNiveau, VisibiliteProfil } from '~/utils/types'
 
 const route = useRoute()
 const router = useRouter()
 const { $directus } = useNuxtApp()
-const { user, isDirecteur } = useAuth()
+const { user, isDirecteur, fetchCurrentUser } = useAuth()
 const { getUserById, updateExistingUser, removeUser } = useUsers()
 const { getPresenceStats } = usePlanning()
 const toast = useToast()
@@ -17,14 +17,46 @@ const { data: member, status, refresh } = useAsyncData(`user-${userId}`, () => g
 const isSelf = computed(() => user.value?.id === userId)
 const canEdit = computed(() => isDirecteur.value || isSelf.value)
 
+// ==================== VISIBILITE ====================
+
+const VISIBILITY_FIELDS: { key: keyof VisibiliteProfil; label: string }[] = [
+  { key: 'telephone', label: 'Telephone' },
+  { key: 'linkedin', label: 'LinkedIn' },
+  { key: 'localisation', label: 'Localisation' },
+  { key: 'bio', label: 'Presentation' },
+  { key: 'date_naissance', label: 'Date de naissance' }
+]
+
+const VISIBILITY_OPTIONS: { label: string; value: VisibiliteNiveau }[] = [
+  { label: 'Tout le monde', value: 'tous' },
+  { label: 'Mon pole', value: 'pole' },
+  { label: 'Admin seulement', value: 'admin' }
+]
+
+function getVisibility(u: UserProfile, field: keyof VisibiliteProfil): VisibiliteNiveau {
+  return u.visibilite_profil?.[field] || 'tous'
+}
+
+function canSeeField(targetUser: UserProfile, field: keyof VisibiliteProfil): boolean {
+  if (isDirecteur.value) return true
+  if (isSelf.value) return true
+  const level = getVisibility(targetUser, field)
+  if (level === 'tous') return true
+  if (level === 'pole') {
+    if (!user.value) return false
+    const myPole = user.value.categorie
+    const theirPole = targetUser.categorie
+    if (!myPole || !theirPole) return false
+    const myId = typeof myPole === 'string' ? myPole : myPole.id
+    const theirId = typeof theirPole === 'string' ? theirPole : theirPole.id
+    return myId === theirId
+  }
+  return false // 'admin'
+}
+
 // ==================== MODE LECTURE ====================
 
 const isStagiaire = computed(() => member.value?.type_contrat === 'Stage')
-
-const canSeePhone = computed(() => {
-  if (isDirecteur.value) return true
-  return !isStagiaire.value
-})
 
 const hasTrialPeriod = computed(() => {
   if (!member.value) return true
@@ -102,6 +134,8 @@ const saving = ref(false)
 const form = reactive({
   first_name: '',
   last_name: '',
+  email: '',
+  date_naissance: '',
   role: '' as string,
   categorie: null as string | null,
   type_contrat: null as string | null,
@@ -112,8 +146,22 @@ const form = reactive({
   telephone: '',
   linkedin: '',
   localisation: '',
-  bio: ''
+  bio: '',
+  visibilite: {
+    telephone: 'tous' as VisibiliteNiveau,
+    linkedin: 'tous' as VisibiliteNiveau,
+    localisation: 'tous' as VisibiliteNiveau,
+    bio: 'tous' as VisibiliteNiveau,
+    date_naissance: 'tous' as VisibiliteNiveau
+  }
 })
+
+// Password change (self or admin)
+const showPasswordModal = ref(false)
+const currentPassword = ref('')
+const newPassword = ref('')
+const confirmPassword = ref('')
+const passwordSaving = ref(false)
 
 const { data: roles } = useAsyncData('directus-roles', async () => {
   if (!isDirecteur.value) return []
@@ -147,6 +195,8 @@ function startEditing() {
   const m = member.value
   form.first_name = m.first_name || ''
   form.last_name = m.last_name || ''
+  form.email = m.email || ''
+  form.date_naissance = m.date_naissance ? m.date_naissance.split('T')[0] : ''
   form.role = typeof m.role === 'string' ? m.role : m.role?.id || ''
   form.categorie = !m.categorie ? null : typeof m.categorie === 'string' ? m.categorie : m.categorie.id
   form.type_contrat = m.type_contrat || null
@@ -158,16 +208,26 @@ function startEditing() {
   form.linkedin = m.linkedin || ''
   form.localisation = m.localisation || ''
   form.bio = m.bio || ''
+  const vis = m.visibilite_profil || {}
+  form.visibilite.telephone = vis.telephone || 'tous'
+  form.visibilite.linkedin = vis.linkedin || 'tous'
+  form.visibilite.localisation = vis.localisation || 'tous'
+  form.visibilite.bio = vis.bio || 'tous'
+  form.visibilite.date_naissance = vis.date_naissance || 'tous'
   isEditing.value = true
 }
 
 async function handleSave() {
   saving.value = true
   try {
+    const visibilite_profil: VisibiliteProfil = { ...form.visibilite }
+
     if (isDirecteur.value) {
       const payload: Record<string, any> = {
         first_name: form.first_name || null,
         last_name: form.last_name || null,
+        email: form.email || undefined,
+        date_naissance: form.date_naissance || null,
         role: form.role || null,
         categorie: form.categorie || null,
         type_contrat: form.type_contrat || null,
@@ -178,16 +238,28 @@ async function handleSave() {
         telephone: form.telephone || null,
         linkedin: form.linkedin || null,
         localisation: form.localisation || null,
-        bio: form.bio || null
+        bio: form.bio || null,
+        visibilite_profil
       }
-      await updateExistingUser(userId, payload)
+      if (isSelf.value) {
+        await $directus.request(updateMe(payload as any))
+        await fetchCurrentUser()
+      } else {
+        await updateExistingUser(userId, payload)
+      }
     } else if (isSelf.value) {
       await $directus.request(updateMe({
+        first_name: form.first_name || null,
+        last_name: form.last_name || null,
+        email: form.email || undefined,
+        date_naissance: form.date_naissance || null,
         telephone: form.telephone || null,
         linkedin: form.linkedin || null,
         localisation: form.localisation || null,
-        bio: form.bio || null
-      }))
+        bio: form.bio || null,
+        visibilite_profil
+      } as any))
+      await fetchCurrentUser()
     }
     toast.add({ title: 'Profil mis a jour', color: 'success' })
     isEditing.value = false
@@ -196,6 +268,57 @@ async function handleSave() {
     toast.add({ title: 'Erreur lors de la sauvegarde', color: 'error' })
   } finally {
     saving.value = false
+  }
+}
+
+// ==================== MOT DE PASSE ====================
+
+function generatePassword(length = 16) {
+  const chars = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&*'
+  let pwd = ''
+  for (let i = 0; i < length; i++) {
+    pwd += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return pwd
+}
+
+function openPasswordModal() {
+  currentPassword.value = ''
+  newPassword.value = isDirecteur.value && !isSelf.value ? generatePassword() : ''
+  confirmPassword.value = ''
+  showPasswordModal.value = true
+}
+
+async function copyPassword() {
+  try {
+    await navigator.clipboard.writeText(newPassword.value)
+    toast.add({ title: 'Mot de passe copie', color: 'success' })
+  } catch {
+    toast.add({ title: 'Impossible de copier', color: 'warning' })
+  }
+}
+
+const passwordValid = computed(() => {
+  if (!newPassword.value || newPassword.value.length < 8) return false
+  if (isDirecteur.value && !isSelf.value) return true
+  return newPassword.value === confirmPassword.value
+})
+
+async function handlePasswordSubmit() {
+  if (!passwordValid.value) return
+  passwordSaving.value = true
+  try {
+    if (isDirecteur.value && !isSelf.value) {
+      await updateExistingUser(userId, { password: newPassword.value })
+    } else {
+      await $directus.request(updateMe({ password: newPassword.value } as any))
+    }
+    toast.add({ title: 'Mot de passe mis a jour', color: 'success' })
+    showPasswordModal.value = false
+  } catch {
+    toast.add({ title: 'Erreur lors de la mise a jour du mot de passe', color: 'error' })
+  } finally {
+    passwordSaving.value = false
   }
 }
 
@@ -217,59 +340,9 @@ async function handleDelete() {
   }
 }
 
-// ==================== MOT DE PASSE (admin) ====================
-const showPasswordModal = ref(false)
-const newPassword = ref('')
-const passwordSaving = ref(false)
-
-function generatePassword(length = 16) {
-  const chars = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&*'
-  let pwd = ''
-  for (let i = 0; i < length; i++) {
-    pwd += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return pwd
-}
-
-function openPasswordModal() {
-  newPassword.value = generatePassword()
-  showPasswordModal.value = true
-}
-
-async function copyPassword() {
-  try {
-    await navigator.clipboard.writeText(newPassword.value)
-    toast.add({ title: 'Mot de passe copie', color: 'success' })
-  } catch {
-    toast.add({ title: 'Impossible de copier', color: 'warning' })
-  }
-}
-
-async function handlePasswordSubmit() {
-  if (!newPassword.value || newPassword.value.length < 8) {
-    toast.add({ title: 'Le mot de passe doit contenir au moins 8 caracteres', color: 'warning' })
-    return
-  }
-  passwordSaving.value = true
-  try {
-    await updateExistingUser(userId, { password: newPassword.value })
-    toast.add({ title: 'Mot de passe mis a jour', color: 'success' })
-    showPasswordModal.value = false
-  } catch {
-    toast.add({ title: 'Erreur lors de la mise a jour du mot de passe', color: 'error' })
-  } finally {
-    passwordSaving.value = false
-  }
-}
-
 // ==================== HELPERS ====================
 function getUserName(u: UserProfile) {
   return [u.first_name, u.last_name].filter(Boolean).join(' ') || u.email
-}
-
-function getRoleName(u: UserProfile) {
-  if (typeof u.role === 'string') return ''
-  return u.role.name
 }
 
 function getCategoryName(u: UserProfile) {
@@ -277,14 +350,14 @@ function getCategoryName(u: UserProfile) {
   return u.categorie.nom
 }
 
-function getRoleColor(name: string) {
-  const colors: Record<string, string> = { Directeur: 'red', Employe: 'blue', Freelance: 'orange', Alternant: 'purple', Stagiaire: 'yellow' }
-  return colors[name] || 'neutral'
-}
-
 function formatDateFr(date: string | null) {
   if (!date) return '-'
   return new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+function formatBirthday(date: string | null) {
+  if (!date) return '-'
+  return new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
 }
 
 function pct(value: number, max: number) {
@@ -346,32 +419,30 @@ function pct(value: number, max: number) {
             <UAvatar :alt="getUserName(member)" size="xl" />
             <div class="min-w-0 flex-1">
               <h2 class="text-xl font-bold text-stone-900 dark:text-white">{{ getUserName(member) }}</h2>
-              <p class="text-stone-500 dark:text-stone-400 text-sm">{{ member.email }}</p>
               <div class="flex flex-wrap items-center gap-2 mt-2">
-                <UBadge :color="getRoleColor(getRoleName(member))" variant="subtle">{{ getRoleName(member) }}</UBadge>
+                <UBadge v-if="member.type_contrat" color="neutral" variant="subtle">{{ member.type_contrat }}</UBadge>
                 <UBadge v-if="getCategoryName(member)" variant="outline" color="neutral">{{ getCategoryName(member) }}</UBadge>
-                <UBadge v-if="member.type_contrat" variant="outline" color="neutral">{{ member.type_contrat }}</UBadge>
                 <UBadge v-if="!member.actif" color="error" variant="subtle">Inactif</UBadge>
               </div>
-              <p v-if="member.bio" class="mt-2 text-sm text-stone-600 dark:text-stone-400 italic">{{ member.bio }}</p>
+              <p v-if="member.bio && canSeeField(member, 'bio')" class="mt-2 text-sm text-stone-600 dark:text-stone-400 italic">{{ member.bio }}</p>
             </div>
           </div>
         </UCard>
 
         <!-- Coordonnees -->
-        <UCard v-if="member.telephone || member.linkedin || member.localisation">
+        <UCard v-if="(member.telephone && canSeeField(member, 'telephone')) || (member.linkedin && canSeeField(member, 'linkedin')) || (member.localisation && canSeeField(member, 'localisation')) || (member.date_naissance && canSeeField(member, 'date_naissance'))">
           <template #header>
             <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Coordonnees</h3>
           </template>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-            <div v-if="member.telephone && canSeePhone">
+            <div v-if="member.telephone && canSeeField(member, 'telephone')">
               <span class="text-stone-500 dark:text-stone-400">Telephone</span>
               <p class="font-medium text-stone-900 dark:text-white flex items-center gap-1.5">
                 <UIcon name="i-lucide-phone" class="size-3.5 text-stone-400" />
                 {{ member.telephone }}
               </p>
             </div>
-            <div v-if="member.linkedin">
+            <div v-if="member.linkedin && canSeeField(member, 'linkedin')">
               <span class="text-stone-500 dark:text-stone-400">LinkedIn</span>
               <p class="font-medium">
                 <a :href="member.linkedin" target="_blank" rel="noopener" class="text-primary hover:underline flex items-center gap-1.5">
@@ -380,11 +451,18 @@ function pct(value: number, max: number) {
                 </a>
               </p>
             </div>
-            <div v-if="member.localisation">
+            <div v-if="member.localisation && canSeeField(member, 'localisation')">
               <span class="text-stone-500 dark:text-stone-400">Localisation</span>
               <p class="font-medium text-stone-900 dark:text-white flex items-center gap-1.5">
                 <UIcon name="i-lucide-map-pin" class="size-3.5 text-stone-400" />
                 {{ member.localisation }}
+              </p>
+            </div>
+            <div v-if="member.date_naissance && canSeeField(member, 'date_naissance')">
+              <span class="text-stone-500 dark:text-stone-400">Anniversaire</span>
+              <p class="font-medium text-stone-900 dark:text-white flex items-center gap-1.5">
+                <UIcon name="i-lucide-cake" class="size-3.5 text-stone-400" />
+                {{ formatBirthday(member.date_naissance) }}
               </p>
             </div>
           </div>
@@ -519,11 +597,44 @@ function pct(value: number, max: number) {
             icon="i-lucide-calendar"
             variant="subtle"
           />
+          <UButton
+            v-if="isSelf"
+            label="Changer le mot de passe"
+            icon="i-lucide-key-round"
+            color="neutral"
+            variant="subtle"
+            @click="openPasswordModal"
+          />
         </div>
       </div>
 
       <!-- ==================== MODE EDITION ==================== -->
       <div v-else class="max-w-2xl mx-auto space-y-6">
+        <!-- Identite (tout le monde peut modifier son nom/prenom/email/naissance) -->
+        <UCard>
+          <template #header>
+            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Identite</h3>
+          </template>
+          <div class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <UFormField label="Prenom">
+                <UInput v-model="form.first_name" placeholder="Prenom" icon="i-lucide-user" />
+              </UFormField>
+              <UFormField label="Nom">
+                <UInput v-model="form.last_name" placeholder="Nom" icon="i-lucide-user" />
+              </UFormField>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <UFormField label="Email">
+                <UInput v-model="form.email" type="email" placeholder="email@example.com" icon="i-lucide-mail" />
+              </UFormField>
+              <UFormField label="Date de naissance">
+                <UInput v-model="form.date_naissance" type="date" icon="i-lucide-cake" />
+              </UFormField>
+            </div>
+          </div>
+        </UCard>
+
         <!-- Coordonnees (tout le monde) -->
         <UCard>
           <template #header>
@@ -547,21 +658,55 @@ function pct(value: number, max: number) {
           </div>
         </UCard>
 
+        <!-- Visibilite -->
+        <UCard>
+          <template #header>
+            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Visibilite du profil</h3>
+            <p class="text-xs text-stone-400 dark:text-stone-500 mt-0.5">Choisissez qui peut voir chaque information</p>
+          </template>
+          <div class="space-y-3">
+            <div
+              v-for="field in VISIBILITY_FIELDS"
+              :key="field.key"
+              class="flex items-center justify-between py-1.5"
+            >
+              <span class="text-sm text-stone-700 dark:text-stone-300">{{ field.label }}</span>
+              <USelect
+                v-model="form.visibilite[field.key]"
+                :items="VISIBILITY_OPTIONS"
+                value-key="value"
+                size="xs"
+                class="w-40"
+              />
+            </div>
+          </div>
+        </UCard>
+
+        <!-- Mot de passe -->
+        <UCard>
+          <template #header>
+            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Securite</h3>
+          </template>
+          <div class="flex items-center justify-between">
+            <p class="text-sm text-stone-500 dark:text-stone-400">Modifier le mot de passe</p>
+            <UButton
+              label="Changer"
+              icon="i-lucide-key-round"
+              color="neutral"
+              variant="subtle"
+              size="sm"
+              @click="openPasswordModal"
+            />
+          </div>
+        </UCard>
+
         <!-- Champs admin uniquement -->
         <template v-if="isDirecteur">
           <UCard>
             <template #header>
-              <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Informations personnelles</h3>
+              <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Administration</h3>
             </template>
             <div class="space-y-4">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <UFormField label="Prenom">
-                  <UInput v-model="form.first_name" placeholder="Prenom" />
-                </UFormField>
-                <UFormField label="Nom">
-                  <UInput v-model="form.last_name" placeholder="Nom" />
-                </UFormField>
-              </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <UFormField label="Role">
                   <USelectMenu v-model="form.role" :items="roleOptions" value-key="value" placeholder="Selectionner un role" />
@@ -597,27 +742,13 @@ function pct(value: number, max: number) {
 
           <UCard>
             <template #header>
-              <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Statut & Securite</h3>
+              <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Statut</h3>
             </template>
-            <div class="space-y-4">
-              <div class="flex items-center gap-3">
-                <USwitch v-model="form.actif" />
-                <span class="text-sm text-stone-700 dark:text-stone-300">
-                  {{ form.actif ? 'Utilisateur actif' : 'Utilisateur inactif' }}
-                </span>
-              </div>
-              <USeparator />
-              <div class="flex items-center justify-between">
-                <p class="text-sm text-stone-500 dark:text-stone-400">Reinitialiser le mot de passe</p>
-                <UButton
-                  label="Reinitialiser"
-                  icon="i-lucide-key-round"
-                  color="neutral"
-                  variant="subtle"
-                  size="sm"
-                  @click="openPasswordModal"
-                />
-              </div>
+            <div class="flex items-center gap-3">
+              <USwitch v-model="form.actif" />
+              <span class="text-sm text-stone-700 dark:text-stone-300">
+                {{ form.actif ? 'Utilisateur actif' : 'Utilisateur inactif' }}
+              </span>
             </div>
           </UCard>
         </template>
@@ -654,21 +785,41 @@ function pct(value: number, max: number) {
             <div class="rounded-full bg-amber-100 dark:bg-amber-900/30 p-2">
               <UIcon name="i-lucide-key-round" class="size-5 text-amber-600 dark:text-amber-400" />
             </div>
-            <h3 class="text-lg font-semibold text-stone-900 dark:text-white">Reinitialiser le mot de passe</h3>
+            <h3 class="text-lg font-semibold text-stone-900 dark:text-white">
+              {{ isDirecteur && !isSelf ? 'Reinitialiser le mot de passe' : 'Changer le mot de passe' }}
+            </h3>
           </div>
-          <p class="text-sm text-stone-500 dark:text-stone-400">
-            Un mot de passe a ete genere. Vous pouvez le modifier avant de l'enregistrer.
-          </p>
-          <UFormField label="Nouveau mot de passe">
-            <UInput v-model="newPassword" type="text" />
-          </UFormField>
-          <div class="flex items-center gap-2">
-            <UButton label="Regenerer" icon="i-lucide-refresh-cw" color="neutral" variant="ghost" size="sm" @click="newPassword = generatePassword()" />
-            <UButton label="Copier" icon="i-lucide-copy" color="neutral" variant="ghost" size="sm" @click="copyPassword" />
-          </div>
+
+          <!-- Admin resetting someone else's password -->
+          <template v-if="isDirecteur && !isSelf">
+            <p class="text-sm text-stone-500 dark:text-stone-400">
+              Un mot de passe a ete genere. Vous pouvez le modifier avant de l'enregistrer.
+            </p>
+            <UFormField label="Nouveau mot de passe">
+              <UInput v-model="newPassword" type="text" />
+            </UFormField>
+            <div class="flex items-center gap-2">
+              <UButton label="Regenerer" icon="i-lucide-refresh-cw" color="neutral" variant="ghost" size="sm" @click="newPassword = generatePassword()" />
+              <UButton label="Copier" icon="i-lucide-copy" color="neutral" variant="ghost" size="sm" @click="copyPassword" />
+            </div>
+          </template>
+
+          <!-- Self password change -->
+          <template v-else>
+            <UFormField label="Nouveau mot de passe">
+              <UInput v-model="newPassword" type="password" placeholder="8 caracteres minimum" />
+            </UFormField>
+            <UFormField label="Confirmer le mot de passe">
+              <UInput v-model="confirmPassword" type="password" placeholder="Ressaisir le mot de passe" />
+            </UFormField>
+            <p v-if="newPassword && confirmPassword && newPassword !== confirmPassword" class="text-xs text-red-500">
+              Les mots de passe ne correspondent pas
+            </p>
+          </template>
+
           <div class="flex justify-end gap-3 pt-2">
             <UButton label="Annuler" color="neutral" variant="subtle" @click="showPasswordModal = false" />
-            <UButton label="Enregistrer" icon="i-lucide-check" :loading="passwordSaving" @click="handlePasswordSubmit" />
+            <UButton label="Enregistrer" icon="i-lucide-check" :loading="passwordSaving" :disabled="!passwordValid" @click="handlePasswordSubmit" />
           </div>
         </div>
       </template>

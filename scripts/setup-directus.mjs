@@ -205,6 +205,18 @@ async function extendDirectusUsers() {
       type: 'text',
       schema: { is_nullable: true },
       meta: { interface: 'input-multiline', display: 'raw', width: 'full', sort: 109, group: 'coordonnees_group', note: 'Courte presentation' }
+    },
+    {
+      field: 'date_naissance',
+      type: 'date',
+      schema: { is_nullable: true },
+      meta: { interface: 'datetime', display: 'datetime', width: 'half', sort: 110, group: 'coordonnees_group', note: 'Date de naissance' }
+    },
+    {
+      field: 'visibilite_profil',
+      type: 'json',
+      schema: { is_nullable: true },
+      meta: { interface: 'input-code', display: 'raw', width: 'full', sort: 111, group: 'coordonnees_group', note: 'Visibilite des champs: tous, pole, admin', options: { language: 'json' } }
     }
   ]
 
@@ -774,8 +786,8 @@ async function setupPermissions(roleIds) {
     // Permissions for authenticated users
     const perms = [
       // Users: read active, update own
-      { collection: 'directus_users', action: 'read', fields: ['id', 'first_name', 'last_name', 'email', 'avatar', 'role', 'categorie', 'actif', 'type_contrat', 'date_debut_contrat', 'date_fin_contrat', 'date_fin_periode_essai', 'telephone', 'linkedin', 'localisation', 'bio', 'actif_prospection'], permissions: {} },
-      { collection: 'directus_users', action: 'update', fields: ['first_name', 'last_name', 'avatar', 'password', 'telephone', 'linkedin', 'localisation', 'bio', 'actif_prospection'], permissions: { id: { _eq: '$CURRENT_USER' } } },
+      { collection: 'directus_users', action: 'read', fields: ['id', 'first_name', 'last_name', 'email', 'avatar', 'role', 'categorie', 'actif', 'type_contrat', 'date_debut_contrat', 'date_fin_contrat', 'date_fin_periode_essai', 'telephone', 'linkedin', 'localisation', 'bio', 'actif_prospection', 'date_naissance', 'visibilite_profil'], permissions: {} },
+      { collection: 'directus_users', action: 'update', fields: ['first_name', 'last_name', 'email', 'avatar', 'password', 'telephone', 'linkedin', 'localisation', 'bio', 'actif_prospection', 'date_naissance', 'visibilite_profil'], permissions: { id: { _eq: '$CURRENT_USER' } } },
 
       // Roles: read
       { collection: 'directus_roles', action: 'read', fields: ['id', 'name', 'icon'], permissions: {} },
@@ -1233,7 +1245,7 @@ async function fixExistingPermissions() {
 
       // Fix directus_users update: add missing fields
       if (perm.collection === 'directus_users' && perm.action === 'update' && perm.fields) {
-        const required = ['password', 'telephone', 'linkedin', 'localisation', 'bio', 'actif_prospection']
+        const required = ['password', 'telephone', 'linkedin', 'localisation', 'bio', 'actif_prospection', 'email', 'date_naissance', 'visibilite_profil']
         const missing = required.filter(f => !perm.fields.includes(f))
         if (missing.length > 0 && perm.fields.includes('first_name')) {
           const newFields = [...perm.fields, ...missing]
@@ -1243,7 +1255,7 @@ async function fixExistingPermissions() {
 
       // Fix directus_users read: add missing profile fields
       if (perm.collection === 'directus_users' && perm.action === 'read' && perm.fields) {
-        const required = ['telephone', 'linkedin', 'localisation', 'bio', 'actif_prospection']
+        const required = ['telephone', 'linkedin', 'localisation', 'bio', 'actif_prospection', 'date_naissance', 'visibilite_profil']
         const missing = required.filter(f => !perm.fields.includes(f))
         if (missing.length > 0 && perm.fields.includes('first_name')) {
           const newFields = [...perm.fields, ...missing]
@@ -1255,7 +1267,7 @@ async function fixExistingPermissions() {
     // Fix directus_users fields: assign to groups if not already grouped
     const groupAssignments = {
       contrat_group: ['date_debut_contrat', 'date_fin_contrat', 'date_fin_periode_essai', 'actif', 'type_contrat', 'actif_prospection'],
-      coordonnees_group: ['telephone', 'linkedin', 'localisation', 'bio']
+      coordonnees_group: ['telephone', 'linkedin', 'localisation', 'bio', 'date_naissance', 'visibilite_profil']
     }
     try {
       const userFields = await api('GET', '/fields/directus_users')
