@@ -646,6 +646,47 @@ async function createCollections() {
     ]
   }, 'Collection "offres_emploi"')
 
+  // ── candidats ──
+  await safeApi('POST', '/collections', {
+    collection: 'candidats',
+    schema: {},
+    meta: { icon: 'person_search', note: 'Candidatures recrutement', sort: 15 },
+    fields: [
+      uuidPK(),
+      { field: 'prenom', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, width: 'half', sort: 1 } },
+      { field: 'nom', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, width: 'half', sort: 2 } },
+      { field: 'email', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 3 } },
+      { field: 'telephone', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 4 } },
+      { field: 'linkedin', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', sort: 5 } },
+      { field: 'source', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', sort: 6, note: 'Comment le candidat nous a trouve' } },
+      dropdown('statut', [
+        { text: 'Nouveau', value: 'nouveau' },
+        { text: 'Preselection', value: 'preselection' },
+        { text: 'Entretien tel.', value: 'entretien_tel' },
+        { text: 'Entretien', value: 'entretien' },
+        { text: 'Test technique', value: 'test_technique' },
+        { text: 'Offre', value: 'offre' },
+        { text: 'Accepte', value: 'accepte' },
+        { text: 'Refuse', value: 'refuse' },
+        { text: 'Archive', value: 'archive' }
+      ], { required: true, default_value: 'nouveau', width: 'half' }),
+      { field: 'notes', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 8 } },
+      ...systemFields()
+    ]
+  }, 'Collection "candidats"')
+
+  // ── candidat_commentaires ──
+  await safeApi('POST', '/collections', {
+    collection: 'candidat_commentaires',
+    schema: {},
+    meta: { icon: 'comment', note: 'Commentaires sur les candidats', sort: 16, hidden: true },
+    fields: [
+      uuidPK(),
+      { field: 'contenu', type: 'text', schema: { is_nullable: false }, meta: { interface: 'input-multiline', required: true, sort: 1 } },
+      ...systemFields()
+    ]
+  }, 'Collection "candidat_commentaires"')
+
   console.log('')
 }
 
@@ -707,6 +748,14 @@ async function createRelations() {
 
     // offres_emploi
     { coll: 'offres_emploi', field: 'categorie', related: 'categories', template: '{{nom}}' },
+
+    // candidats
+    { coll: 'candidats', field: 'offre', related: 'offres_emploi', template: '{{titre}}' },
+    { coll: 'candidats', field: 'cv', related: 'directus_files' },
+
+    // candidat_commentaires
+    { coll: 'candidat_commentaires', field: 'candidat', related: 'candidats', template: '{{prenom}} {{nom}}', one_field: 'commentaires' },
+    { coll: 'candidat_commentaires', field: 'auteur', related: 'directus_users', template: '{{first_name}} {{last_name}}' },
 
     // directus_users -> categories
     { coll: 'directus_users', field: 'categorie', related: 'categories', template: '{{nom}}', one_field: 'membres' }

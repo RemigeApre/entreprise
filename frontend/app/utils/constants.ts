@@ -279,3 +279,22 @@ export const RECURRENCE_OPTIONS = [
 ]
 
 export type RecurrenceType = 'aucune' | 'chaque_jour_ouvre' | 'chaque_jour' | 'chaque_semaine' | 'toutes_les_2_semaines' | 'chaque_mois'
+
+// --- Candidats (recrutement) ---
+
+export const CANDIDAT_STATUTS = {
+  nouveau: { label: 'Nouveau', color: 'neutral', icon: 'i-lucide-user-plus' },
+  preselection: { label: 'Preselection', color: 'blue', icon: 'i-lucide-filter' },
+  entretien_tel: { label: 'Entretien tel.', color: 'sky', icon: 'i-lucide-phone' },
+  entretien: { label: 'Entretien', color: 'violet', icon: 'i-lucide-message-square' },
+  test_technique: { label: 'Test technique', color: 'orange', icon: 'i-lucide-code' },
+  offre: { label: 'Offre', color: 'yellow', icon: 'i-lucide-file-text' },
+  accepte: { label: 'Accepte', color: 'green', icon: 'i-lucide-check-circle' },
+  refuse: { label: 'Refuse', color: 'red', icon: 'i-lucide-x-circle' },
+  archive: { label: 'Archive', color: 'neutral', icon: 'i-lucide-archive' }
+} as const
+
+export const CANDIDAT_SOURCES = [
+  'Site web', 'LinkedIn', 'Indeed', 'Cooptation',
+  'Candidature spontanee', 'Salon / Evenement', 'Ecole / Universite', 'Autre'
+] as const

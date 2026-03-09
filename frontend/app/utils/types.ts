@@ -235,6 +235,34 @@ export interface MonitoredSiteUser {
   utilisateur: UserProfile | string
 }
 
+export type CandidatStatut = 'nouveau' | 'preselection' | 'entretien_tel' | 'entretien' | 'test_technique' | 'offre' | 'accepte' | 'refuse' | 'archive'
+
+export interface Candidat {
+  id: string
+  prenom: string
+  nom: string
+  email: string | null
+  telephone: string | null
+  linkedin: string | null
+  source: string | null
+  statut: CandidatStatut
+  notes: string | null
+  offre: OffreEmploi | string | null
+  cv: string | null
+  commentaires?: CandidatCommentaire[]
+  date_created: string
+  date_updated: string | null
+  user_created: string
+}
+
+export interface CandidatCommentaire {
+  id: string
+  candidat: Candidat | string
+  contenu: string
+  auteur: UserProfile | string
+  date_created: string
+}
+
 export type TicketType = 'bug' | 'faille_securite' | 'panne' | 'amelioration' | 'fonctionnalite' | 'autre'
 export type TicketStatut = 'ouvert' | 'en_cours' | 'resolu' | 'ferme'
 export type TicketPriorite = 'basse' | 'normale' | 'haute' | 'critique'
@@ -287,5 +315,7 @@ export interface DirectusSchema {
   monitored_sites: MonitoredSite[]
   monitored_sites_users: MonitoredSiteUser[]
   project_tickets: Ticket[]
+  candidats: Candidat[]
+  candidat_commentaires: CandidatCommentaire[]
   directus_users: UserProfile[]
 }
