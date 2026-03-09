@@ -26,20 +26,19 @@ const editForm = reactive({
   email: '',
   telephone: '',
   linkedin: '',
-  source: '',
+  source: null as string | null,
   statut: 'nouveau' as CandidatStatut,
-  offre: '' as string,
+  offre: null as string | null,
   ecole: '',
   note_evaluation: null as number | null,
   notes: ''
 })
 
 const statutOptions = Object.entries(CANDIDAT_STATUTS).map(([value, { label }]) => ({ label, value }))
-const sourceOptions = [{ label: 'Non renseigne', value: '' }, ...CANDIDAT_SOURCES.map(s => ({ label: s, value: s }))]
-const offreOptions = computed(() => [
-  { label: 'Aucune offre', value: '' },
-  ...(offres.value || []).map(o => ({ label: o.titre, value: o.id }))
-])
+const sourceOptions = CANDIDAT_SOURCES.map(s => ({ label: s, value: s }))
+const offreOptions = computed(() =>
+  (offres.value || []).map(o => ({ label: o.titre, value: o.id }))
+)
 
 function startEditing() {
   if (!candidat.value) return
@@ -49,9 +48,9 @@ function startEditing() {
   editForm.email = c.email || ''
   editForm.telephone = c.telephone || ''
   editForm.linkedin = c.linkedin || ''
-  editForm.source = c.source || ''
+  editForm.source = c.source || null
   editForm.statut = c.statut
-  editForm.offre = (typeof c.offre === 'object' && c.offre?.id) || ''
+  editForm.offre = (typeof c.offre === 'object' && c.offre?.id) || null
   editForm.ecole = c.ecole || ''
   editForm.note_evaluation = c.note_evaluation
   editForm.notes = c.notes || ''
@@ -442,7 +441,7 @@ function formatDateShort(date: string | null) {
                   <UInput v-model="editForm.linkedin" icon="i-lucide-link" class="w-full" />
                 </UFormField>
                 <UFormField label="Source">
-                  <USelect v-model="editForm.source" :items="sourceOptions" value-key="value" class="w-full" />
+                  <USelect v-model="editForm.source" :items="sourceOptions" value-key="value" placeholder="Non renseigne" class="w-full" />
                 </UFormField>
               </div>
             </div>
@@ -455,7 +454,7 @@ function formatDateShort(date: string | null) {
             <div class="space-y-4">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <UFormField label="Offre associee">
-                  <USelect v-model="editForm.offre" :items="offreOptions" value-key="value" class="w-full" />
+                  <USelect v-model="editForm.offre" :items="offreOptions" value-key="value" placeholder="Aucune offre" class="w-full" />
                 </UFormField>
                 <UFormField label="Statut">
                   <USelect v-model="editForm.statut" :items="statutOptions" value-key="value" class="w-full" />

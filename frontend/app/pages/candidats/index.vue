@@ -16,15 +16,11 @@ const filterStatut = ref<CandidatStatut | ''>('')
 const filterOffre = ref('')
 const viewMode = ref<'list' | 'pipeline'>('list')
 
-const statutOptions = [
-  { label: 'Tous les statuts', value: '' },
-  ...Object.entries(CANDIDAT_STATUTS).map(([value, config]) => ({ label: config.label, value }))
-]
+const statutOptions = Object.entries(CANDIDAT_STATUTS).map(([value, config]) => ({ label: config.label, value }))
 
-const offreOptions = computed(() => [
-  { label: 'Toutes les offres', value: '' },
-  ...(offres.value || []).map(o => ({ label: o.titre, value: o.id }))
-])
+const offreOptions = computed(() =>
+  (offres.value || []).map(o => ({ label: o.titre, value: o.id }))
+)
 
 const filteredCandidats = computed(() => {
   if (!candidats.value) return []
@@ -112,8 +108,8 @@ function formatDate(d: string): string {
             class="w-64"
             size="sm"
           />
-          <USelect v-model="filterStatut" :items="statutOptions" value-key="value" size="sm" class="w-48" />
-          <USelect v-model="filterOffre" :items="offreOptions" value-key="value" size="sm" class="w-48" />
+          <USelect v-model="filterStatut" :items="statutOptions" value-key="value" size="sm" class="w-48" placeholder="Tous les statuts" />
+          <USelect v-model="filterOffre" :items="offreOptions" value-key="value" size="sm" class="w-48" placeholder="Toutes les offres" />
         </div>
 
         <!-- Loading -->

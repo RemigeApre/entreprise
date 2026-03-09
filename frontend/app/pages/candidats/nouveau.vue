@@ -17,9 +17,9 @@ const form = reactive({
   email: '',
   telephone: '',
   linkedin: '',
-  source: '',
+  source: null as string | null,
   statut: 'nouveau' as CandidatStatut,
-  offre: '' as string,
+  offre: null as string | null,
   ecole: '',
   note_evaluation: null as number | null,
   notes: '',
@@ -29,13 +29,12 @@ const form = reactive({
 // Load offers for select
 const { data: offres } = useAsyncData('candidat-offres', getAllOffers)
 
-const offreOptions = computed(() => [
-  { label: 'Aucune offre', value: '' },
-  ...(offres.value || []).map(o => ({ label: o.titre, value: o.id }))
-])
+const offreOptions = computed(() =>
+  (offres.value || []).map(o => ({ label: o.titre, value: o.id }))
+)
 
 const statutOptions = Object.entries(CANDIDAT_STATUTS).map(([value, { label }]) => ({ label, value }))
-const sourceOptions = [{ label: 'Non renseigne', value: '' }, ...CANDIDAT_SOURCES.map(s => ({ label: s, value: s }))]
+const sourceOptions = CANDIDAT_SOURCES.map(s => ({ label: s, value: s }))
 
 async function handleSubmit() {
   if (!form.prenom || !form.nom) {
@@ -137,7 +136,7 @@ function handleFileChange(e: Event) {
                 <UInput v-model="form.linkedin" placeholder="URL profil LinkedIn" icon="i-lucide-link" class="w-full" />
               </UFormField>
               <UFormField label="Source">
-                <USelect v-model="form.source" :items="sourceOptions" value-key="value" class="w-full" />
+                <USelect v-model="form.source" :items="sourceOptions" value-key="value" placeholder="Non renseigne" class="w-full" />
               </UFormField>
             </div>
           </div>
@@ -150,7 +149,7 @@ function handleFileChange(e: Event) {
           <div class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <UFormField label="Offre associee">
-                <USelect v-model="form.offre" :items="offreOptions" value-key="value" class="w-full" />
+                <USelect v-model="form.offre" :items="offreOptions" value-key="value" placeholder="Aucune offre" class="w-full" />
               </UFormField>
               <UFormField label="Statut">
                 <USelect v-model="form.statut" :items="statutOptions" value-key="value" class="w-full" />
