@@ -6,7 +6,7 @@ export function useCandidats() {
 
   const candidatFields = [
     'id', 'prenom', 'nom', 'email', 'telephone', 'linkedin',
-    'source', 'statut', 'notes', 'cv',
+    'source', 'statut', 'ecole', 'note_evaluation', 'notes', 'cv',
     'offre.id', 'offre.titre', 'offre.type_contrat',
     'date_created', 'date_updated', 'user_created'
   ]

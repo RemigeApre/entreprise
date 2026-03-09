@@ -26,6 +26,8 @@ export interface UserProfile {
   objectif_prospection: number | null
   date_naissance: string | null
   visibilite_profil: VisibiliteProfil | null
+  ecole: string | null
+  statut_emploi: StatutEmploi | null
 }
 
 export type VisibiliteNiveau = 'tous' | 'pole' | 'admin'
@@ -46,6 +48,7 @@ export interface Role {
 }
 
 export type TypeContrat = 'CDI' | 'CDD' | 'Freelance' | 'Alternance' | 'Stage'
+export type StatutEmploi = 'a_venir' | 'actif' | 'termine'
 export type RoleName = 'Directeur' | 'Employe' | 'Freelance' | 'Alternant' | 'Stagiaire'
 
 export type PlanningPeriode = 'matin' | 'apres_midi'
@@ -246,6 +249,8 @@ export interface Candidat {
   linkedin: string | null
   source: string | null
   statut: CandidatStatut
+  ecole: string | null
+  note_evaluation: number | null
   notes: string | null
   offre: OffreEmploi | string | null
   cv: string | null

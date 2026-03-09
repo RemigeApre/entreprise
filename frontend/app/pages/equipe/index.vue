@@ -10,33 +10,36 @@ const { data: users, status } = useAsyncData('team', () =>
 
 const search = ref('')
 const groupBy = ref<'contrat' | 'pole'>('contrat')
+const showAVenir = ref(false)
+const showTermine = ref(false)
 const showInactive = ref(false)
 
-// --- Filtrage ---
+function matchSearch(u: UserProfile): boolean {
+  if (!search.value) return true
+  const q = search.value.toLowerCase()
+  const name = [u.first_name, u.last_name].filter(Boolean).join(' ').toLowerCase()
+  return name.includes(q) || u.email.toLowerCase().includes(q)
+}
+
+// --- Filtrage par statut_emploi ---
 const activeUsers = computed(() => {
   if (!users.value) return []
-  let result = users.value.filter((u: UserProfile) => u.actif)
-  if (search.value) {
-    const q = search.value.toLowerCase()
-    result = result.filter((u: UserProfile) => {
-      const name = [u.first_name, u.last_name].filter(Boolean).join(' ').toLowerCase()
-      return name.includes(q) || u.email.toLowerCase().includes(q)
-    })
-  }
-  return result
+  return users.value.filter((u: UserProfile) => u.actif && (!u.statut_emploi || u.statut_emploi === 'actif') && matchSearch(u))
+})
+
+const aVenirUsers = computed(() => {
+  if (!users.value || !isDirecteur.value) return []
+  return users.value.filter((u: UserProfile) => u.statut_emploi === 'a_venir' && matchSearch(u))
+})
+
+const termineUsers = computed(() => {
+  if (!users.value || !isDirecteur.value) return []
+  return users.value.filter((u: UserProfile) => u.statut_emploi === 'termine' && matchSearch(u))
 })
 
 const inactiveUsers = computed(() => {
   if (!users.value || !isDirecteur.value) return []
-  let result = users.value.filter((u: UserProfile) => !u.actif)
-  if (search.value) {
-    const q = search.value.toLowerCase()
-    result = result.filter((u: UserProfile) => {
-      const name = [u.first_name, u.last_name].filter(Boolean).join(' ').toLowerCase()
-      return name.includes(q) || u.email.toLowerCase().includes(q)
-    })
-  }
-  return result
+  return users.value.filter((u: UserProfile) => !u.actif && u.statut_emploi !== 'a_venir' && u.statut_emploi !== 'termine' && matchSearch(u))
 })
 
 // --- Ma carte (exclue des groupes) ---
@@ -110,10 +113,12 @@ const currentGroups = computed(() =>
 
 // --- Stats ---
 const stats = computed(() => {
-  if (!users.value) return { total: 0, actifs: 0, inactifs: 0 }
+  if (!users.value) return { total: 0, actifs: 0, aVenir: 0, termines: 0, inactifs: 0 }
   const total = users.value.length
-  const actifs = users.value.filter((u: UserProfile) => u.actif).length
-  return { total, actifs, inactifs: total - actifs }
+  const actifs = activeUsers.value.length
+  const aVenir = aVenirUsers.value.length
+  const termines = termineUsers.value.length
+  return { total, actifs, aVenir, termines, inactifs: inactiveUsers.value.length }
 })
 
 // --- Helpers ---
@@ -220,6 +225,12 @@ function getContractStyle(contrat: string | null) {
             <span class="text-stone-500 dark:text-stone-400">
               <strong class="text-emerald-600 dark:text-emerald-400">{{ stats.actifs }}</strong> actifs
             </span>
+            <span v-if="stats.aVenir" class="text-stone-500 dark:text-stone-400">
+              <strong class="text-blue-500">{{ stats.aVenir }}</strong> a venir
+            </span>
+            <span v-if="stats.termines" class="text-stone-500 dark:text-stone-400">
+              <strong class="text-stone-400">{{ stats.termines }}</strong> termines
+            </span>
             <span v-if="stats.inactifs" class="text-stone-500 dark:text-stone-400">
               <strong class="text-red-500">{{ stats.inactifs }}</strong> inactifs
             </span>
@@ -299,6 +310,117 @@ function getContractStyle(contrat: string | null) {
           <div v-else-if="search" class="text-center py-8">
             <UIcon name="i-lucide-search-x" class="size-8 text-stone-300 dark:text-stone-700 mx-auto mb-3" />
             <p class="text-stone-500 dark:text-stone-400 text-sm">Aucun membre ne correspond a "{{ search }}"</p>
+          </div>
+
+          <!-- Section A venir (directeur) -->
+          <div v-if="isDirecteur && aVenirUsers.length" class="pt-2">
+            <button
+              class="flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors mb-3"
+              @click="showAVenir = !showAVenir"
+            >
+              <UIcon
+                name="i-lucide-chevron-right"
+                class="size-4 transition-transform"
+                :class="showAVenir ? 'rotate-90' : ''"
+              />
+              <UIcon name="i-lucide-clock" class="size-4" />
+              A venir
+              <span class="text-xs text-blue-400 dark:text-blue-600">({{ aVenirUsers.length }})</span>
+            </button>
+
+            <div v-if="showAVenir" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <NuxtLink
+                v-for="member in aVenirUsers"
+                :key="member.id"
+                :to="`/equipe/${member.id}`"
+                class="group"
+              >
+                <div class="flex items-center gap-3 p-3 rounded-lg border border-blue-200/40 dark:border-blue-800/30 bg-blue-50/30 dark:bg-blue-900/10 hover:bg-blue-50/60 dark:hover:bg-blue-900/20 transition-all">
+                  <UAvatar :alt="getUserName(member)" size="md" />
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2">
+                      <p class="font-medium text-sm text-stone-900 dark:text-white truncate">
+                        {{ getUserName(member) }}
+                      </p>
+                      <UBadge color="blue" variant="subtle" size="xs">A venir</UBadge>
+                    </div>
+                    <div class="flex items-center gap-1.5 mt-1">
+                      <span
+                        v-if="getCategoryName(member)"
+                        class="text-xs font-medium text-stone-500 dark:text-stone-400"
+                      >
+                        {{ getCategoryName(member) }}
+                      </span>
+                      <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 dark:text-stone-600 text-xs">·</span>
+                      <span
+                        v-if="member.type_contrat"
+                        class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border"
+                        :class="[getContractStyle(member.type_contrat).bg, getContractStyle(member.type_contrat).text, getContractStyle(member.type_contrat).border]"
+                      >
+                        {{ member.type_contrat }}
+                      </span>
+                      <span v-if="member.date_debut_contrat" class="text-[11px] text-blue-500 dark:text-blue-400">
+                        debut {{ new Date(member.date_debut_contrat).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </NuxtLink>
+            </div>
+          </div>
+
+          <!-- Section Termines (directeur) -->
+          <div v-if="isDirecteur && termineUsers.length" class="pt-2">
+            <button
+              class="flex items-center gap-2 text-sm font-semibold text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 transition-colors mb-3"
+              @click="showTermine = !showTermine"
+            >
+              <UIcon
+                name="i-lucide-chevron-right"
+                class="size-4 transition-transform"
+                :class="showTermine ? 'rotate-90' : ''"
+              />
+              <UIcon name="i-lucide-log-out" class="size-4" />
+              Termines
+              <span class="text-xs text-stone-400 dark:text-stone-600">({{ termineUsers.length }})</span>
+            </button>
+
+            <div v-if="showTermine" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <NuxtLink
+                v-for="member in termineUsers"
+                :key="member.id"
+                :to="`/equipe/${member.id}`"
+                class="group"
+              >
+                <div class="flex items-center gap-3 p-3 rounded-lg border border-[rgba(175,143,60,0.06)] opacity-60 hover:opacity-80 transition-all">
+                  <UAvatar :alt="getUserName(member)" size="md" />
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2">
+                      <p class="font-medium text-sm text-stone-900 dark:text-white truncate">
+                        {{ getUserName(member) }}
+                      </p>
+                      <UBadge color="neutral" variant="subtle" size="xs">Termine</UBadge>
+                    </div>
+                    <div class="flex items-center gap-1.5 mt-1">
+                      <span
+                        v-if="getCategoryName(member)"
+                        class="text-xs font-medium text-stone-500 dark:text-stone-400"
+                      >
+                        {{ getCategoryName(member) }}
+                      </span>
+                      <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 dark:text-stone-600 text-xs">·</span>
+                      <span
+                        v-if="member.type_contrat"
+                        class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border"
+                        :class="[getContractStyle(member.type_contrat).bg, getContractStyle(member.type_contrat).text, getContractStyle(member.type_contrat).border]"
+                      >
+                        {{ member.type_contrat }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </NuxtLink>
+            </div>
           </div>
 
           <!-- Section Inactifs (directeur) -->

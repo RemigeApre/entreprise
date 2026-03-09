@@ -10,7 +10,7 @@ export function useUsers() {
     'date_naissance', 'visibilite_profil',
     'role.id', 'role.name',
     'categorie.id', 'categorie.nom', 'categorie.couleur',
-    'actif', 'type_contrat',
+    'actif', 'type_contrat', 'ecole', 'statut_emploi',
     'date_debut_contrat', 'date_fin_contrat', 'date_fin_periode_essai'
   ]
 

@@ -140,6 +140,8 @@ const form = reactive({
   role: '' as string,
   categorie: null as string | null,
   type_contrat: null as string | null,
+  ecole: '',
+  statut_emploi: 'actif' as string,
   date_debut_contrat: '',
   date_fin_contrat: '',
   date_fin_periode_essai: '',
@@ -201,6 +203,8 @@ function startEditing() {
   form.role = typeof m.role === 'string' ? m.role : m.role?.id || ''
   form.categorie = !m.categorie ? null : typeof m.categorie === 'string' ? m.categorie : m.categorie.id
   form.type_contrat = m.type_contrat || null
+  form.ecole = m.ecole || ''
+  form.statut_emploi = m.statut_emploi || 'actif'
   form.date_debut_contrat = m.date_debut_contrat ? m.date_debut_contrat.split('T')[0] : ''
   form.date_fin_contrat = m.date_fin_contrat ? m.date_fin_contrat.split('T')[0] : ''
   form.date_fin_periode_essai = m.date_fin_periode_essai ? m.date_fin_periode_essai.split('T')[0] : ''
@@ -232,6 +236,8 @@ async function handleSave() {
         role: form.role || null,
         categorie: form.categorie || null,
         type_contrat: form.type_contrat || null,
+        ecole: form.ecole || null,
+        statut_emploi: form.statut_emploi || 'actif',
         date_debut_contrat: form.date_debut_contrat || null,
         date_fin_contrat: form.date_fin_contrat || null,
         date_fin_periode_essai: editHasTrialPeriod.value ? (form.date_fin_periode_essai || null) : null,
@@ -487,7 +493,9 @@ function pct(value: number, max: number) {
               <div class="flex flex-wrap items-center gap-2 mt-2">
                 <UBadge v-if="member.type_contrat" color="neutral" variant="subtle">{{ member.type_contrat }}</UBadge>
                 <UBadge v-if="getCategoryName(member)" variant="outline" color="neutral">{{ getCategoryName(member) }}</UBadge>
-                <UBadge v-if="!member.actif" color="error" variant="subtle">Inactif</UBadge>
+                <UBadge v-if="member.statut_emploi === 'a_venir'" color="blue" variant="subtle">A venir</UBadge>
+                <UBadge v-if="member.statut_emploi === 'termine'" color="neutral" variant="subtle">Termine</UBadge>
+                <UBadge v-if="!member.actif && member.statut_emploi !== 'a_venir' && member.statut_emploi !== 'termine'" color="error" variant="subtle">Inactif</UBadge>
               </div>
               <p v-if="member.bio && canSeeField(member, 'bio')" class="mt-2 text-sm text-stone-600 dark:text-stone-400 italic">{{ member.bio }}</p>
             </div>
@@ -546,6 +554,10 @@ function pct(value: number, max: number) {
             <div>
               <span class="text-stone-500 dark:text-stone-400">Fin de contrat</span>
               <p class="font-medium text-stone-900 dark:text-white">{{ formatDateFr(member.date_fin_contrat) }}</p>
+            </div>
+            <div v-if="member.ecole">
+              <span class="text-stone-500 dark:text-stone-400">Ecole</span>
+              <p class="font-medium text-stone-900 dark:text-white">{{ member.ecole }}</p>
             </div>
             <div v-if="hasTrialPeriod">
               <span class="text-stone-500 dark:text-stone-400">Fin de periode d'essai</span>
@@ -845,8 +857,16 @@ function pct(value: number, max: number) {
               <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Contrat</h3>
             </template>
             <div class="space-y-4">
-              <UFormField label="Type de contrat">
-                <USelectMenu v-model="form.type_contrat" :items="contractTypeOptions" value-key="value" placeholder="Selectionner un type" />
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <UFormField label="Type de contrat">
+                  <USelectMenu v-model="form.type_contrat" :items="contractTypeOptions" value-key="value" placeholder="Selectionner un type" />
+                </UFormField>
+                <UFormField label="Statut">
+                  <USelect v-model="form.statut_emploi" :items="[{ label: 'A venir', value: 'a_venir' }, { label: 'Actif', value: 'actif' }, { label: 'Termine', value: 'termine' }]" value-key="value" />
+                </UFormField>
+              </div>
+              <UFormField label="Ecole / Universite">
+                <UInput v-model="form.ecole" placeholder="Ex: Universite Lyon 1, INSA..." class="w-full" />
               </UFormField>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <UFormField label="Date de debut">

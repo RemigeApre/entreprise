@@ -189,6 +189,32 @@ async function extendDirectusUsers() {
       meta: { interface: 'input', display: 'raw', width: 'half', sort: 106, group: 'contrat_group', note: 'Objectif contacts/jour (prospection)' }
     },
     {
+      field: 'ecole',
+      type: 'string',
+      schema: { is_nullable: true },
+      meta: { interface: 'input', display: 'raw', width: 'half', sort: 107, group: 'contrat_group', note: 'Ecole / Universite (stagiaires, alternants)' }
+    },
+    {
+      field: 'statut_emploi',
+      type: 'string',
+      schema: { is_nullable: true, default_value: 'actif' },
+      meta: {
+        interface: 'select-dropdown',
+        display: 'labels',
+        width: 'half',
+        sort: 108,
+        group: 'contrat_group',
+        note: 'Statut dans l\'entreprise',
+        options: {
+          choices: [
+            { text: 'A venir', value: 'a_venir' },
+            { text: 'Actif', value: 'actif' },
+            { text: 'Termine', value: 'termine' }
+          ]
+        }
+      }
+    },
+    {
       field: 'telephone',
       type: 'string',
       schema: { is_nullable: true },
@@ -670,7 +696,9 @@ async function createCollections() {
         { text: 'Refuse', value: 'refuse' },
         { text: 'Archive', value: 'archive' }
       ], { required: true, default_value: 'nouveau', width: 'half' }),
-      { field: 'notes', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 8 } },
+      { field: 'ecole', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', sort: 8, note: 'Ecole / Universite du candidat' } },
+      { field: 'note_evaluation', type: 'integer', schema: { is_nullable: true }, meta: { interface: 'input', sort: 9, width: 'half', note: 'Note de 1 a 10' } },
+      { field: 'notes', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 10 } },
       ...systemFields()
     ]
   }, 'Collection "candidats"')
@@ -857,7 +885,7 @@ async function setupPermissions(roleIds) {
     // Permissions for authenticated users
     const perms = [
       // Users: read active, update own
-      { collection: 'directus_users', action: 'read', fields: ['id', 'first_name', 'last_name', 'email', 'avatar', 'role', 'categorie', 'actif', 'type_contrat', 'date_debut_contrat', 'date_fin_contrat', 'date_fin_periode_essai', 'telephone', 'linkedin', 'localisation', 'bio', 'actif_prospection', 'objectif_prospection', 'date_naissance', 'visibilite_profil'], permissions: {} },
+      { collection: 'directus_users', action: 'read', fields: ['id', 'first_name', 'last_name', 'email', 'avatar', 'role', 'categorie', 'actif', 'type_contrat', 'date_debut_contrat', 'date_fin_contrat', 'date_fin_periode_essai', 'telephone', 'linkedin', 'localisation', 'bio', 'actif_prospection', 'objectif_prospection', 'date_naissance', 'visibilite_profil', 'ecole', 'statut_emploi'], permissions: {} },
       { collection: 'directus_users', action: 'update', fields: ['first_name', 'last_name', 'email', 'avatar', 'password', 'telephone', 'linkedin', 'localisation', 'bio', 'actif_prospection', 'objectif_prospection', 'date_naissance', 'visibilite_profil'], permissions: { id: { _eq: '$CURRENT_USER' } } },
 
       // Roles: read
@@ -1329,7 +1357,7 @@ async function fixExistingPermissions() {
 
       // Fix directus_users read: add missing profile fields
       if (perm.collection === 'directus_users' && perm.action === 'read' && perm.fields) {
-        const required = ['telephone', 'linkedin', 'localisation', 'bio', 'actif_prospection', 'objectif_prospection', 'date_naissance', 'visibilite_profil']
+        const required = ['telephone', 'linkedin', 'localisation', 'bio', 'actif_prospection', 'objectif_prospection', 'date_naissance', 'visibilite_profil', 'ecole', 'statut_emploi']
         const missing = required.filter(f => !perm.fields.includes(f))
         if (missing.length > 0 && perm.fields.includes('first_name')) {
           const newFields = [...perm.fields, ...missing]
@@ -1340,7 +1368,7 @@ async function fixExistingPermissions() {
 
     // Fix directus_users fields: assign to groups if not already grouped
     const groupAssignments = {
-      contrat_group: ['date_debut_contrat', 'date_fin_contrat', 'date_fin_periode_essai', 'actif', 'type_contrat', 'actif_prospection', 'objectif_prospection'],
+      contrat_group: ['date_debut_contrat', 'date_fin_contrat', 'date_fin_periode_essai', 'actif', 'type_contrat', 'actif_prospection', 'objectif_prospection', 'ecole', 'statut_emploi'],
       coordonnees_group: ['telephone', 'linkedin', 'localisation', 'bio', 'date_naissance', 'visibilite_profil']
     }
     try {

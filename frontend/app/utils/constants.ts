@@ -143,6 +143,12 @@ export const TASK_PRIORITES = {
   urgente: { label: 'Urgente', color: 'red' }
 } as const
 
+export const STATUT_EMPLOI = {
+  a_venir: { label: 'A venir', color: 'blue', icon: 'i-lucide-clock' },
+  actif: { label: 'Actif', color: 'green', icon: 'i-lucide-check-circle' },
+  termine: { label: 'Termine', color: 'neutral', icon: 'i-lucide-log-out' }
+} as const
+
 export const CONTRACT_TYPES = {
   CDI: 'CDI',
   CDD: 'CDD',
