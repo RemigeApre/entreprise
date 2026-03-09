@@ -875,8 +875,8 @@ async function setupPermissions(roleIds) {
   }, 'Policy "Base Authentifie"')
 
   if (authPolicy) {
-    // Link to non-admin roles
-    for (const roleName of ['Employe', 'Freelance', 'Alternant', 'Stagiaire']) {
+    // Link to all roles (including admin roles as fallback for explicit permissions)
+    for (const roleName of ['Administrator', 'Directeur', 'Employe', 'Freelance', 'Alternant', 'Stagiaire']) {
       if (roleIds[roleName]) {
         await safeApi('POST', '/access', { role: roleIds[roleName], policy: authPolicy.id }, `Access "${roleName}" → base policy`)
       }
