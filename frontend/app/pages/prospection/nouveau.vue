@@ -2,7 +2,8 @@
 import type { ProspectStatut } from '~/utils/types'
 import { VILLES_FRANCE } from '~/utils/constants'
 
-const { user } = useAuth()
+const { user, isProspecteur } = useAuth()
+if (!isProspecteur.value) navigateTo('/prospection')
 const { create } = useProspects()
 const toast = useToast()
 

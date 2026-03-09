@@ -22,6 +22,7 @@ export interface UserProfile {
   actif: boolean
   categorie: Category | string | null
   type_contrat: TypeContrat | null
+  actif_prospection: boolean
 }
 
 export interface Role {

@@ -177,6 +177,12 @@ async function extendDirectusUsers() {
       }
     },
     {
+      field: 'actif_prospection',
+      type: 'boolean',
+      schema: { is_nullable: false, default_value: false },
+      meta: { interface: 'boolean', display: 'boolean', width: 'half', sort: 105, group: 'contrat_group', special: ['cast-boolean'], note: 'Participe a la prospection' }
+    },
+    {
       field: 'telephone',
       type: 'string',
       schema: { is_nullable: true },
@@ -768,8 +774,8 @@ async function setupPermissions(roleIds) {
     // Permissions for authenticated users
     const perms = [
       // Users: read active, update own
-      { collection: 'directus_users', action: 'read', fields: ['id', 'first_name', 'last_name', 'email', 'avatar', 'role', 'categorie', 'actif', 'type_contrat', 'date_debut_contrat', 'date_fin_contrat', 'date_fin_periode_essai', 'telephone', 'linkedin', 'localisation', 'bio'], permissions: {} },
-      { collection: 'directus_users', action: 'update', fields: ['first_name', 'last_name', 'avatar', 'password', 'telephone', 'linkedin', 'localisation', 'bio'], permissions: { id: { _eq: '$CURRENT_USER' } } },
+      { collection: 'directus_users', action: 'read', fields: ['id', 'first_name', 'last_name', 'email', 'avatar', 'role', 'categorie', 'actif', 'type_contrat', 'date_debut_contrat', 'date_fin_contrat', 'date_fin_periode_essai', 'telephone', 'linkedin', 'localisation', 'bio', 'actif_prospection'], permissions: {} },
+      { collection: 'directus_users', action: 'update', fields: ['first_name', 'last_name', 'avatar', 'password', 'telephone', 'linkedin', 'localisation', 'bio', 'actif_prospection'], permissions: { id: { _eq: '$CURRENT_USER' } } },
 
       // Roles: read
       { collection: 'directus_roles', action: 'read', fields: ['id', 'name', 'icon'], permissions: {} },
@@ -1227,7 +1233,7 @@ async function fixExistingPermissions() {
 
       // Fix directus_users update: add missing fields
       if (perm.collection === 'directus_users' && perm.action === 'update' && perm.fields) {
-        const required = ['password', 'telephone', 'linkedin', 'localisation', 'bio']
+        const required = ['password', 'telephone', 'linkedin', 'localisation', 'bio', 'actif_prospection']
         const missing = required.filter(f => !perm.fields.includes(f))
         if (missing.length > 0 && perm.fields.includes('first_name')) {
           const newFields = [...perm.fields, ...missing]
@@ -1237,7 +1243,7 @@ async function fixExistingPermissions() {
 
       // Fix directus_users read: add missing profile fields
       if (perm.collection === 'directus_users' && perm.action === 'read' && perm.fields) {
-        const required = ['telephone', 'linkedin', 'localisation', 'bio']
+        const required = ['telephone', 'linkedin', 'localisation', 'bio', 'actif_prospection']
         const missing = required.filter(f => !perm.fields.includes(f))
         if (missing.length > 0 && perm.fields.includes('first_name')) {
           const newFields = [...perm.fields, ...missing]
@@ -1248,7 +1254,7 @@ async function fixExistingPermissions() {
 
     // Fix directus_users fields: assign to groups if not already grouped
     const groupAssignments = {
-      contrat_group: ['date_debut_contrat', 'date_fin_contrat', 'date_fin_periode_essai', 'actif', 'type_contrat'],
+      contrat_group: ['date_debut_contrat', 'date_fin_contrat', 'date_fin_periode_essai', 'actif', 'type_contrat', 'actif_prospection'],
       coordonnees_group: ['telephone', 'linkedin', 'localisation', 'bio']
     }
     try {

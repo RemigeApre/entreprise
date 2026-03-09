@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { DASHBOARD_MODULES, PLANNING_DISPLAY_OPTIONS, PRESENCE_DISPLAY_OPTIONS } from '~/composables/useDashboardPreferences'
 
-const { user, logout, isDirecteur, roleName } = useAuth()
+const { user, logout, isDirecteur, roleName, isProspecteur } = useAuth()
 const colorMode = useColorMode()
 const route = useRoute()
 const mobileOpen = ref(false)
@@ -54,7 +54,7 @@ const domains = computed<Domain[]>(() => {
       prefixes: ['/planning', '/emploi-du-temps', '/equipe', '/offres'],
       tabs: [
         { label: 'Calendrier', icon: 'i-lucide-calendar', to: '/planning' },
-        { label: 'Emploi du temps', icon: 'i-lucide-clock', to: '/emploi-du-temps' },
+        { label: 'Emploi du temps', icon: 'i-lucide-clock', to: '/emploi-du-temps', disabled: !isDirecteur.value },
         { label: 'Equipe', icon: 'i-lucide-users', to: '/equipe' },
         ...(isDirecteur.value ? [{ label: 'Offres', icon: 'i-lucide-megaphone', to: '/offres' }] : [])
       ]
@@ -80,10 +80,12 @@ const domains = computed<Domain[]>(() => {
       icon: 'i-lucide-target',
       to: '/prospection',
       prefixes: ['/prospection', '/clients'],
-      tabs: [
-        { label: 'Prospection', icon: 'i-lucide-target', to: '/prospection' },
-        { label: 'Clients', icon: 'i-lucide-building', to: '/clients' }
-      ]
+      tabs: isProspecteur.value
+        ? [
+            { label: 'Prospection', icon: 'i-lucide-target', to: '/prospection' },
+            { label: 'Clients', icon: 'i-lucide-building', to: '/clients' }
+          ]
+        : []
     })
   }
 

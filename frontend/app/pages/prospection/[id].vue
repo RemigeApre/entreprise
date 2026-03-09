@@ -3,7 +3,8 @@ import type { Prospect, ProspectStatut, ContactCanal, ContactResultat, ContactHi
 import { PROSPECT_STATUTS, CONTACT_CANAUX, CONTACT_RESULTATS, VILLES_FRANCE } from '~/utils/constants'
 
 const route = useRoute()
-const { user } = useAuth()
+const { user, isProspecteur } = useAuth()
+if (!isProspecteur.value) navigateTo('/prospection')
 const { getById, update, addContact, remove } = useProspects()
 const toast = useToast()
 

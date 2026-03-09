@@ -3,6 +3,11 @@ import type { Prospect } from '~/utils/types'
 
 definePageMeta({ middleware: ['auth'] })
 
+const { isProspecteur } = useAuth()
+if (!isProspecteur.value) {
+  navigateTo('/prospection')
+}
+
 const { getAll } = useProspects()
 
 const { data: allProspects, status } = useAsyncData('clients', getAll)

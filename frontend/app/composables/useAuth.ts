@@ -66,6 +66,12 @@ export function useAuth() {
     return name === 'Freelance' || name === 'Alternant' || name === 'Stagiaire'
   })
 
+  const isProspecteur = computed(() => {
+    if (!user.value) return false
+    if (isDirecteur.value) return true
+    return !!user.value.actif_prospection
+  })
+
   return {
     user,
     login,
@@ -75,6 +81,7 @@ export function useAuth() {
     isDirecteur,
     roleName,
     hasSchoolDays,
-    hasHourTracking
+    hasHourTracking,
+    isProspecteur
   }
 }
