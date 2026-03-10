@@ -480,13 +480,13 @@ const userMenuItems = computed(() => [
   display: flex;
   height: 100dvh;
   overflow: hidden;
-  background-color: var(--cream);
-  color: var(--ink);
+  background-color: #1a2520;
+  color: #e8e0d0;
   font-family: 'Crimson Pro', Georgia, serif;
 }
 :global(.dark) .intranet-root {
-  background-color: #1a2520;
-  color: #e8e0d0;
+  background-color: #0a0e0c;
+  color: #d5cdbf;
 }
 
 /* ============================
@@ -499,14 +499,14 @@ const userMenuItems = computed(() => [
   width: var(--sidebar-w);
   flex-shrink: 0;
   padding: 10px 0 12px;
-  border-right: 1px solid var(--gold-faint);
-  background: linear-gradient(180deg, rgba(247, 240, 222, 0.6) 0%, rgba(245, 239, 224, 0.4) 100%);
+  border-right: 1px solid rgba(175, 143, 60, 0.12);
+  background: linear-gradient(180deg, rgba(26, 37, 32, 0.9) 0%, rgba(20, 30, 25, 0.95) 100%);
   position: relative;
   z-index: 10;
 }
 :global(.dark) .sidebar {
-  background: linear-gradient(180deg, rgba(26, 37, 32, 0.9) 0%, rgba(20, 30, 25, 0.95) 100%);
-  border-color: rgba(175, 143, 60, 0.12);
+  background: linear-gradient(180deg, rgba(10, 14, 12, 0.95) 0%, rgba(8, 11, 9, 0.98) 100%);
+  border-color: rgba(175, 143, 60, 0.08);
 }
 
 @media (min-width: 1024px) {
@@ -564,14 +564,14 @@ const userMenuItems = computed(() => [
   width: 38px;
   height: 38px;
   border-radius: 8px;
-  color: var(--ink);
-  opacity: 0.35;
+  color: #e8e0d0;
+  opacity: 0.4;
   transition: all 0.25s ease;
   position: relative;
 }
 :global(.dark) .sidebar-icon {
-  color: #e8e0d0;
-  opacity: 0.4;
+  color: #d5cdbf;
+  opacity: 0.35;
 }
 .sidebar-icon:hover {
   opacity: 0.7;
@@ -639,15 +639,15 @@ const userMenuItems = computed(() => [
    ============================ */
 .tab-bar {
   display: none;
-  border-bottom: 1px solid var(--gold-faint);
-  background: rgba(247, 240, 222, 0.5);
+  border-bottom: 1px solid rgba(175, 143, 60, 0.1);
+  background: rgba(26, 37, 32, 0.6);
   flex-shrink: 0;
   position: relative;
   z-index: 10;
 }
 :global(.dark) .tab-bar {
-  background: rgba(26, 37, 32, 0.6);
-  border-color: rgba(175, 143, 60, 0.1);
+  background: rgba(10, 14, 12, 0.7);
+  border-color: rgba(175, 143, 60, 0.06);
 }
 
 @media (min-width: 1024px) {
@@ -676,14 +676,14 @@ const userMenuItems = computed(() => [
   letter-spacing: 0.08em;
   text-transform: uppercase;
   text-decoration: none;
-  color: var(--ink);
+  color: #e8e0d0;
   opacity: 0.4;
   position: relative;
   transition: opacity 0.25s, color 0.25s;
   white-space: nowrap;
 }
 :global(.dark) .tab-item {
-  color: #e8e0d0;
+  color: #d5cdbf;
 }
 .tab-item:hover {
   opacity: 0.7;
@@ -736,16 +736,16 @@ const userMenuItems = computed(() => [
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: rgba(247, 240, 222, 0.9);
-  border: 1px solid var(--gold-faint);
-  color: var(--ink);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: rgba(26, 37, 32, 0.9);
+  border: 1px solid rgba(175, 143, 60, 0.15);
+  color: #e8e0d0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   transition: transform 0.15s, box-shadow 0.2s;
 }
 :global(.dark) .mobile-menu-trigger {
-  background: rgba(26, 37, 32, 0.9);
-  color: #e8e0d0;
-  border-color: rgba(175, 143, 60, 0.15);
+  background: rgba(10, 14, 12, 0.95);
+  color: #d5cdbf;
+  border-color: rgba(175, 143, 60, 0.1);
 }
 .mobile-menu-trigger:active {
   transform: scale(0.95);
@@ -759,15 +759,15 @@ const userMenuItems = computed(() => [
   inset: 0 auto 0 0;
   z-index: 61;
   width: 280px;
-  background: var(--cream);
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
+  background: #1a2520;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
 }
 :global(.dark) .mobile-drawer {
-  background: #1a2520;
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+  background: #0a0e0c;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.6);
 }
 
 @media (min-width: 1024px) {
@@ -798,11 +798,11 @@ const userMenuItems = computed(() => [
   width: 32px;
   height: 32px;
   border-radius: 6px;
-  color: var(--ink);
+  color: #e8e0d0;
   opacity: 0.4;
   transition: opacity 0.2s, background 0.2s;
 }
-:global(.dark) .drawer-close { color: #e8e0d0; }
+:global(.dark) .drawer-close { color: #d5cdbf; }
 .drawer-close:hover {
   opacity: 0.8;
   background: var(--gold-faint);
@@ -835,11 +835,11 @@ const userMenuItems = computed(() => [
   border-radius: 8px;
   font-size: 14px;
   text-decoration: none;
-  color: var(--ink);
+  color: #e8e0d0;
   opacity: 0.55;
   transition: all 0.2s;
 }
-:global(.dark) .drawer-link { color: #e8e0d0; }
+:global(.dark) .drawer-link { color: #d5cdbf; }
 .drawer-link:hover {
   opacity: 0.85;
   background: var(--gold-faint);
@@ -869,24 +869,24 @@ const userMenuItems = computed(() => [
   gap: 8px;
   padding: 6px 8px;
   font-size: 13px;
-  color: var(--ink);
+  color: #e8e0d0;
   opacity: 0.5;
   transition: opacity 0.2s;
 }
-:global(.dark) .drawer-theme-btn { color: #e8e0d0; }
+:global(.dark) .drawer-theme-btn { color: #d5cdbf; }
 .drawer-theme-btn:hover { opacity: 0.8; }
 
 .drawer-settings {
   padding: 10px;
   border-radius: 8px;
-  background: rgba(175, 143, 60, 0.04);
+  background: rgba(175, 143, 60, 0.03);
   border: 1px solid var(--gold-faint);
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 :global(.dark) .drawer-settings {
-  background: rgba(175, 143, 60, 0.03);
+  background: rgba(175, 143, 60, 0.02);
 }
 
 .drawer-profile {
@@ -961,10 +961,10 @@ const userMenuItems = computed(() => [
 
 .settings-text {
   font-size: 13px;
-  color: var(--ink);
+  color: #e8e0d0;
   opacity: 0.7;
 }
-:global(.dark) .settings-text { color: #e8e0d0; }
+:global(.dark) .settings-text { color: #d5cdbf; }
 
 .settings-reset {
   font-size: 12px;
@@ -981,10 +981,10 @@ const userMenuItems = computed(() => [
   gap: 8px;
   cursor: pointer;
   font-size: 13px;
-  color: var(--ink);
+  color: #e8e0d0;
   opacity: 0.7;
 }
-:global(.dark) .settings-radio { color: #e8e0d0; }
+:global(.dark) .settings-radio { color: #d5cdbf; }
 .settings-radio input[type="radio"] {
   accent-color: var(--gold);
 }
@@ -993,10 +993,10 @@ const userMenuItems = computed(() => [
 <style>
 /* Global styles for intranet root background */
 html:has(.intranet-root) {
-  background-color: #F7F0DE;
+  background-color: #1a2520;
   transition: background-color 0.3s ease;
 }
 html.dark:has(.intranet-root) {
-  background-color: #1a2520;
+  background-color: #0a0e0c;
 }
 </style>

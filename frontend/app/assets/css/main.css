@@ -12,6 +12,64 @@
   --color-brand-ink: #2c2419;
 }
 
+/* ===== Inverted color scale for dark-first theme ===== */
+/* Light mode = forest green dark, Dark mode = even deeper */
+
+.intranet-root {
+  --color-white: #1a2520;
+  --color-stone-50: #1e2926;
+  --color-stone-100: #232f2b;
+  --color-stone-200: #2d3b35;
+  --color-stone-300: #3d4f47;
+  --color-stone-400: #6b8078;
+  --color-stone-500: #8a9f96;
+  --color-stone-600: #a5b5ad;
+  --color-stone-700: #c0ccc4;
+  --color-stone-800: #d5ddd8;
+  --color-stone-900: #e8e0d0;
+  --color-stone-950: #f0e8d8;
+
+  /* Gray scale (used by some pages and NuxtUI neutral) */
+  --color-gray-50: #1e2926;
+  --color-gray-100: #232f2b;
+  --color-gray-200: #2d3b35;
+  --color-gray-300: #3d4f47;
+  --color-gray-400: #6b8078;
+  --color-gray-500: #8a9f96;
+  --color-gray-600: #a5b5ad;
+  --color-gray-700: #c0ccc4;
+  --color-gray-800: #d5ddd8;
+  --color-gray-900: #e8e0d0;
+  --color-gray-950: #f0e8d8;
+}
+
+.dark .intranet-root {
+  --color-white: #0a0e0c;
+  --color-stone-50: #0e1311;
+  --color-stone-100: #131a17;
+  --color-stone-200: #1a2420;
+  --color-stone-300: #2a3b34;
+  --color-stone-400: #556b62;
+  --color-stone-500: #758a80;
+  --color-stone-600: #95a89e;
+  --color-stone-700: #b0bfb6;
+  --color-stone-800: #c8d0cb;
+  --color-stone-900: #d5cdbf;
+  --color-stone-950: #e0d8c8;
+
+  --color-gray-50: #0e1311;
+  --color-gray-100: #131a17;
+  --color-gray-200: #1a2420;
+  --color-gray-300: #2a3b34;
+  --color-gray-400: #556b62;
+  --color-gray-500: #758a80;
+  --color-gray-600: #95a89e;
+  --color-gray-700: #b0bfb6;
+  --color-gray-800: #c8d0cb;
+  --color-gray-900: #d5cdbf;
+  --color-gray-950: #e0d8c8;
+}
+
 /* ===== Typography ===== */
 
 .font-heading {
@@ -26,21 +84,21 @@
 /* ===== Warm backgrounds ===== */
 
 .bg-academia {
-  background-color: var(--color-brand-cream);
+  background-color: var(--color-brand-green);
 }
 .dark .bg-academia {
-  background-color: var(--color-brand-green);
+  background-color: #0a0e0c;
 }
 
 .bg-paper {
   background-image:
-    radial-gradient(ellipse at 20% 50%, oklch(0.96 0.01 80 / 0.5), transparent 50%),
-    radial-gradient(ellipse at 80% 20%, oklch(0.95 0.015 50 / 0.3), transparent 50%);
+    radial-gradient(ellipse at 20% 50%, oklch(0.20 0.01 60 / 0.3), transparent 50%),
+    radial-gradient(ellipse at 80% 20%, oklch(0.18 0.015 40 / 0.2), transparent 50%);
 }
 .dark .bg-paper {
   background-image:
-    radial-gradient(ellipse at 20% 50%, oklch(0.20 0.01 60 / 0.3), transparent 50%),
-    radial-gradient(ellipse at 80% 20%, oklch(0.18 0.015 40 / 0.2), transparent 50%);
+    radial-gradient(ellipse at 20% 50%, oklch(0.12 0.01 60 / 0.3), transparent 50%),
+    radial-gradient(ellipse at 80% 20%, oklch(0.10 0.015 40 / 0.2), transparent 50%);
 }
 
 /* Logo watermark background */
@@ -59,13 +117,13 @@
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  opacity: 0.025;
+  filter: brightness(0) invert(0.85);
+  opacity: 0.035;
   pointer-events: none;
   z-index: 0;
 }
 .dark .bg-watermark::before {
-  filter: brightness(0) invert(0.85);
-  opacity: 0.035;
+  opacity: 0.025;
 }
 
 /* ===== Noise texture overlay for intranet ===== */
@@ -75,11 +133,11 @@
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.018;
+  opacity: 0.03;
   mix-blend-mode: overlay;
 }
 .dark .intranet-noise {
-  opacity: 0.03;
+  opacity: 0.04;
 }
 
 /* ===== Vignette overlay ===== */
@@ -89,10 +147,10 @@
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background: radial-gradient(ellipse at center, transparent 50%, rgba(44, 36, 25, 0.06) 100%);
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(10, 16, 11, 0.25) 100%);
 }
 .dark .intranet-vignette {
-  background: radial-gradient(ellipse at center, transparent 40%, rgba(10, 16, 11, 0.25) 100%);
+  background: radial-gradient(ellipse at center, transparent 30%, rgba(5, 8, 6, 0.4) 100%);
 }
 
 /* ===== Card warm hover ===== */
@@ -101,13 +159,13 @@
   transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
 }
 .card-hover-warm:hover {
-  box-shadow: 0 4px 24px rgba(175, 143, 60, 0.1);
+  box-shadow: 0 4px 24px rgba(175, 143, 60, 0.08);
   transform: translateY(-1px);
-  border-color: rgba(175, 143, 60, 0.25);
+  border-color: rgba(175, 143, 60, 0.2);
 }
 .dark .card-hover-warm:hover {
-  box-shadow: 0 4px 24px rgba(175, 143, 60, 0.08);
-  border-color: rgba(175, 143, 60, 0.2);
+  box-shadow: 0 4px 24px rgba(175, 143, 60, 0.06);
+  border-color: rgba(175, 143, 60, 0.15);
 }
 
 /* Gold accent line */
@@ -126,14 +184,14 @@
 /* ===== Intranet UCard overrides ===== */
 
 .intranet-root :where([data-slot="card"]) {
-  background-color: rgba(247, 240, 222, 0.5);
-  border-color: rgba(175, 143, 60, 0.1);
-  box-shadow: 0 1px 3px rgba(44, 36, 25, 0.04);
-}
-.dark .intranet-root :where([data-slot="card"]) {
   background-color: rgba(26, 37, 32, 0.6);
   border-color: rgba(175, 143, 60, 0.08);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+.dark .intranet-root :where([data-slot="card"]) {
+  background-color: rgba(10, 14, 12, 0.7);
+  border-color: rgba(175, 143, 60, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 
 /* ===== Public page animations ===== */
