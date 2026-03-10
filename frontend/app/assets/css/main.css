@@ -13,9 +13,10 @@
 }
 
 /* ===== Inverted color scale for dark-first theme ===== */
-/* Light mode = forest green dark, Dark mode = even deeper */
+/* Light mode (default) = forest green dark look */
+/* Dark mode = even deeper, but scale stays normal so dark:text-white = light */
 
-.intranet-root {
+:root:has(.intranet-root) {
   --color-white: #1a2520;
   --color-stone-50: #1e2926;
   --color-stone-100: #232f2b;
@@ -29,7 +30,6 @@
   --color-stone-900: #e8e0d0;
   --color-stone-950: #f0e8d8;
 
-  /* Gray scale (used by some pages and NuxtUI neutral) */
   --color-gray-50: #1e2926;
   --color-gray-100: #232f2b;
   --color-gray-200: #2d3b35;
@@ -43,31 +43,32 @@
   --color-gray-950: #f0e8d8;
 }
 
-.dark .intranet-root {
-  --color-white: #0a0e0c;
-  --color-stone-50: #0e1311;
-  --color-stone-100: #131a17;
-  --color-stone-200: #1a2420;
-  --color-stone-300: #2a3b34;
+/* Dark mode: normal direction (50=light, 950=dark) so dark:text-white = cream */
+:root.dark:has(.intranet-root) {
+  --color-white: #d5cdbf;
+  --color-stone-50: #c8d0cb;
+  --color-stone-100: #b0bfb6;
+  --color-stone-200: #95a89e;
+  --color-stone-300: #758a80;
   --color-stone-400: #556b62;
-  --color-stone-500: #758a80;
-  --color-stone-600: #95a89e;
-  --color-stone-700: #b0bfb6;
-  --color-stone-800: #c8d0cb;
-  --color-stone-900: #d5cdbf;
-  --color-stone-950: #e0d8c8;
+  --color-stone-500: #3d5248;
+  --color-stone-600: #2a3b34;
+  --color-stone-700: #1a2420;
+  --color-stone-800: #131a17;
+  --color-stone-900: #0e1311;
+  --color-stone-950: #0a0e0c;
 
-  --color-gray-50: #0e1311;
-  --color-gray-100: #131a17;
-  --color-gray-200: #1a2420;
-  --color-gray-300: #2a3b34;
+  --color-gray-50: #c8d0cb;
+  --color-gray-100: #b0bfb6;
+  --color-gray-200: #95a89e;
+  --color-gray-300: #758a80;
   --color-gray-400: #556b62;
-  --color-gray-500: #758a80;
-  --color-gray-600: #95a89e;
-  --color-gray-700: #b0bfb6;
-  --color-gray-800: #c8d0cb;
-  --color-gray-900: #d5cdbf;
-  --color-gray-950: #e0d8c8;
+  --color-gray-500: #3d5248;
+  --color-gray-600: #2a3b34;
+  --color-gray-700: #1a2420;
+  --color-gray-800: #131a17;
+  --color-gray-900: #0e1311;
+  --color-gray-950: #0a0e0c;
 }
 
 /* ===== Typography ===== */
