@@ -1,7 +1,17 @@
 /**
- * Insere les 5 offres de stage du document "offres d'emplois.docx" dans la collection offres_emploi.
+ * Insere les 5 offres de stage du document "offres d'emplois.docx" dans la collection offres_emploi,
+ * et leur assigne des categories via la table de junction offres_emploi_categories.
  */
 export default async function ({ api, safeApi }) {
+  // Map offre title keyword → category names to assign
+  const offreCategoriesMap = {
+    'commercial': ['Administration'],
+    'Illustrateur': ['Design 2D/3D'],
+    'Developpeur': ['Informatique'],
+    'UI/UX': ['Design 2D/3D', 'Informatique'],
+    'communication': ['Communication']
+  }
+
   const offres = [
     {
       titre: 'Charge·e de developpement commercial — Stage',
@@ -127,21 +137,61 @@ Missions :
     }
   ]
 
+  // Load categories for M2M assignment
+  let categoriesMap = {}
+  try {
+    const cats = await api('GET', '/items/categories?fields=id,nom&limit=-1')
+    if (cats) {
+      for (const cat of cats) {
+        categoriesMap[cat.nom] = cat.id
+      }
+    }
+  } catch {
+    console.log('  ⚠ Impossible de charger les categories (collection peut-etre absente)')
+  }
+
   for (const offre of offres) {
     // Check if already exists by title
+    let existingId = null
     try {
       const existing = await api('GET', `/items/offres_emploi?filter[titre][_eq]=${encodeURIComponent(offre.titre)}&fields=id&limit=1`)
       if (existing && existing.length > 0) {
+        existingId = existing[0].id
         console.log(`  ⊘ Offre "${offre.titre.substring(0, 40)}..." existe deja`)
-        continue
       }
     } catch {
       // Collection may not exist yet, continue with create
     }
 
-    await safeApi('POST', '/items/offres_emploi', {
-      ...offre,
-      date_publication: new Date().toISOString()
-    }, `Offre "${offre.titre.substring(0, 45)}..."`)
+    let offreId = existingId
+    if (!existingId) {
+      const created = await safeApi('POST', '/items/offres_emploi', {
+        ...offre,
+        date_publication: new Date().toISOString()
+      }, `Offre "${offre.titre.substring(0, 45)}..."`)
+      if (created) offreId = created.id
+    }
+
+    // Assign categories via M2M junction
+    if (offreId && Object.keys(categoriesMap).length) {
+      for (const [keyword, catNames] of Object.entries(offreCategoriesMap)) {
+        if (offre.titre.toLowerCase().includes(keyword.toLowerCase())) {
+          for (const catName of catNames) {
+            const catId = categoriesMap[catName]
+            if (!catId) continue
+            // Check if junction already exists
+            try {
+              const existing = await api('GET', `/items/offres_emploi_categories?filter[offres_emploi_id][_eq]=${offreId}&filter[categories_id][_eq]=${catId}&limit=1`)
+              if (existing && existing.length > 0) continue
+            } catch { /* junction table may not exist yet */ }
+            await safeApi('POST', '/items/offres_emploi_categories', {
+              offres_emploi_id: offreId,
+              categories_id: catId
+            }, `  Junction offre → ${catName}`)
+          }
+          break
+        }
+      }
+    }
   }
 }

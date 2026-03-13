@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { OffreEmploi, TypeContrat } from '~/utils/types'
+import type { OffreEmploi, TypeContrat, Category } from '~/utils/types'
 import { CONTRACT_OPTIONS, SALAIRE_OPTIONS, CONTRACT_COLORS } from '~/utils/constants'
 
 definePageMeta({
@@ -8,11 +8,26 @@ definePageMeta({
 
 const route = useRoute()
 const { getById, update, remove } = useJobListings()
+const { getAll: getAllCategories } = useCategories()
 const toast = useToast()
 
 const offreId = route.params.id as string
 
 const { data: offre, status, refresh } = useAsyncData(`offre-${offreId}`, () => getById(offreId))
+const { data: allCategories } = useAsyncData('categories', getAllCategories)
+
+const selectedCategoryIds = ref<string[]>([])
+
+const categoryOptions = computed(() =>
+  (allCategories.value || []).map((c: Category) => ({ label: c.nom, value: c.id }))
+)
+
+function getOffreCategories(o: OffreEmploi): Category[] {
+  if (!o.categories?.length) return []
+  return o.categories
+    .map(j => typeof j.categories_id === 'object' ? j.categories_id : null)
+    .filter((c): c is Category => c !== null)
+}
 
 // ---- Edition ----
 const isEditing = ref(false)
@@ -50,6 +65,7 @@ function startEditing() {
   form.publie = val.publie
   form.date_expiration = val.date_expiration ? val.date_expiration.split('T')[0] : ''
   showSalaire.value = !!(val.salaire_min || val.salaire_max)
+  selectedCategoryIds.value = getOffreCategories(val).map(c => c.id)
   isEditing.value = true
 }
 
@@ -61,7 +77,7 @@ async function handleSubmit() {
 
   submitting.value = true
   try {
-    const payload: Partial<OffreEmploi> = {
+    const payload: Record<string, unknown> = {
       titre: form.titre,
       description: form.description,
       type_contrat: form.type_contrat,
@@ -72,14 +88,15 @@ async function handleSubmit() {
       competences_requises: form.competences_requises || null,
       avantages: form.avantages || null,
       publie: form.publie,
-      date_expiration: form.date_expiration || null
+      date_expiration: form.date_expiration || null,
+      categories: selectedCategoryIds.value.map(id => ({ categories_id: id }))
     }
 
     if (form.publie && offre.value && !offre.value.publie) {
       payload.date_publication = new Date().toISOString()
     }
 
-    await update(offreId, payload)
+    await update(offreId, payload as Partial<OffreEmploi>)
     toast.add({ title: 'Offre mise a jour', color: 'success' })
     isEditing.value = false
     await refresh()
@@ -161,6 +178,15 @@ function formatSalaire(o: OffreEmploi) {
               <UBadge :color="offre.publie ? 'green' : 'neutral'" variant="subtle" size="sm">
                 {{ offre.publie ? 'Publiee' : 'Brouillon' }}
               </UBadge>
+              <UBadge
+                v-for="cat in getOffreCategories(offre)"
+                :key="cat.id"
+                variant="outline"
+                size="sm"
+                :style="cat.couleur ? { borderColor: cat.couleur + '80', color: cat.couleur } : {}"
+              >
+                {{ cat.nom }}
+              </UBadge>
             </div>
             <div class="flex flex-wrap items-center gap-4 text-sm text-stone-500 dark:text-stone-400">
               <span class="flex items-center gap-1.5">
@@ -227,6 +253,17 @@ function formatSalaire(o: OffreEmploi) {
                 <UInput v-model="form.localisation" placeholder="Ex: Lyon, France" icon="i-lucide-map-pin" class="w-full" />
               </UFormField>
             </div>
+
+            <UFormField label="Categories">
+              <USelectMenu
+                v-model="selectedCategoryIds"
+                :items="categoryOptions"
+                value-key="value"
+                multiple
+                placeholder="Selectionner des categories..."
+                class="w-full"
+              />
+            </UFormField>
           </div>
         </UCard>
 

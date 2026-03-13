@@ -732,6 +732,9 @@ function formatDate(date: string) {
   flex-direction: column;
   gap: 20px;
   font-family: 'Crimson Pro', Georgia, serif;
+  overflow-y: auto;
+  max-height: 100vh;
+  max-height: 100dvh;
 }
 .slideover-title {
   font-family: 'IM Fell DW Pica', Georgia, serif;

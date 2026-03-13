@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { OffreEmploi, TypeContrat } from '~/utils/types'
+import type { OffreEmploi, TypeContrat, Category } from '~/utils/types'
 import { CONTRACT_OPTIONS, SALAIRE_OPTIONS } from '~/utils/constants'
 
 definePageMeta({
@@ -7,10 +7,18 @@ definePageMeta({
 })
 
 const { create } = useJobListings()
+const { getAll: getAllCategories } = useCategories()
 const toast = useToast()
 
 const submitting = ref(false)
 const showSalaire = ref(false)
+
+const { data: allCategories } = useAsyncData('categories', getAllCategories)
+const selectedCategoryIds = ref<string[]>([])
+
+const categoryOptions = computed(() =>
+  (allCategories.value || []).map((c: Category) => ({ label: c.nom, value: c.id }))
+)
 
 const form = reactive({
   titre: '',
@@ -34,7 +42,7 @@ async function handleSubmit() {
 
   submitting.value = true
   try {
-    const payload: Partial<OffreEmploi> = {
+    const payload: Record<string, unknown> = {
       titre: form.titre,
       description: form.description,
       type_contrat: form.type_contrat,
@@ -52,7 +60,11 @@ async function handleSubmit() {
       payload.date_publication = new Date().toISOString()
     }
 
-    const result = await create(payload)
+    if (selectedCategoryIds.value.length) {
+      payload.categories = selectedCategoryIds.value.map(id => ({ categories_id: id }))
+    }
+
+    const result = await create(payload as Partial<OffreEmploi>)
     toast.add({ title: 'Offre creee avec succes', color: 'success' })
     navigateTo(`/offres/${result.id}`)
   } catch {
@@ -104,6 +116,17 @@ async function handleSubmit() {
                 <UInput v-model="form.localisation" placeholder="Ex: Lyon, France" icon="i-lucide-map-pin" class="w-full" />
               </UFormField>
             </div>
+
+            <UFormField label="Categories">
+              <USelectMenu
+                v-model="selectedCategoryIds"
+                :items="categoryOptions"
+                value-key="value"
+                multiple
+                placeholder="Selectionner des categories..."
+                class="w-full"
+              />
+            </UFormField>
           </div>
         </UCard>
 

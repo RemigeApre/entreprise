@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { OffreEmploi } from '~/utils/types'
+import type { OffreEmploi, Category } from '~/utils/types'
 import { CONTRACT_OPTIONS, CONTRACT_COLORS } from '~/utils/constants'
 
 definePageMeta({
@@ -60,6 +60,13 @@ const stats = computed(() => {
   const publiees = offres.value.filter((o: OffreEmploi) => o.publie).length
   return { total, publiees, brouillons: total - publiees }
 })
+
+function getOffreCategories(o: OffreEmploi): Category[] {
+  if (!o.categories?.length) return []
+  return o.categories
+    .map(j => typeof j.categories_id === 'object' ? j.categories_id : null)
+    .filter((c): c is Category => c !== null)
+}
 
 const hasFilters = computed(() => !!search.value || !!filterContrat.value || !!filterStatut.value)
 
@@ -233,6 +240,15 @@ function truncate(text: string, max: number) {
                       size="xs"
                     >
                       {{ offre.type_contrat }}
+                    </UBadge>
+                    <UBadge
+                      v-for="cat in getOffreCategories(offre)"
+                      :key="cat.id"
+                      variant="outline"
+                      size="xs"
+                      :style="cat.couleur ? { borderColor: cat.couleur + '60', color: cat.couleur } : {}"
+                    >
+                      {{ cat.nom }}
                     </UBadge>
                     <span class="flex items-center gap-1 text-xs text-stone-500 dark:text-stone-400">
                       <UIcon name="i-lucide-map-pin" class="size-3" />
