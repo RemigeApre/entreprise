@@ -136,8 +136,8 @@ function formatDate(date: string) {
       <!-- login-back: position absolute, top ..., LEFT ... -->
       <!-- panel-back: position absolute, top ..., RIGHT ... -->
       <button class="panel-back" @click="goBack">
-        <UIcon name="i-lucide-arrow-right" class="size-4" />
         <span>Retour</span>
+        <UIcon name="i-lucide-arrow-right" class="size-4 back-arrow" />
       </button>
 
       <!-- Content — same structure as login-form-wrap -->
@@ -413,10 +413,15 @@ function formatDate(date: string) {
   text-transform: uppercase;
   text-decoration: none;
   color: var(--gold);
-  opacity: 0.7;
-  transition: opacity 0.3s, gap 0.3s;
+  opacity: 0.6;
+  transition: opacity 0.4s ease, gap 0.3s;
+  cursor: pointer;
 }
-.panel-back:hover { opacity: 1; gap: 12px; }
+.panel-back .back-arrow {
+  transition: transform 0.3s ease;
+}
+.panel-back:hover { opacity: 1; }
+.panel-back:hover .back-arrow { transform: translateX(3px); }
 
 /*
  * PANEL CONTENT — mirror of index.vue .login-form-wrap

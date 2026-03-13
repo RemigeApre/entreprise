@@ -108,7 +108,7 @@ const branches = [
     <!-- POLES PANEL — slides from BOTTOM (logo goes up = content from bottom) -->
     <div class="poles-panel">
       <button class="panel-back" @click="goBack">
-        <UIcon name="i-lucide-arrow-left" class="size-4" />
+        <UIcon name="i-lucide-arrow-up" class="size-4 back-arrow" />
         <span>Retour</span>
       </button>
 
@@ -414,7 +414,8 @@ const branches = [
 .panel-back {
   position: fixed;
   top: clamp(20px, 3.5vw, 36px);
-  left: clamp(20px, 3vw, 40px);
+  left: 50%;
+  transform: translateX(-50%);
   display: flex; align-items: center; gap: 8px;
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: 13px;
@@ -424,10 +425,15 @@ const branches = [
   color: var(--gold);
   opacity: 0;
   z-index: 30;
-  transition: opacity 0.3s, gap 0.3s;
+  transition: opacity 0.4s ease, gap 0.3s;
+  cursor: pointer;
 }
-.revealed .panel-back { opacity: 0.7; }
-.panel-back:hover { opacity: 1; gap: 12px; }
+.panel-back .back-arrow {
+  transition: transform 0.3s ease;
+}
+.revealed .panel-back { opacity: 0.6; }
+.panel-back:hover { opacity: 1; }
+.panel-back:hover .back-arrow { transform: translateY(-3px); }
 
 .panel-content {
   width: 100%;

@@ -225,16 +225,16 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
   text-decoration: none;
   color: var(--gold);
   opacity: 0.5;
-  transition: opacity 0.3s, gap 0.3s;
+  transition: opacity 0.4s ease, gap 0.3s;
   display: flex; align-items: center;
   gap: 6px;
 }
-.pub-back:hover { opacity: 1; gap: 10px; }
+.pub-back:hover { opacity: 1; }
 .pub-back-arrow {
   font-size: 14px;
-  transition: transform 0.3s;
+  transition: transform 0.3s ease;
 }
-.pub-back:hover .pub-back-arrow { transform: translateX(-2px); }
+.pub-back:hover .pub-back-arrow { transform: translateX(-3px); }
 .pub-back-label {
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: 12px;

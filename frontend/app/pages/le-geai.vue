@@ -109,8 +109,8 @@ const values = [
     <!-- VALEURS PANEL — slides from TOP (logo goes down = content from top) -->
     <div class="valeurs-panel">
       <button class="panel-back" @click="goBack">
-        <UIcon name="i-lucide-arrow-left" class="size-4" />
         <span>Retour</span>
+        <UIcon name="i-lucide-arrow-down" class="size-4 back-arrow" />
       </button>
 
       <div class="panel-content">
@@ -407,21 +407,27 @@ const values = [
 
 .panel-back {
   position: fixed;
-  top: clamp(20px, 3.5vw, 36px);
-  left: clamp(20px, 3vw, 40px);
-  display: flex; align-items: center; gap: 8px;
+  bottom: clamp(24px, 4vw, 40px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px;
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 13px;
-  letter-spacing: 0.12em;
+  font-size: 12px;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   text-decoration: none;
   color: var(--gold);
   opacity: 0;
   z-index: 30;
-  transition: opacity 0.3s, gap 0.3s;
+  transition: opacity 0.4s ease, gap 0.3s;
+  cursor: pointer;
 }
-.revealed .panel-back { opacity: 0.7; }
-.panel-back:hover { opacity: 1; gap: 12px; }
+.panel-back .back-arrow {
+  transition: transform 0.3s ease;
+}
+.revealed .panel-back { opacity: 0.6; }
+.panel-back:hover { opacity: 1; }
+.panel-back:hover .back-arrow { transform: translateY(3px); }
 
 .panel-content {
   width: 100%;
