@@ -7,7 +7,7 @@ export function useJobListings() {
   async function getAll() {
     return await $directus.request(readItems('offres_emploi', {
       fields: [
-        'id', 'titre', 'description', 'type_contrat', 'localisation',
+        'id', 'titre', 'description', 'type_contrat', 'localisation', 'teletravail',
         'salaire_min', 'salaire_max', 'salaire_periode',
         'categorie.id', 'categorie.nom',
         'categories.categories_id.id', 'categories.categories_id.nom', 'categories.categories_id.couleur',

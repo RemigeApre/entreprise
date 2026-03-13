@@ -656,6 +656,7 @@ async function createCollections() {
         { text: 'Stage', value: 'Stage' }
       ], { required: true, width: 'half' }),
       { field: 'localisation', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, width: 'half', sort: 4 } },
+      { field: 'teletravail', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 5, note: 'Proportion de teletravail (ex: 90%, 100%, 2j/sem)' } },
       { field: 'salaire_min', type: 'float', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 5 } },
       { field: 'salaire_max', type: 'float', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 6 } },
       dropdown('salaire_periode', [

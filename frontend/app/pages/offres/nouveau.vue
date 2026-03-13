@@ -25,6 +25,7 @@ const form = reactive({
   description: '',
   type_contrat: 'CDI' as TypeContrat,
   localisation: '',
+  teletravail: '',
   salaire_min: null as number | null,
   salaire_max: null as number | null,
   salaire_periode: 'mois' as 'heure' | 'mois' | 'annee',
@@ -47,6 +48,7 @@ async function handleSubmit() {
       description: form.description,
       type_contrat: form.type_contrat,
       localisation: form.localisation,
+      teletravail: form.teletravail || null,
       salaire_min: showSalaire.value ? form.salaire_min : null,
       salaire_max: showSalaire.value ? form.salaire_max : null,
       salaire_periode: showSalaire.value ? form.salaire_periode : null,
@@ -116,6 +118,9 @@ async function handleSubmit() {
                 <UInput v-model="form.localisation" placeholder="Ex: Lyon, France" icon="i-lucide-map-pin" class="w-full" />
               </UFormField>
             </div>
+            <UFormField label="Teletravail">
+              <UInput v-model="form.teletravail" placeholder="Ex: 90%, 2j/sem, 100%" icon="i-lucide-laptop" class="w-full" />
+            </UFormField>
 
             <UFormField label="Categories">
               <USelectMenu

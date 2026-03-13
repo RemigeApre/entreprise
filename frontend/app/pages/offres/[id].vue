@@ -41,6 +41,7 @@ const form = reactive({
   description: '',
   type_contrat: 'CDI' as TypeContrat,
   localisation: '',
+  teletravail: '',
   salaire_min: null as number | null,
   salaire_max: null as number | null,
   salaire_periode: 'mois' as 'heure' | 'mois' | 'annee',
@@ -57,6 +58,7 @@ function startEditing() {
   form.description = val.description
   form.type_contrat = val.type_contrat
   form.localisation = val.localisation
+  form.teletravail = val.teletravail || ''
   form.salaire_min = val.salaire_min
   form.salaire_max = val.salaire_max
   form.salaire_periode = val.salaire_periode || 'mois'
@@ -82,6 +84,7 @@ async function handleSubmit() {
       description: form.description,
       type_contrat: form.type_contrat,
       localisation: form.localisation,
+      teletravail: form.teletravail || null,
       salaire_min: showSalaire.value ? form.salaire_min : null,
       salaire_max: showSalaire.value ? form.salaire_max : null,
       salaire_periode: showSalaire.value ? form.salaire_periode : null,
@@ -193,6 +196,10 @@ function formatSalaire(o: OffreEmploi) {
                 <UIcon name="i-lucide-map-pin" class="size-3.5" />
                 {{ offre.localisation }}
               </span>
+              <span v-if="offre.teletravail" class="flex items-center gap-1.5">
+                <UIcon name="i-lucide-laptop" class="size-3.5" />
+                Teletravail {{ offre.teletravail }}
+              </span>
               <span v-if="formatSalaire(offre)" class="flex items-center gap-1.5">
                 <UIcon name="i-lucide-banknote" class="size-3.5" />
                 {{ formatSalaire(offre) }}
@@ -253,6 +260,9 @@ function formatSalaire(o: OffreEmploi) {
                 <UInput v-model="form.localisation" placeholder="Ex: Lyon, France" icon="i-lucide-map-pin" class="w-full" />
               </UFormField>
             </div>
+            <UFormField label="Teletravail">
+              <UInput v-model="form.teletravail" placeholder="Ex: 90%, 2j/sem, 100%" icon="i-lucide-laptop" class="w-full" />
+            </UFormField>
 
             <UFormField label="Categories">
               <USelectMenu

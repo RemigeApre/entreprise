@@ -37,7 +37,7 @@ const { data: offres, status } = useAsyncData('offres-publiques', async () => {
         ]
       },
       fields: [
-        'id', 'titre', 'description', 'type_contrat', 'localisation',
+        'id', 'titre', 'description', 'type_contrat', 'localisation', 'teletravail',
         'salaire_min', 'salaire_max', 'salaire_periode',
         'competences_requises', 'avantages', 'date_publication',
         'categorie.id', 'categorie.nom', 'categorie.couleur',
@@ -265,6 +265,7 @@ function formatDate(date: string) {
               <h3 class="offre-title">{{ offre.titre }}</h3>
               <div class="offre-meta">
                 <span v-if="offre.localisation">{{ offre.localisation }}</span>
+                <span v-if="offre.teletravail">Teletravail {{ offre.teletravail }}</span>
                 <span v-if="formatSalaire(offre)">{{ formatSalaire(offre) }}</span>
               </div>
               <div v-if="getCategories(offre).length" class="offre-cats">
@@ -300,6 +301,7 @@ function formatDate(date: string) {
 
           <div class="slideover-meta">
             <span v-if="selectedOffre.localisation">{{ selectedOffre.localisation }}</span>
+            <span v-if="selectedOffre.teletravail">Teletravail {{ selectedOffre.teletravail }}</span>
             <span v-if="formatSalaire(selectedOffre)">{{ formatSalaire(selectedOffre) }}</span>
             <span v-if="selectedOffre.date_publication">{{ formatDate(selectedOffre.date_publication) }}</span>
           </div>

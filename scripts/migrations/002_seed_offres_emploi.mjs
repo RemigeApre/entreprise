@@ -16,7 +16,8 @@ export default async function ({ api, safeApi }) {
     {
       titre: 'Charge·e de developpement commercial — Stage',
       type_contrat: 'Stage',
-      localisation: 'Lyon / Teletravail (90%)',
+      localisation: 'Lyon',
+      teletravail: '90%',
       description: `Le Geai — Trois branches, une meme exigence : sites web et IT, edition de livres, media geopolitique. On cherche quelqu'un pour aller chercher nos premiers clients et batir la strategie qui les amene a nous.
 
 Missions :
@@ -41,7 +42,8 @@ Missions :
     {
       titre: 'Illustrateur·rice 2D / 3D — Stage',
       type_contrat: 'Stage',
-      localisation: 'Lyon / Teletravail (90%)',
+      localisation: 'Lyon',
+      teletravail: '90%',
       description: `Le Geai — Trois branches, un meme soin du detail : sites web et IT, edition de livres, media geopolitique. On cherche un oeil et une main pour donner forme a tout ca.
 
 Missions :
@@ -65,7 +67,8 @@ Missions :
     {
       titre: 'Developpeur·se Web / App — Stage',
       type_contrat: 'Stage',
-      localisation: 'Lyon / Teletravail (90%)',
+      localisation: 'Lyon',
+      teletravail: '90%',
       description: `Le Geai — Trois branches, une meme exigence : sites web et IT, edition de livres, media geopolitique. On cherche un·e dev qui veut construire des vrais projets, pas des maquettes qui finissent dans un tiroir.
 
 Missions :
@@ -89,7 +92,8 @@ Missions :
     {
       titre: 'UI/UX Designer — Stage',
       type_contrat: 'Stage',
-      localisation: 'Lyon / Teletravail (90%)',
+      localisation: 'Lyon',
+      teletravail: '90%',
       description: `Le Geai — Trois branches, une meme exigence : sites web et IT, edition de livres, media geopolitique. On cherche quelqu'un qui pense l'experience avant le pixel.
 
 Missions :
@@ -113,7 +117,8 @@ Missions :
     {
       titre: 'Charge·e de communication — Stage',
       type_contrat: 'Stage',
-      localisation: 'Lyon / Teletravail (90%)',
+      localisation: 'Lyon',
+      teletravail: '90%',
       description: `Le Geai — Trois branches, une meme exigence : sites web et IT, edition de livres, media geopolitique. On cherche quelqu'un qui sait parler de nous sans parler comme tout le monde.
 
 Missions :

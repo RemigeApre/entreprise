@@ -254,6 +254,10 @@ function truncate(text: string, max: number) {
                       <UIcon name="i-lucide-map-pin" class="size-3" />
                       {{ offre.localisation }}
                     </span>
+                    <span v-if="offre.teletravail" class="flex items-center gap-1 text-xs text-stone-500 dark:text-stone-400">
+                      <UIcon name="i-lucide-laptop" class="size-3" />
+                      Teletravail {{ offre.teletravail }}
+                    </span>
                     <span v-if="formatSalaire(offre)" class="flex items-center gap-1 text-xs text-stone-500 dark:text-stone-400">
                       <UIcon name="i-lucide-banknote" class="size-3" />
                       {{ formatSalaire(offre) }}

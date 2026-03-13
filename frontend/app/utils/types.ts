@@ -193,6 +193,7 @@ export interface OffreEmploi {
   description: string
   type_contrat: TypeContrat
   localisation: string
+  teletravail: string | null
   salaire_min: number | null
   salaire_max: number | null
   salaire_periode: 'heure' | 'mois' | 'annee' | null
