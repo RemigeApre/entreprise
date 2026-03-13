@@ -167,7 +167,7 @@ function onDragEnd(e: DragEvent) {
   <div class="dash-page">
     <!-- ═══ HEADER ═══ -->
     <div class="dash-header">
-      <h1 class="font-heading text-xl sm:text-2xl tracking-wide text-[#e8e0d0] opacity-80">
+      <h1 class="font-heading text-xl sm:text-2xl tracking-wide text-[#2c2419] opacity-80">
         {{ greeting }}, {{ userDisplayName }}
       </h1>
       <p class="text-xs text-[#af8f3c]/50 tracking-wider mt-0.5">{{ greetingSubtext }}</p>
@@ -417,9 +417,9 @@ function onDragEnd(e: DragEvent) {
   width: 24px;
   height: 24px;
   border-radius: 9999px;
-  background: #1e2926;
-  border: 1px solid rgba(175, 143, 60, 0.1);
-  color: rgba(175, 143, 60, 0.4);
+  background: #f5efe0;
+  border: 1px solid rgba(175, 143, 60, 0.15);
+  color: rgba(175, 143, 60, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -469,9 +469,9 @@ function onDragEnd(e: DragEvent) {
   width: 24px;
   height: 24px;
   border-radius: 9999px;
-  background: #1e2926;
-  border: 1px solid rgba(175, 143, 60, 0.1);
-  color: rgba(175, 143, 60, 0.4);
+  background: #f5efe0;
+  border: 1px solid rgba(175, 143, 60, 0.15);
+  color: rgba(175, 143, 60, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;

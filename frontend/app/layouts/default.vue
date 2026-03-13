@@ -457,14 +457,15 @@ const userMenuItems = computed(() => [
   --gold-dim: rgba(175, 143, 60, 0.25);
   --gold-faint: rgba(175, 143, 60, 0.08);
   --cream: #F7F0DE;
+  --parchment: #f5efe0;
   --ink: #2c2419;
   --sidebar-w: 56px;
 
   display: flex;
   height: 100dvh;
   overflow: hidden;
-  background-color: #1a2520;
-  color: #e8e0d0;
+  background-color: var(--cream);
+  color: var(--ink);
   font-family: 'Crimson Pro', Georgia, serif;
 }
 
@@ -478,8 +479,8 @@ const userMenuItems = computed(() => [
   width: var(--sidebar-w);
   flex-shrink: 0;
   padding: 10px 0 12px;
-  border-right: 1px solid rgba(175, 143, 60, 0.12);
-  background: linear-gradient(180deg, rgba(26, 37, 32, 0.9) 0%, rgba(20, 30, 25, 0.95) 100%);
+  border-right: 1px solid rgba(175, 143, 60, 0.15);
+  background: linear-gradient(180deg, #ede5d0 0%, #e8dfc8 100%);
   position: relative;
   z-index: 10;
 }
@@ -518,7 +519,7 @@ const userMenuItems = computed(() => [
   width: 24px;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--gold), transparent);
-  opacity: 0.25;
+  opacity: 0.3;
   margin: 6px 0;
 }
 
@@ -539,14 +540,14 @@ const userMenuItems = computed(() => [
   width: 38px;
   height: 38px;
   border-radius: 8px;
-  color: #e8e0d0;
+  color: var(--ink);
   opacity: 0.4;
   transition: all 0.25s ease;
   position: relative;
 }
 .sidebar-icon:hover {
   opacity: 0.7;
-  background: var(--gold-faint);
+  background: rgba(175, 143, 60, 0.08);
 }
 .sidebar-icon.is-active {
   opacity: 1;
@@ -610,8 +611,8 @@ const userMenuItems = computed(() => [
    ============================ */
 .tab-bar {
   display: none;
-  border-bottom: 1px solid rgba(175, 143, 60, 0.1);
-  background: rgba(26, 37, 32, 0.6);
+  border-bottom: 1px solid rgba(175, 143, 60, 0.12);
+  background: rgba(245, 239, 224, 0.8);
   flex-shrink: 0;
   position: relative;
   z-index: 10;
@@ -643,7 +644,7 @@ const userMenuItems = computed(() => [
   letter-spacing: 0.08em;
   text-transform: uppercase;
   text-decoration: none;
-  color: #e8e0d0;
+  color: var(--ink);
   opacity: 0.4;
   position: relative;
   transition: opacity 0.25s, color 0.25s;
@@ -700,10 +701,10 @@ const userMenuItems = computed(() => [
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: rgba(26, 37, 32, 0.9);
+  background: rgba(245, 239, 224, 0.95);
   border: 1px solid rgba(175, 143, 60, 0.15);
-  color: #e8e0d0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  color: var(--ink);
+  box-shadow: 0 2px 8px rgba(44, 36, 25, 0.1);
   transition: transform 0.15s, box-shadow 0.2s;
 }
 .mobile-menu-trigger:active {
@@ -718,8 +719,8 @@ const userMenuItems = computed(() => [
   inset: 0 auto 0 0;
   z-index: 61;
   width: 280px;
-  background: #1a2520;
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+  background: var(--parchment);
+  box-shadow: 4px 0 24px rgba(44, 36, 25, 0.15);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -753,7 +754,7 @@ const userMenuItems = computed(() => [
   width: 32px;
   height: 32px;
   border-radius: 6px;
-  color: #e8e0d0;
+  color: var(--ink);
   opacity: 0.4;
   transition: opacity 0.2s, background 0.2s;
 }
@@ -789,7 +790,7 @@ const userMenuItems = computed(() => [
   border-radius: 8px;
   font-size: 14px;
   text-decoration: none;
-  color: #e8e0d0;
+  color: var(--ink);
   opacity: 0.55;
   transition: all 0.2s;
 }
@@ -816,19 +817,10 @@ const userMenuItems = computed(() => [
   gap: 8px;
 }
 
-.drawer-theme-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  font-size: 13px;
-  color: #e8e0d0;
-  opacity: 0.5;
-  transition: opacity 0.2s;
 .drawer-settings {
   padding: 10px;
   border-radius: 8px;
-  background: rgba(175, 143, 60, 0.03);
+  background: rgba(175, 143, 60, 0.04);
   border: 1px solid var(--gold-faint);
   display: flex;
   flex-direction: column;
@@ -907,7 +899,7 @@ const userMenuItems = computed(() => [
 
 .settings-text {
   font-size: 13px;
-  color: #e8e0d0;
+  color: var(--ink);
   opacity: 0.7;
 }
 
@@ -926,7 +918,7 @@ const userMenuItems = computed(() => [
   gap: 8px;
   cursor: pointer;
   font-size: 13px;
-  color: #e8e0d0;
+  color: var(--ink);
   opacity: 0.7;
 }
 .settings-radio input[type="radio"] {
@@ -937,6 +929,6 @@ const userMenuItems = computed(() => [
 <style>
 /* Global styles for intranet root background */
 html:has(.intranet-root) {
-  background-color: #1a2520;
+  background-color: #F7F0DE;
 }
 </style>

@@ -42,11 +42,7 @@ defineProps<{
   font-size: 1.1rem;
   font-weight: 400;
   letter-spacing: 0.08em;
-  color: #e8e0d0;
-  opacity: 0.55;
-}
-:global(.dark) .page-header-title {
-  color: #d5cdbf;
+  color: #2c2419;
   opacity: 0.45;
 }
 </style>
