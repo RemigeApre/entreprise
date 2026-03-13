@@ -12,9 +12,8 @@
   --color-brand-ink: #2c2419;
 }
 
-/* ===== Inverted color scale for dark-first theme ===== */
-/* Light mode (default) = forest green dark look */
-/* Dark mode = even deeper, but scale stays normal so dark:text-white = light */
+/* ===== Inverted color scale for forest-green theme ===== */
+/* Single theme: dark forest green look via inverted scale */
 
 :root:has(.intranet-root) {
   --color-white: #1a2520;
@@ -43,34 +42,6 @@
   --color-gray-950: #f0e8d8;
 }
 
-/* Dark mode: normal direction (50=light, 950=dark) so dark:text-white = cream */
-:root.dark:has(.intranet-root) {
-  --color-white: #d5cdbf;
-  --color-stone-50: #c8d0cb;
-  --color-stone-100: #b0bfb6;
-  --color-stone-200: #95a89e;
-  --color-stone-300: #758a80;
-  --color-stone-400: #556b62;
-  --color-stone-500: #3d5248;
-  --color-stone-600: #2a3b34;
-  --color-stone-700: #1a2420;
-  --color-stone-800: #131a17;
-  --color-stone-900: #0e1311;
-  --color-stone-950: #0a0e0c;
-
-  --color-gray-50: #c8d0cb;
-  --color-gray-100: #b0bfb6;
-  --color-gray-200: #95a89e;
-  --color-gray-300: #758a80;
-  --color-gray-400: #556b62;
-  --color-gray-500: #3d5248;
-  --color-gray-600: #2a3b34;
-  --color-gray-700: #1a2420;
-  --color-gray-800: #131a17;
-  --color-gray-900: #0e1311;
-  --color-gray-950: #0a0e0c;
-}
-
 /* ===== Typography ===== */
 
 .font-heading {
@@ -87,19 +58,11 @@
 .bg-academia {
   background-color: var(--color-brand-green);
 }
-.dark .bg-academia {
-  background-color: #0a0e0c;
-}
 
 .bg-paper {
   background-image:
     radial-gradient(ellipse at 20% 50%, oklch(0.20 0.01 60 / 0.3), transparent 50%),
     radial-gradient(ellipse at 80% 20%, oklch(0.18 0.015 40 / 0.2), transparent 50%);
-}
-.dark .bg-paper {
-  background-image:
-    radial-gradient(ellipse at 20% 50%, oklch(0.12 0.01 60 / 0.3), transparent 50%),
-    radial-gradient(ellipse at 80% 20%, oklch(0.10 0.015 40 / 0.2), transparent 50%);
 }
 
 /* Logo watermark background */
@@ -123,9 +86,6 @@
   pointer-events: none;
   z-index: 0;
 }
-.dark .bg-watermark::before {
-  opacity: 0.025;
-}
 
 /* ===== Noise texture overlay for intranet ===== */
 
@@ -137,9 +97,6 @@
   opacity: 0.03;
   mix-blend-mode: overlay;
 }
-.dark .intranet-noise {
-  opacity: 0.04;
-}
 
 /* ===== Vignette overlay ===== */
 
@@ -149,9 +106,6 @@
   pointer-events: none;
   z-index: 0;
   background: radial-gradient(ellipse at center, transparent 40%, rgba(10, 16, 11, 0.25) 100%);
-}
-.dark .intranet-vignette {
-  background: radial-gradient(ellipse at center, transparent 30%, rgba(5, 8, 6, 0.4) 100%);
 }
 
 /* ===== Card warm hover ===== */
@@ -163,10 +117,6 @@
   box-shadow: 0 4px 24px rgba(175, 143, 60, 0.08);
   transform: translateY(-1px);
   border-color: rgba(175, 143, 60, 0.2);
-}
-.dark .card-hover-warm:hover {
-  box-shadow: 0 4px 24px rgba(175, 143, 60, 0.06);
-  border-color: rgba(175, 143, 60, 0.15);
 }
 
 /* Gold accent line */
@@ -188,11 +138,6 @@
   background-color: rgba(26, 37, 32, 0.6);
   border-color: rgba(175, 143, 60, 0.08);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-}
-.dark .intranet-root :where([data-slot="card"]) {
-  background-color: rgba(10, 14, 12, 0.7);
-  border-color: rgba(175, 143, 60, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 
 /* ===== Public page animations ===== */

@@ -167,7 +167,7 @@ function onDragEnd(e: DragEvent) {
   <div class="dash-page">
     <!-- ═══ HEADER ═══ -->
     <div class="dash-header">
-      <h1 class="font-heading text-xl sm:text-2xl tracking-wide text-[#2c2419] dark:text-[#e8e0d0] opacity-80">
+      <h1 class="font-heading text-xl sm:text-2xl tracking-wide text-[#e8e0d0] opacity-80">
         {{ greeting }}, {{ userDisplayName }}
       </h1>
       <p class="text-xs text-[#af8f3c]/50 tracking-wider mt-0.5">{{ greetingSubtext }}</p>
@@ -257,9 +257,9 @@ function onDragEnd(e: DragEvent) {
               >
                 <span
                   class="size-2 rounded-full shrink-0"
-                  :class="siteStatuses[site.url] === true ? 'bg-emerald-500' : siteStatuses[site.url] === false ? 'bg-red-500' : 'bg-stone-300 dark:bg-stone-600 animate-pulse'"
+                  :class="siteStatuses[site.url] === true ? 'bg-emerald-500' : siteStatuses[site.url] === false ? 'bg-red-500' : 'bg-stone-300 animate-pulse'"
                 />
-                <span class="text-[12px] text-stone-600 dark:text-stone-400 truncate">{{ site.nom }}</span>
+                <span class="text-[12px] text-stone-600 truncate">{{ site.nom }}</span>
               </NuxtLink>
             </div>
           </UCard>
@@ -417,7 +417,7 @@ function onDragEnd(e: DragEvent) {
   width: 24px;
   height: 24px;
   border-radius: 9999px;
-  background: #f5efe0;
+  background: #1e2926;
   border: 1px solid rgba(175, 143, 60, 0.1);
   color: rgba(175, 143, 60, 0.4);
   display: flex;
@@ -426,9 +426,6 @@ function onDragEnd(e: DragEvent) {
   opacity: 0;
   transition: all 0.15s;
   cursor: pointer;
-}
-:global(.dark) .dash-size-btn {
-  background: #1a2520;
 }
 .group:hover .dash-size-btn { opacity: 1; }
 .dash-size-btn:hover {
@@ -472,7 +469,7 @@ function onDragEnd(e: DragEvent) {
   width: 24px;
   height: 24px;
   border-radius: 9999px;
-  background: #f5efe0;
+  background: #1e2926;
   border: 1px solid rgba(175, 143, 60, 0.1);
   color: rgba(175, 143, 60, 0.4);
   display: flex;
@@ -481,9 +478,6 @@ function onDragEnd(e: DragEvent) {
   opacity: 0;
   transition: all 0.15s;
   cursor: pointer;
-}
-:global(.dark) .dash-hide-btn {
-  background: #1a2520;
 }
 .group:hover .dash-hide-btn { opacity: 1; }
 .dash-hide-btn:hover {

@@ -82,6 +82,11 @@ export default defineNuxtConfig({
     '/candidats/**': { ssr: false }
   },
 
+  colorMode: {
+    preference: 'light',
+    fallback: 'light'
+  },
+
   compatibilityDate: '2025-01-15',
 
   eslint: {

@@ -2,7 +2,6 @@
 import { DASHBOARD_MODULES, PLANNING_DISPLAY_OPTIONS, PRESENCE_DISPLAY_OPTIONS } from '~/composables/useDashboardPreferences'
 
 const { user, logout, isDirecteur, roleName, isProspecteur } = useAuth()
-const colorMode = useColorMode()
 const route = useRoute()
 const mobileOpen = ref(false)
 const { isVisible, show, hide, hiddenCount, showAll, planningMode, setPlanningMode, presenceMode, setPresenceMode } = useDashboardPreferences()
@@ -21,11 +20,6 @@ useHead({
 })
 
 watch(() => route.fullPath, () => { mobileOpen.value = false })
-
-const isDark = computed({
-  get: () => colorMode.value === 'dark',
-  set: (v: boolean) => { colorMode.preference = v ? 'dark' : 'light' }
-})
 
 // ─── Domain definitions ─────────────────────────────────
 
@@ -195,12 +189,6 @@ const userMenuItems = computed(() => [
         <UTooltip text="Rechercher (Ctrl+K)" :delay-duration="300">
           <button class="sidebar-icon" @click="searchToggle">
             <UIcon name="i-lucide-search" class="size-4" />
-          </button>
-        </UTooltip>
-
-        <UTooltip :text="isDark ? 'Mode clair' : 'Mode sombre'" :delay-duration="300">
-          <button class="sidebar-icon" @click="isDark = !isDark">
-            <UIcon :name="isDark ? 'i-lucide-sun' : 'i-lucide-moon'" class="size-4" />
           </button>
         </UTooltip>
 
@@ -407,11 +395,6 @@ const userMenuItems = computed(() => [
 
           <!-- Drawer footer -->
           <div class="drawer-footer">
-            <button class="drawer-theme-btn" @click="isDark = !isDark">
-              <UIcon :name="isDark ? 'i-lucide-sun' : 'i-lucide-moon'" class="size-4" />
-              {{ isDark ? 'Mode clair' : 'Mode sombre' }}
-            </button>
-
             <div class="drawer-settings">
               <div class="settings-section">
                 <p class="settings-label">Modules</p>
@@ -484,10 +467,6 @@ const userMenuItems = computed(() => [
   color: #e8e0d0;
   font-family: 'Crimson Pro', Georgia, serif;
 }
-:global(.dark) .intranet-root {
-  background-color: #0a0e0c;
-  color: #d5cdbf;
-}
 
 /* ============================
    SIDEBAR
@@ -503,10 +482,6 @@ const userMenuItems = computed(() => [
   background: linear-gradient(180deg, rgba(26, 37, 32, 0.9) 0%, rgba(20, 30, 25, 0.95) 100%);
   position: relative;
   z-index: 10;
-}
-:global(.dark) .sidebar {
-  background: linear-gradient(180deg, rgba(10, 14, 12, 0.95) 0%, rgba(8, 11, 9, 0.98) 100%);
-  border-color: rgba(175, 143, 60, 0.08);
 }
 
 @media (min-width: 1024px) {
@@ -568,10 +543,6 @@ const userMenuItems = computed(() => [
   opacity: 0.4;
   transition: all 0.25s ease;
   position: relative;
-}
-:global(.dark) .sidebar-icon {
-  color: #d5cdbf;
-  opacity: 0.35;
 }
 .sidebar-icon:hover {
   opacity: 0.7;
@@ -645,10 +616,6 @@ const userMenuItems = computed(() => [
   position: relative;
   z-index: 10;
 }
-:global(.dark) .tab-bar {
-  background: rgba(10, 14, 12, 0.7);
-  border-color: rgba(175, 143, 60, 0.06);
-}
 
 @media (min-width: 1024px) {
   .tab-bar { display: block; }
@@ -681,9 +648,6 @@ const userMenuItems = computed(() => [
   position: relative;
   transition: opacity 0.25s, color 0.25s;
   white-space: nowrap;
-}
-:global(.dark) .tab-item {
-  color: #d5cdbf;
 }
 .tab-item:hover {
   opacity: 0.7;
@@ -742,11 +706,6 @@ const userMenuItems = computed(() => [
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   transition: transform 0.15s, box-shadow 0.2s;
 }
-:global(.dark) .mobile-menu-trigger {
-  background: rgba(10, 14, 12, 0.95);
-  color: #d5cdbf;
-  border-color: rgba(175, 143, 60, 0.1);
-}
 .mobile-menu-trigger:active {
   transform: scale(0.95);
 }
@@ -764,10 +723,6 @@ const userMenuItems = computed(() => [
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-}
-:global(.dark) .mobile-drawer {
-  background: #0a0e0c;
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.6);
 }
 
 @media (min-width: 1024px) {
@@ -802,7 +757,6 @@ const userMenuItems = computed(() => [
   opacity: 0.4;
   transition: opacity 0.2s, background 0.2s;
 }
-:global(.dark) .drawer-close { color: #d5cdbf; }
 .drawer-close:hover {
   opacity: 0.8;
   background: var(--gold-faint);
@@ -839,7 +793,6 @@ const userMenuItems = computed(() => [
   opacity: 0.55;
   transition: all 0.2s;
 }
-:global(.dark) .drawer-link { color: #d5cdbf; }
 .drawer-link:hover {
   opacity: 0.85;
   background: var(--gold-faint);
@@ -872,10 +825,6 @@ const userMenuItems = computed(() => [
   color: #e8e0d0;
   opacity: 0.5;
   transition: opacity 0.2s;
-}
-:global(.dark) .drawer-theme-btn { color: #d5cdbf; }
-.drawer-theme-btn:hover { opacity: 0.8; }
-
 .drawer-settings {
   padding: 10px;
   border-radius: 8px;
@@ -884,9 +833,6 @@ const userMenuItems = computed(() => [
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
-:global(.dark) .drawer-settings {
-  background: rgba(175, 143, 60, 0.02);
 }
 
 .drawer-profile {
@@ -964,7 +910,6 @@ const userMenuItems = computed(() => [
   color: #e8e0d0;
   opacity: 0.7;
 }
-:global(.dark) .settings-text { color: #d5cdbf; }
 
 .settings-reset {
   font-size: 12px;
@@ -984,7 +929,6 @@ const userMenuItems = computed(() => [
   color: #e8e0d0;
   opacity: 0.7;
 }
-:global(.dark) .settings-radio { color: #d5cdbf; }
 .settings-radio input[type="radio"] {
   accent-color: var(--gold);
 }
@@ -994,9 +938,5 @@ const userMenuItems = computed(() => [
 /* Global styles for intranet root background */
 html:has(.intranet-root) {
   background-color: #1a2520;
-  transition: background-color 0.3s ease;
-}
-html.dark:has(.intranet-root) {
-  background-color: #0a0e0c;
 }
 </style>
