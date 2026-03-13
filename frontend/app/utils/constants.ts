@@ -273,6 +273,14 @@ export const CONTRACT_COLORS: Record<string, string> = {
   Stage: 'yellow'
 }
 
+export const CONTRACT_HEX_COLORS: Record<string, string> = {
+  CDI: '#22c55e',
+  CDD: '#3B82F6',
+  Freelance: '#F97316',
+  Alternance: '#8B5CF6',
+  Stage: '#EAB308'
+}
+
 // --- Emploi du temps : recurrence ---
 
 export const RECURRENCE_OPTIONS = [

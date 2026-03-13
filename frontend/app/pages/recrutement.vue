@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { readItems } from '@directus/sdk'
-import type { OffreEmploi } from '~/utils/types'
+import type { OffreEmploi, Category } from '~/utils/types'
+import { CONTRACT_HEX_COLORS } from '~/utils/constants'
 
 definePageMeta({ layout: 'landing' })
 
@@ -39,7 +40,8 @@ const { data: offres, status } = useAsyncData('offres-publiques', async () => {
         'id', 'titre', 'description', 'type_contrat', 'localisation',
         'salaire_min', 'salaire_max', 'salaire_periode',
         'competences_requises', 'avantages', 'date_publication',
-        'categorie.id', 'categorie.nom', 'categorie.couleur'
+        'categorie.id', 'categorie.nom', 'categorie.couleur',
+        'categories.categories_id.id', 'categories.categories_id.nom', 'categories.categories_id.couleur'
       ],
       sort: ['-date_publication']
     }))
@@ -48,6 +50,60 @@ const { data: offres, status } = useAsyncData('offres-publiques', async () => {
     return []
   }
 })
+
+// ── Helpers ──
+function getCategories(offre: OffreEmploi): Category[] {
+  if (!offre.categories?.length) return []
+  return offre.categories
+    .map(j => typeof j.categories_id === 'object' ? j.categories_id : null)
+    .filter((c): c is Category => c !== null)
+}
+
+function contratColor(type: string): string {
+  return CONTRACT_HEX_COLORS[type] || '#AF8F3C'
+}
+
+// ── Filters ──
+const filterContrat = ref<string | null>(null)
+const filterCategorie = ref<string | null>(null)
+
+const availableContrats = computed(() => {
+  if (!offres.value) return []
+  return [...new Set(offres.value.map(o => o.type_contrat))].sort()
+})
+
+const availableCategories = computed(() => {
+  if (!offres.value) return []
+  const map = new Map<string, Category>()
+  for (const o of offres.value) {
+    for (const cat of getCategories(o)) {
+      if (!map.has(cat.id)) map.set(cat.id, cat)
+    }
+  }
+  return [...map.values()].sort((a, b) => a.nom.localeCompare(b.nom))
+})
+
+const hasFilters = computed(() => availableContrats.value.length > 1 || availableCategories.value.length > 0)
+
+const filteredOffres = computed(() => {
+  if (!offres.value) return []
+  return offres.value.filter(o => {
+    if (filterContrat.value && o.type_contrat !== filterContrat.value) return false
+    if (filterCategorie.value) {
+      const cats = getCategories(o)
+      if (!cats.some(c => c.id === filterCategorie.value)) return false
+    }
+    return true
+  })
+})
+
+function toggleContrat(type: string) {
+  filterContrat.value = filterContrat.value === type ? null : type
+}
+
+function toggleCategorie(id: string) {
+  filterCategorie.value = filterCategorie.value === id ? null : id
+}
 
 const selectedOffre = ref<OffreEmploi | null>(null)
 const isSlideoverOpen = ref(false)
@@ -58,7 +114,6 @@ const revealed = ref(false)
 onMounted(() => {
   requestAnimationFrame(() => {
     visible.value = true
-    // Small delay so browser renders initial state before transition kicks in
     setTimeout(() => { revealed.value = true }, 50)
   })
 })
@@ -147,6 +202,36 @@ function formatDate(date: string) {
           <div class="panel-ornament-line" />
         </div>
 
+        <!-- Filters -->
+        <div v-if="hasFilters && offres?.length" class="panel-filters">
+          <div v-if="availableContrats.length > 1" class="filter-row">
+            <button
+              v-for="type in availableContrats"
+              :key="type"
+              class="filter-pill"
+              :class="{ 'is-active': filterContrat === type }"
+              :style="filterContrat === type ? { borderColor: contratColor(type), color: contratColor(type) } : {}"
+              @click="toggleContrat(type)"
+            >
+              <span class="filter-dot" :style="{ background: contratColor(type) }" />
+              {{ type }}
+            </button>
+          </div>
+          <div v-if="availableCategories.length" class="filter-row">
+            <button
+              v-for="cat in availableCategories"
+              :key="cat.id"
+              class="filter-pill"
+              :class="{ 'is-active': filterCategorie === cat.id }"
+              :style="filterCategorie === cat.id && cat.couleur ? { borderColor: cat.couleur, color: cat.couleur } : {}"
+              @click="toggleCategorie(cat.id)"
+            >
+              <span v-if="cat.couleur" class="filter-dot" :style="{ background: cat.couleur }" />
+              {{ cat.nom }}
+            </button>
+          </div>
+        </div>
+
         <!-- Loading -->
         <div v-if="status === 'pending'" class="panel-loading">
           <div class="panel-spinner" />
@@ -158,22 +243,38 @@ function formatDate(date: string) {
           <p class="panel-empty-text">Revenez bientot, de nouvelles opportunites sont en preparation.</p>
         </div>
 
+        <!-- No results after filter -->
+        <div v-else-if="!filteredOffres.length" class="panel-empty">
+          <p class="panel-empty-title">Aucune offre ne correspond</p>
+          <p class="panel-empty-text">Essayez de modifier vos filtres.</p>
+        </div>
+
         <!-- Offres -->
         <div v-else class="panel-offres">
           <article
-            v-for="(offre, i) in offres"
+            v-for="(offre, i) in filteredOffres"
             :key="offre.id"
             class="offre-card"
-            :style="{ transitionDelay: `${600 + i * 100}ms` }"
+            :style="{ '--band-color': contratColor(offre.type_contrat), transitionDelay: `${600 + i * 100}ms` }"
             @click="openDetail(offre)"
           >
-            <div class="offre-top">
-              <h3 class="offre-title">{{ offre.titre }}</h3>
-              <span class="offre-badge">{{ offre.type_contrat }}</span>
+            <div class="offre-band">
+              <span class="offre-band-text">{{ offre.type_contrat }}</span>
             </div>
-            <div class="offre-meta">
-              <span v-if="offre.localisation">{{ offre.localisation }}</span>
-              <span v-if="formatSalaire(offre)">{{ formatSalaire(offre) }}</span>
+            <div class="offre-body">
+              <h3 class="offre-title">{{ offre.titre }}</h3>
+              <div class="offre-meta">
+                <span v-if="offre.localisation">{{ offre.localisation }}</span>
+                <span v-if="formatSalaire(offre)">{{ formatSalaire(offre) }}</span>
+              </div>
+              <div v-if="getCategories(offre).length" class="offre-cats">
+                <span
+                  v-for="cat in getCategories(offre)"
+                  :key="cat.id"
+                  class="offre-cat"
+                  :style="cat.couleur ? { borderColor: cat.couleur + '60', color: cat.couleur } : {}"
+                >{{ cat.nom }}</span>
+              </div>
             </div>
           </article>
         </div>
@@ -185,7 +286,17 @@ function formatDate(date: string) {
       <template #content>
         <div v-if="selectedOffre" class="slideover-inner">
           <h2 class="slideover-title">{{ selectedOffre.titre }}</h2>
-          <span class="offre-badge">{{ selectedOffre.type_contrat }}</span>
+          <div class="slideover-badges">
+            <span class="slideover-contrat" :style="{ borderColor: contratColor(selectedOffre.type_contrat) + '80', color: contratColor(selectedOffre.type_contrat) }">
+              {{ selectedOffre.type_contrat }}
+            </span>
+            <span
+              v-for="cat in getCategories(selectedOffre)"
+              :key="cat.id"
+              class="slideover-cat"
+              :style="cat.couleur ? { borderColor: cat.couleur + '60', color: cat.couleur } : {}"
+            >{{ cat.nom }}</span>
+          </div>
 
           <div class="slideover-meta">
             <span v-if="selectedOffre.localisation">{{ selectedOffre.localisation }}</span>
@@ -482,9 +593,51 @@ function formatDate(date: string) {
   opacity: 0.4;
 }
 
-/*
- * OFFRE CARDS — styled like login-field items
- */
+/* ============================
+   FILTERS
+   ============================ */
+.panel-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.filter-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border: 1px solid var(--gold-faint);
+  background: none;
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: inherit;
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity 0.2s, border-color 0.2s, color 0.2s;
+}
+.filter-pill:hover { opacity: 0.8; }
+.filter-pill.is-active {
+  opacity: 1;
+  background: rgba(175, 143, 60, 0.04);
+}
+.filter-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ============================
+   OFFRE CARDS — colored left band
+   ============================ */
 .panel-offres {
   display: flex;
   flex-direction: column;
@@ -492,11 +645,12 @@ function formatDate(date: string) {
 }
 
 .offre-card {
-  padding: 16px 20px;
+  display: flex;
   border: 1px solid var(--gold-dim);
   cursor: pointer;
   opacity: 0;
   transform: translateY(8px);
+  overflow: hidden;
   transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s, background 0.3s;
 }
 .revealed .offre-card {
@@ -507,16 +661,33 @@ function formatDate(date: string) {
   border-color: var(--gold);
   background: rgba(175, 143, 60, 0.04);
 }
-:global(.dark) .offre-card:hover {
-  background: rgba(175, 143, 60, 0.08);
+
+.offre-band {
+  width: 32px;
+  flex-shrink: 0;
+  background: var(--band-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.offre-band-text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fff;
+  white-space: nowrap;
+  font-weight: 600;
 }
 
-.offre-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
-  margin-bottom: 4px;
+.offre-body {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 16px;
 }
 
 .offre-title {
@@ -524,21 +695,10 @@ function formatDate(date: string) {
   font-size: 1rem;
   font-weight: 400;
   letter-spacing: 0.04em;
+  margin-bottom: 4px;
   transition: color 0.3s;
 }
 .offre-card:hover .offre-title { color: var(--gold); }
-
-.offre-badge {
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border: 1px solid var(--gold-faint);
-  color: var(--gold);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
 
 .offre-meta {
   display: flex;
@@ -546,6 +706,21 @@ function formatDate(date: string) {
   gap: 12px;
   font-size: 0.78rem;
   opacity: 0.4;
+}
+
+.offre-cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+}
+.offre-cat {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border: 1px solid var(--gold-faint);
+  color: var(--gold);
 }
 
 /* ============================
@@ -591,6 +766,27 @@ function formatDate(date: string) {
 .slideover-cta {
   font-size: 0.88rem;
   opacity: 0.5;
+}
+.slideover-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.slideover-contrat {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid var(--gold-faint);
+  font-weight: 600;
+}
+.slideover-cat {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border: 1px solid var(--gold-faint);
 }
 .slideover-cta strong {
   opacity: 1;

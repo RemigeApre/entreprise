@@ -182,6 +182,11 @@ export interface UserDocument {
   date_created: string
 }
 
+export interface OffreEmploiCategoryJunction {
+  offres_emploi_id: string
+  categories_id: Category | string
+}
+
 export interface OffreEmploi {
   id: string
   titre: string
@@ -192,6 +197,7 @@ export interface OffreEmploi {
   salaire_max: number | null
   salaire_periode: 'heure' | 'mois' | 'annee' | null
   categorie: Category | string | null
+  categories?: OffreEmploiCategoryJunction[]
   competences_requises: string | null
   avantages: string | null
   publie: boolean
@@ -312,6 +318,7 @@ export interface DirectusSchema {
   project_tasks: ProjectTask[]
   project_files: ProjectFile[]
   offres_emploi: OffreEmploi[]
+  offres_emploi_categories: OffreEmploiCategoryJunction[]
   notifications: Notification[]
   wiki_pages: WikiPage[]
   schedule_entries: ScheduleEntry[]

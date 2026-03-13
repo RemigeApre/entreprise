@@ -703,6 +703,16 @@ async function createCollections() {
     ]
   }, 'Collection "candidats"')
 
+  // ── offres_emploi_categories (junction M2M) ──
+  await safeApi('POST', '/collections', {
+    collection: 'offres_emploi_categories',
+    schema: {},
+    meta: { icon: 'link', note: 'Junction offres_emploi ↔ categories', sort: 11, hidden: true },
+    fields: [
+      { field: 'id', type: 'integer', schema: { is_primary_key: true, has_auto_increment: true }, meta: { hidden: true } }
+    ]
+  }, 'Collection "offres_emploi_categories"')
+
   // ── candidat_commentaires ──
   await safeApi('POST', '/collections', {
     collection: 'candidat_commentaires',
@@ -774,8 +784,12 @@ async function createRelations() {
     // schedule_entries
     { coll: 'schedule_entries', field: 'utilisateur', related: 'directus_users', template: '{{first_name}} {{last_name}}' },
 
-    // offres_emploi
+    // offres_emploi (legacy M2O kept for backward compat)
     { coll: 'offres_emploi', field: 'categorie', related: 'categories', template: '{{nom}}' },
+
+    // offres_emploi_categories (junction M2M)
+    { coll: 'offres_emploi_categories', field: 'offres_emploi_id', related: 'offres_emploi', template: '{{titre}}' },
+    { coll: 'offres_emploi_categories', field: 'categories_id', related: 'categories', template: '{{nom}}' },
 
     // candidats
     { coll: 'candidats', field: 'offre', related: 'offres_emploi', template: '{{titre}}' },
@@ -818,7 +832,7 @@ async function createRelations() {
     }
     await safeApi('POST', '/relations', relDef, `Relation "${rel.coll}.${rel.field}" → "${rel.related}"`)
 
-    // 3. Create O2M alias field if needed
+    // 3. Create O2M/M2M alias field if needed
     if (rel.one_field && rel.related !== 'directus_users' && rel.related !== 'directus_files') {
       await safeApi('POST', `/fields/${rel.related}`, {
         field: rel.one_field,
@@ -831,6 +845,18 @@ async function createRelations() {
       }, `Alias O2M "${rel.related}.${rel.one_field}"`)
     }
   }
+
+  // M2M alias: offres_emploi.categories
+  await safeApi('POST', '/fields/offres_emploi', {
+    field: 'categories',
+    type: 'alias',
+    meta: {
+      interface: 'list-m2m',
+      special: ['m2m'],
+      display: 'related-values',
+      display_options: { template: '{{categories_id.nom}}' }
+    }
+  }, 'Alias M2M "offres_emploi.categories"')
 
   console.log('')
 }
@@ -912,6 +938,11 @@ async function setupPermissions(roleIds) {
       collection: 'categories', action: 'read',
       fields: ['*'], permissions: {}
     }, 'Permission: public read categories')
+
+    await ensurePermission(publicPolicy.id, {
+      collection: 'offres_emploi_categories', action: 'read',
+      fields: ['*'], permissions: {}
+    }, 'Permission: public read offres_emploi_categories')
   }
 
   // ── Authenticated base policy ──
@@ -945,6 +976,7 @@ async function setupPermissions(roleIds) {
 
       // Categories: read
       { collection: 'categories', action: 'read', fields: ['*'], permissions: {} },
+      { collection: 'offres_emploi_categories', action: 'read', fields: ['*'], permissions: {} },
 
       // Planning entries: create own, read all, update own, delete own
       { collection: 'planning_entries', action: 'create', fields: ['*'], permissions: {}, validation: { utilisateur: { _eq: '$CURRENT_USER' } } },

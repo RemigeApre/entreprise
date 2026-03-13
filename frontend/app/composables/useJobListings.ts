@@ -10,6 +10,7 @@ export function useJobListings() {
         'id', 'titre', 'description', 'type_contrat', 'localisation',
         'salaire_min', 'salaire_max', 'salaire_periode',
         'categorie.id', 'categorie.nom',
+        'categories.categories_id.id', 'categories.categories_id.nom', 'categories.categories_id.couleur',
         'competences_requises', 'avantages',
         'publie', 'date_publication', 'date_expiration',
         'date_created', 'date_updated'
@@ -21,7 +22,7 @@ export function useJobListings() {
 
   async function getById(id: string) {
     return await $directus.request(readItem('offres_emploi', id, {
-      fields: ['*', 'categorie.id', 'categorie.nom', 'categorie.couleur']
+      fields: ['*', 'categorie.id', 'categorie.nom', 'categorie.couleur', 'categories.categories_id.id', 'categories.categories_id.nom', 'categories.categories_id.couleur']
     })) as OffreEmploi
   }
 
