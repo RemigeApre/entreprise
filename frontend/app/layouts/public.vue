@@ -144,11 +144,11 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
 .pub-watermark-img {
   width: 100%; height: 100%;
   object-fit: contain;
-  opacity: 0.03;
+  opacity: 0.06;
 }
 :global(.dark) .pub-watermark-img {
   filter: brightness(0) invert(0.85);
-  opacity: 0.04;
+  opacity: 0.08;
 }
 
 /* Frame */

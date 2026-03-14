@@ -109,6 +109,21 @@
   box-shadow: 0 1px 3px rgba(44, 36, 25, 0.06);
 }
 
+/* ===== Page transitions ===== */
+
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(16px);
+}
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-16px);
+}
+
 /* ===== Public page animations ===== */
 
 @keyframes logo-float {

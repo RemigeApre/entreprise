@@ -87,6 +87,10 @@ export default defineNuxtConfig({
     fallback: 'light'
   },
 
+  app: {
+    pageTransition: { name: 'page', mode: 'out-in' }
+  },
+
   compatibilityDate: '2025-01-15',
 
   eslint: {

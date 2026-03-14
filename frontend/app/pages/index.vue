@@ -289,12 +289,12 @@ async function handleLogin() {
 .watermark-img {
   width: 100%; height: 100%;
   object-fit: contain;
-  opacity: 0.04;
+  opacity: 0.08;
   transition: opacity var(--transition), filter var(--transition);
 }
 :global(.dark) .watermark-img {
   filter: brightness(0) invert(0.85);
-  opacity: 0.055;
+  opacity: 0.10;
 }
 
 /* Login mode — logo slides left, half visible, full color */
