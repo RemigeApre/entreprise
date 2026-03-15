@@ -14,9 +14,9 @@ useHead({
 })
 
 useSeoMeta({
-  title: 'Nos pôles - Le Geai',
+  title: 'Pôles - Le Geai',
   description: 'Édition, informatique et médias : découvrez les trois pôles du groupe Le Geai.',
-  ogTitle: 'Le Geai - Nos pôles',
+  ogTitle: 'Le Geai - Pôles',
   ogDescription: 'Trois pôles complémentaires au service de la création.'
 })
 
@@ -85,7 +85,6 @@ const branches = [
     <div class="center">
       <div class="center-inner">
         <h1 class="title">
-          <span class="title-main">Nos</span>
           <span class="title-main">Pôles</span>
         </h1>
 
@@ -108,12 +107,12 @@ const branches = [
     <!-- POLES PANEL — slides from BOTTOM (logo goes up = content from bottom) -->
     <div class="poles-panel">
       <button class="panel-back" @click="goBack">
-        <UIcon name="i-lucide-arrow-up" class="size-4 back-arrow" />
+        <UIcon name="i-lucide-arrow-left" class="size-4 back-arrow" />
         <span>Retour</span>
       </button>
 
       <div class="panel-content">
-        <h2 class="panel-title">Nos pôles</h2>
+        <h2 class="panel-title">Pôles</h2>
         <div class="panel-ornament">
           <div class="panel-ornament-line" />
         </div>
@@ -413,8 +412,7 @@ const branches = [
 .panel-back {
   position: fixed;
   top: clamp(20px, 3.5vw, 36px);
-  left: 50%;
-  transform: translateX(-50%);
+  left: clamp(20px, 3.5vw, 36px);
   display: flex; align-items: center; gap: 8px;
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: 13px;
@@ -432,7 +430,7 @@ const branches = [
 }
 .revealed .panel-back { opacity: 0.6; }
 .panel-back:hover { opacity: 1; }
-.panel-back:hover .back-arrow { transform: translateY(-3px); }
+.panel-back:hover .back-arrow { transform: translateX(-3px); }
 
 .panel-content {
   width: 100%;

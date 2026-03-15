@@ -35,7 +35,7 @@ const t = computed(() => lang.value === 'fr' ? {
   copyright: `\u00A9 ${new Date().getFullYear()} Le Geai`,
   entreprise: 'L\u2019entreprise',
   recrutement: 'Recrutement',
-  poles: 'Nos pôles',
+  poles: 'Pôles',
   connecter: 'Se connecter',
   email: 'Email',
   motdepasse: 'Mot de passe',
@@ -46,7 +46,7 @@ const t = computed(() => lang.value === 'fr' ? {
   copyright: `\u00A9 ${new Date().getFullYear()} Le Geai`,
   entreprise: 'The company',
   recrutement: 'Careers',
-  poles: 'Our branches',
+  poles: 'Branches',
   connecter: 'Sign in',
   email: 'Email',
   motdepasse: 'Password',
@@ -284,7 +284,7 @@ async function handleLogin() {
   width: clamp(500px, 100vmin, 920px);
   height: clamp(500px, 100vmin, 920px);
   pointer-events: none; z-index: 0;
-  transition: left var(--transition), width var(--transition), height var(--transition);
+  transition: left var(--transition), width var(--transition), height var(--transition), opacity var(--transition);
 }
 .watermark-img {
   width: 100%; height: 100%;
@@ -489,6 +489,12 @@ async function handleLogin() {
   margin-top: clamp(28px, 5vh, 48px);
   opacity: 0;
   transition: opacity 1s ease 1s;
+  padding: 6px 10px;
+  border-radius: 2px;
+  background: radial-gradient(ellipse at center, rgba(247, 240, 222, 0.45) 0%, transparent 80%);
+}
+:global(.dark) .landing-nav {
+  background: radial-gradient(ellipse at center, rgba(30, 28, 24, 0.5) 0%, transparent 80%);
 }
 .is-visible .landing-nav { opacity: 1; }
 
@@ -550,7 +556,7 @@ async function handleLogin() {
   font-family: 'IM Fell DW Pica', Georgia, serif;
   font-size: clamp(0.7rem, 1.4vw, 0.9rem);
   color: var(--gold);
-  opacity: 0.4;
+  opacity: 0.55;
   letter-spacing: 0.05em;
   transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
               text-shadow 0.6s ease, font-size 0.5s ease;
@@ -566,7 +572,7 @@ async function handleLogin() {
   font-size: clamp(11px, 1.4vw, 13px);
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  opacity: 0.55;
+  opacity: 0.7;
   transition: opacity 0.5s ease, color 0.5s ease,
               letter-spacing 0.6s cubic-bezier(0.22, 1, 0.36, 1),
               text-shadow 0.6s ease;
