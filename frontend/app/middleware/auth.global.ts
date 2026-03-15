@@ -1,8 +1,9 @@
 export default defineNuxtRouteMiddleware(async (to) => {
   const publicPaths = ['/', '/login', '/recrutement', '/le-geai', '/poles', '/soutenir', '/articles']
+  const publicPrefixes = ['/le-geai/']
 
   const path = to.path.replace(/\/+$/, '') || '/'
-  if (publicPaths.some(route => path === route)) {
+  if (publicPaths.some(route => path === route) || publicPrefixes.some(prefix => to.path.startsWith(prefix))) {
     return
   }
 

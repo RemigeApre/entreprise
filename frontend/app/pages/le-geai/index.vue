@@ -22,6 +22,7 @@ useSeoMeta({
 
 const visible = ref(false)
 const revealed = ref(false)
+const deviseOpen = ref(false)
 
 onMounted(() => {
   requestAnimationFrame(() => {
@@ -29,6 +30,13 @@ onMounted(() => {
     setTimeout(() => { revealed.value = true }, 1200)
   })
 })
+
+const sections = [
+  { icon: 'i-lucide-book-open', title: 'Notre histoire', sub: 'Les origines du groupe et son fondateur', to: '/le-geai/histoire' },
+  { icon: 'i-lucide-handshake', title: 'Nos engagements', sub: 'Ce que nous defendons concretement', to: '/le-geai/engagements' },
+  { icon: 'i-lucide-feather', title: 'Nos articles', sub: 'Reflexions et actualites du groupe', to: '/articles' },
+  { icon: 'i-lucide-pie-chart', title: 'Transparence', sub: 'Nos comptes, en toute clarte', to: '/le-geai/transparence' }
+]
 
 function goBack() {
   revealed.value = false
@@ -138,8 +146,8 @@ const values = [
           </div>
         </div>
 
-        <!-- Devise -->
-        <div class="devise-section">
+        <!-- Devise — clickable -->
+        <button class="devise-section" @click="deviseOpen = !deviseOpen">
           <div class="devise-ornament">
             <div class="devise-line" />
             <span class="devise-glyph">G</span>
@@ -147,23 +155,36 @@ const values = [
           </div>
           <p class="devise-latin">Obscuritas nutrit flammam.</p>
           <p class="devise-fr">L'obscurite nourrit la flamme.</p>
-        </div>
+          <span class="devise-hint">{{ deviseOpen ? 'Fermer' : 'Decouvrir le sens' }}</span>
+        </button>
 
-        <!-- Lien articles -->
-        <NuxtLink
-          to="/articles"
-          class="articles-link"
-          :style="{ transitionDelay: '2600ms' }"
-        >
-          <span class="articles-link-icon">
-            <UIcon name="i-lucide-feather" class="size-4" />
-          </span>
-          <span class="articles-link-content">
-            <span class="articles-link-title">Lire nos articles</span>
-            <span class="articles-link-sub">Reflexions et actualites du groupe</span>
-          </span>
-          <UIcon name="i-lucide-chevron-right" class="size-4 articles-link-chevron" />
-        </NuxtLink>
+        <Transition name="devise-explain">
+          <div v-if="deviseOpen" class="devise-explanation">
+            <p>La devise du Geai est un rappel : c'est dans les periodes d'incertitude, dans l'ombre et le doute, que naissent les idees les plus lumineuses.</p>
+            <p>Nous ne fuyons pas la difficulte. Nous croyons que l'obscurite — l'inconnu, la complexite, les debuts difficiles — est le terreau de toute creation durable. La flamme n'a pas besoin de confort pour bruler : elle a besoin de sens.</p>
+            <p>Cette devise est aussi un hommage a ceux qui avancent sans garantie, les fondateurs, les stagiaires, les independants — tous ceux qui construisent quelque chose a partir de rien.</p>
+          </div>
+        </Transition>
+
+        <!-- Sections navigation -->
+        <div class="sections-grid">
+          <NuxtLink
+            v-for="(s, i) in sections"
+            :key="s.to"
+            :to="s.to"
+            class="section-card"
+            :style="{ transitionDelay: `${2400 + i * 100}ms` }"
+          >
+            <span class="section-icon">
+              <UIcon :name="s.icon" class="size-4" />
+            </span>
+            <span class="section-content">
+              <span class="section-title">{{ s.title }}</span>
+              <span class="section-sub">{{ s.sub }}</span>
+            </span>
+            <UIcon name="i-lucide-chevron-right" class="size-4 section-chevron" />
+          </NuxtLink>
+        </div>
       </div>
     </div>
   </div>
@@ -607,7 +628,7 @@ const values = [
 .valeur-card:hover .valeur-text { opacity: 0.85; }
 
 /* ============================
-   DEVISE SECTION
+   DEVISE SECTION — clickable
    ============================ */
 .devise-section {
   margin-top: clamp(36px, 6vh, 56px);
@@ -616,11 +637,19 @@ const values = [
   transform: translateY(8px);
   transition: opacity 0.8s ease, transform 0.8s ease;
   transition-delay: 2400ms;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: inherit;
+  padding: 20px 28px;
+  border-radius: 2px;
+  width: 100%;
 }
 .revealed .devise-section {
   opacity: 1;
   transform: translateY(0);
 }
+.devise-section:hover { background: rgba(175, 143, 60, 0.03); }
 
 .devise-ornament {
   display: flex; align-items: center; justify-content: center; gap: 14px;
@@ -656,81 +685,125 @@ const values = [
   opacity: 0.4;
 }
 
+.devise-hint {
+  display: block;
+  margin-top: 12px;
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0.3;
+  transition: opacity 0.3s;
+}
+.devise-section:hover .devise-hint { opacity: 0.7; }
+
+/* Devise explanation */
+.devise-explanation {
+  width: 100%;
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 28px 0 8px;
+  text-align: left;
+}
+.devise-explanation p {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.95rem;
+  line-height: 1.9;
+  opacity: 0.7;
+  margin-bottom: 14px;
+}
+.devise-explanation p:last-child { margin-bottom: 0; }
+
+.devise-explain-enter-active {
+  transition: opacity 0.5s ease, transform 0.5s ease, max-height 0.5s ease;
+}
+.devise-explain-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease, max-height 0.3s ease;
+}
+.devise-explain-enter-from,
+.devise-explain-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
 /* ============================
-   ARTICLES LINK — card style
+   SECTIONS GRID
    ============================ */
-.articles-link {
+.sections-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  width: 100%;
+  margin-top: clamp(32px, 5vh, 48px);
+}
+
+.section-card {
   display: flex;
   align-items: center;
-  gap: 16px;
-  width: 100%;
-  max-width: 400px;
-  margin-top: clamp(28px, 5vh, 44px);
-  padding: 16px 20px;
+  gap: 14px;
+  padding: 18px 20px;
   text-decoration: none;
   color: inherit;
-  border: 1px solid var(--gold-dim);
-  border-radius: 4px;
-  background: rgba(175, 143, 60, 0.03);
+  border: 1px solid var(--gold-faint);
+  background: transparent;
   opacity: 0;
   transform: translateY(8px);
-  transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s, background 0.3s, box-shadow 0.3s;
+  transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.4s, background 0.3s;
 }
-.revealed .articles-link {
+.revealed .section-card {
   opacity: 1;
   transform: translateY(0);
 }
-.articles-link:hover {
-  border-color: var(--gold);
-  background: rgba(175, 143, 60, 0.08);
-  box-shadow: 0 4px 16px rgba(175, 143, 60, 0.1);
+.section-card:hover {
+  border-color: var(--gold-dim);
+  background: rgba(175, 143, 60, 0.03);
 }
 
-.articles-link-icon {
-  width: 40px; height: 40px;
+.section-icon {
+  width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
-  border-radius: 50%;
-  background: rgba(175, 143, 60, 0.08);
   color: var(--gold);
+  opacity: 0.5;
   flex-shrink: 0;
-  transition: background 0.3s;
+  transition: opacity 0.3s;
 }
-.articles-link:hover .articles-link-icon {
-  background: rgba(175, 143, 60, 0.15);
-}
+.section-card:hover .section-icon { opacity: 0.9; }
 
-.articles-link-content {
+.section-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
-.articles-link-title {
+.section-title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 1rem;
+  font-size: 0.95rem;
   letter-spacing: 0.04em;
   transition: color 0.3s;
 }
-.articles-link:hover .articles-link-title {
-  color: var(--gold);
-}
+.section-card:hover .section-title { color: var(--gold); }
 
-.articles-link-sub {
+.section-sub {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.78rem;
-  opacity: 0.4;
+  font-size: 0.75rem;
+  opacity: 0.35;
   letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.articles-link-chevron {
+.section-chevron {
   color: var(--gold);
-  opacity: 0.4;
+  opacity: 0.25;
   flex-shrink: 0;
   transition: opacity 0.3s, transform 0.3s;
 }
-.articles-link:hover .articles-link-chevron {
-  opacity: 1;
+.section-card:hover .section-chevron {
+  opacity: 0.7;
   transform: translateX(3px);
 }
 
@@ -744,6 +817,9 @@ const values = [
 
 @media (max-width: 640px) {
   .valeurs-grid {
+    grid-template-columns: 1fr;
+  }
+  .sections-grid {
     grid-template-columns: 1fr;
   }
 }
