@@ -14,10 +14,10 @@ useHead({
 })
 
 useSeoMeta({
-  title: 'Nos poles \u2014 Le Geai',
-  description: 'Edition, informatique et medias : decouvrez les trois poles du groupe Le Geai.',
-  ogTitle: 'Le Geai \u2014 Nos poles',
-  ogDescription: 'Trois poles complementaires au service de la creation.'
+  title: 'Nos pôles - Le Geai',
+  description: 'Édition, informatique et médias : découvrez les trois pôles du groupe Le Geai.',
+  ogTitle: 'Le Geai - Nos pôles',
+  ogDescription: 'Trois pôles complémentaires au service de la création.'
 })
 
 const visible = ref(false)
@@ -36,9 +36,9 @@ function goBack() {
 }
 
 const branches = [
-  { title: 'Edition', desc: 'Maison d\u2019edition dediee aux ouvrages qui marquent. Romans, essais et beaux livres, avec une exigence editoriale sans concession.', status: 'En refonte' },
-  { title: 'Informatique', desc: 'Sites web, applications et solutions numeriques sur mesure. Conception, developpement et hebergement pour entreprises et particuliers.', href: 'https://legeai-informatique.fr' },
-  { title: 'Medias', desc: 'Production de contenus et journalisme independant. Analyses, reportages et formats originaux au croisement des cultures.', href: 'https://bergfrid.com' }
+  { title: 'Édition', desc: 'Maison d\u2019édition dédiée aux ouvrages qui marquent. Romans, essais et beaux livres, avec une exigence éditoriale sans concession.', status: 'En refonte' },
+  { title: 'Informatique', desc: 'Sites web, applications et solutions numériques sur mesure. Conception, développement et hébergement pour entreprises et particuliers.', href: 'https://legeai-informatique.fr' },
+  { title: 'Médias', desc: 'Production de contenus et journalisme indépendant. Analyses, reportages et formats originaux au croisement des cultures.', href: 'https://bergfrid.com' }
 ]
 </script>
 
@@ -86,7 +86,7 @@ const branches = [
       <div class="center-inner">
         <h1 class="title">
           <span class="title-main">Nos</span>
-          <span class="title-main">Poles</span>
+          <span class="title-main">Pôles</span>
         </h1>
 
         <div class="ornament">
@@ -96,7 +96,7 @@ const branches = [
         </div>
 
         <p class="motto">Trois disciplines, une vision commune.</p>
-        <p class="motto-sub">Edition, informatique et medias.</p>
+        <p class="motto-sub">Édition, informatique et médias.</p>
       </div>
     </div>
 
@@ -113,7 +113,7 @@ const branches = [
       </button>
 
       <div class="panel-content">
-        <h2 class="panel-title">Nos poles</h2>
+        <h2 class="panel-title">Nos pôles</h2>
         <div class="panel-ornament">
           <div class="panel-ornament-line" />
         </div>

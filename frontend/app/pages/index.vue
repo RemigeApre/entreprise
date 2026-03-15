@@ -15,10 +15,10 @@ useHead({
 })
 
 useSeoMeta({
-  title: 'Groupe Le Geai — Edition, Informatique, Medias',
-  description: 'Le Geai est un groupe culturel pluridisciplinaire. Edition, services informatiques et production mediatique. Obscuritas nutrit flammam.',
+  title: 'Groupe Le Geai - Édition, Informatique, Médias',
+  description: 'Le Geai est un groupe culturel pluridisciplinaire. Édition, services informatiques et production médiatique. Obscuritas nutrit flammam.',
   ogTitle: 'Groupe Le Geai',
-  ogDescription: 'Edition · Informatique · Medias — Obscuritas nutrit flammam.',
+  ogDescription: 'Édition · Informatique · Médias. Obscuritas nutrit flammam.',
   ogType: 'website',
   ogSiteName: 'Le Geai'
 })
@@ -31,11 +31,11 @@ const lang = ref<'fr' | 'en'>('fr')
 function toggleLang() { lang.value = lang.value === 'fr' ? 'en' : 'fr' }
 
 const t = computed(() => lang.value === 'fr' ? {
-  motto: 'L\u2019obscurite nourrit la flamme.',
+  motto: 'L\u2019obscurité nourrit la flamme.',
   copyright: `\u00A9 ${new Date().getFullYear()} Le Geai`,
   entreprise: 'L\u2019entreprise',
   recrutement: 'Recrutement',
-  poles: 'Nos poles',
+  poles: 'Nos pôles',
   connecter: 'Se connecter',
   email: 'Email',
   motdepasse: 'Mot de passe',

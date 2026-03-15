@@ -18,10 +18,10 @@ useHead({
 })
 
 useSeoMeta({
-  title: 'Recrutement \u2014 Le Geai',
-  description: 'Decouvrez les offres d\'emploi du groupe Le Geai.',
-  ogTitle: 'Recrutement \u2014 Le Geai',
-  ogDescription: 'Rejoignez-nous. Decouvrez les opportunites au sein du groupe Le Geai.'
+  title: 'Recrutement - Le Geai',
+  description: 'Découvrez les offres d\'emploi du groupe Le Geai.',
+  ogTitle: 'Recrutement - Le Geai',
+  ogDescription: 'Rejoignez-nous. Découvrez les opportunités au sein du groupe Le Geai.'
 })
 
 const { $directus } = useNuxtApp()
@@ -240,7 +240,7 @@ function formatDate(date: string) {
         <!-- Empty -->
         <div v-else-if="!offres?.length" class="panel-empty">
           <p class="panel-empty-title">Aucune offre pour le moment</p>
-          <p class="panel-empty-text">Revenez bientot, de nouvelles opportunites sont en preparation.</p>
+          <p class="panel-empty-text">Revenez bientôt, de nouvelles opportunités sont en préparation.</p>
         </div>
 
         <!-- No results after filter -->
@@ -265,7 +265,7 @@ function formatDate(date: string) {
               <h3 class="offre-title">{{ offre.titre }}</h3>
               <div class="offre-meta">
                 <span v-if="offre.localisation">{{ offre.localisation }}</span>
-                <span v-if="offre.teletravail">Teletravail {{ offre.teletravail }}</span>
+                <span v-if="offre.teletravail">Télétravail {{ offre.teletravail }}</span>
                 <span v-if="formatSalaire(offre)">{{ formatSalaire(offre) }}</span>
               </div>
               <div v-if="getCategories(offre).length" class="offre-cats">
@@ -301,7 +301,7 @@ function formatDate(date: string) {
 
           <div class="slideover-meta">
             <span v-if="selectedOffre.localisation">{{ selectedOffre.localisation }}</span>
-            <span v-if="selectedOffre.teletravail">Teletravail {{ selectedOffre.teletravail }}</span>
+            <span v-if="selectedOffre.teletravail">Télétravail {{ selectedOffre.teletravail }}</span>
             <span v-if="formatSalaire(selectedOffre)">{{ formatSalaire(selectedOffre) }}</span>
             <span v-if="selectedOffre.date_publication">{{ formatDate(selectedOffre.date_publication) }}</span>
           </div>
@@ -314,7 +314,7 @@ function formatDate(date: string) {
           </div>
 
           <div v-if="selectedOffre.competences_requises">
-            <h3 class="slideover-heading">Competences requises</h3>
+            <h3 class="slideover-heading">Compétences requises</h3>
             <div class="slideover-prose" v-html="selectedOffre.competences_requises" />
           </div>
 
@@ -326,7 +326,7 @@ function formatDate(date: string) {
           <div class="slideover-sep" />
 
           <p class="slideover-cta">
-            Pour postuler, envoyez votre CV a
+            Pour postuler, envoyez votre CV à
             <strong>recrutement@legeai-editions.com</strong>
           </p>
         </div>

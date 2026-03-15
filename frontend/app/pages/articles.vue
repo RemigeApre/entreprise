@@ -6,9 +6,9 @@ definePageMeta({ layout: 'public' })
 
 useSeoMeta({
   title: 'Articles - Le Geai',
-  description: 'Les publications du groupe Le Geai. Reflexions, actualites et coulisses.',
+  description: 'Les publications du groupe Le Geai. Réflexions, actualités et coulisses.',
   ogTitle: 'Articles - Le Geai',
-  ogDescription: 'Les micro-articles du groupe Le Geai, publies chaque mardi et jeudi.'
+  ogDescription: 'Les micro-articles du groupe Le Geai, publiés chaque mardi et jeudi.'
 })
 
 const { $directus } = useNuxtApp()
@@ -76,7 +76,7 @@ function formatDay(date: string) {
         </h1>
         <div class="w-14 h-px bg-gradient-to-r from-transparent via-[var(--color-brand-gold)]/50 to-transparent mx-auto mt-5 mb-4" />
         <p class="text-stone-500 dark:text-stone-400 text-base sm:text-lg leading-relaxed max-w-md mx-auto">
-          Reflexions, actualites et coulisses du groupe Le Geai.
+          Réflexions, actualités et coulisses du groupe Le Geai.
         </p>
       </div>
     </section>
@@ -89,7 +89,7 @@ function formatDay(date: string) {
     <!-- Empty -->
     <div v-else-if="!articles?.length" class="text-center px-6 pb-20">
       <p class="text-stone-400 dark:text-stone-500 text-sm">
-        Aucun article publie pour le moment. Revenez bientot.
+        Aucun article publié pour le moment. Revenez bientôt.
       </p>
     </div>
 
@@ -133,7 +133,7 @@ function formatDay(date: string) {
     <footer class="px-6 pb-6 text-center">
       <div class="max-w-4xl mx-auto pt-6 border-t border-stone-200/40 dark:border-stone-800/40">
         <p class="text-[11px] text-stone-400 dark:text-stone-600">
-          &copy; {{ new Date().getFullYear() }} Groupe Le Geai &mdash; Tous droits reserves
+          &copy; {{ new Date().getFullYear() }} Groupe Le Geai. Tous droits réservés
         </p>
       </div>
     </footer>

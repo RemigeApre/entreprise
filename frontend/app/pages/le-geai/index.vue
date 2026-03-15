@@ -15,9 +15,9 @@ useHead({
 
 useSeoMeta({
   title: 'L\u2019entreprise - Le Geai',
-  description: 'Decouvrez les valeurs, la vision et les poles du groupe Le Geai.',
+  description: 'Découvrez les valeurs, la vision et les pôles du groupe Le Geai.',
   ogTitle: 'Le Geai - L\u2019entreprise',
-  ogDescription: 'Un groupe fonde sur l\u2019exigence, la creativite et l\u2019accessibilite.'
+  ogDescription: 'Un groupe fondé sur l\u2019exigence, la créativité et l\u2019accessibilité.'
 })
 
 const visible = ref(false)
@@ -45,22 +45,22 @@ function goBack() {
 }
 
 const values = [
-  { numeral: 'I', title: 'Exigence', text: 'Un bon artiste transforme tout ce qu\u2019il experimente pour y insuffler son ame. Retirer un de ces deux criteres et vous avez un mediocre. Cette regle s\u2019applique a tout ce qui porte le nom Le Geai.', color: '#AF8F3C' },
-  { numeral: 'II', title: 'Accessibilite', text: 'L\u2019art n\u2019appartient pas aux musees ni aux prix absurdes. Il appartient aux bureaux, aux ateliers, aux foyers. Nous refusons de fermer la porte aux petits budgets, a ceux qui pensent que l\u2019art n\u2019est pas pour eux.', color: '#6B8F71' },
-  { numeral: 'III', title: 'Transparence', text: 'Nous publions nos comptes. Chiffre d\u2019affaires, charges, resultat. Nous disons quand nous galerons. Le mensonge est plus couteux que la verite.', color: '#8B6F4E' },
-  { numeral: 'IV', title: 'Transmission', text: 'Nous prenons des stagiaires, le maximum legal, toute l\u2019annee. Donner sa chance a quelqu\u2019un qui debute ou qui recommence, c\u2019est un devoir, pas une variable d\u2019ajustement.', color: '#7A6A8A' }
+  { numeral: 'I', title: 'Exigence', text: 'Un bon artiste transforme tout ce qu\u2019il expérimente pour y insuffler son âme. Retirer un de ces deux critères et vous avez un médiocre. Cette règle s\u2019applique à tout ce qui porte le nom Le Geai.', color: '#AF8F3C' },
+  { numeral: 'II', title: 'Accessibilité', text: 'L\u2019art n\u2019appartient pas aux musées ni aux prix absurdes. Il appartient aux bureaux, aux ateliers, aux foyers. Nous refusons de fermer la porte aux petits budgets, à ceux qui pensent que l\u2019art n\u2019est pas pour eux.', color: '#6B8F71' },
+  { numeral: 'III', title: 'Transparence', text: 'Nous publions nos comptes. Chiffre d\u2019affaires, charges, résultat. Nous disons quand nous galérons. Le mensonge est plus coûteux que la vérité.', color: '#8B6F4E' },
+  { numeral: 'IV', title: 'Transmission', text: 'Nous prenons des stagiaires, le maximum légal, toute l\u2019année. Donner sa chance à quelqu\u2019un qui débute ou qui recommence, c\u2019est un devoir, pas une variable d\u2019ajustement.', color: '#7A6A8A' }
 ]
 
 const engagements = [
-  { title: 'Envers nos stagiaires', text: 'Un vrai travail, un vrai portfolio, une vraie lettre de recommandation pour ceux qui le meritent. Pas un stage cafe-photocopieuse. Etudiants en formation, personnes en reinsertion : la competence et la volonte ne regardent pas d\u2019ou l\u2019on vient.' },
-  { title: 'Envers nos futurs employes', text: 'La competence est le seul critere. Ceux qui sont bons passent en alternance, puis en poste fixe. On valorise et on garde ceux qui font du bon travail. C\u2019est la promesse.' },
-  { title: 'Envers l\u2019art', text: 'Chaque euro gagne par Le Geai Informatique finance Le Geai Editions. Nos livres sont vendus a prix reduit aux entreprises et aux CSE. L\u2019art dans un bureau n\u2019est pas un luxe, c\u2019est un acte.' },
-  { title: 'Envers nos clients', text: 'Nos sites web sont concus avec empathie. Se mettre a la place de chaque visiteur, faire preuve d\u2019une empathie reelle et pratique : ca ne se genere pas, ca se travaille.' }
+  { title: 'Envers nos stagiaires', text: 'Un vrai travail, un vrai portfolio, une vraie lettre de recommandation pour ceux qui le méritent. Pas un stage café-photocopieuse. Étudiants en formation, personnes en réinsertion : la compétence et la volonté ne regardent pas d\u2019où l\u2019on vient.' },
+  { title: 'Envers nos futurs employés', text: 'La compétence est le seul critère. Ceux qui sont bons passent en alternance, puis en poste fixe. On valorise et on garde ceux qui font du bon travail. C\u2019est la promesse.' },
+  { title: 'Envers l\u2019art', text: 'Chaque euro gagné par Le Geai Informatique finance Le Geai Éditions. Nos livres sont vendus à prix réduit aux entreprises et aux CSE. L\u2019art dans un bureau n\u2019est pas un luxe, c\u2019est un acte.' },
+  { title: 'Envers nos clients', text: 'Nos sites web sont conçus avec empathie. Se mettre à la place de chaque visiteur, faire preuve d\u2019une empathie réelle et pratique : ça ne se génère pas, ça se travaille.' }
 ]
 
 const links = [
-  { icon: 'i-lucide-feather', title: 'Nos articles', sub: 'Reflexions et actualites du groupe', to: '/articles' },
-  { icon: 'i-lucide-pie-chart', title: 'Transparence financiere', sub: 'Nos comptes, en toute clarte', to: '/le-geai/transparence' }
+  { icon: 'i-lucide-feather', title: 'Nos articles', sub: 'Réflexions et actualités du groupe', to: '/articles' },
+  { icon: 'i-lucide-pie-chart', title: 'Transparence financière', sub: 'Nos comptes, en toute clarté', to: '/le-geai/transparence' }
 ]
 </script>
 
@@ -115,7 +115,7 @@ const links = [
           <div class="ornament-line" />
         </div>
         <p class="motto">Obscuritas nutrit flammam.</p>
-        <p class="motto-sub">L'obscurite nourrit la flamme.</p>
+        <p class="motto-sub">L'obscurité nourrit la flamme.</p>
       </div>
     </div>
 
@@ -130,7 +130,7 @@ const links = [
     <div class="valeurs-panel">
       <button class="panel-back" @click="goBack">
         <UIcon name="i-lucide-arrow-left" class="size-4 back-arrow" />
-        <span>Retour a l'accueil</span>
+        <span>Retour à l'accueil</span>
       </button>
 
       <div class="panel-content">
@@ -138,10 +138,10 @@ const links = [
         <!-- 0. PRESENTATION -->
         <div class="manifesto">
           <p class="manifesto-lead">Le Geai est une flamme.</p>
-          <p>Ne d'un refus : celui de plier face a la mediocrite et l'avarice. Nous ne venons pas d'un business plan, pas d'une etude de marche, ni meme d'un incubateur. Nous venons de l'ambition et de la revolte.</p>
-          <p>Nous ne vendons pas des livres, nous ouvrons des portes. Nous ne faisons pas des sites, nous creons des espaces sains et fiables. Nous ne diffusons pas du bruit, nous cherchons la verite.</p>
-          <p>Nous accueillons ceux qui en veulent plus. Les clients qui en ont assez du mediocre. Les artistes qui refusent de se vendre. Les esprits qui brulent et qui n'ont pas encore trouve ou poser leur feu.</p>
-          <p class="manifesto-closing">Si vous etes tiedes, passez votre chemin. Nous ne sommes pas faits pour les tiedes. Si quelque chose brule en vous : entrez. La porte est ouverte. La bougie est allumee.</p>
+          <p>Né d'un refus : celui de plier face à la médiocrité et l'avarice. Nous ne venons pas d'un business plan, pas d'une étude de marché, ni même d'un incubateur. Nous venons de l'ambition et de la révolte.</p>
+          <p>Nous ne vendons pas des livres, nous ouvrons des portes. Nous ne faisons pas des sites, nous créons des espaces sains et fiables. Nous ne diffusons pas du bruit, nous cherchons la vérité.</p>
+          <p>Nous accueillons ceux qui en veulent plus. Les clients qui en ont assez du médiocre. Les artistes qui refusent de se vendre. Les esprits qui brûlent et qui n'ont pas encore trouvé où poser leur feu.</p>
+          <p class="manifesto-closing">Si vous êtes tièdes, passez votre chemin. Nous ne sommes pas faits pour les tièdes. Si quelque chose brûle en vous : entrez. La porte est ouverte. La bougie est allumée.</p>
         </div>
 
         <!-- DEVISE - hover overlay -->
@@ -157,7 +157,7 @@ const links = [
             <div class="devise-line" />
           </div>
           <p class="devise-latin">Obscuritas nutrit flammam.</p>
-          <p class="devise-fr">L'obscurite nourrit la flamme.</p>
+          <p class="devise-fr">L'obscurité nourrit la flamme.</p>
         </div>
 
         <!-- Tooltip overlay -->
@@ -168,8 +168,8 @@ const links = [
               class="devise-tooltip"
               :style="{ left: deviseX + 20 + 'px', top: deviseY + 16 + 'px' }"
             >
-              <p>Ce n'est pas un slogan. C'est une devise, en latin et en francais, car elle porte en son coeur un heritage.</p>
-              <p>Dans l'obscurite d'une modernite ou le sens disparait et ou l'exigence s'envole, nous portons les dernieres flammes. Cette flamme, notre flamme, brule de l'obscurite. Elle s'en nourrit. Plus le monde s'assombrit, plus la flamme grandit.</p>
+              <p>Ce n'est pas un slogan. C'est une devise, en latin et en français, car elle porte en son cœur un héritage.</p>
+              <p>Dans l'obscurité d'une modernité où le sens disparaît et où l'exigence s'envole, nous portons les dernières flammes. Cette flamme, notre flamme, brûle de l'obscurité. Elle s'en nourrit. Plus le monde s'assombrit, plus la flamme grandit.</p>
             </div>
           </Transition>
         </Teleport>
@@ -196,9 +196,9 @@ const links = [
         <h2 class="section-title-big">Notre histoire</h2>
 
         <div class="histoire-card">
-          <p>En 2024, un editeur a qualifie nos textes de &laquo;&nbsp;remarquables&nbsp;&raquo;. Puis il a refuse de les publier. Le format ne se vendait pas. Les lecteurs lents ne l'interessaient pas. Nos histoires n'etaient, selon lui, que des &laquo;&nbsp;etats d'ame&nbsp;&raquo; sans valeur marchande.</p>
-          <p>Ce jour-la, une chose est devenue claire : nous ne voulions pas etre publies par des gens qui meprisent leurs lecteurs. Nous ne voulions pas financer des structures qui impriment sans respect pour l'humain ni la nature.</p>
-          <p>Alors Le Geai est ne. Legalement en 2021, concretement en 2024 avec la publication du premier livre, et officiellement en 2025 comme maison d'edition. La vraie naissance est anterieure : celle d'un enfant qui ecrivait parce que c'etait vital, pas parce que c'etait un metier.</p>
+          <p>En 2024, un éditeur a qualifié nos textes de &laquo;&nbsp;remarquables&nbsp;&raquo;. Puis il a refusé de les publier. Le format ne se vendait pas. Les lecteurs lents ne l'intéressaient pas. Nos histoires n'étaient, selon lui, que des &laquo;&nbsp;états d'âme&nbsp;&raquo; sans valeur marchande.</p>
+          <p>Ce jour-là, une chose est devenue claire : nous ne voulions pas être publiés par des gens qui méprisent leurs lecteurs. Nous ne voulions pas financer des structures qui impriment sans respect pour l'humain ni la nature.</p>
+          <p>Alors Le Geai est né. Légalement en 2021, concrètement en 2024 avec la publication du premier livre, et officiellement en 2025 comme maison d'édition. La vraie naissance est antérieure : celle d'un enfant qui écrivait parce que c'était vital, pas parce que c'était un métier.</p>
         </div>
 
         <!-- 4. BRANCHES - bien separees -->
@@ -210,9 +210,9 @@ const links = [
           <article class="branch-card" style="--card-color: #AF8F3C">
             <div class="branch-header">
               <span class="branch-numeral">I</span>
-              <h3 class="branch-title">Le Geai Editions</h3>
+              <h3 class="branch-title">Le Geai Éditions</h3>
             </div>
-            <p class="branch-text">Maison d'edition specialisee en dark fantasy et romantisme. Nous publions des oeuvres exigeantes, imprimees dignement, accessibles a tous ceux qui veulent lire. Le livre n'est pas un objet de consommation. C'est une porte vers les profondeurs de l'ame de l'auteur.</p>
+            <p class="branch-text">Maison d'édition spécialisée en dark fantasy et romantisme. Nous publions des œuvres exigeantes, imprimées dignement, accessibles à tous ceux qui veulent lire. Le livre n'est pas un objet de consommation. C'est une porte vers les profondeurs de l'âme de l'auteur.</p>
           </article>
 
           <!-- Informatique + reductions -->
@@ -221,11 +221,11 @@ const links = [
               <span class="branch-numeral">II</span>
               <h3 class="branch-title">Le Geai Informatique</h3>
             </div>
-            <p class="branch-text">Developpement web, data engineering, support informatique. Notre metier n'est pas de faire des sites : c'est de tracer des sentiers. Simplifier, alleger, rendre chaque utilisation agreable. Le meilleur site est celui ou l'on ne remarque jamais qu'il a ete concu.</p>
+            <p class="branch-text">Développement web, data engineering, support informatique. Notre métier n'est pas de faire des sites : c'est de tracer des sentiers. Simplifier, alléger, rendre chaque utilisation agréable. Le meilleur site est celui où l'on ne remarque jamais qu'il a été conçu.</p>
             <div class="branch-tarifs">
               <div class="tarif-item">
                 <span class="tarif-pct">-20 %</span>
-                <span class="tarif-label">Sante et environnement</span>
+                <span class="tarif-label">Santé et environnement</span>
               </div>
               <div class="tarif-item">
                 <span class="tarif-pct">-30 %</span>
@@ -240,7 +240,7 @@ const links = [
               <span class="branch-numeral">III</span>
               <h3 class="branch-title">Bergfrid</h3>
             </div>
-            <p class="branch-text">Media geopolitique independant. Des faits, du contexte, des sources contradictoires. Nous ne commentons pas l'actualite : nous donnons les elements pour que nos lecteurs pensent par eux-memes. La verite, pas le commentaire.</p>
+            <p class="branch-text">Média géopolitique indépendant. Des faits, du contexte, des sources contradictoires. Nous ne commentons pas l'actualité : nous donnons les éléments pour que nos lecteurs pensent par eux-mêmes. La vérité, pas le commentaire.</p>
           </article>
         </div>
 
@@ -284,7 +284,7 @@ const links = [
 
         <!-- Citation de fin -->
         <div class="closing-quote">
-          <p>Nous etions chenilles, nous sommes en chrysalide. Bientot, nous serons ces papillons de nuit, attires par la bougie.</p>
+          <p>Nous étions chenilles, nous sommes en chrysalide. Bientôt, nous serons ces papillons de nuit, attirés par la bougie.</p>
         </div>
 
       </div>

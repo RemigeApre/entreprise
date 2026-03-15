@@ -2,8 +2,8 @@
 definePageMeta({ layout: 'public' })
 
 useSeoMeta({
-  title: 'Transparence financiere — Le Geai',
-  description: 'La transparence financiere du groupe Le Geai — nos comptes, en toute clarte.'
+  title: 'Transparence financière - Le Geai',
+  description: 'La transparence financière du groupe Le Geai. Nos comptes, en toute clarté.'
 })
 
 const visible = ref(false)
@@ -24,14 +24,14 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
       <!-- Principe -->
       <section class="section">
         <div class="section-body">
-          <p>Nous publions nos comptes. Pas dans le detail d'un bilan comptable, mais dans une forme lisible, honnete, accessible. Chiffre d'affaires, charges, resultat. Parce que la confiance ne se decrete pas, elle se prouve.</p>
-          <p>Nous disons quand nous galerons. Nous disons quand nous injectons de l'argent personnel pour maintenir l'entreprise a flot. Nous disons quand nous sommes nuls en prospection. Le mensonge est plus couteux que la verite.</p>
+          <p>Nous publions nos comptes. Pas dans le détail d'un bilan comptable, mais dans une forme lisible, honnête, accessible. Chiffre d'affaires, charges, résultat. Parce que la confiance ne se décrète pas, elle se prouve.</p>
+          <p>Nous disons quand nous galérons. Nous disons quand nous injectons de l'argent personnel pour maintenir l'entreprise à flot. Nous disons quand nous sommes nuls en prospection. Le mensonge est plus coûteux que la vérité.</p>
         </div>
       </section>
 
       <!-- Ce qui sera publie -->
       <section class="section">
-        <h2 class="section-heading">Ce qui sera publie</h2>
+        <h2 class="section-heading">Ce qui sera publié</h2>
         <div class="items-grid">
           <div class="item-card">
             <span class="item-label">Chiffre d'affaires</span>
@@ -42,12 +42,12 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
             <span class="item-desc">URSSAF, licences, serveurs</span>
           </div>
           <div class="item-card">
-            <span class="item-label">Resultat net</span>
-            <span class="item-desc">Ce qui reste, en toute clarte</span>
+            <span class="item-label">Résultat net</span>
+            <span class="item-desc">Ce qui reste, en toute clarté</span>
           </div>
           <div class="item-card">
             <span class="item-label">Salaires</span>
-            <span class="item-desc">Accessibles aux employes via l'intranet</span>
+            <span class="item-desc">Accessibles aux employés via l'intranet</span>
           </div>
         </div>
       </section>
@@ -55,7 +55,7 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
       <!-- Note -->
       <div class="tr-note">
         <UIcon name="i-lucide-lock-open" class="size-5 tr-note-icon" />
-        <p>Cette page est en preparation. Les premiers chiffres seront publies prochainement, dans un tableau clair que n'importe qui comprend. Pas un bilan comptable — une preuve de confiance.</p>
+        <p>Cette page est en préparation. Les premiers chiffres seront publiés prochainement, dans un tableau clair que n'importe qui comprend. Pas un bilan comptable : une preuve de confiance.</p>
       </div>
 
       <!-- Ornament -->

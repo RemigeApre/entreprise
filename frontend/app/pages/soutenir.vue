@@ -3,9 +3,9 @@ definePageMeta({ layout: 'public' })
 
 useSeoMeta({
   title: 'Nous soutenir - Le Geai',
-  description: 'Soutenez le groupe Le Geai dans ses projets d\'edition, de creation numerique et de production mediatique.',
+  description: 'Soutenez le groupe Le Geai dans ses projets d\'édition, de création numérique et de production médiatique.',
   ogTitle: 'Nous soutenir - Le Geai',
-  ogDescription: 'Accompagnez un groupe independant dans sa mission culturelle et numerique.'
+  ogDescription: 'Accompagnez un groupe indépendant dans sa mission culturelle et numérique.'
 })
 
 const visible = ref(false)
@@ -15,17 +15,17 @@ const ways = [
   {
     icon: 'i-lucide-book-open',
     title: 'Acheter nos ouvrages',
-    text: 'Chaque exemplaire vendu soutient directement notre travail editorial et nos auteurs.'
+    text: 'Chaque exemplaire vendu soutient directement notre travail éditorial et nos auteurs.'
   },
   {
     icon: 'i-lucide-share-2',
     title: 'Parler de nous',
-    text: 'Le bouche-a-oreille reste notre meilleur allie. Partagez nos projets autour de vous.'
+    text: 'Le bouche-à-oreille reste notre meilleur allié. Partagez nos projets autour de vous.'
   },
   {
     icon: 'i-lucide-message-circle',
     title: 'Nous contacter',
-    text: 'Une idee, un projet, une collaboration ? Ecrivez-nous, chaque message est lu avec attention.'
+    text: 'Une idée, un projet, une collaboration ? Écrivez-nous, chaque message est lu avec attention.'
   }
 ]
 </script>
@@ -50,7 +50,7 @@ const ways = [
         </h1>
         <div class="w-14 h-px bg-gradient-to-r from-transparent via-[var(--color-brand-gold)]/50 to-transparent mx-auto mt-5 mb-4" />
         <p class="text-stone-500 dark:text-stone-400 text-base sm:text-lg leading-relaxed max-w-md mx-auto">
-          Le Geai est un projet independant. Votre soutien, sous toutes ses formes, nous permet de continuer a creer librement.
+          Le Geai est un projet indépendant. Votre soutien, sous toutes ses formes, nous permet de continuer à créer librement.
         </p>
       </div>
     </section>
@@ -101,7 +101,7 @@ const ways = [
     <footer class="px-6 pb-6 text-center">
       <div class="max-w-4xl mx-auto pt-6 border-t border-stone-200/40 dark:border-stone-800/40">
         <p class="text-[11px] text-stone-400 dark:text-stone-600">
-          &copy; {{ new Date().getFullYear() }} Groupe Le Geai &mdash; Tous droits reserves
+          &copy; {{ new Date().getFullYear() }} Groupe Le Geai. Tous droits réservés
         </p>
       </div>
     </footer>
