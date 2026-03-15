@@ -99,19 +99,22 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
   --gold: #AF8F3C;
   --gold-dim: rgba(175, 143, 60, 0.28);
   --gold-faint: rgba(175, 143, 60, 0.10);
-  --cream: #F7F0DE;
-  --ink: #2c2419;
+  --cream: #EDE5D0;
+  --ink: #1e1a14;
+  --text: #3d3529;
 
   min-height: 100dvh;
   background-color: var(--cream);
-  color: var(--ink);
+  color: var(--text);
   font-family: 'Crimson Pro', Georgia, serif;
   position: relative;
   transition: background-color 0.4s ease, color 0.4s ease;
 }
 :global(.dark) .public-layout {
-  background-color: #1F2C23;
-  color: var(--cream);
+  --cream: #1a2318;
+  --text: #d4cbba;
+  background-color: var(--cream);
+  color: var(--text);
 }
 
 /* Noise */
@@ -253,10 +256,10 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
 
 <style>
 html:has(.public-layout) {
-  background-color: #F7F0DE;
+  background-color: #EDE5D0;
   transition: background-color 0.4s ease;
 }
 html.dark:has(.public-layout) {
-  background-color: #1F2C23;
+  background-color: #1a2318;
 }
 </style>

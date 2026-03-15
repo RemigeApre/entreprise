@@ -14,9 +14,9 @@ useHead({
 })
 
 useSeoMeta({
-  title: 'L\u2019entreprise \u2014 Le Geai',
+  title: 'L\u2019entreprise - Le Geai',
   description: 'Decouvrez les valeurs, la vision et les poles du groupe Le Geai.',
-  ogTitle: 'Le Geai \u2014 L\u2019entreprise',
+  ogTitle: 'Le Geai - L\u2019entreprise',
   ogDescription: 'Un groupe fonde sur l\u2019exigence, la creativite et l\u2019accessibilite.'
 })
 
@@ -37,23 +37,17 @@ function goBack() {
 }
 
 const values = [
-  { numeral: 'I', title: 'Exigence', text: 'Un bon artiste transforme tout ce qu\u2019il experimente pour y insuffler son ame. Retirer un de ces deux criteres et vous avez un mediocre. Cette regle s\u2019applique a nos livres, a nos sites web, a nos articles — a tout ce qui porte le nom Le Geai.', color: '#AF8F3C' },
-  { numeral: 'II', title: 'Accessibilite', text: 'L\u2019art n\u2019appartient pas aux musees ni aux prix absurdes. Il appartient aux bureaux, aux ateliers, aux foyers. Nous refusons de fermer la porte aux petits budgets, aux lecteurs lents, a ceux qui pensent que l\u2019art n\u2019est pas pour eux.', color: '#6B8F71' },
-  { numeral: 'III', title: 'Transparence', text: 'Nous publions nos comptes. Chiffre d\u2019affaires, charges, resultat. Nous disons quand nous galerons. Le mensonge est plus couteux que la verite. La confiance ne se decrete pas, elle se prouve.', color: '#8B6F4E' },
-  { numeral: 'IV', title: 'Transmission', text: 'Nous prenons des stagiaires, le maximum legal, toute l\u2019annee. Donner sa chance a quelqu\u2019un qui debute ou qui recommence, c\u2019est un devoir, pas une variable d\u2019ajustement. Ceux qui font du bon travail restent.', color: '#7A6A8A' }
-]
-
-const branches = [
-  { title: 'Le Geai Editions', text: 'Maison d\u2019edition specialisee en dark fantasy et romantisme. Le livre n\u2019est pas un objet de consommation. C\u2019est une porte vers les profondeurs de l\u2019ame de l\u2019auteur. Quand vous lisez, l\u2019auteur est a vos cotes.', color: '#AF8F3C' },
-  { title: 'Le Geai Informatique', text: 'Developpement web, data engineering, support informatique. Notre metier n\u2019est pas de faire des sites : c\u2019est de tracer des sentiers. Le meilleur site est celui ou l\u2019on ne remarque jamais qu\u2019il a ete concu.', color: '#6B8F71' },
-  { title: 'Bergfrid', text: 'Media geopolitique independant. Des faits, du contexte, des sources contradictoires. Nous ne commentons pas l\u2019actualite : nous donnons les elements pour que nos lecteurs pensent par eux-memes.', color: '#8B6F4E' }
+  { numeral: 'I', title: 'Exigence', text: 'Un bon artiste transforme tout ce qu\u2019il experimente pour y insuffler son ame. Retirer un de ces deux criteres et vous avez un mediocre. Cette regle s\u2019applique a tout ce qui porte le nom Le Geai.', color: '#AF8F3C' },
+  { numeral: 'II', title: 'Accessibilite', text: 'L\u2019art n\u2019appartient pas aux musees ni aux prix absurdes. Il appartient aux bureaux, aux ateliers, aux foyers. Nous refusons de fermer la porte aux petits budgets, a ceux qui pensent que l\u2019art n\u2019est pas pour eux.', color: '#6B8F71' },
+  { numeral: 'III', title: 'Transparence', text: 'Nous publions nos comptes. Chiffre d\u2019affaires, charges, resultat. Nous disons quand nous galerons. Le mensonge est plus couteux que la verite.', color: '#8B6F4E' },
+  { numeral: 'IV', title: 'Transmission', text: 'Nous prenons des stagiaires, le maximum legal, toute l\u2019annee. Donner sa chance a quelqu\u2019un qui debute ou qui recommence, c\u2019est un devoir, pas une variable d\u2019ajustement.', color: '#7A6A8A' }
 ]
 
 const engagements = [
-  { numeral: 'I', title: 'Envers nos stagiaires', text: 'Nous prenons des stagiaires, le maximum legal, toute l\u2019annee. Etudiants en formation, mais aussi personnes en reinsertion professionnelle. Un vrai travail, un vrai portfolio, une vraie lettre de recommandation. Pas un stage cafe-photocopieuse.', color: '#7A6A8A' },
-  { numeral: 'II', title: 'Envers nos futurs employes', text: 'La competence est le seul critere, rien d\u2019autre. Le jour ou l\u2019argent rentre : des alternants, des CDI, des stagiaires payes. Ceux qui sont bons passent en alternance, puis en poste fixe. On valorise et on garde ceux qui font du bon travail.', color: '#AF8F3C' },
-  { numeral: 'III', title: 'Envers l\u2019art', text: 'Chaque euro gagne par Le Geai Informatique finance Le Geai Editions. Nos livres sont vendus a prix reduit aux entreprises et aux CSE. L\u2019art dans un bureau n\u2019est pas un luxe, c\u2019est un acte.', color: '#8B6F4E' },
-  { numeral: 'IV', title: 'Envers nos clients', text: 'Nos sites web sont concus avec empathie. Se mettre a la place de chaque visiteur, faire preuve d\u2019une empathie reelle et pratique : ca ne se genere pas, ca se travaille.', color: '#6B8F71' }
+  { title: 'Envers nos stagiaires', text: 'Un vrai travail, un vrai portfolio, une vraie lettre de recommandation pour ceux qui le meritent. Pas un stage cafe-photocopieuse. Etudiants en formation, personnes en reinsertion : la competence et la volonte ne regardent pas d\u2019ou l\u2019on vient.' },
+  { title: 'Envers nos futurs employes', text: 'La competence est le seul critere. Ceux qui sont bons passent en alternance, puis en poste fixe. On valorise et on garde ceux qui font du bon travail. C\u2019est la promesse.' },
+  { title: 'Envers l\u2019art', text: 'Chaque euro gagne par Le Geai Informatique finance Le Geai Editions. Nos livres sont vendus a prix reduit aux entreprises et aux CSE. L\u2019art dans un bureau n\u2019est pas un luxe, c\u2019est un acte.' },
+  { title: 'Envers nos clients', text: 'Nos sites web sont concus avec empathie. Se mettre a la place de chaque visiteur, faire preuve d\u2019une empathie reelle et pratique : ca ne se genere pas, ca se travaille.' }
 ]
 
 const links = [
@@ -78,7 +72,7 @@ const links = [
     <!-- Vignette -->
     <div class="vignette" aria-hidden="true" />
 
-    <!-- Watermark — goes DOWN on reveal -->
+    <!-- Watermark -->
     <div class="watermark" aria-hidden="true">
       <img src="/logo.svg" alt="" class="watermark-img" />
     </div>
@@ -101,19 +95,17 @@ const links = [
       </button>
     </header>
 
-    <!-- CENTER — fades out -->
+    <!-- CENTER - fades out -->
     <div class="center">
       <div class="center-inner">
         <h1 class="title">
           <span class="title-main">L'entreprise</span>
         </h1>
-
         <div class="ornament">
           <div class="ornament-line" />
           <span class="ornament-glyph">G</span>
           <div class="ornament-line" />
         </div>
-
         <p class="motto">Obscuritas nutrit flammam.</p>
         <p class="motto-sub">L'obscurite nourrit la flamme.</p>
       </div>
@@ -125,7 +117,7 @@ const links = [
     </div>
 
     <!-- ==============================
-         PANEL — full scrollable content
+         PANEL
          ============================== -->
     <div class="valeurs-panel">
       <button class="panel-back" @click="goBack">
@@ -135,89 +127,7 @@ const links = [
 
       <div class="panel-content">
 
-        <!-- ── VALEURS ── -->
-        <h2 class="panel-title">Nos valeurs</h2>
-        <div class="panel-ornament"><div class="panel-ornament-line" /></div>
-
-        <div class="valeurs-grid">
-          <div
-            v-for="(val, i) in values"
-            :key="val.title"
-            class="valeur-card"
-            :style="{ transitionDelay: `${1800 + i * 150}ms`, '--card-color': val.color }"
-          >
-            <div class="valeur-head">
-              <span class="valeur-numeral">{{ val.numeral }}</span>
-              <div class="valeur-rule" />
-            </div>
-            <h3 class="valeur-title">{{ val.title }}</h3>
-            <p class="valeur-text">{{ val.text }}</p>
-          </div>
-        </div>
-
-        <!-- ── HISTOIRE ── -->
-        <div class="section-separator" />
-        <h2 class="section-title-big">Notre histoire</h2>
-
-        <div class="prose-block">
-          <p>En 2024, un editeur a qualifie nos textes de &laquo;&nbsp;remarquables&nbsp;&raquo;. Puis il a refuse de les publier. Le format ne se vendait pas. Les lecteurs lents ne l'interessaient pas. Nos histoires n'etaient, selon lui, que des &laquo;&nbsp;etats d'ame&nbsp;&raquo; sans valeur marchande.</p>
-          <p>Ce jour-la, une chose est devenue claire : nous ne voulions pas etre publies par des gens qui meprisent leurs lecteurs. Nous ne voulions pas financer des structures qui impriment sans respect pour l'humain ni la nature.</p>
-          <p>Alors Le Geai est ne. Legalement en 2021, concretement en 2024 avec la publication du premier livre, et officiellement en 2025 comme maison d'edition. La vraie naissance est anterieure : celle d'un enfant qui ecrivait parce que c'etait vital, pas parce que c'etait un metier.</p>
-        </div>
-
-        <!-- Trois branches -->
-        <h3 class="sub-heading">Trois branches, une seule maison</h3>
-        <p class="sub-intro">Chacune nourrit les autres. Chaque site web livre finance un livre. Chaque livre publie porte la rigueur de l'ingenieur. Chaque article du media porte l'exigence de l'editeur.</p>
-
-        <div class="branches-list">
-          <article
-            v-for="b in branches"
-            :key="b.title"
-            class="branch-card"
-            :style="{ '--card-color': b.color }"
-          >
-            <h4 class="branch-title">{{ b.title }}</h4>
-            <p class="branch-text">{{ b.text }}</p>
-          </article>
-        </div>
-
-        <!-- ── ENGAGEMENTS ── -->
-        <div class="section-separator" />
-        <h2 class="section-title-big">Nos engagements</h2>
-        <p class="section-intro-text">Ce ne sont pas des promesses marketing. Ce sont des regles que nous nous imposons, sans exception.</p>
-
-        <div class="engagements-list">
-          <article
-            v-for="e in engagements"
-            :key="e.title"
-            class="eng-card"
-            :style="{ '--card-color': e.color }"
-          >
-            <div class="eng-card-head">
-              <span class="eng-card-numeral">{{ e.numeral }}</span>
-              <div class="eng-card-rule" />
-            </div>
-            <h3 class="eng-card-title">{{ e.title }}</h3>
-            <p class="eng-card-text">{{ e.text }}</p>
-          </article>
-        </div>
-
-        <!-- Tarifs solidaires -->
-        <h3 class="sub-heading sub-heading--center">Tarifs solidaires</h3>
-        <div class="tarifs-grid">
-          <div class="tarif-card">
-            <span class="tarif-pct">20 %</span>
-            <span class="tarif-label">Acteurs de la sante et de l'environnement</span>
-          </div>
-          <div class="tarif-card">
-            <span class="tarif-pct">30 %</span>
-            <span class="tarif-label">Associations et ONG</span>
-          </div>
-        </div>
-
-        <!-- ── DEVISE ── -->
-        <div class="section-separator" />
-
+        <!-- 0. DEVISE - tout en haut -->
         <button class="devise-section" @click="deviseOpen = !deviseOpen">
           <div class="devise-ornament">
             <div class="devise-line" />
@@ -236,7 +146,104 @@ const links = [
           </div>
         </Transition>
 
-        <!-- ── LIENS ── -->
+        <!-- 1. PRESENTATION -->
+        <div class="section-separator" />
+
+        <div class="intro-block">
+          <p>Le Geai est une entreprise lyonnaise a trois branches. Edition, informatique et media. Chacune nourrit les autres. Chaque site web livre finance un livre. Chaque livre publie porte la rigueur de l'ingenieur. Chaque article du media porte l'exigence de l'editeur.</p>
+          <p>Dans l'obscurite d'une epoque qui oublie l'exigence, nous portons les dernieres flammes. Celles transmises par nos anciens, partagees, offertes en heritage. Le Geai est ne d'un refus et d'une promesse : refuser que l'art devienne un produit, promettre que chaque oeuvre et chaque service porte en lui l'ame de celui qui l'a fait.</p>
+        </div>
+
+        <!-- 2. VALEURS -->
+        <div class="section-separator" />
+        <h2 class="section-title-big">Nos valeurs</h2>
+
+        <div class="valeurs-grid">
+          <div
+            v-for="(val, i) in values"
+            :key="val.title"
+            class="valeur-card"
+            :style="{ transitionDelay: `${1800 + i * 150}ms`, '--card-color': val.color }"
+          >
+            <span class="valeur-numeral">{{ val.numeral }}</span>
+            <h3 class="valeur-title">{{ val.title }}</h3>
+            <p class="valeur-text">{{ val.text }}</p>
+          </div>
+        </div>
+
+        <!-- 3. HISTOIRE - grosse carte -->
+        <div class="section-separator" />
+        <h2 class="section-title-big">Notre histoire</h2>
+
+        <div class="histoire-card">
+          <p>En 2024, un editeur a qualifie nos textes de &laquo;&nbsp;remarquables&nbsp;&raquo;. Puis il a refuse de les publier. Le format ne se vendait pas. Les lecteurs lents ne l'interessaient pas. Nos histoires n'etaient, selon lui, que des &laquo;&nbsp;etats d'ame&nbsp;&raquo; sans valeur marchande.</p>
+          <p>Ce jour-la, une chose est devenue claire : nous ne voulions pas etre publies par des gens qui meprisent leurs lecteurs. Nous ne voulions pas financer des structures qui impriment sans respect pour l'humain ni la nature.</p>
+          <p>Alors Le Geai est ne. Legalement en 2021, concretement en 2024 avec la publication du premier livre, et officiellement en 2025 comme maison d'edition. La vraie naissance est anterieure : celle d'un enfant qui ecrivait parce que c'etait vital, pas parce que c'etait un metier.</p>
+        </div>
+
+        <!-- 4. BRANCHES - bien separees -->
+        <div class="section-separator" />
+        <h2 class="section-title-big">Trois branches, une seule maison</h2>
+
+        <div class="branches-grid">
+          <!-- Editions -->
+          <article class="branch-card" style="--card-color: #AF8F3C">
+            <div class="branch-header">
+              <span class="branch-numeral">I</span>
+              <h3 class="branch-title">Le Geai Editions</h3>
+            </div>
+            <p class="branch-text">Maison d'edition specialisee en dark fantasy et romantisme. Nous publions des oeuvres exigeantes, imprimees dignement, accessibles a tous ceux qui veulent lire. Le livre n'est pas un objet de consommation. C'est une porte vers les profondeurs de l'ame de l'auteur.</p>
+          </article>
+
+          <!-- Informatique + reductions -->
+          <article class="branch-card" style="--card-color: #6B8F71">
+            <div class="branch-header">
+              <span class="branch-numeral">II</span>
+              <h3 class="branch-title">Le Geai Informatique</h3>
+            </div>
+            <p class="branch-text">Developpement web, data engineering, support informatique. Notre metier n'est pas de faire des sites : c'est de tracer des sentiers. Simplifier, alleger, rendre chaque utilisation agreable. Le meilleur site est celui ou l'on ne remarque jamais qu'il a ete concu.</p>
+            <div class="branch-tarifs">
+              <div class="tarif-item">
+                <span class="tarif-pct">-20 %</span>
+                <span class="tarif-label">Sante et environnement</span>
+              </div>
+              <div class="tarif-item">
+                <span class="tarif-pct">-30 %</span>
+                <span class="tarif-label">Associations et ONG</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Bergfrid -->
+          <article class="branch-card" style="--card-color: #8B6F4E">
+            <div class="branch-header">
+              <span class="branch-numeral">III</span>
+              <h3 class="branch-title">Bergfrid</h3>
+            </div>
+            <p class="branch-text">Media geopolitique independant. Des faits, du contexte, des sources contradictoires. Nous ne commentons pas l'actualite : nous donnons les elements pour que nos lecteurs pensent par eux-memes. La verite, pas le commentaire.</p>
+          </article>
+        </div>
+
+        <!-- 5. ENGAGEMENTS - elegant -->
+        <div class="section-separator" />
+        <h2 class="section-title-big">Nos engagements</h2>
+
+        <div class="engagements-grid">
+          <article
+            v-for="(e, i) in engagements"
+            :key="e.title"
+            class="eng-item"
+          >
+            <span class="eng-num">{{ String(i + 1).padStart(2, '0') }}</span>
+            <div class="eng-body">
+              <h3 class="eng-title">{{ e.title }}</h3>
+              <p class="eng-text">{{ e.text }}</p>
+            </div>
+          </article>
+        </div>
+
+        <!-- LIENS -->
+        <div class="section-separator" />
         <div class="links-row">
           <NuxtLink
             v-for="l in links"
@@ -273,8 +280,10 @@ const links = [
   --gold: #AF8F3C;
   --gold-dim: rgba(175, 143, 60, 0.28);
   --gold-faint: rgba(175, 143, 60, 0.10);
-  --cream: #F7F0DE;
-  --ink: #2c2419;
+  --cream: #EDE5D0;
+  --ink: #1e1a14;
+  --text: #3d3529;
+  --text-secondary: #5c5244;
   --transition: 1.4s cubic-bezier(0.4, 0, 0.2, 1);
 
   height: 100%;
@@ -283,10 +292,16 @@ const links = [
   align-items: center;
   position: relative;
   font-family: 'Crimson Pro', Georgia, serif;
-  color: var(--ink);
+  color: var(--text);
   overflow: hidden;
 }
-:global(.dark) .landing { color: var(--cream); }
+:global(.dark) .landing {
+  --cream: #1a2318;
+  --ink: #e8e0ce;
+  --text: #d4cbba;
+  --text-secondary: #a89e8e;
+  color: var(--text);
+}
 
 /* ============================
    LAYERS
@@ -301,7 +316,7 @@ const links = [
 .vignette {
   position: fixed; inset: 0;
   pointer-events: none; z-index: 1;
-  background: radial-gradient(ellipse at center, transparent 30%, rgba(44, 36, 25, 0.07) 100%);
+  background: radial-gradient(ellipse at center, transparent 30%, rgba(44, 36, 25, 0.10) 100%);
 }
 :global(.dark) .vignette {
   background: radial-gradient(ellipse at center, transparent 20%, rgba(10, 16, 11, 0.4) 100%);
@@ -329,7 +344,6 @@ const links = [
   filter: brightness(0) invert(0.85);
   opacity: 0.055;
 }
-
 .revealed .watermark { top: 150%; }
 .revealed .watermark-img { opacity: 0; }
 
@@ -429,10 +443,7 @@ const links = [
   transform: translateY(14px);
   transition: opacity 1s ease 0.25s, transform 1s ease 0.25s;
 }
-.is-visible .title {
-  opacity: 1;
-  transform: translateY(0);
-}
+.is-visible .title { opacity: 1; transform: translateY(0); }
 .title-main {
   font-family: 'IM Fell DW Pica', Georgia, serif;
   font-size: clamp(2.8rem, 8vw, 6rem);
@@ -442,6 +453,7 @@ const links = [
   display: block;
   line-height: 1;
   white-space: nowrap;
+  color: var(--ink);
 }
 
 .ornament {
@@ -452,15 +464,13 @@ const links = [
 }
 .is-visible .ornament { opacity: 0.5; }
 .ornament-line {
-  width: clamp(32px, 8vw, 64px);
-  height: 1px;
+  width: clamp(32px, 8vw, 64px); height: 1px;
   background: linear-gradient(90deg, transparent, var(--gold), transparent);
 }
 .ornament-glyph {
   font-family: 'UnifrakturCook', cursive;
   font-size: clamp(1.1rem, 2.5vw, 1.6rem);
-  color: var(--gold);
-  line-height: 1;
+  color: var(--gold); line-height: 1;
 }
 
 .motto {
@@ -474,10 +484,7 @@ const links = [
   transform: translateY(8px);
   transition: opacity 1s ease 0.65s, transform 1s ease 0.65s;
 }
-.is-visible .motto {
-  opacity: 1;
-  transform: translateY(0);
-}
+.is-visible .motto { opacity: 1; transform: translateY(0); }
 .motto-sub {
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: clamp(0.62rem, 1.3vw, 0.78rem);
@@ -486,15 +493,15 @@ const links = [
   margin-top: 6px;
   opacity: 0;
   transition: opacity 0.8s ease 0.85s;
+  color: var(--text-secondary);
 }
-.is-visible .motto-sub { opacity: 0.4; }
+.is-visible .motto-sub { opacity: 0.6; }
 
 /* ============================
    FOOTER
    ============================ */
 .footer-bar {
-  position: relative;
-  z-index: 2;
+  position: relative; z-index: 2;
   display: flex; align-items: center; gap: 8px;
   padding: clamp(6px, 1.2vh, 14px) 0;
   opacity: 0;
@@ -503,18 +510,16 @@ const links = [
 .is-visible .footer-bar { opacity: 0.35; }
 .footer-bar:hover { opacity: 0.6; }
 .revealed .footer-bar { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
-
 .footer-text {
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: clamp(8px, 1.2vw, 10px);
 }
 
 /* ============================
-   PANEL — scrollable full content
+   PANEL
    ============================ */
 .valeurs-panel {
-  position: fixed;
-  inset: 0;
+  position: fixed; inset: 0;
   z-index: 20;
   display: flex;
   flex-direction: column;
@@ -534,9 +539,6 @@ const links = [
   pointer-events: auto;
 }
 
-/* ============================
-   PANEL BACK
-   ============================ */
 .panel-back {
   position: fixed;
   top: clamp(18px, 3.5vw, 32px);
@@ -548,8 +550,7 @@ const links = [
   text-transform: uppercase;
   text-decoration: none;
   color: var(--gold);
-  opacity: 0;
-  z-index: 30;
+  opacity: 0; z-index: 30;
   padding: 8px 18px 8px 14px;
   border: 1px solid var(--gold-dim);
   border-radius: 2px;
@@ -568,363 +569,22 @@ const links = [
 
 .panel-content {
   width: 100%;
-  max-width: 800px;
+  max-width: 780px;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.panel-title {
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
-  font-weight: 400;
-  letter-spacing: 0.15em;
-  text-align: center;
-  margin-bottom: 10px;
-}
-
-.panel-ornament {
-  display: flex; justify-content: center;
-  margin-bottom: clamp(28px, 5vh, 48px);
-}
-.panel-ornament-line {
-  width: 50px; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
-}
-
 /* ============================
-   VALEURS GRID
-   ============================ */
-.valeurs-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  width: 100%;
-}
-
-.valeur-card {
-  position: relative;
-  padding: 36px 32px 32px;
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
-}
-.valeur-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border: 1px solid color-mix(in srgb, var(--card-color) 18%, transparent);
-  pointer-events: none;
-  transition: border-color 0.5s ease;
-}
-.valeur-card::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--card-color), transparent);
-  opacity: 0.5;
-  transition: opacity 0.4s ease;
-}
-.revealed .valeur-card {
-  opacity: 1;
-  transform: translateY(0);
-}
-.valeur-card:hover::before { border-color: color-mix(in srgb, var(--card-color) 35%, transparent); }
-.valeur-card:hover::after { opacity: 0.9; }
-
-:global(.dark) .valeur-card::before { border-color: color-mix(in srgb, var(--card-color) 15%, transparent); }
-:global(.dark) .valeur-card:hover::before { border-color: color-mix(in srgb, var(--card-color) 30%, transparent); }
-
-.valeur-head {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 20px;
-}
-
-.valeur-numeral {
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 1.5rem;
-  font-style: italic;
-  color: var(--card-color);
-  opacity: 0.6;
-  line-height: 1;
-  flex-shrink: 0;
-  transition: opacity 0.4s ease;
-}
-.valeur-card:hover .valeur-numeral { opacity: 1; }
-
-.valeur-rule {
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--card-color) 30%, transparent), transparent);
-}
-
-.valeur-title {
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 1.35rem;
-  font-weight: 400;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-bottom: 14px;
-  transition: color 0.4s ease, letter-spacing 0.4s ease;
-}
-.valeur-card:hover .valeur-title {
-  color: var(--card-color);
-  letter-spacing: 0.14em;
-}
-
-.valeur-text {
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.95rem;
-  line-height: 1.85;
-  opacity: 0.6;
-  transition: opacity 0.4s ease;
-}
-.valeur-card:hover .valeur-text { opacity: 0.85; }
-
-/* ============================
-   SECTION SEPARATORS & HEADINGS
-   ============================ */
-.section-separator {
-  width: 50px;
-  height: 1px;
-  margin: clamp(48px, 8vh, 72px) auto;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
-}
-
-.section-title-big {
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
-  font-weight: 400;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  text-align: center;
-  margin-bottom: clamp(28px, 4vh, 44px);
-}
-
-.sub-heading {
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 1.1rem;
-  font-weight: 400;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--gold);
-  opacity: 0.8;
-  margin-top: clamp(36px, 5vh, 52px);
-  margin-bottom: 16px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--gold-faint);
-  width: 100%;
-}
-.sub-heading--center {
-  text-align: center;
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.sub-intro {
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-style: italic;
-  font-size: 1rem;
-  line-height: 1.8;
-  opacity: 0.55;
-  margin-bottom: 24px;
-  width: 100%;
-}
-
-.section-intro-text {
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-style: italic;
-  font-size: 1.05rem;
-  color: var(--gold);
-  opacity: 0.65;
-  text-align: center;
-  margin-bottom: clamp(28px, 4vh, 44px);
-  line-height: 1.7;
-}
-
-/* ============================
-   PROSE
-   ============================ */
-.prose-block {
-  width: 100%;
-}
-.prose-block p {
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 1.05rem;
-  line-height: 2;
-  opacity: 0.7;
-  margin-bottom: 16px;
-}
-.prose-block p:last-child { margin-bottom: 0; }
-
-/* ============================
-   BRANCHES
-   ============================ */
-.branches-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
-}
-
-.branch-card {
-  position: relative;
-  padding: 24px 28px 22px;
-}
-.branch-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border: 1px solid color-mix(in srgb, var(--card-color) 18%, transparent);
-  pointer-events: none;
-}
-.branch-card::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--card-color), transparent);
-  opacity: 0.5;
-}
-
-.branch-title {
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 1.1rem;
-  font-weight: 400;
-  letter-spacing: 0.06em;
-  margin-bottom: 10px;
-  color: var(--card-color);
-}
-
-.branch-text {
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.92rem;
-  line-height: 1.85;
-  opacity: 0.6;
-}
-
-/* ============================
-   ENGAGEMENTS
-   ============================ */
-.engagements-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  width: 100%;
-}
-
-.eng-card {
-  position: relative;
-  padding: 32px 28px 28px;
-}
-.eng-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border: 1px solid color-mix(in srgb, var(--card-color) 18%, transparent);
-  pointer-events: none;
-}
-.eng-card::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--card-color), transparent);
-  opacity: 0.5;
-}
-
-.eng-card-head {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 16px;
-}
-
-.eng-card-numeral {
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 1.4rem;
-  font-style: italic;
-  color: var(--card-color);
-  opacity: 0.6;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.eng-card-rule {
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--card-color) 30%, transparent), transparent);
-}
-
-.eng-card-title {
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 1.15rem;
-  font-weight: 400;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  margin-bottom: 12px;
-}
-
-.eng-card-text {
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.95rem;
-  line-height: 1.9;
-  opacity: 0.62;
-}
-
-/* ============================
-   TARIFS
-   ============================ */
-.tarifs-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  max-width: 420px;
-  margin: 20px auto 0;
-}
-
-.tarif-card {
-  padding: 24px 16px;
-  border: 1px solid var(--gold-faint);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.tarif-pct {
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 2rem;
-  color: var(--gold);
-  line-height: 1;
-}
-
-.tarif-label {
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.82rem;
-  letter-spacing: 0.04em;
-  opacity: 0.5;
-  line-height: 1.5;
-}
-
-/* ============================
-   DEVISE — clickable
+   DEVISE - tout en haut
    ============================ */
 .devise-section {
-  margin-top: 8px;
   text-align: center;
   cursor: pointer;
   background: none;
   border: none;
   color: inherit;
-  padding: 20px 28px;
-  border-radius: 2px;
+  padding: 24px 28px;
   width: 100%;
   transition: background 0.3s;
 }
@@ -932,41 +592,38 @@ const links = [
 
 .devise-ornament {
   display: flex; align-items: center; justify-content: center; gap: 14px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 .devise-line {
-  width: clamp(24px, 6vw, 48px);
-  height: 1px;
+  width: clamp(28px, 7vw, 56px); height: 1px;
   background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
 }
 .devise-glyph {
   font-family: 'UnifrakturCook', cursive;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   color: var(--gold);
-  opacity: 0.4;
+  opacity: 0.5;
   line-height: 1;
 }
-
 .devise-latin {
   font-family: 'IM Fell DW Pica', Georgia, serif;
   font-style: italic;
-  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+  font-size: clamp(1.2rem, 3vw, 1.7rem);
   color: var(--gold);
   letter-spacing: 0.06em;
   margin-bottom: 6px;
 }
-
 .devise-fr {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: clamp(0.7rem, 1.3vw, 0.85rem);
+  font-size: clamp(0.72rem, 1.3vw, 0.85rem);
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  opacity: 0.4;
+  color: var(--text-secondary);
+  opacity: 0.6;
 }
-
 .devise-hint {
   display: block;
-  margin-top: 12px;
+  margin-top: 14px;
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: 0.72rem;
   letter-spacing: 0.18em;
@@ -979,41 +636,305 @@ const links = [
 
 .devise-explanation {
   width: 100%;
-  max-width: 620px;
+  max-width: 600px;
   margin: 0 auto;
-  padding: 28px 0 8px;
+  padding: 20px 0 8px;
   text-align: left;
 }
 .devise-explanation p {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.95rem;
+  font-size: 1rem;
   line-height: 1.9;
-  opacity: 0.7;
+  color: var(--text);
   margin-bottom: 14px;
 }
 .devise-explanation p:last-child { margin-bottom: 0; }
 
-.devise-explain-enter-active {
-  transition: opacity 0.5s ease, transform 0.5s ease;
+.devise-explain-enter-active { transition: opacity 0.5s ease, transform 0.5s ease; }
+.devise-explain-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
+.devise-explain-enter-from, .devise-explain-leave-to { opacity: 0; transform: translateY(-8px); }
+
+/* ============================
+   SHARED
+   ============================ */
+.section-separator {
+  width: 50px; height: 1px;
+  margin: clamp(44px, 7vh, 64px) auto;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
 }
-.devise-explain-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-.devise-explain-enter-from,
-.devise-explain-leave-to {
-  opacity: 0;
-  transform: translateY(-8px);
+
+.section-title-big {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--ink);
+  margin-bottom: clamp(28px, 4vh, 44px);
 }
 
 /* ============================
-   LINKS ROW
+   INTRO BLOCK
+   ============================ */
+.intro-block {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
+}
+.intro-block p {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 1.08rem;
+  line-height: 2;
+  color: var(--text);
+  margin-bottom: 18px;
+}
+.intro-block p:last-child { margin-bottom: 0; }
+
+/* ============================
+   VALEURS - numeral centre, pas d'italique
+   ============================ */
+.valeurs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  width: 100%;
+}
+
+.valeur-card {
+  position: relative;
+  padding: 32px 28px 28px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.valeur-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  border: 1px solid color-mix(in srgb, var(--card-color) 20%, transparent);
+  pointer-events: none;
+  transition: border-color 0.5s ease;
+}
+.valeur-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--card-color), transparent);
+  opacity: 0.5;
+  transition: opacity 0.4s ease;
+}
+.revealed .valeur-card { opacity: 1; transform: translateY(0); }
+.valeur-card:hover::before { border-color: color-mix(in srgb, var(--card-color) 40%, transparent); }
+.valeur-card:hover::after { opacity: 0.9; }
+
+:global(.dark) .valeur-card::before { border-color: color-mix(in srgb, var(--card-color) 15%, transparent); }
+:global(.dark) .valeur-card:hover::before { border-color: color-mix(in srgb, var(--card-color) 30%, transparent); }
+
+.valeur-numeral {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1.6rem;
+  color: var(--card-color);
+  opacity: 0.5;
+  line-height: 1;
+  display: block;
+  margin-bottom: 16px;
+  transition: opacity 0.4s ease;
+}
+.valeur-card:hover .valeur-numeral { opacity: 0.9; }
+
+.valeur-title {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1.3rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  color: var(--ink);
+  transition: color 0.4s ease;
+}
+.valeur-card:hover .valeur-title { color: var(--card-color); }
+
+.valeur-text {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.95rem;
+  line-height: 1.85;
+  color: var(--text-secondary);
+  transition: color 0.4s ease;
+}
+.valeur-card:hover .valeur-text { color: var(--text); }
+
+/* ============================
+   HISTOIRE - grosse carte
+   ============================ */
+.histoire-card {
+  width: 100%;
+  position: relative;
+  padding: clamp(32px, 5vw, 48px);
+  border: 1px solid var(--gold-dim);
+}
+.histoire-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0.4;
+}
+.histoire-card p {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 1.05rem;
+  line-height: 2.1;
+  color: var(--text);
+  margin-bottom: 18px;
+}
+.histoire-card p:last-child { margin-bottom: 0; }
+
+/* ============================
+   BRANCHES - bien separees
+   ============================ */
+.branches-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.branch-card {
+  position: relative;
+  padding: 32px;
+  border: 1px solid color-mix(in srgb, var(--card-color) 20%, transparent);
+  transition: border-color 0.4s;
+}
+.branch-card:hover {
+  border-color: color-mix(in srgb, var(--card-color) 40%, transparent);
+}
+.branch-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0; width: 3px;
+  background: var(--card-color);
+  opacity: 0.4;
+  transition: opacity 0.4s;
+}
+.branch-card:hover::after { opacity: 0.8; }
+
+.branch-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.branch-numeral {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1.2rem;
+  color: var(--card-color);
+  opacity: 0.5;
+  line-height: 1;
+}
+
+.branch-title {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: var(--card-color);
+}
+
+.branch-text {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.98rem;
+  line-height: 1.9;
+  color: var(--text);
+}
+
+.branch-tarifs {
+  display: flex;
+  gap: 16px;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid color-mix(in srgb, var(--card-color) 15%, transparent);
+}
+
+.tarif-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tarif-pct {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1.3rem;
+  color: var(--card-color);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.tarif-label {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* ============================
+   ENGAGEMENTS - elegant
+   ============================ */
+.engagements-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+}
+
+.eng-item {
+  display: flex;
+  gap: 24px;
+  padding: 28px 0;
+  border-bottom: 1px solid var(--gold-faint);
+}
+.eng-item:first-child {
+  border-top: 1px solid var(--gold-faint);
+}
+
+.eng-num {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1.1rem;
+  color: var(--gold);
+  opacity: 0.4;
+  line-height: 1.6;
+  flex-shrink: 0;
+  width: 32px;
+}
+
+.eng-body { flex: 1; }
+
+.eng-title {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.eng-text {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.95rem;
+  line-height: 1.85;
+  color: var(--text-secondary);
+}
+
+/* ============================
+   LINKS
    ============================ */
 .links-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
   width: 100%;
-  margin-top: clamp(36px, 6vh, 52px);
 }
 
 .link-card {
@@ -1049,19 +970,19 @@ const links = [
   gap: 2px;
   min-width: 0;
 }
-
 .link-title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
   font-size: 0.95rem;
   letter-spacing: 0.04em;
+  color: var(--ink);
   transition: color 0.3s;
 }
 .link-card:hover .link-title { color: var(--gold); }
-
 .link-sub {
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: 0.75rem;
-  opacity: 0.35;
+  color: var(--text-secondary);
+  opacity: 0.6;
   letter-spacing: 0.02em;
 }
 
@@ -1071,10 +992,7 @@ const links = [
   flex-shrink: 0;
   transition: opacity 0.3s, transform 0.3s;
 }
-.link-card:hover .link-chevron {
-  opacity: 0.7;
-  transform: translateX(3px);
-}
+.link-card:hover .link-chevron { opacity: 0.7; transform: translateX(3px); }
 
 /* ============================
    CLOSING QUOTE
@@ -1091,7 +1009,7 @@ const links = [
   font-size: 1.05rem;
   line-height: 1.7;
   color: var(--gold);
-  opacity: 0.6;
+  opacity: 0.7;
   max-width: 520px;
   margin: 0 auto;
 }
@@ -1107,6 +1025,6 @@ const links = [
 @media (max-width: 640px) {
   .valeurs-grid { grid-template-columns: 1fr; }
   .links-row { grid-template-columns: 1fr; }
-  .tarifs-grid { grid-template-columns: 1fr; }
+  .branch-tarifs { flex-direction: column; gap: 10px; }
 }
 </style>

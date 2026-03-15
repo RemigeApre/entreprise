@@ -73,6 +73,10 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
   --gold: #AF8F3C;
   --gold-dim: rgba(175, 143, 60, 0.28);
   --gold-faint: rgba(175, 143, 60, 0.10);
+  --ink: #1e1a14;
+  --text: #3d3529;
+  --text-secondary: #5c5244;
+  color: var(--text);
   padding: clamp(20px, 4vw, 60px) clamp(24px, 5vw, 64px);
 }
 
@@ -142,7 +146,7 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: 1.05rem;
   line-height: 2;
-  opacity: 0.7;
+  color: var(--text);
   margin-bottom: 16px;
 }
 .section-body p:last-child { margin-bottom: 0; }
@@ -171,7 +175,7 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
 .item-desc {
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: 0.8rem;
-  opacity: 0.45;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 
@@ -196,7 +200,7 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: 0.92rem;
   line-height: 1.8;
-  opacity: 0.55;
+  color: var(--text-secondary);
 }
 
 /* End ornament */

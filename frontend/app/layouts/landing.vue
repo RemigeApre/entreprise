@@ -8,22 +8,21 @@
 .landing-layout {
   height: 100dvh;
   overflow: hidden;
-  background-color: #F7F0DE;
+  background-color: #EDE5D0;
   transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 :global(.dark) .landing-layout {
-  background-color: #1F2C23;
+  background-color: #1a2318;
 }
 </style>
 
 <style>
-/* Force html/body background to match landing — prevents white flash on theme toggle */
 html:has(.landing-layout) {
-  background-color: #F7F0DE;
+  background-color: #EDE5D0;
   transition: background-color 0.4s ease;
 }
 html.dark:has(.landing-layout) {
-  background-color: #1F2C23;
+  background-color: #1a2318;
 }
 </style>
