@@ -144,14 +144,14 @@ function truncate(text: string, max: number) {
           placeholder="Rechercher..."
           icon="i-lucide-search"
           size="sm"
-          class="w-56"
+          class="w-full sm:w-56"
         />
         <USelect
           v-model="filterStatut"
           :items="statutOptions"
           value-key="value"
           size="sm"
-          class="w-40"
+          class="w-full sm:w-40"
         />
         <UButton
           v-if="hasFilters"

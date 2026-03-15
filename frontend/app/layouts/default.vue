@@ -4,6 +4,7 @@ import { DASHBOARD_MODULES, PLANNING_DISPLAY_OPTIONS, PRESENCE_DISPLAY_OPTIONS }
 const { user, logout, isDirecteur, roleName, isProspecteur } = useAuth()
 const route = useRoute()
 const mobileOpen = ref(false)
+const expandedDomains = ref<Set<string>>(new Set())
 const { isVisible, show, hide, hiddenCount, showAll, planningMode, setPlanningMode, presenceMode, setPresenceMode } = useDashboardPreferences()
 const { hasSites } = useSiteMonitor()
 const { toggle: searchToggle } = useGlobalSearch()
@@ -20,6 +21,19 @@ useHead({
 })
 
 watch(() => route.fullPath, () => { mobileOpen.value = false })
+
+function toggleDomain(id: string) {
+  const s = expandedDomains.value
+  if (s.has(id)) s.delete(id)
+  else s.add(id)
+}
+
+// Auto-expand active domain when drawer opens
+watch(mobileOpen, (open) => {
+  if (open && activeDomain.value) {
+    expandedDomains.value.add(activeDomain.value.id)
+  }
+})
 
 // ─── Domain definitions ─────────────────────────────────
 
@@ -371,6 +385,7 @@ const userMenuItems = computed(() => [
 
             <!-- Domain groups -->
             <div v-for="domain in domains" :key="domain.id" class="drawer-group">
+              <!-- Domain without tabs: simple link -->
               <NuxtLink
                 v-if="domain.tabs.length === 0"
                 :to="domain.to"
@@ -382,12 +397,18 @@ const userMenuItems = computed(() => [
                 {{ domain.label }}
               </NuxtLink>
 
+              <!-- Domain with tabs: collapsible -->
               <template v-else>
-                <p class="drawer-group-title">
-                  <UIcon :name="domain.icon" class="size-4" />
-                  {{ domain.label }}
-                </p>
-                <div class="drawer-group-items">
+                <button
+                  class="drawer-group-toggle"
+                  :class="{ 'is-active': isDomainActive(domain), 'is-open': expandedDomains.has(domain.id) }"
+                  @click="toggleDomain(domain.id)"
+                >
+                  <UIcon :name="domain.icon" class="size-5" />
+                  <span class="drawer-group-label">{{ domain.label }}</span>
+                  <UIcon name="i-lucide-chevron-down" class="size-4 drawer-chevron" />
+                </button>
+                <div v-if="expandedDomains.has(domain.id)" class="drawer-group-items">
                   <template v-for="tab in domain.tabs" :key="tab.to">
                     <span v-if="tab.disabled" class="drawer-tab is-disabled">
                       <UIcon :name="tab.icon" class="size-4" />
@@ -598,16 +619,12 @@ const userMenuItems = computed(() => [
    TAB BAR
    ============================ */
 .tab-bar {
-  display: none;
+  display: block;
   border-bottom: 1px solid rgba(175, 143, 60, 0.12);
-  background: rgba(245, 239, 224, 0.8);
+  background: #f0e8d4;
   flex-shrink: 0;
   position: relative;
   z-index: 10;
-}
-
-@media (min-width: 1024px) {
-  .tab-bar { display: block; }
 }
 
 .tab-bar-inner {
@@ -615,12 +632,19 @@ const userMenuItems = computed(() => [
   align-items: end;
   padding: 0 20px;
 }
+@media (max-width: 1023px) {
+  .tab-bar-inner { padding: 0 12px; }
+}
 
 .tab-list {
   display: flex;
   align-items: end;
   gap: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
+.tab-list::-webkit-scrollbar { display: none; }
 
 .tab-item {
   display: flex;
@@ -637,6 +661,12 @@ const userMenuItems = computed(() => [
   position: relative;
   transition: opacity 0.25s, color 0.25s;
   white-space: nowrap;
+}
+@media (max-width: 1023px) {
+  .tab-item {
+    padding: 12px 14px;
+    min-height: 44px;
+  }
 }
 .tab-item:hover {
   opacity: 0.7;
@@ -810,27 +840,52 @@ const userMenuItems = computed(() => [
 /* Domain groups */
 .drawer-group {
   border-radius: 0;
-  margin-top: 4px;
 }
 .drawer-group + .drawer-group {
   border-top: 1px solid #d4c9a8;
-  padding-top: 4px;
 }
-.drawer-group-title {
+
+/* Collapsible toggle */
+.drawer-group-toggle {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--gold);
-  padding: 12px 16px 4px;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  min-height: 52px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  opacity: 0.65;
+  transition: background 0.1s;
 }
+.drawer-group-toggle:active {
+  background: #d9cfb3;
+}
+.drawer-group-toggle.is-active {
+  color: var(--gold);
+  opacity: 1;
+}
+.drawer-group-label {
+  flex: 1;
+  text-align: left;
+}
+.drawer-chevron {
+  opacity: 0.4;
+  transition: transform 0.2s ease;
+}
+.drawer-group-toggle.is-open .drawer-chevron {
+  transform: rotate(180deg);
+}
+
+/* Expanded items */
 .drawer-group-items {
   display: flex;
   flex-direction: column;
-  padding: 2px 4px 4px;
+  padding: 0 4px 8px 20px;
+  border-left: 2px solid #d4c9a8;
+  margin-left: 28px;
+  margin-bottom: 4px;
 }
 
 /* Links (standalone domains) */

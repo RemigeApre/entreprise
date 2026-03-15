@@ -23,13 +23,20 @@ defineProps<{
 <style scoped>
 .page-header {
   position: relative;
-  height: 48px;
+  min-height: 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
   border-bottom: 1px solid rgba(175, 143, 60, 0.08);
   flex-shrink: 0;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+@media (max-width: 640px) {
+  .page-header {
+    padding: 8px 12px;
+  }
 }
 .page-header-title {
   position: absolute;

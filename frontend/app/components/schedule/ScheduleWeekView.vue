@@ -162,7 +162,7 @@ onUnmounted(() => {
 <template>
   <div class="flex flex-col h-full min-h-0">
     <!-- Fixed header -->
-    <div class="grid grid-cols-[56px_repeat(5,1fr)] border-b border-[#af8f3c]/30 dark:border-stone-600 shrink-0 bg-[#ede4cc]/40 dark:bg-transparent">
+    <div class="schedule-header-grid border-b border-[#af8f3c]/30 dark:border-stone-600 shrink-0 bg-[#ede4cc]/40 dark:bg-transparent">
       <div class="py-2.5" />
       <div
         v-for="day in weekDays"
@@ -196,8 +196,8 @@ onUnmounted(() => {
     </div>
 
     <!-- Scrollable grid (only this part scrolls) -->
-    <div ref="gridRef" class="flex-1 overflow-y-auto min-h-0">
-      <div class="grid grid-cols-[56px_repeat(5,1fr)] relative" :style="{ height: TOTAL_HEIGHT + 'px' }">
+    <div ref="gridRef" class="flex-1 overflow-y-auto overflow-x-auto min-h-0">
+      <div class="schedule-body-grid relative" :style="{ height: TOTAL_HEIGHT + 'px' }">
         <!-- Hour labels -->
         <div class="relative">
           <div
@@ -322,3 +322,18 @@ onUnmounted(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.schedule-header-grid,
+.schedule-body-grid {
+  display: grid;
+  grid-template-columns: 56px repeat(5, 1fr);
+}
+@media (max-width: 640px) {
+  .schedule-header-grid,
+  .schedule-body-grid {
+    grid-template-columns: 40px repeat(5, minmax(80px, 1fr));
+    min-width: 460px;
+  }
+}
+</style>

@@ -206,7 +206,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Header row (sticky) -->
-    <div class="grid grid-cols-[52px_repeat(5,1fr)] border-b border-stone-200 dark:border-stone-700">
+    <div class="planning-grid border-b border-stone-200 dark:border-stone-700">
       <div class="py-2" />
       <div
         v-for="day in weekDays"
@@ -240,8 +240,8 @@ onUnmounted(() => {
     </div>
 
     <!-- Scrollable time grid -->
-    <div ref="gridRef" class="overflow-y-auto" style="max-height: 560px;">
-      <div class="grid grid-cols-[52px_repeat(5,1fr)] relative" :style="{ height: GRID_HEIGHT + 'px' }">
+    <div ref="gridRef" class="overflow-y-auto overflow-x-auto" style="max-height: 560px;">
+      <div class="planning-grid relative" :style="{ height: GRID_HEIGHT + 'px' }">
 
         <!-- Hour labels column -->
         <div class="relative">
@@ -446,3 +446,16 @@ onUnmounted(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.planning-grid {
+  display: grid;
+  grid-template-columns: 52px repeat(5, 1fr);
+}
+@media (max-width: 640px) {
+  .planning-grid {
+    grid-template-columns: 40px repeat(5, minmax(80px, 1fr));
+    min-width: 460px;
+  }
+}
+</style>

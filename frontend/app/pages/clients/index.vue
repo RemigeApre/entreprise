@@ -70,7 +70,7 @@ function formatDateFr(date: string | null) {
             placeholder="Rechercher..."
             icon="i-lucide-search"
             size="sm"
-            class="w-52"
+            class="w-full sm:w-52"
           />
         </div>
 

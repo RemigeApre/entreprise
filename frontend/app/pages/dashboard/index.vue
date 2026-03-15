@@ -295,10 +295,7 @@ function onDragEnd(e: DragEvent) {
   flex-shrink: 0;
 }
 @media (max-width: 768px) {
-  .dash-header { padding: 14px 16px 8px; }
-}
-@media (max-width: 1023px) {
-  .dash-header { padding-top: 0; }
+  .dash-header { padding: 6px 16px 8px; }
 }
 
 /* ═══ BODY: center + sidebar ═══ */

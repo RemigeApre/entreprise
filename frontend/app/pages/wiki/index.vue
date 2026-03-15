@@ -80,7 +80,7 @@ function smartExcerpt(html: string): string {
           icon="i-lucide-search"
           placeholder="Rechercher..."
           size="sm"
-          class="w-52"
+          class="w-full sm:w-52"
         />
         <UButton
           v-if="isDirecteur"

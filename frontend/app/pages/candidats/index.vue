@@ -151,12 +151,12 @@ function exportCsv() {
             v-model="search"
             placeholder="Rechercher..."
             icon="i-lucide-search"
-            class="w-64"
+            class="w-full sm:w-64"
             size="sm"
           />
-          <USelect v-model="filterStatut" :items="statutOptions" value-key="value" size="sm" class="w-48" placeholder="Tous les statuts" />
-          <USelect v-model="filterOffre" :items="offreOptions" value-key="value" size="sm" class="w-48" placeholder="Toutes les offres" />
-          <div class="flex items-center gap-1 ml-auto">
+          <USelect v-model="filterStatut" :items="statutOptions" value-key="value" size="sm" class="w-[calc(50%-6px)] sm:w-48" placeholder="Tous les statuts" />
+          <USelect v-model="filterOffre" :items="offreOptions" value-key="value" size="sm" class="w-[calc(50%-6px)] sm:w-48" placeholder="Toutes les offres" />
+          <div class="flex items-center gap-1 w-full sm:w-auto sm:ml-auto">
             <button
               v-for="opt in sortOptions"
               :key="opt.key"
@@ -240,7 +240,7 @@ function exportCsv() {
           <div
             v-for="[statut, config] in pipelineStatuts"
             :key="statut"
-            class="flex-shrink-0 w-64"
+            class="flex-shrink-0 w-48 sm:w-64"
           >
             <div class="flex items-center gap-2 mb-2 px-1">
               <UIcon :name="config.icon" class="size-4 text-stone-500" />

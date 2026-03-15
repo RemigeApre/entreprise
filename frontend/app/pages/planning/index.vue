@@ -474,8 +474,8 @@ onMounted(() => {
 
       <!-- Week view -->
       <template v-if="viewMode === 'week'">
-        <div class="flex gap-6">
-          <div class="flex-1">
+        <div class="flex flex-col sm:flex-row gap-4 sm:gap-6">
+          <div class="flex-1 min-w-0">
             <PlanningWeekView
               ref="weekViewRef"
               :entries="entries"
@@ -489,7 +489,7 @@ onMounted(() => {
             />
           </div>
 
-          <div v-if="hasHourTracking" class="w-56 shrink-0">
+          <div v-if="hasHourTracking" class="w-full sm:w-56 sm:shrink-0">
             <PlanningHoursSummary
               :total-hours="stats.totalHours"
               :total-days="stats.totalDays"
@@ -508,8 +508,8 @@ onMounted(() => {
 
       <!-- Timetable view -->
       <template v-else-if="viewMode === 'timetable'">
-        <div class="flex gap-6">
-          <div class="flex-1">
+        <div class="flex flex-col sm:flex-row gap-4 sm:gap-6">
+          <div class="flex-1 min-w-0">
             <PlanningTimetable
               ref="timetableRef"
               :entries="entries"
@@ -523,7 +523,7 @@ onMounted(() => {
             />
           </div>
 
-          <div v-if="hasHourTracking" class="w-56 shrink-0">
+          <div v-if="hasHourTracking" class="w-full sm:w-56 sm:shrink-0">
             <PlanningHoursSummary
               :total-hours="stats.totalHours"
               :total-days="stats.totalDays"
@@ -542,8 +542,8 @@ onMounted(() => {
 
       <!-- Month view -->
       <template v-else>
-        <div class="flex gap-6">
-          <div class="flex-1">
+        <div class="flex flex-col sm:flex-row gap-4 sm:gap-6">
+          <div class="flex-1 min-w-0">
             <PlanningMonthView
               ref="monthViewRef"
               :entries="entries"
@@ -556,7 +556,7 @@ onMounted(() => {
             />
           </div>
 
-          <div v-if="hasHourTracking" class="w-56 shrink-0">
+          <div v-if="hasHourTracking" class="w-full sm:w-56 sm:shrink-0">
             <PlanningHoursSummary
               :total-hours="stats.totalHours"
               :total-days="stats.totalDays"

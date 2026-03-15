@@ -286,10 +286,10 @@ if (import.meta.client) {
               placeholder="Rechercher..."
               icon="i-lucide-search"
               size="sm"
-              class="w-52"
+              class="w-full sm:w-52"
             />
-            <USelect v-model="filterVille" :items="villeOptions" value-key="value" size="sm" class="w-44" />
-            <USelect v-model="filterStatut" :items="statutOptions" value-key="value" size="sm" class="w-40" />
+            <USelect v-model="filterVille" :items="villeOptions" value-key="value" size="sm" class="w-[calc(50%-4px)] sm:w-44" />
+            <USelect v-model="filterStatut" :items="statutOptions" value-key="value" size="sm" class="w-[calc(50%-4px)] sm:w-40" />
             <UButton
               v-if="hasFilters"
               label="Effacer"

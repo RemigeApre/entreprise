@@ -114,19 +114,19 @@ function exportCsv() {
   <div class="flex flex-col h-full">
     <PageHeader title="Projets">
       <template #right>
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-2 sm:gap-3">
           <USelectMenu
             v-model="filterStatut"
             :items="statutOptions"
             value-key="value"
-            class="w-48"
+            class="w-full sm:w-48"
             placeholder="Filtrer par statut"
           />
           <UInput
             v-model="search"
             placeholder="Rechercher un projet..."
             icon="i-lucide-search"
-            class="w-64"
+            class="w-full sm:w-64"
           />
           <UButton
             icon="i-lucide-download"

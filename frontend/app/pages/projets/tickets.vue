@@ -298,12 +298,12 @@ onMounted(loadData)
             placeholder="Rechercher..."
             icon="i-lucide-search"
             size="sm"
-            class="w-48"
+            class="w-full sm:w-48"
           />
-          <USelect v-model="filterProjet" :items="projetOptions" value-key="value" size="sm" class="w-44" />
-          <USelect v-model="filterStatut" :items="statutOptions" value-key="value" size="sm" class="w-36" />
-          <USelect v-model="filterType" :items="typeOptions" value-key="value" size="sm" class="w-40" />
-          <USelect v-model="filterPriorite" :items="prioriteOptions" value-key="value" size="sm" class="w-40" />
+          <USelect v-model="filterProjet" :items="projetOptions" value-key="value" size="sm" class="w-[calc(50%-4px)] sm:w-44" />
+          <USelect v-model="filterStatut" :items="statutOptions" value-key="value" size="sm" class="w-[calc(50%-4px)] sm:w-36" />
+          <USelect v-model="filterType" :items="typeOptions" value-key="value" size="sm" class="w-[calc(50%-4px)] sm:w-40" />
+          <USelect v-model="filterPriorite" :items="prioriteOptions" value-key="value" size="sm" class="w-[calc(50%-4px)] sm:w-40" />
           <UButton
             v-if="hasFilters"
             label="Effacer"
