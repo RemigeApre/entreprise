@@ -31,13 +31,6 @@ onMounted(() => {
   })
 })
 
-const sections = [
-  { icon: 'i-lucide-book-open', title: 'Notre histoire', sub: 'Les origines du groupe et son fondateur', to: '/le-geai/histoire' },
-  { icon: 'i-lucide-handshake', title: 'Nos engagements', sub: 'Ce que nous defendons concretement', to: '/le-geai/engagements' },
-  { icon: 'i-lucide-feather', title: 'Nos articles', sub: 'Reflexions et actualites du groupe', to: '/articles' },
-  { icon: 'i-lucide-pie-chart', title: 'Transparence', sub: 'Nos comptes, en toute clarte', to: '/le-geai/transparence' }
-]
-
 function goBack() {
   revealed.value = false
   setTimeout(() => { navigateTo('/') }, 1400)
@@ -48,6 +41,24 @@ const values = [
   { numeral: 'II', title: 'Accessibilite', text: 'L\u2019art n\u2019appartient pas aux musees ni aux prix absurdes. Il appartient aux bureaux, aux ateliers, aux foyers. Nous refusons de fermer la porte aux petits budgets, aux lecteurs lents, a ceux qui pensent que l\u2019art n\u2019est pas pour eux.', color: '#6B8F71' },
   { numeral: 'III', title: 'Transparence', text: 'Nous publions nos comptes. Chiffre d\u2019affaires, charges, resultat. Nous disons quand nous galerons. Le mensonge est plus couteux que la verite. La confiance ne se decrete pas, elle se prouve.', color: '#8B6F4E' },
   { numeral: 'IV', title: 'Transmission', text: 'Nous prenons des stagiaires, le maximum legal, toute l\u2019annee. Donner sa chance a quelqu\u2019un qui debute ou qui recommence, c\u2019est un devoir, pas une variable d\u2019ajustement. Ceux qui font du bon travail restent.', color: '#7A6A8A' }
+]
+
+const branches = [
+  { title: 'Le Geai Editions', text: 'Maison d\u2019edition specialisee en dark fantasy et romantisme. Le livre n\u2019est pas un objet de consommation. C\u2019est une porte vers les profondeurs de l\u2019ame de l\u2019auteur. Quand vous lisez, l\u2019auteur est a vos cotes.', color: '#AF8F3C' },
+  { title: 'Le Geai Informatique', text: 'Developpement web, data engineering, support informatique. Notre metier n\u2019est pas de faire des sites : c\u2019est de tracer des sentiers. Le meilleur site est celui ou l\u2019on ne remarque jamais qu\u2019il a ete concu.', color: '#6B8F71' },
+  { title: 'Bergfrid', text: 'Media geopolitique independant. Des faits, du contexte, des sources contradictoires. Nous ne commentons pas l\u2019actualite : nous donnons les elements pour que nos lecteurs pensent par eux-memes.', color: '#8B6F4E' }
+]
+
+const engagements = [
+  { numeral: 'I', title: 'Envers nos stagiaires', text: 'Nous prenons des stagiaires, le maximum legal, toute l\u2019annee. Etudiants en formation, mais aussi personnes en reinsertion professionnelle. Un vrai travail, un vrai portfolio, une vraie lettre de recommandation. Pas un stage cafe-photocopieuse.', color: '#7A6A8A' },
+  { numeral: 'II', title: 'Envers nos futurs employes', text: 'La competence est le seul critere, rien d\u2019autre. Le jour ou l\u2019argent rentre : des alternants, des CDI, des stagiaires payes. Ceux qui sont bons passent en alternance, puis en poste fixe. On valorise et on garde ceux qui font du bon travail.', color: '#AF8F3C' },
+  { numeral: 'III', title: 'Envers l\u2019art', text: 'Chaque euro gagne par Le Geai Informatique finance Le Geai Editions. Nos livres sont vendus a prix reduit aux entreprises et aux CSE. L\u2019art dans un bureau n\u2019est pas un luxe, c\u2019est un acte.', color: '#8B6F4E' },
+  { numeral: 'IV', title: 'Envers nos clients', text: 'Nos sites web sont concus avec empathie. Se mettre a la place de chaque visiteur, faire preuve d\u2019une empathie reelle et pratique : ca ne se genere pas, ca se travaille.', color: '#6B8F71' }
+]
+
+const links = [
+  { icon: 'i-lucide-feather', title: 'Nos articles', sub: 'Reflexions et actualites du groupe', to: '/articles' },
+  { icon: 'i-lucide-pie-chart', title: 'Transparence financiere', sub: 'Nos comptes, en toute clarte', to: '/le-geai/transparence' }
 ]
 </script>
 
@@ -113,29 +124,27 @@ const values = [
       <span class="footer-text">&copy; {{ new Date().getFullYear() }} Groupe Le Geai</span>
     </div>
 
-    <!-- VALEURS PANEL — slides from TOP -->
+    <!-- ==============================
+         PANEL — full scrollable content
+         ============================== -->
     <div class="valeurs-panel">
-      <!-- Retour button — prominent -->
       <button class="panel-back" @click="goBack">
         <UIcon name="i-lucide-arrow-left" class="size-4 back-arrow" />
         <span>Retour a l'accueil</span>
       </button>
 
       <div class="panel-content">
+
+        <!-- ── VALEURS ── -->
         <h2 class="panel-title">Nos valeurs</h2>
-        <div class="panel-ornament">
-          <div class="panel-ornament-line" />
-        </div>
+        <div class="panel-ornament"><div class="panel-ornament-line" /></div>
 
         <div class="valeurs-grid">
           <div
             v-for="(val, i) in values"
             :key="val.title"
             class="valeur-card"
-            :style="{
-              transitionDelay: `${1800 + i * 150}ms`,
-              '--card-color': val.color
-            }"
+            :style="{ transitionDelay: `${1800 + i * 150}ms`, '--card-color': val.color }"
           >
             <div class="valeur-head">
               <span class="valeur-numeral">{{ val.numeral }}</span>
@@ -146,7 +155,69 @@ const values = [
           </div>
         </div>
 
-        <!-- Devise — clickable -->
+        <!-- ── HISTOIRE ── -->
+        <div class="section-separator" />
+        <h2 class="section-title-big">Notre histoire</h2>
+
+        <div class="prose-block">
+          <p>En 2024, un editeur a qualifie nos textes de &laquo;&nbsp;remarquables&nbsp;&raquo;. Puis il a refuse de les publier. Le format ne se vendait pas. Les lecteurs lents ne l'interessaient pas. Nos histoires n'etaient, selon lui, que des &laquo;&nbsp;etats d'ame&nbsp;&raquo; sans valeur marchande.</p>
+          <p>Ce jour-la, une chose est devenue claire : nous ne voulions pas etre publies par des gens qui meprisent leurs lecteurs. Nous ne voulions pas financer des structures qui impriment sans respect pour l'humain ni la nature.</p>
+          <p>Alors Le Geai est ne. Legalement en 2021, concretement en 2024 avec la publication du premier livre, et officiellement en 2025 comme maison d'edition. La vraie naissance est anterieure : celle d'un enfant qui ecrivait parce que c'etait vital, pas parce que c'etait un metier.</p>
+        </div>
+
+        <!-- Trois branches -->
+        <h3 class="sub-heading">Trois branches, une seule maison</h3>
+        <p class="sub-intro">Chacune nourrit les autres. Chaque site web livre finance un livre. Chaque livre publie porte la rigueur de l'ingenieur. Chaque article du media porte l'exigence de l'editeur.</p>
+
+        <div class="branches-list">
+          <article
+            v-for="b in branches"
+            :key="b.title"
+            class="branch-card"
+            :style="{ '--card-color': b.color }"
+          >
+            <h4 class="branch-title">{{ b.title }}</h4>
+            <p class="branch-text">{{ b.text }}</p>
+          </article>
+        </div>
+
+        <!-- ── ENGAGEMENTS ── -->
+        <div class="section-separator" />
+        <h2 class="section-title-big">Nos engagements</h2>
+        <p class="section-intro-text">Ce ne sont pas des promesses marketing. Ce sont des regles que nous nous imposons, sans exception.</p>
+
+        <div class="engagements-list">
+          <article
+            v-for="e in engagements"
+            :key="e.title"
+            class="eng-card"
+            :style="{ '--card-color': e.color }"
+          >
+            <div class="eng-card-head">
+              <span class="eng-card-numeral">{{ e.numeral }}</span>
+              <div class="eng-card-rule" />
+            </div>
+            <h3 class="eng-card-title">{{ e.title }}</h3>
+            <p class="eng-card-text">{{ e.text }}</p>
+          </article>
+        </div>
+
+        <!-- Tarifs solidaires -->
+        <h3 class="sub-heading sub-heading--center">Tarifs solidaires</h3>
+        <div class="tarifs-grid">
+          <div class="tarif-card">
+            <span class="tarif-pct">20 %</span>
+            <span class="tarif-label">Acteurs de la sante et de l'environnement</span>
+          </div>
+          <div class="tarif-card">
+            <span class="tarif-pct">30 %</span>
+            <span class="tarif-label">Associations et ONG</span>
+          </div>
+        </div>
+
+        <!-- ── DEVISE ── -->
+        <div class="section-separator" />
+
         <button class="devise-section" @click="deviseOpen = !deviseOpen">
           <div class="devise-ornament">
             <div class="devise-line" />
@@ -165,25 +236,30 @@ const values = [
           </div>
         </Transition>
 
-        <!-- Sections navigation -->
-        <div class="sections-grid">
+        <!-- ── LIENS ── -->
+        <div class="links-row">
           <NuxtLink
-            v-for="(s, i) in sections"
-            :key="s.to"
-            :to="s.to"
-            class="section-card"
-            :style="{ transitionDelay: `${2400 + i * 100}ms` }"
+            v-for="l in links"
+            :key="l.to"
+            :to="l.to"
+            class="link-card"
           >
-            <span class="section-icon">
-              <UIcon :name="s.icon" class="size-4" />
+            <span class="link-icon">
+              <UIcon :name="l.icon" class="size-4" />
             </span>
-            <span class="section-content">
-              <span class="section-title">{{ s.title }}</span>
-              <span class="section-sub">{{ s.sub }}</span>
+            <span class="link-content">
+              <span class="link-title">{{ l.title }}</span>
+              <span class="link-sub">{{ l.sub }}</span>
             </span>
-            <UIcon name="i-lucide-chevron-right" class="size-4 section-chevron" />
+            <UIcon name="i-lucide-chevron-right" class="size-4 link-chevron" />
           </NuxtLink>
         </div>
+
+        <!-- Citation de fin -->
+        <div class="closing-quote">
+          <p>Nous etions chenilles, nous sommes en chrysalide. Bientot, nous serons ces papillons de nuit, attires par la bougie.</p>
+        </div>
+
       </div>
     </div>
   </div>
@@ -254,12 +330,8 @@ const values = [
   opacity: 0.055;
 }
 
-.revealed .watermark {
-  top: 150%;
-}
-.revealed .watermark-img {
-  opacity: 0;
-}
+.revealed .watermark { top: 150%; }
+.revealed .watermark-img { opacity: 0; }
 
 /* ============================
    FRAME
@@ -284,7 +356,7 @@ const values = [
 .frame-mark--bottom { bottom: -1px; }
 
 /* ============================
-   TOP BAR — more visible
+   TOP BAR
    ============================ */
 .top-bar {
   position: fixed;
@@ -438,7 +510,7 @@ const values = [
 }
 
 /* ============================
-   VALEURS PANEL
+   PANEL — scrollable full content
    ============================ */
 .valeurs-panel {
   position: fixed;
@@ -447,9 +519,9 @@ const values = [
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   padding: clamp(24px, 4vw, 48px);
-  padding-top: clamp(60px, 8vh, 90px);
+  padding-top: clamp(70px, 10vh, 100px);
+  padding-bottom: clamp(40px, 6vh, 72px);
   overflow-y: auto;
   opacity: 0;
   transform: translateY(-60px);
@@ -463,7 +535,7 @@ const values = [
 }
 
 /* ============================
-   PANEL BACK — prominent button
+   PANEL BACK
    ============================ */
 .panel-back {
   position: fixed;
@@ -485,9 +557,7 @@ const values = [
   transition: opacity 0.4s ease, gap 0.3s, background 0.3s, border-color 0.3s;
   cursor: pointer;
 }
-.panel-back .back-arrow {
-  transition: transform 0.3s ease;
-}
+.panel-back .back-arrow { transition: transform 0.3s ease; }
 .revealed .panel-back { opacity: 0.8; }
 .panel-back:hover {
   opacity: 1;
@@ -563,21 +633,12 @@ const values = [
   opacity: 1;
   transform: translateY(0);
 }
-.valeur-card:hover::before {
-  border-color: color-mix(in srgb, var(--card-color) 35%, transparent);
-}
-.valeur-card:hover::after {
-  opacity: 0.9;
-}
+.valeur-card:hover::before { border-color: color-mix(in srgb, var(--card-color) 35%, transparent); }
+.valeur-card:hover::after { opacity: 0.9; }
 
-:global(.dark) .valeur-card::before {
-  border-color: color-mix(in srgb, var(--card-color) 15%, transparent);
-}
-:global(.dark) .valeur-card:hover::before {
-  border-color: color-mix(in srgb, var(--card-color) 30%, transparent);
-}
+:global(.dark) .valeur-card::before { border-color: color-mix(in srgb, var(--card-color) 15%, transparent); }
+:global(.dark) .valeur-card:hover::before { border-color: color-mix(in srgb, var(--card-color) 30%, transparent); }
 
-/* Head: numeral + rule */
 .valeur-head {
   display: flex;
   align-items: center;
@@ -627,15 +688,237 @@ const values = [
 .valeur-card:hover .valeur-text { opacity: 0.85; }
 
 /* ============================
-   DEVISE SECTION — clickable
+   SECTION SEPARATORS & HEADINGS
+   ============================ */
+.section-separator {
+  width: 50px;
+  height: 1px;
+  margin: clamp(48px, 8vh, 72px) auto;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.section-title-big {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: clamp(28px, 4vh, 44px);
+}
+
+.sub-heading {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0.8;
+  margin-top: clamp(36px, 5vh, 52px);
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--gold-faint);
+  width: 100%;
+}
+.sub-heading--center {
+  text-align: center;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.sub-intro {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.8;
+  opacity: 0.55;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+.section-intro-text {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--gold);
+  opacity: 0.65;
+  text-align: center;
+  margin-bottom: clamp(28px, 4vh, 44px);
+  line-height: 1.7;
+}
+
+/* ============================
+   PROSE
+   ============================ */
+.prose-block {
+  width: 100%;
+}
+.prose-block p {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 1.05rem;
+  line-height: 2;
+  opacity: 0.7;
+  margin-bottom: 16px;
+}
+.prose-block p:last-child { margin-bottom: 0; }
+
+/* ============================
+   BRANCHES
+   ============================ */
+.branches-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.branch-card {
+  position: relative;
+  padding: 24px 28px 22px;
+}
+.branch-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid color-mix(in srgb, var(--card-color) 18%, transparent);
+  pointer-events: none;
+}
+.branch-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--card-color), transparent);
+  opacity: 0.5;
+}
+
+.branch-title {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+  color: var(--card-color);
+}
+
+.branch-text {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.92rem;
+  line-height: 1.85;
+  opacity: 0.6;
+}
+
+/* ============================
+   ENGAGEMENTS
+   ============================ */
+.engagements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.eng-card {
+  position: relative;
+  padding: 32px 28px 28px;
+}
+.eng-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid color-mix(in srgb, var(--card-color) 18%, transparent);
+  pointer-events: none;
+}
+.eng-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--card-color), transparent);
+  opacity: 0.5;
+}
+
+.eng-card-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.eng-card-numeral {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1.4rem;
+  font-style: italic;
+  color: var(--card-color);
+  opacity: 0.6;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.eng-card-rule {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--card-color) 30%, transparent), transparent);
+}
+
+.eng-card-title {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 400;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.eng-card-text {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.95rem;
+  line-height: 1.9;
+  opacity: 0.62;
+}
+
+/* ============================
+   TARIFS
+   ============================ */
+.tarifs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  max-width: 420px;
+  margin: 20px auto 0;
+}
+
+.tarif-card {
+  padding: 24px 16px;
+  border: 1px solid var(--gold-faint);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tarif-pct {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 2rem;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.tarif-label {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  opacity: 0.5;
+  line-height: 1.5;
+}
+
+/* ============================
+   DEVISE — clickable
    ============================ */
 .devise-section {
-  margin-top: clamp(36px, 6vh, 56px);
+  margin-top: 8px;
   text-align: center;
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.8s ease, transform 0.8s ease;
-  transition-delay: 2400ms;
   cursor: pointer;
   background: none;
   border: none;
@@ -643,10 +926,7 @@ const values = [
   padding: 20px 28px;
   border-radius: 2px;
   width: 100%;
-}
-.revealed .devise-section {
-  opacity: 1;
-  transform: translateY(0);
+  transition: background 0.3s;
 }
 .devise-section:hover { background: rgba(175, 143, 60, 0.03); }
 
@@ -697,7 +977,6 @@ const values = [
 }
 .devise-section:hover .devise-hint { opacity: 0.7; }
 
-/* Devise explanation */
 .devise-explanation {
   width: 100%;
   max-width: 620px;
@@ -715,10 +994,10 @@ const values = [
 .devise-explanation p:last-child { margin-bottom: 0; }
 
 .devise-explain-enter-active {
-  transition: opacity 0.5s ease, transform 0.5s ease, max-height 0.5s ease;
+  transition: opacity 0.5s ease, transform 0.5s ease;
 }
 .devise-explain-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease, max-height 0.3s ease;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 .devise-explain-enter-from,
 .devise-explain-leave-to {
@@ -727,17 +1006,17 @@ const values = [
 }
 
 /* ============================
-   SECTIONS GRID
+   LINKS ROW
    ============================ */
-.sections-grid {
+.links-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
   width: 100%;
-  margin-top: clamp(32px, 5vh, 48px);
+  margin-top: clamp(36px, 6vh, 52px);
 }
 
-.section-card {
+.link-card {
   display: flex;
   align-items: center;
   gap: 14px;
@@ -746,20 +1025,14 @@ const values = [
   color: inherit;
   border: 1px solid var(--gold-faint);
   background: transparent;
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.4s, background 0.3s;
+  transition: border-color 0.4s, background 0.3s;
 }
-.revealed .section-card {
-  opacity: 1;
-  transform: translateY(0);
-}
-.section-card:hover {
+.link-card:hover {
   border-color: var(--gold-dim);
   background: rgba(175, 143, 60, 0.03);
 }
 
-.section-icon {
+.link-icon {
   width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
   color: var(--gold);
@@ -767,9 +1040,9 @@ const values = [
   flex-shrink: 0;
   transition: opacity 0.3s;
 }
-.section-card:hover .section-icon { opacity: 0.9; }
+.link-card:hover .link-icon { opacity: 0.9; }
 
-.section-content {
+.link-content {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -777,33 +1050,50 @@ const values = [
   min-width: 0;
 }
 
-.section-title {
+.link-title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
   font-size: 0.95rem;
   letter-spacing: 0.04em;
   transition: color 0.3s;
 }
-.section-card:hover .section-title { color: var(--gold); }
+.link-card:hover .link-title { color: var(--gold); }
 
-.section-sub {
+.link-sub {
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: 0.75rem;
   opacity: 0.35;
   letter-spacing: 0.02em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.section-chevron {
+.link-chevron {
   color: var(--gold);
   opacity: 0.25;
   flex-shrink: 0;
   transition: opacity 0.3s, transform 0.3s;
 }
-.section-card:hover .section-chevron {
+.link-card:hover .link-chevron {
   opacity: 0.7;
   transform: translateX(3px);
+}
+
+/* ============================
+   CLOSING QUOTE
+   ============================ */
+.closing-quote {
+  text-align: center;
+  margin-top: clamp(44px, 7vh, 64px);
+  padding: 28px 0;
+  border-top: 1px solid var(--gold-faint);
+}
+.closing-quote p {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-style: italic;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--gold);
+  opacity: 0.6;
+  max-width: 520px;
+  margin: 0 auto;
 }
 
 /* ============================
@@ -815,11 +1105,8 @@ const values = [
 }
 
 @media (max-width: 640px) {
-  .valeurs-grid {
-    grid-template-columns: 1fr;
-  }
-  .sections-grid {
-    grid-template-columns: 1fr;
-  }
+  .valeurs-grid { grid-template-columns: 1fr; }
+  .links-row { grid-template-columns: 1fr; }
+  .tarifs-grid { grid-template-columns: 1fr; }
 }
 </style>
