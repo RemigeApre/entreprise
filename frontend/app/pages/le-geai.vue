@@ -125,11 +125,14 @@ const values = [
             :key="val.title"
             class="valeur-card"
             :style="{
-              transitionDelay: `${1800 + i * 120}ms`,
+              transitionDelay: `${1800 + i * 150}ms`,
               '--card-color': val.color
             }"
           >
-            <span class="valeur-numeral">{{ val.numeral }}</span>
+            <div class="valeur-head">
+              <span class="valeur-numeral">{{ val.numeral }}</span>
+              <div class="valeur-rule" />
+            </div>
             <h3 class="valeur-title">{{ val.title }}</h3>
             <p class="valeur-text">{{ val.text }}</p>
           </div>
@@ -500,65 +503,108 @@ const values = [
 }
 
 /* ============================
-   VALEURS GRID — colored cards
+   VALEURS GRID
    ============================ */
 .valeurs-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 20px;
   width: 100%;
 }
 
 .valeur-card {
-  padding: 28px;
-  border: 1px solid color-mix(in srgb, var(--card-color) 30%, transparent);
-  border-radius: 4px;
-  background: color-mix(in srgb, var(--card-color) 6%, transparent);
+  position: relative;
+  padding: 36px 32px 32px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
   opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s, background 0.3s, box-shadow 0.3s;
+  transform: translateY(12px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
 }
-:global(.dark) .valeur-card {
-  background: color-mix(in srgb, var(--card-color) 10%, transparent);
-  border-color: color-mix(in srgb, var(--card-color) 25%, transparent);
+.valeur-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid color-mix(in srgb, var(--card-color) 18%, transparent);
+  pointer-events: none;
+  transition: border-color 0.5s ease;
+}
+.valeur-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--card-color), transparent);
+  opacity: 0.5;
+  transition: opacity 0.4s ease;
 }
 .revealed .valeur-card {
   opacity: 1;
   transform: translateY(0);
 }
-.valeur-card:hover {
-  border-color: color-mix(in srgb, var(--card-color) 50%, transparent);
-  background: color-mix(in srgb, var(--card-color) 10%, transparent);
-  box-shadow: 0 4px 20px color-mix(in srgb, var(--card-color) 10%, transparent);
+.valeur-card:hover::before {
+  border-color: color-mix(in srgb, var(--card-color) 35%, transparent);
 }
-:global(.dark) .valeur-card:hover {
-  background: color-mix(in srgb, var(--card-color) 16%, transparent);
+.valeur-card:hover::after {
+  opacity: 0.9;
+}
+
+:global(.dark) .valeur-card::before {
+  border-color: color-mix(in srgb, var(--card-color) 15%, transparent);
+}
+:global(.dark) .valeur-card:hover::before {
+  border-color: color-mix(in srgb, var(--card-color) 30%, transparent);
+}
+
+/* Head: numeral + rule */
+.valeur-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
 }
 
 .valeur-numeral {
   font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 0.85rem;
+  font-size: 1.5rem;
+  font-style: italic;
   color: var(--card-color);
-  opacity: 0.7;
-  display: block;
-  margin-bottom: 10px;
+  opacity: 0.6;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: opacity 0.4s ease;
+}
+.valeur-card:hover .valeur-numeral { opacity: 1; }
+
+.valeur-rule {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--card-color) 30%, transparent), transparent);
 }
 
 .valeur-title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 1.2rem;
+  font-size: 1.35rem;
   font-weight: 400;
-  letter-spacing: 0.06em;
-  margin-bottom: 10px;
-  transition: color 0.3s;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  transition: color 0.4s ease, letter-spacing 0.4s ease;
 }
-.valeur-card:hover .valeur-title { color: var(--card-color); }
+.valeur-card:hover .valeur-title {
+  color: var(--card-color);
+  letter-spacing: 0.14em;
+}
 
 .valeur-text {
-  font-size: 0.9rem;
-  line-height: 1.8;
-  opacity: 0.65;
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.95rem;
+  line-height: 1.85;
+  opacity: 0.6;
+  transition: opacity 0.4s ease;
 }
+.valeur-card:hover .valeur-text { opacity: 0.85; }
 
 /* ============================
    DEVISE SECTION
