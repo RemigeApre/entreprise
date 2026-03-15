@@ -19,6 +19,7 @@ interface NavItem {
 
 const nav: NavItem[] = [
   { label: 'L\u2019entreprise', to: '/le-geai' },
+  { label: 'Articles', to: '/articles' },
   { label: 'Recrutement', to: '/recrutement' }
 ]
 

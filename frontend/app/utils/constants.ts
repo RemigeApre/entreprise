@@ -249,6 +249,14 @@ export const TICKET_PRIORITES = {
   critique: { label: 'Critique', color: 'red', icon: 'i-lucide-alert-triangle' }
 } as const
 
+// --- Articles ---
+
+export const ARTICLE_STATUTS = {
+  brouillon: { label: 'Brouillon', color: 'neutral' },
+  publie: { label: 'Publie', color: 'green' },
+  programme: { label: 'Programme', color: 'blue' }
+} as const
+
 // --- Offres d'emploi ---
 
 export const CONTRACT_OPTIONS = [

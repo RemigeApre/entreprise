@@ -307,6 +307,20 @@ export interface ScheduleEntry {
   user_created: string
 }
 
+export type ArticleStatut = 'brouillon' | 'publie' | 'programme'
+
+export interface Article {
+  id: string
+  titre: string
+  contenu: string
+  statut: ArticleStatut
+  date_publication: string | null
+  auteur: UserProfile | string
+  date_created: string
+  date_updated: string | null
+  user_created: string
+}
+
 // Directus schema type for SDK
 export interface DirectusSchema {
   categories: Category[]
@@ -328,5 +342,6 @@ export interface DirectusSchema {
   project_tickets: Ticket[]
   candidats: Candidat[]
   candidat_commentaires: CandidatCommentaire[]
+  articles: Article[]
   directus_users: UserProfile[]
 }

@@ -69,6 +69,8 @@ export default defineNuxtConfig({
     '/le-geai': { prerender: true },
     '/soutenir': { prerender: true },
     '/recrutement': { prerender: false },
+    '/articles': { prerender: false },
+    '/admin/articles/**': { ssr: false },
     '/dashboard/**': { ssr: false },
     '/planning/**': { ssr: false },
     '/emploi-du-temps/**': { ssr: false },
