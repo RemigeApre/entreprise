@@ -626,6 +626,9 @@ const userMenuItems = computed(() => [
   position: relative;
   z-index: 10;
 }
+@media (max-width: 1023px) {
+  .tab-bar { display: none; }
+}
 
 .tab-bar-inner {
   display: flex;

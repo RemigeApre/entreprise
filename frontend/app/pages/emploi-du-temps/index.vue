@@ -272,7 +272,7 @@ onMounted(() => {
         </div>
 
         <!-- Category legend -->
-        <div class="flex flex-wrap items-center gap-1.5">
+        <div class="hidden sm:flex flex-wrap items-center gap-1.5">
           <span
             v-for="(cat, key) in SCHEDULE_CATEGORIES"
             :key="key"

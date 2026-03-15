@@ -139,8 +139,53 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Grid: row labels left + 5 day columns -->
-    <div class="grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] gap-x-2 gap-y-1.5">
+    <!-- MOBILE: Vertical day list (< 640px) -->
+    <div class="sm:hidden space-y-2">
+      <div
+        v-for="day in weekDays"
+        :key="'m-' + formatDate(day)"
+        class="rounded-lg border p-3"
+        :class="isHighlightedDay(day)
+          ? 'border-amber-300/40 dark:border-amber-700/30 bg-amber-50/50 dark:bg-amber-950/15'
+          : 'border-stone-200/60 dark:border-stone-700/30'"
+      >
+        <p
+          class="text-xs font-semibold uppercase mb-2"
+          :class="isHighlightedDay(day) ? 'text-amber-600 dark:text-amber-400' : 'text-stone-500 dark:text-stone-400'"
+        >
+          {{ getDayName(day) }} {{ getDayNumber(day) }}
+        </p>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <span class="text-[10px] font-medium text-stone-400 dark:text-stone-500 block mb-1">Matin</span>
+            <PlanningDaySlot
+              :entry="getEntry(day, 'matin')"
+              periode="matin"
+              :readonly="readonly"
+              :disabled="getSlotDisabled(day).disabled"
+              :disabled-reason="getSlotDisabled(day).reason"
+              :selected="isSlotSelected(day, 'matin')"
+              @click="handleSlotClick(day, 'matin')"
+            />
+          </div>
+          <div>
+            <span class="text-[10px] font-medium text-stone-400 dark:text-stone-500 block mb-1">Apres-midi</span>
+            <PlanningDaySlot
+              :entry="getEntry(day, 'apres_midi')"
+              periode="apres_midi"
+              :readonly="readonly"
+              :disabled="getSlotDisabled(day).disabled"
+              :disabled-reason="getSlotDisabled(day).reason"
+              :selected="isSlotSelected(day, 'apres_midi')"
+              @click="handleSlotClick(day, 'apres_midi')"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESKTOP: Grid (>= 640px) -->
+    <div class="hidden sm:grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] gap-x-2 gap-y-1.5">
       <!-- Header row: empty cell + day names -->
       <div />
       <div
