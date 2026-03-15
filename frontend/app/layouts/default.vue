@@ -702,30 +702,30 @@ const userMenuItems = computed(() => [
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: rgba(245, 239, 224, 0.95);
-  border: 1px solid rgba(175, 143, 60, 0.2);
+  background: #ede5d0;
+  border: 1px solid #d4c9a8;
   color: var(--ink);
-  box-shadow: 0 2px 10px rgba(44, 36, 25, 0.12);
-  transition: transform 0.15s, box-shadow 0.2s;
-  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(44, 36, 25, 0.15);
+  transition: transform 0.1s;
 }
 .mobile-menu-trigger:active {
   transform: scale(0.93);
+  background: #e6dcc4;
 }
 
 /* ============================
    MOBILE DRAWER
    ============================ */
 /* ============================
-   MOBILE DRAWER — full redesign
+   MOBILE DRAWER
    ============================ */
 .mobile-drawer {
   position: fixed;
   inset: 0 auto 0 0;
   z-index: 61;
   width: min(340px, 88vw);
-  background: linear-gradient(180deg, #f0e8d4 0%, var(--parchment) 100%);
-  box-shadow: 6px 0 32px rgba(44, 36, 25, 0.2);
+  background: #ede5d0;
+  box-shadow: 6px 0 32px rgba(44, 36, 25, 0.25);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -735,36 +735,35 @@ const userMenuItems = computed(() => [
   .mobile-drawer { display: none; }
 }
 
-/* Header */
+/* ── Header ── */
 .drawer-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px;
-  border-bottom: 1px solid rgba(175, 143, 60, 0.15);
+  padding: 18px 20px;
+  border-bottom: 1px solid #d4c9a8;
   flex-shrink: 0;
-  background: linear-gradient(180deg, rgba(175, 143, 60, 0.06) 0%, transparent 100%);
+  background: #e6dcc4;
 }
 .drawer-logo {
   display: flex;
   align-items: center;
   gap: 14px;
   text-decoration: none;
-  color: inherit;
+  color: var(--ink);
 }
 .drawer-logo-glyph {
   font-family: 'UnifrakturCook', cursive;
-  font-size: 2rem;
-  color: var(--gold);
+  font-size: 1.6rem;
+  color: #fff;
   line-height: 1;
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid rgba(175, 143, 60, 0.3);
-  border-radius: 12px;
-  background: rgba(175, 143, 60, 0.06);
+  border-radius: 10px;
+  background: var(--gold);
 }
 .drawer-logo-text {
   display: flex;
@@ -772,15 +771,16 @@ const userMenuItems = computed(() => [
 }
 .drawer-logo-name {
   font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 1.2rem;
-  letter-spacing: 0.06em;
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+  color: var(--ink);
 }
 .drawer-logo-role {
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--gold);
-  opacity: 0.6;
+  margin-top: 1px;
 }
 .drawer-close {
   display: flex;
@@ -788,81 +788,82 @@ const userMenuItems = computed(() => [
   justify-content: center;
   width: 44px;
   height: 44px;
-  border-radius: 12px;
+  border-radius: 10px;
   color: var(--ink);
-  opacity: 0.4;
-  transition: opacity 0.15s, background 0.15s;
+  opacity: 0.5;
 }
 .drawer-close:active {
-  opacity: 0.8;
-  background: rgba(175, 143, 60, 0.1);
+  opacity: 1;
+  background: #d9cfb3;
 }
 
-/* Navigation */
+/* ── Navigation ── */
 .drawer-nav {
   flex: 1;
-  padding: 16px 14px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
-/* Dashboard link - prominent */
+/* Dashboard link */
 .drawer-link--dashboard {
-  border: 1px solid rgba(175, 143, 60, 0.15);
-  background: rgba(175, 143, 60, 0.04);
-  margin-bottom: 8px;
+  background: #e6dcc4;
+  border-left: 3px solid var(--gold);
+  border-radius: 0 10px 10px 0;
+  margin-bottom: 4px;
 }
 .drawer-link--dashboard.is-active {
-  border-color: rgba(175, 143, 60, 0.3);
+  background: #ddd2b4;
 }
 
 /* Domain groups */
 .drawer-group {
-  border: 1px solid rgba(175, 143, 60, 0.1);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.3);
-  overflow: hidden;
+  border-radius: 0;
+  margin-top: 4px;
+}
+.drawer-group + .drawer-group {
+  border-top: 1px solid #d4c9a8;
+  padding-top: 4px;
 }
 .drawer-group-title {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   color: var(--gold);
-  padding: 14px 18px 6px;
+  padding: 12px 16px 4px;
 }
 .drawer-group-items {
   display: flex;
   flex-direction: column;
-  padding: 4px 6px 6px;
+  padding: 2px 4px 4px;
 }
 
-/* Standalone domain link (no tabs) */
+/* Links (standalone domains) */
 .drawer-link {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 16px 18px;
-  min-height: 54px;
-  border-radius: 12px;
-  font-size: 16px;
+  padding: 14px 16px;
+  min-height: 52px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
   text-decoration: none;
   color: var(--ink);
-  opacity: 0.65;
-  transition: background 0.15s;
+  transition: background 0.1s;
 }
 .drawer-link:active {
-  background: rgba(175, 143, 60, 0.1);
+  background: #d9cfb3;
 }
 .drawer-link.is-active {
-  opacity: 1;
   color: var(--gold);
-  background: rgba(175, 143, 60, 0.1);
-  font-weight: 500;
+  background: #e6dcc4;
+  font-weight: 600;
 }
 
 /* Tab links inside groups */
@@ -870,71 +871,65 @@ const userMenuItems = computed(() => [
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
-  min-height: 50px;
-  border-radius: 10px;
+  padding: 13px 16px;
+  min-height: 48px;
+  border-radius: 8px;
   font-size: 15px;
   text-decoration: none;
   color: var(--ink);
-  opacity: 0.55;
-  transition: background 0.15s;
+  opacity: 0.7;
+  transition: background 0.1s;
 }
 .drawer-tab:active {
-  background: rgba(175, 143, 60, 0.08);
+  background: #d9cfb3;
 }
 .drawer-tab.is-active {
   opacity: 1;
   color: var(--gold);
-  background: rgba(175, 143, 60, 0.08);
-  font-weight: 500;
-}
-.drawer-tab.is-active::before {
-  content: '';
-  width: 3px;
-  height: 18px;
-  background: var(--gold);
-  border-radius: 2px;
-  margin-right: 2px;
-  flex-shrink: 0;
+  background: #e6dcc4;
+  font-weight: 600;
+  border-left: 3px solid var(--gold);
+  border-radius: 0 8px 8px 0;
+  padding-left: 13px;
 }
 .drawer-tab.is-disabled {
-  opacity: 0.2;
+  opacity: 0.25;
   cursor: not-allowed;
 }
 
-/* Footer */
+/* ── Footer ── */
 .drawer-footer {
-  border-top: 1px solid rgba(175, 143, 60, 0.15);
-  padding: 14px;
+  border-top: 1px solid #d4c9a8;
+  padding: 10px 12px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  background: linear-gradient(0deg, rgba(175, 143, 60, 0.04) 0%, transparent 100%);
+  gap: 2px;
+  background: #e6dcc4;
 }
 .drawer-action {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 16px 18px;
-  min-height: 54px;
-  border-radius: 12px;
-  font-size: 16px;
+  padding: 14px 16px;
+  min-height: 52px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
   text-decoration: none;
   color: var(--ink);
-  opacity: 0.65;
   width: 100%;
-  transition: background 0.15s;
+  transition: background 0.1s;
 }
 .drawer-action:active {
-  background: rgba(175, 143, 60, 0.08);
+  background: #d9cfb3;
 }
 .drawer-action--logout {
   color: #B74D34;
-  opacity: 0.7;
+  font-weight: 600;
 }
 .drawer-action--logout:active {
-  background: rgba(183, 77, 52, 0.06);
+  background: #e0cdb5;
 }
 
 /* ============================
