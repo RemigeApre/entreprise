@@ -393,12 +393,11 @@ function formatDate(date: string) {
 .watermark-img {
   width: 100%; height: 100%;
   object-fit: contain;
-  opacity: 0.04;
+  opacity: 0.12;
   transition: opacity var(--transition), filter var(--transition);
 }
 :global(.dark) .watermark-img {
-  filter: brightness(0) invert(0.85);
-  opacity: 0.055;
+  opacity: 0.14;
 }
 
 /*
@@ -412,12 +411,10 @@ function formatDate(date: string) {
   height: clamp(600px, 100vh, 1100px);
 }
 .revealed .watermark-img {
-  opacity: 1;
-  filter: none;
+  opacity: 0.6;
 }
 :global(.dark) .revealed .watermark-img {
-  opacity: 1;
-  filter: none;
+  opacity: 0.6;
 }
 
 /* ============================
@@ -831,6 +828,14 @@ function formatDate(date: string) {
   .watermark {
     width: clamp(280px, 80vmin, 400px);
     height: clamp(280px, 80vmin, 400px);
+  }
+  .revealed .watermark {
+    left: 115%;
+    width: clamp(250px, 70vmin, 380px);
+    height: clamp(250px, 70vmin, 380px);
+  }
+  .revealed .watermark-img {
+    opacity: 0.4;
   }
   .frame { inset: 8px; }
   .corner { width: 18px; height: 18px; }

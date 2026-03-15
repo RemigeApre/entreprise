@@ -289,12 +289,11 @@ async function handleLogin() {
 .watermark-img {
   width: 100%; height: 100%;
   object-fit: contain;
-  opacity: 0.08;
+  opacity: 0.12;
   transition: opacity var(--transition), filter var(--transition);
 }
 :global(.dark) .watermark-img {
-  filter: brightness(0) invert(0.85);
-  opacity: 0.10;
+  opacity: 0.14;
 }
 
 /* Login mode — logo slides left, half visible, full color */
@@ -304,12 +303,10 @@ async function handleLogin() {
   height: clamp(600px, 100vh, 1100px);
 }
 .login-mode .watermark-img {
-  opacity: 1;
-  filter: none;
+  opacity: 0.6;
 }
 :global(.dark) .login-mode .watermark-img {
-  opacity: 1;
-  filter: none;
+  opacity: 0.6;
 }
 
 /* ============================
@@ -863,8 +860,12 @@ async function handleLogin() {
   .login-label { font-size: 11px; }
   .login-submit { padding: 14px 24px; font-size: 13px; }
   .login-mode .watermark {
+    left: -15%;
     width: clamp(250px, 70vmin, 380px);
     height: clamp(250px, 70vmin, 380px);
+  }
+  .login-mode .watermark-img {
+    opacity: 0.5;
   }
 }
 </style>
