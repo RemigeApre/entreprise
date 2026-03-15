@@ -33,7 +33,7 @@ function toggleLang() { lang.value = lang.value === 'fr' ? 'en' : 'fr' }
 const t = computed(() => lang.value === 'fr' ? {
   motto: 'L\u2019obscurité nourrit la flamme.',
   copyright: `\u00A9 ${new Date().getFullYear()} Le Geai`,
-  entreprise: 'L\u2019entreprise',
+  entreprise: 'Entreprise',
   recrutement: 'Recrutement',
   poles: 'Pôles',
   connecter: 'Se connecter',
@@ -44,7 +44,7 @@ const t = computed(() => lang.value === 'fr' ? {
 } : {
   motto: 'Darkness feeds the flame.',
   copyright: `\u00A9 ${new Date().getFullYear()} Le Geai`,
-  entreprise: 'The company',
+  entreprise: 'Company',
   recrutement: 'Careers',
   poles: 'Branches',
   connecter: 'Sign in',
@@ -284,7 +284,7 @@ async function handleLogin() {
   width: clamp(500px, 100vmin, 920px);
   height: clamp(500px, 100vmin, 920px);
   pointer-events: none; z-index: 0;
-  transition: left var(--transition), width var(--transition), height var(--transition), opacity var(--transition);
+  transition: left var(--transition), opacity var(--transition);
 }
 .watermark-img {
   width: 100%; height: 100%;
@@ -296,11 +296,9 @@ async function handleLogin() {
   opacity: 0.14;
 }
 
-/* Login mode — logo slides left, half visible, full color */
+/* Login mode — logo slides left, half visible */
 .login-mode .watermark {
   left: 0;
-  width: clamp(600px, 100vh, 1100px);
-  height: clamp(600px, 100vh, 1100px);
 }
 .login-mode .watermark-img {
   opacity: 0.6;
@@ -489,12 +487,13 @@ async function handleLogin() {
   margin-top: clamp(28px, 5vh, 48px);
   opacity: 0;
   transition: opacity 1s ease 1s;
-  padding: 6px 10px;
+  padding: 8px 14px;
   border-radius: 2px;
-  background: radial-gradient(ellipse at center, rgba(247, 240, 222, 0.45) 0%, transparent 80%);
+  background: radial-gradient(ellipse at center, rgba(247, 240, 222, 0.6) 0%, rgba(247, 240, 222, 0.2) 60%, transparent 90%);
+  backdrop-filter: blur(2px);
 }
 :global(.dark) .landing-nav {
-  background: radial-gradient(ellipse at center, rgba(30, 28, 24, 0.5) 0%, transparent 80%);
+  background: radial-gradient(ellipse at center, rgba(20, 18, 14, 0.65) 0%, rgba(20, 18, 14, 0.25) 60%, transparent 90%);
 }
 .is-visible .landing-nav { opacity: 1; }
 
@@ -556,7 +555,7 @@ async function handleLogin() {
   font-family: 'IM Fell DW Pica', Georgia, serif;
   font-size: clamp(0.7rem, 1.4vw, 0.9rem);
   color: var(--gold);
-  opacity: 0.55;
+  opacity: 0.65;
   letter-spacing: 0.05em;
   transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
               text-shadow 0.6s ease, font-size 0.5s ease;
@@ -570,9 +569,10 @@ async function handleLogin() {
 .nav-label {
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: clamp(11px, 1.4vw, 13px);
+  font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  opacity: 0.7;
+  opacity: 0.8;
   transition: opacity 0.5s ease, color 0.5s ease,
               letter-spacing 0.6s cubic-bezier(0.22, 1, 0.36, 1),
               text-shadow 0.6s ease;
@@ -599,17 +599,6 @@ async function handleLogin() {
   height: 40px;
   opacity: 0.6;
   box-shadow: 0 0 8px rgba(175, 143, 60, 0.3);
-}
-
-@media (max-width: 500px) {
-  .nav-item {
-    padding: 10px clamp(12px, 3vw, 20px);
-  }
-  .nav-label {
-    font-size: 10px;
-    letter-spacing: 0.14em;
-  }
-  .nav-divider { height: 24px; }
 }
 
 /* ============================
@@ -808,11 +797,6 @@ async function handleLogin() {
   .login-panel {
     width: 100%;
   }
-  .login-mode .watermark {
-    left: 50%;
-    width: clamp(350px, 90vmin, 600px);
-    height: clamp(350px, 90vmin, 600px);
-  }
 }
 
 @media (max-width: 640px) {
@@ -838,12 +822,29 @@ async function handleLogin() {
   .footer-sep { font-size: 6px; }
   .footer-btn { font-size: 8px; }
 
-  /* --- Nav --- */
-  .landing-nav { margin-top: 24px; }
-  .nav-item { padding: 10px clamp(10px, 3vw, 18px); gap: 4px; }
-  .nav-numeral { font-size: 0.65rem; }
-  .nav-label { font-size: 9px; letter-spacing: 0.12em; }
-  .nav-divider { height: 20px; }
+  /* --- Nav: vertical stack on mobile --- */
+  .landing-nav {
+    flex-direction: column;
+    margin-top: 24px;
+    padding: 10px 0;
+    gap: 0;
+    background: radial-gradient(ellipse at center, rgba(247, 240, 222, 0.7) 0%, rgba(247, 240, 222, 0.3) 70%, transparent 100%);
+  }
+  :global(.dark) .landing-nav {
+    background: radial-gradient(ellipse at center, rgba(20, 18, 14, 0.75) 0%, rgba(20, 18, 14, 0.35) 70%, transparent 100%);
+  }
+  .nav-item {
+    flex-direction: row;
+    padding: 10px 28px;
+    gap: 12px;
+  }
+  .nav-numeral { font-size: 0.65rem; min-width: 18px; text-align: center; }
+  .nav-label { font-size: 11px; letter-spacing: 0.14em; }
+  .nav-divider {
+    width: 40px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  }
 
   /* --- Key button --- */
   .top-bar { top: 12px; right: 12px; }
@@ -867,11 +868,6 @@ async function handleLogin() {
   .login-submit { padding: 14px 24px; font-size: 13px; }
   .login-mode .watermark {
     left: -15%;
-    width: clamp(250px, 70vmin, 380px);
-    height: clamp(250px, 70vmin, 380px);
-  }
-  .login-mode .watermark-img {
-    opacity: 0.5;
   }
 }
 </style>

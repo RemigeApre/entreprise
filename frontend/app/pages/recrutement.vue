@@ -388,7 +388,7 @@ function formatDate(date: string) {
   width: clamp(500px, 100vmin, 920px);
   height: clamp(500px, 100vmin, 920px);
   pointer-events: none; z-index: 0;
-  transition: left var(--transition), width var(--transition), height var(--transition);
+  transition: left var(--transition), opacity var(--transition);
 }
 .watermark-img {
   width: 100%; height: 100%;
@@ -407,8 +407,6 @@ function formatDate(date: string) {
  */
 .revealed .watermark {
   left: 100%;
-  width: clamp(600px, 100vh, 1100px);
-  height: clamp(600px, 100vh, 1100px);
 }
 .revealed .watermark-img {
   opacity: 0.6;
@@ -817,11 +815,6 @@ function formatDate(date: string) {
   .offres-panel {
     width: 100%;
   }
-  .revealed .watermark {
-    left: 50%;
-    width: clamp(350px, 90vmin, 600px);
-    height: clamp(350px, 90vmin, 600px);
-  }
 }
 
 @media (max-width: 640px) {
@@ -831,11 +824,6 @@ function formatDate(date: string) {
   }
   .revealed .watermark {
     left: 115%;
-    width: clamp(250px, 70vmin, 380px);
-    height: clamp(250px, 70vmin, 380px);
-  }
-  .revealed .watermark-img {
-    opacity: 0.4;
   }
   .frame { inset: 8px; }
   .corner { width: 18px; height: 18px; }
