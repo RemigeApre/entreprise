@@ -149,12 +149,13 @@ const links = [
     <!-- ==============================
          PANEL
          ============================== -->
-    <div ref="panelRef" class="valeurs-panel">
-      <button class="panel-back" @click="goBack">
-        <UIcon name="i-lucide-arrow-left" class="size-4 back-arrow" />
-        <span>Retour à l'accueil</span>
-      </button>
+    <!-- Back button outside panel so position:fixed works -->
+    <button class="panel-back" :class="{ 'is-shown': revealed }" @click="goBack">
+      <UIcon name="i-lucide-arrow-left" class="size-4 back-arrow" />
+      <span>Retour à l'accueil</span>
+    </button>
 
+    <div ref="panelRef" class="valeurs-panel">
       <div class="panel-content">
 
         <!-- 0. PRESENTATION -->
@@ -224,44 +225,14 @@ const links = [
           </div>
         </div>
 
-        <!-- 3. HISTOIRE - timeline -->
+        <!-- 3. HISTOIRE - grosse carte -->
         <div class="section-separator" />
         <h2 class="section-title-big">Notre histoire</h2>
 
-        <div class="histoire-timeline">
-          <div class="histoire-entry">
-            <div class="histoire-marker">
-              <span class="histoire-year">2024</span>
-              <div class="histoire-dot" />
-            </div>
-            <div class="histoire-content">
-              <h3 class="histoire-heading">Le refus fondateur</h3>
-              <p>Un éditeur a qualifié nos textes de &laquo;&nbsp;remarquables&nbsp;&raquo;. Puis il a refusé de les publier. Le format ne se vendait pas. Les lecteurs lents ne l'intéressaient pas. Nos histoires n'étaient, selon lui, que des &laquo;&nbsp;états d'âme&nbsp;&raquo; sans valeur marchande.</p>
-              <p>Ce jour-là, une chose est devenue claire : nous ne voulions pas être publiés par des gens qui méprisent leurs lecteurs. Nous ne voulions pas financer des structures qui impriment sans respect pour l'humain ni la nature.</p>
-            </div>
-          </div>
-
-          <div class="histoire-entry">
-            <div class="histoire-marker">
-              <span class="histoire-year">2021</span>
-              <div class="histoire-dot" />
-            </div>
-            <div class="histoire-content">
-              <h3 class="histoire-heading">La naissance légale</h3>
-              <p>Le Geai est né légalement en 2021. Concrètement en 2024 avec la publication du premier livre. Officiellement en 2025 comme maison d'édition. Mais la vraie naissance est antérieure : celle d'un enfant qui écrivait parce que c'était vital, pas parce que c'était un métier.</p>
-            </div>
-          </div>
-
-          <div class="histoire-entry">
-            <div class="histoire-marker">
-              <span class="histoire-year">2025</span>
-              <div class="histoire-dot" />
-            </div>
-            <div class="histoire-content">
-              <h3 class="histoire-heading">Trois branches, une flamme</h3>
-              <p>Aujourd'hui, Le Geai est un groupe à trois branches : édition, informatique et médias. Trois disciplines, une seule exigence. Chaque euro gagné par l'une nourrit les autres. Nous ne sommes pas une startup. Nous sommes une flamme.</p>
-            </div>
-          </div>
+        <div class="histoire-card">
+          <p>En 2024, un éditeur a qualifié nos textes de &laquo;&nbsp;remarquables&nbsp;&raquo;. Puis il a refusé de les publier. Le format ne se vendait pas. Les lecteurs lents ne l'intéressaient pas. Nos histoires n'étaient, selon lui, que des &laquo;&nbsp;états d'âme&nbsp;&raquo; sans valeur marchande.</p>
+          <p>Ce jour-là, une chose est devenue claire : nous ne voulions pas être publiés par des gens qui méprisent leurs lecteurs. Nous ne voulions pas financer des structures qui impriment sans respect pour l'humain ni la nature.</p>
+          <p>Alors Le Geai est né. Légalement en 2021, concrètement en 2024 avec la publication du premier livre, et officiellement en 2025 comme maison d'édition. La vraie naissance est antérieure : celle d'un enfant qui écrivait parce que c'était vital, pas parce que c'était un métier.</p>
         </div>
 
         <!-- 4. BRANCHES - bien separees -->
@@ -649,7 +620,7 @@ const links = [
   cursor: pointer;
 }
 .panel-back .back-arrow { transition: transform 0.3s ease; }
-.revealed .panel-back { opacity: 0.8; }
+.panel-back.is-shown { opacity: 0.8; }
 .panel-back:hover {
   opacity: 1;
   background: rgba(175, 143, 60, 0.1);
@@ -874,80 +845,29 @@ const links = [
 .valeur-card:hover .valeur-text { color: var(--text); }
 
 /* ============================
-   HISTOIRE - timeline
+   HISTOIRE - grosse carte
    ============================ */
-.histoire-timeline {
+.histoire-card {
   width: 100%;
   position: relative;
-  padding-left: 28px;
+  padding: clamp(32px, 5vw, 48px);
+  border: 1px solid var(--gold-dim);
 }
-.histoire-timeline::before {
+.histoire-card::after {
   content: '';
   position: absolute;
-  top: 8px; bottom: 8px; left: 0;
-  width: 1px;
-  background: linear-gradient(180deg, transparent, var(--gold-dim) 15%, var(--gold-dim) 85%, transparent);
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0.4;
 }
-
-.histoire-entry {
-  position: relative;
-  padding-bottom: clamp(32px, 5vh, 48px);
-}
-.histoire-entry:last-child { padding-bottom: 0; }
-
-.histoire-marker {
-  position: absolute;
-  left: -28px;
-  top: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-.histoire-dot {
-  width: 9px; height: 9px;
-  border-radius: 50%;
-  border: 1.5px solid var(--gold);
-  background: var(--cream);
-  transition: background 0.3s;
-}
-.histoire-entry:hover .histoire-dot {
-  background: var(--gold);
-}
-.histoire-year {
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 0.82rem;
-  color: var(--gold);
-  letter-spacing: 0.06em;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  transform: rotate(180deg);
-  margin-top: 8px;
-}
-
-.histoire-content {
-  padding-left: 20px;
-  border-left: none;
-}
-.histoire-heading {
-  font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 1.15rem;
-  font-weight: 400;
-  letter-spacing: 0.06em;
-  color: var(--ink);
-  margin-bottom: 14px;
-  transition: color 0.3s;
-}
-.histoire-entry:hover .histoire-heading { color: var(--gold); }
-
-.histoire-content p {
+.histoire-card p {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 1.02rem;
-  line-height: 2;
+  font-size: 1.05rem;
+  line-height: 2.1;
   color: var(--text);
-  margin-bottom: 14px;
+  margin-bottom: 18px;
 }
-.histoire-content p:last-child { margin-bottom: 0; }
+.histoire-card p:last-child { margin-bottom: 0; }
 
 /* ============================
    BRANCHES - bien separees
@@ -1286,64 +1206,9 @@ const links = [
   .valeur-title { font-size: 1.1rem; margin-bottom: 10px; }
   .valeur-text { font-size: 0.88rem; }
 
-  /* --- Histoire: horizontal frieze --- */
-  .histoire-timeline {
-    padding-left: 0;
-    display: flex;
-    flex-direction: row;
-    overflow-x: auto;
-    gap: 0;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 8px;
-  }
-  .histoire-timeline::before {
-    content: '';
-    position: absolute;
-    top: 22px; left: 16px; right: 16px;
-    height: 1px; width: auto;
-    bottom: auto;
-    background: linear-gradient(90deg, transparent, var(--gold-dim) 10%, var(--gold-dim) 90%, transparent);
-  }
-  .histoire-entry {
-    flex: 0 0 75vw;
-    max-width: 280px;
-    padding-bottom: 0;
-    padding-top: 44px;
-    scroll-snap-align: center;
-    position: relative;
-  }
-  .histoire-marker {
-    position: absolute;
-    left: 50%;
-    top: 0;
-    transform: translateX(-50%);
-    flex-direction: row;
-    gap: 0;
-  }
-  .histoire-year {
-    writing-mode: horizontal-tb;
-    transform: none;
-    margin-top: 0;
-    font-size: 0.78rem;
-    position: absolute;
-    top: -2px;
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;
-  }
-  .histoire-dot {
-    margin-top: 20px;
-  }
-  .histoire-content {
-    padding: 16px;
-    padding-left: 16px;
-    text-align: center;
-    border: 1px solid var(--gold-faint);
-    margin-top: 8px;
-  }
-  .histoire-heading { font-size: 1rem; margin-bottom: 10px; }
-  .histoire-content p { font-size: 0.88rem; line-height: 1.8; margin-bottom: 10px; }
+  /* --- Histoire --- */
+  .histoire-card { padding: 22px 18px; }
+  .histoire-card p { font-size: 0.92rem; line-height: 1.9; margin-bottom: 14px; }
 
   /* --- Branches --- */
   .branch-card { padding: 22px 18px; }
