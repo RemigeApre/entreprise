@@ -297,6 +297,9 @@ function onDragEnd(e: DragEvent) {
 @media (max-width: 768px) {
   .dash-header { padding: 14px 16px 8px; }
 }
+@media (max-width: 1023px) {
+  .dash-header { padding-top: 0; }
+}
 
 /* ═══ BODY: center + sidebar ═══ */
 .dash-body {

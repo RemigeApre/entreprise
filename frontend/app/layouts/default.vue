@@ -336,23 +336,10 @@ const userMenuItems = computed(() => [
     <!-- ========================================================== -->
     <Teleport to="body">
       <Transition
-        enter-active-class="transition-opacity duration-200"
-        leave-active-class="transition-opacity duration-200"
+        enter-active-class="transition-opacity duration-200 ease-out"
+        leave-active-class="transition-opacity duration-150 ease-in"
         enter-from-class="opacity-0"
         leave-to-class="opacity-0"
-      >
-        <div
-          v-if="mobileOpen"
-          class="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm lg:hidden"
-          @click="mobileOpen = false"
-        />
-      </Transition>
-
-      <Transition
-        enter-active-class="transition-transform duration-250 ease-out"
-        leave-active-class="transition-transform duration-200 ease-in"
-        enter-from-class="-translate-x-full"
-        leave-to-class="-translate-x-full"
       >
         <aside v-if="mobileOpen" class="mobile-drawer">
           <!-- Drawer header -->
@@ -682,6 +669,11 @@ const userMenuItems = computed(() => [
   flex-direction: column;
   position: relative;
 }
+@media (max-width: 1023px) {
+  .page-content {
+    padding-top: 58px;
+  }
+}
 
 /* Mobile menu */
 .mobile-menu-btn {
@@ -721,11 +713,9 @@ const userMenuItems = computed(() => [
    ============================ */
 .mobile-drawer {
   position: fixed;
-  inset: 0 auto 0 0;
+  inset: 0;
   z-index: 61;
-  width: min(340px, 88vw);
   background: #ede5d0;
-  box-shadow: 6px 0 32px rgba(44, 36, 25, 0.25);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
