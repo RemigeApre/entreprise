@@ -131,6 +131,17 @@ const values = [
             <p class="valeur-text">{{ val.text }}</p>
           </div>
         </div>
+
+        <!-- Lien articles -->
+        <NuxtLink
+          to="/articles"
+          class="articles-link"
+          :style="{ transitionDelay: '2300ms' }"
+        >
+          <span class="articles-link-line" />
+          <span class="articles-link-text">Lire nos articles</span>
+          <span class="articles-link-line" />
+        </NuxtLink>
       </div>
     </div>
   </div>
@@ -501,6 +512,44 @@ const values = [
   font-size: 0.85rem;
   line-height: 1.7;
   opacity: 0.45;
+}
+
+/* ============================
+   ARTICLES LINK
+   ============================ */
+.articles-link {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: clamp(28px, 5vh, 48px);
+  text-decoration: none;
+  color: var(--gold);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.revealed .articles-link {
+  opacity: 0.5;
+  transform: translateY(0);
+}
+.articles-link:hover {
+  opacity: 1;
+}
+.articles-link-line {
+  width: clamp(24px, 6vw, 50px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.articles-link-text {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: clamp(11px, 1.4vw, 13px);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: letter-spacing 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.articles-link:hover .articles-link-text {
+  letter-spacing: 0.35em;
 }
 
 /* ============================
