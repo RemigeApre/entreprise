@@ -22,7 +22,15 @@ useSeoMeta({
 
 const visible = ref(false)
 const revealed = ref(false)
-const deviseOpen = ref(false)
+
+const deviseHover = ref(false)
+const deviseX = ref(0)
+const deviseY = ref(0)
+
+function onDeviseMove(e: MouseEvent) {
+  deviseX.value = e.clientX
+  deviseY.value = e.clientY
+}
 
 onMounted(() => {
   requestAnimationFrame(() => {
@@ -127,8 +135,22 @@ const links = [
 
       <div class="panel-content">
 
-        <!-- 0. DEVISE - tout en haut -->
-        <button class="devise-section" @click="deviseOpen = !deviseOpen">
+        <!-- 0. PRESENTATION -->
+        <div class="manifesto">
+          <p class="manifesto-lead">Le Geai est une flamme.</p>
+          <p>Ne d'un refus : celui de plier face a la mediocrite et l'avarice. Nous ne venons pas d'un business plan, pas d'une etude de marche, ni meme d'un incubateur. Nous venons de l'ambition et de la revolte.</p>
+          <p>Nous ne vendons pas des livres, nous ouvrons des portes. Nous ne faisons pas des sites, nous creons des espaces sains et fiables. Nous ne diffusons pas du bruit, nous cherchons la verite.</p>
+          <p>Nous accueillons ceux qui en veulent plus. Les clients qui en ont assez du mediocre. Les artistes qui refusent de se vendre. Les esprits qui brulent et qui n'ont pas encore trouve ou poser leur feu.</p>
+          <p class="manifesto-closing">Si vous etes tiedes, passez votre chemin. Nous ne sommes pas faits pour les tiedes. Si quelque chose brule en vous : entrez. La porte est ouverte. La bougie est allumee.</p>
+        </div>
+
+        <!-- DEVISE - hover overlay -->
+        <div
+          class="devise-zone"
+          @mouseenter="deviseHover = true"
+          @mouseleave="deviseHover = false"
+          @mousemove="onDeviseMove"
+        >
           <div class="devise-ornament">
             <div class="devise-line" />
             <span class="devise-glyph">G</span>
@@ -136,23 +158,21 @@ const links = [
           </div>
           <p class="devise-latin">Obscuritas nutrit flammam.</p>
           <p class="devise-fr">L'obscurite nourrit la flamme.</p>
-          <span class="devise-hint">{{ deviseOpen ? 'Fermer' : 'Decouvrir le sens' }}</span>
-        </button>
-
-        <Transition name="devise-explain">
-          <div v-if="deviseOpen" class="devise-explanation">
-            <p>Ce n'est pas un slogan. C'est une devise, en latin et en francais, car elle porte en son coeur un heritage. Par sa forme comme par son sens.</p>
-            <p>Dans l'obscurite d'une modernite ou le sens disparait et ou l'exigence s'envole, nous portons les dernieres flammes. Cette flamme, notre flamme, brule de l'obscurite. Elle s'en nourrit. Plus le monde s'assombrit, plus la flamme grandit.</p>
-          </div>
-        </Transition>
-
-        <!-- 1. PRESENTATION -->
-        <div class="section-separator" />
-
-        <div class="intro-block">
-          <p>Le Geai est une entreprise lyonnaise a trois branches. Edition, informatique et media. Chacune nourrit les autres. Chaque site web livre finance un livre. Chaque livre publie porte la rigueur de l'ingenieur. Chaque article du media porte l'exigence de l'editeur.</p>
-          <p>Dans l'obscurite d'une epoque qui oublie l'exigence, nous portons les dernieres flammes. Celles transmises par nos anciens, partagees, offertes en heritage. Le Geai est ne d'un refus et d'une promesse : refuser que l'art devienne un produit, promettre que chaque oeuvre et chaque service porte en lui l'ame de celui qui l'a fait.</p>
         </div>
+
+        <!-- Tooltip overlay -->
+        <Teleport to="body">
+          <Transition name="tooltip">
+            <div
+              v-if="deviseHover"
+              class="devise-tooltip"
+              :style="{ left: deviseX + 20 + 'px', top: deviseY + 16 + 'px' }"
+            >
+              <p>Ce n'est pas un slogan. C'est une devise, en latin et en francais, car elle porte en son coeur un heritage.</p>
+              <p>Dans l'obscurite d'une modernite ou le sens disparait et ou l'exigence s'envole, nous portons les dernieres flammes. Cette flamme, notre flamme, brule de l'obscurite. Elle s'en nourrit. Plus le monde s'assombrit, plus la flamme grandit.</p>
+            </div>
+          </Transition>
+        </Teleport>
 
         <!-- 2. VALEURS -->
         <div class="section-separator" />
@@ -576,19 +596,46 @@ const links = [
 }
 
 /* ============================
-   DEVISE - tout en haut
+   MANIFESTO
    ============================ */
-.devise-section {
-  text-align: center;
-  cursor: pointer;
-  background: none;
-  border: none;
-  color: inherit;
-  padding: 24px 28px;
+.manifesto {
   width: 100%;
-  transition: background 0.3s;
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
+  padding-bottom: 8px;
 }
-.devise-section:hover { background: rgba(175, 143, 60, 0.03); }
+.manifesto-lead {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  color: var(--gold);
+  letter-spacing: 0.06em;
+  margin-bottom: 24px;
+}
+.manifesto p {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 1.08rem;
+  line-height: 2;
+  color: var(--text);
+  margin-bottom: 18px;
+}
+.manifesto-closing {
+  margin-top: 28px;
+  font-size: 1.1rem;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ============================
+   DEVISE - hover zone
+   ============================ */
+.devise-zone {
+  text-align: center;
+  padding: 28px;
+  width: 100%;
+  cursor: default;
+  margin-top: clamp(20px, 3vh, 36px);
+}
 
 .devise-ornament {
   display: flex; align-items: center; justify-content: center; gap: 14px;
@@ -619,40 +666,7 @@ const links = [
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--text-secondary);
-  opacity: 0.6;
 }
-.devise-hint {
-  display: block;
-  margin-top: 14px;
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 0.72rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--gold);
-  opacity: 0.3;
-  transition: opacity 0.3s;
-}
-.devise-section:hover .devise-hint { opacity: 0.7; }
-
-.devise-explanation {
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px 0 8px;
-  text-align: left;
-}
-.devise-explanation p {
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 1rem;
-  line-height: 1.9;
-  color: var(--text);
-  margin-bottom: 14px;
-}
-.devise-explanation p:last-child { margin-bottom: 0; }
-
-.devise-explain-enter-active { transition: opacity 0.5s ease, transform 0.5s ease; }
-.devise-explain-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
-.devise-explain-enter-from, .devise-explain-leave-to { opacity: 0; transform: translateY(-8px); }
 
 /* ============================
    SHARED
@@ -1027,4 +1041,34 @@ const links = [
   .links-row { grid-template-columns: 1fr; }
   .branch-tarifs { flex-direction: column; gap: 10px; }
 }
+</style>
+
+<style>
+/* Tooltip - unscoped because teleported to body */
+.devise-tooltip {
+  position: fixed;
+  z-index: 9999;
+  max-width: 380px;
+  padding: 24px 28px;
+  background: #2a2218;
+  border: 1px solid rgba(175, 143, 60, 0.3);
+  pointer-events: none;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+.dark .devise-tooltip {
+  background: #1a1f16;
+  border-color: rgba(175, 143, 60, 0.25);
+}
+.devise-tooltip p {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.92rem;
+  line-height: 1.8;
+  color: #d4cbba;
+  margin: 0 0 12px;
+}
+.devise-tooltip p:last-child { margin-bottom: 0; }
+
+.tooltip-enter-active { transition: opacity 0.3s ease, transform 0.3s ease; }
+.tooltip-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.tooltip-enter-from, .tooltip-leave-to { opacity: 0; transform: translateY(6px); }
 </style>
