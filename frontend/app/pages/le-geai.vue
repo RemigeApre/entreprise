@@ -36,10 +36,10 @@ function goBack() {
 }
 
 const values = [
-  { numeral: 'I', title: 'Exigence', text: 'Chaque detail compte. Nous ne livrons que ce dont nous sommes fiers, du premier pixel a la derniere ligne de code.' },
-  { numeral: 'II', title: 'Accessibilite', text: 'Si un utilisateur ne s\u2019y retrouve pas, c\u2019est nous qui avons echoue. La simplicite est notre complexite.' },
-  { numeral: 'III', title: 'Creativite', text: 'L\u2019innovation nait au croisement des disciplines. Edition, technologie et medias se nourrissent mutuellement.' },
-  { numeral: 'IV', title: 'Integrite', text: 'Des engagements tenus, une transparence totale. La confiance se construit sur la constance.' }
+  { numeral: 'I', title: 'Exigence', text: 'Chaque detail compte. Nous ne livrons que ce dont nous sommes fiers, du premier pixel a la derniere ligne de code.', color: '#AF8F3C' },
+  { numeral: 'II', title: 'Accessibilite', text: 'Si un utilisateur ne s\u2019y retrouve pas, c\u2019est nous qui avons echoue. La simplicite est notre complexite.', color: '#6B8F71' },
+  { numeral: 'III', title: 'Creativite', text: 'L\u2019innovation nait au croisement des disciplines. Edition, technologie et medias se nourrissent mutuellement.', color: '#8B6F4E' },
+  { numeral: 'IV', title: 'Integrite', text: 'Des engagements tenus, une transparence totale. La confiance se construit sur la constance.', color: '#7A6A8A' }
 ]
 </script>
 
@@ -86,8 +86,7 @@ const values = [
     <div class="center">
       <div class="center-inner">
         <h1 class="title">
-          <span class="title-main">L'entre</span>
-          <span class="title-main">prise</span>
+          <span class="title-main">L'entreprise</span>
         </h1>
 
         <div class="ornament">
@@ -106,11 +105,12 @@ const values = [
       <span class="footer-text">&copy; {{ new Date().getFullYear() }} Groupe Le Geai</span>
     </div>
 
-    <!-- VALEURS PANEL — slides from TOP (logo goes down = content from top) -->
+    <!-- VALEURS PANEL — slides from TOP -->
     <div class="valeurs-panel">
+      <!-- Retour button — prominent -->
       <button class="panel-back" @click="goBack">
-        <span>Retour</span>
-        <UIcon name="i-lucide-arrow-down" class="size-4 back-arrow" />
+        <UIcon name="i-lucide-arrow-left" class="size-4 back-arrow" />
+        <span>Retour a l'accueil</span>
       </button>
 
       <div class="panel-content">
@@ -124,7 +124,10 @@ const values = [
             v-for="(val, i) in values"
             :key="val.title"
             class="valeur-card"
-            :style="{ transitionDelay: `${1800 + i * 120}ms` }"
+            :style="{
+              transitionDelay: `${1800 + i * 120}ms`,
+              '--card-color': val.color
+            }"
           >
             <span class="valeur-numeral">{{ val.numeral }}</span>
             <h3 class="valeur-title">{{ val.title }}</h3>
@@ -132,15 +135,31 @@ const values = [
           </div>
         </div>
 
+        <!-- Devise -->
+        <div class="devise-section">
+          <div class="devise-ornament">
+            <div class="devise-line" />
+            <span class="devise-glyph">G</span>
+            <div class="devise-line" />
+          </div>
+          <p class="devise-latin">Obscuritas nutrit flammam.</p>
+          <p class="devise-fr">L'obscurite nourrit la flamme.</p>
+        </div>
+
         <!-- Lien articles -->
         <NuxtLink
           to="/articles"
           class="articles-link"
-          :style="{ transitionDelay: '2300ms' }"
+          :style="{ transitionDelay: '2600ms' }"
         >
-          <span class="articles-link-line" />
-          <span class="articles-link-text">Lire nos articles</span>
-          <span class="articles-link-line" />
+          <span class="articles-link-icon">
+            <UIcon name="i-lucide-feather" class="size-4" />
+          </span>
+          <span class="articles-link-content">
+            <span class="articles-link-title">Lire nos articles</span>
+            <span class="articles-link-sub">Reflexions et actualites du groupe</span>
+          </span>
+          <UIcon name="i-lucide-chevron-right" class="size-4 articles-link-chevron" />
         </NuxtLink>
       </div>
     </div>
@@ -149,7 +168,7 @@ const values = [
 
 <style scoped>
 /* ============================
-   BASE — identical to index.vue
+   BASE
    ============================ */
 .landing {
   --gold: #AF8F3C;
@@ -171,7 +190,7 @@ const values = [
 :global(.dark) .landing { color: var(--cream); }
 
 /* ============================
-   LAYERS — identical to index.vue
+   LAYERS
    ============================ */
 .noise-layer {
   position: fixed; inset: 0;
@@ -190,10 +209,7 @@ const values = [
 }
 
 /* ============================
-   WATERMARK — goes DOWN and disappears
-   login:       left: 50% → 0     (slides left, half visible)
-   recrutement: left: 50% → 100%  (slides right, half visible)
-   valeurs:     top: 50% → 150%   (slides down, fully disappears)
+   WATERMARK
    ============================ */
 .watermark {
   position: fixed;
@@ -223,7 +239,7 @@ const values = [
 }
 
 /* ============================
-   FRAME — identical to index.vue
+   FRAME
    ============================ */
 .frame {
   position: fixed;
@@ -245,7 +261,7 @@ const values = [
 .frame-mark--bottom { bottom: -1px; }
 
 /* ============================
-   TOP BAR
+   TOP BAR — more visible
    ============================ */
 .top-bar {
   position: fixed;
@@ -268,12 +284,22 @@ const values = [
   text-transform: uppercase;
   color: var(--gold);
   opacity: 0.7;
-  transition: opacity 0.3s, gap 0.3s;
+  padding: 8px 16px 8px 12px;
+  border: 1px solid var(--gold-dim);
+  border-radius: 2px;
+  background: rgba(175, 143, 60, 0.04);
+  transition: opacity 0.3s, gap 0.3s, background 0.3s, border-color 0.3s;
+  cursor: pointer;
 }
-.top-back:hover { opacity: 1; gap: 12px; }
+.top-back:hover {
+  opacity: 1;
+  gap: 12px;
+  background: rgba(175, 143, 60, 0.1);
+  border-color: var(--gold);
+}
 
 /* ============================
-   CENTER — identical to index.vue
+   CENTER
    ============================ */
 .center {
   flex: 1;
@@ -314,12 +340,13 @@ const values = [
 }
 .title-main {
   font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: clamp(3.2rem, 10vw, 7rem);
+  font-size: clamp(2.8rem, 8vw, 6rem);
   font-weight: 400;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.25em;
   text-transform: uppercase;
   display: block;
-  line-height: 0.85;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .ornament {
@@ -368,7 +395,7 @@ const values = [
 .is-visible .motto-sub { opacity: 0.4; }
 
 /* ============================
-   FOOTER — identical to index.vue
+   FOOTER
    ============================ */
 .footer-bar {
   position: relative;
@@ -388,12 +415,7 @@ const values = [
 }
 
 /* ============================
-   VALEURS PANEL — slides from TOP
-   (logo goes DOWN → content comes from TOP)
-
-   login-panel:  fixed top:0 right:0 bottom:0  width:50%  translateX(60px)
-   recru-panel:  fixed top:0 left:0  bottom:0  width:50%  translateX(-60px)
-   valeurs-panel: fixed top:0 left:0  right:0  bottom:0   translateY(-60px)
+   VALEURS PANEL
    ============================ */
 .valeurs-panel {
   position: fixed;
@@ -404,6 +426,7 @@ const values = [
   align-items: center;
   justify-content: center;
   padding: clamp(24px, 4vw, 48px);
+  padding-top: clamp(60px, 8vh, 90px);
   overflow-y: auto;
   opacity: 0;
   transform: translateY(-60px);
@@ -416,33 +439,46 @@ const values = [
   pointer-events: auto;
 }
 
+/* ============================
+   PANEL BACK — prominent button
+   ============================ */
 .panel-back {
   position: fixed;
-  bottom: clamp(24px, 4vw, 40px);
-  left: 50%;
-  transform: translateX(-50%);
+  top: clamp(18px, 3.5vw, 32px);
+  left: clamp(18px, 3.5vw, 32px);
   display: flex; align-items: center; gap: 10px;
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 12px;
-  letter-spacing: 0.18em;
+  font-size: 13px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   text-decoration: none;
   color: var(--gold);
   opacity: 0;
   z-index: 30;
-  transition: opacity 0.4s ease, gap 0.3s;
+  padding: 8px 18px 8px 14px;
+  border: 1px solid var(--gold-dim);
+  border-radius: 2px;
+  background: rgba(175, 143, 60, 0.04);
+  transition: opacity 0.4s ease, gap 0.3s, background 0.3s, border-color 0.3s;
   cursor: pointer;
 }
 .panel-back .back-arrow {
   transition: transform 0.3s ease;
 }
-.revealed .panel-back { opacity: 0.6; }
-.panel-back:hover { opacity: 1; }
-.panel-back:hover .back-arrow { transform: translateY(3px); }
+.revealed .panel-back { opacity: 0.8; }
+.panel-back:hover {
+  opacity: 1;
+  background: rgba(175, 143, 60, 0.1);
+  border-color: var(--gold);
+}
+.panel-back:hover .back-arrow { transform: translateX(-3px); }
 
 .panel-content {
   width: 100%;
   max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .panel-title {
@@ -463,93 +499,193 @@ const values = [
   background: linear-gradient(90deg, transparent, var(--gold), transparent);
 }
 
-/* Valeurs grid */
+/* ============================
+   VALEURS GRID — colored cards
+   ============================ */
 .valeurs-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
+  width: 100%;
 }
 
 .valeur-card {
-  padding: 24px;
-  border: 1px solid var(--gold-dim);
+  padding: 28px;
+  border: 1px solid color-mix(in srgb, var(--card-color) 30%, transparent);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--card-color) 6%, transparent);
   opacity: 0;
   transform: translateY(8px);
-  transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s, background 0.3s;
+  transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s, background 0.3s, box-shadow 0.3s;
+}
+:global(.dark) .valeur-card {
+  background: color-mix(in srgb, var(--card-color) 10%, transparent);
+  border-color: color-mix(in srgb, var(--card-color) 25%, transparent);
 }
 .revealed .valeur-card {
   opacity: 1;
   transform: translateY(0);
 }
 .valeur-card:hover {
-  border-color: var(--gold);
-  background: rgba(175, 143, 60, 0.04);
+  border-color: color-mix(in srgb, var(--card-color) 50%, transparent);
+  background: color-mix(in srgb, var(--card-color) 10%, transparent);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--card-color) 10%, transparent);
 }
 :global(.dark) .valeur-card:hover {
-  background: rgba(175, 143, 60, 0.08);
+  background: color-mix(in srgb, var(--card-color) 16%, transparent);
 }
 
 .valeur-numeral {
   font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 0.8rem;
-  color: var(--gold);
-  opacity: 0.5;
+  font-size: 0.85rem;
+  color: var(--card-color);
+  opacity: 0.7;
   display: block;
   margin-bottom: 10px;
 }
 
 .valeur-title {
   font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 400;
   letter-spacing: 0.06em;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   transition: color 0.3s;
 }
-.valeur-card:hover .valeur-title { color: var(--gold); }
+.valeur-card:hover .valeur-title { color: var(--card-color); }
 
 .valeur-text {
-  font-size: 0.85rem;
-  line-height: 1.7;
-  opacity: 0.45;
+  font-size: 0.9rem;
+  line-height: 1.8;
+  opacity: 0.65;
 }
 
 /* ============================
-   ARTICLES LINK
+   DEVISE SECTION
+   ============================ */
+.devise-section {
+  margin-top: clamp(36px, 6vh, 56px);
+  text-align: center;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+  transition-delay: 2400ms;
+}
+.revealed .devise-section {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.devise-ornament {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  margin-bottom: 16px;
+}
+.devise-line {
+  width: clamp(24px, 6vw, 48px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+}
+.devise-glyph {
+  font-family: 'UnifrakturCook', cursive;
+  font-size: 1.3rem;
+  color: var(--gold);
+  opacity: 0.4;
+  line-height: 1;
+}
+
+.devise-latin {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-style: italic;
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+  color: var(--gold);
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.devise-fr {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: clamp(0.7rem, 1.3vw, 0.85rem);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.4;
+}
+
+/* ============================
+   ARTICLES LINK — card style
    ============================ */
 .articles-link {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-top: clamp(28px, 5vh, 48px);
+  width: 100%;
+  max-width: 400px;
+  margin-top: clamp(28px, 5vh, 44px);
+  padding: 16px 20px;
   text-decoration: none;
-  color: var(--gold);
+  color: inherit;
+  border: 1px solid var(--gold-dim);
+  border-radius: 4px;
+  background: rgba(175, 143, 60, 0.03);
   opacity: 0;
   transform: translateY(8px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.3s, background 0.3s, box-shadow 0.3s;
 }
 .revealed .articles-link {
-  opacity: 0.5;
+  opacity: 1;
   transform: translateY(0);
 }
 .articles-link:hover {
-  opacity: 1;
+  border-color: var(--gold);
+  background: rgba(175, 143, 60, 0.08);
+  box-shadow: 0 4px 16px rgba(175, 143, 60, 0.1);
 }
-.articles-link-line {
-  width: clamp(24px, 6vw, 50px);
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+
+.articles-link-icon {
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: rgba(175, 143, 60, 0.08);
+  color: var(--gold);
+  flex-shrink: 0;
+  transition: background 0.3s;
 }
-.articles-link-text {
+.articles-link:hover .articles-link-icon {
+  background: rgba(175, 143, 60, 0.15);
+}
+
+.articles-link-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.articles-link-title {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  transition: color 0.3s;
+}
+.articles-link:hover .articles-link-title {
+  color: var(--gold);
+}
+
+.articles-link-sub {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: clamp(11px, 1.4vw, 13px);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  transition: letter-spacing 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  font-size: 0.78rem;
+  opacity: 0.4;
+  letter-spacing: 0.02em;
 }
-.articles-link:hover .articles-link-text {
-  letter-spacing: 0.35em;
+
+.articles-link-chevron {
+  color: var(--gold);
+  opacity: 0.4;
+  flex-shrink: 0;
+  transition: opacity 0.3s, transform 0.3s;
+}
+.articles-link:hover .articles-link-chevron {
+  opacity: 1;
+  transform: translateX(3px);
 }
 
 /* ============================
