@@ -3,7 +3,7 @@ definePageMeta({ layout: 'public' })
 
 useSeoMeta({
   title: 'Transparence financiere — Le Geai',
-  description: 'La transparence financiere du groupe Le Geai — bientot disponible.'
+  description: 'La transparence financiere du groupe Le Geai — nos comptes, en toute clarte.'
 })
 
 const visible = ref(false)
@@ -21,19 +21,41 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
         <div class="tr-rule" />
       </header>
 
-      <!-- Contenu a venir -->
-      <div class="tr-body">
-        <div class="tr-icon">
-          <UIcon name="i-lucide-lock-open" class="size-8" />
+      <!-- Principe -->
+      <section class="section">
+        <div class="section-body">
+          <p>Nous publions nos comptes. Pas dans le detail d'un bilan comptable, mais dans une forme lisible, honnete, accessible. Chiffre d'affaires, charges, resultat. Parce que la confiance ne se decrete pas, elle se prouve.</p>
+          <p>Nous disons quand nous galerons. Nous disons quand nous injectons de l'argent personnel pour maintenir l'entreprise a flot. Nous disons quand nous sommes nuls en prospection. Le mensonge est plus couteux que la verite.</p>
         </div>
+      </section>
 
-        <p class="tr-lead">Cette page est en preparation.</p>
-        <p class="tr-text">Nous croyons qu'une entreprise qui demande la confiance de ses clients, de ses partenaires et de ses equipes doit rendre des comptes. Pas par obligation legale — par principe.</p>
-        <p class="tr-text">Ici seront publies nos chiffres, nos revenus, nos charges, notre marge. En toute clarte. Sans intermediaire.</p>
-
-        <div class="tr-note">
-          <span class="tr-note-label">Disponible prochainement</span>
+      <!-- Ce qui sera publie -->
+      <section class="section">
+        <h2 class="section-heading">Ce qui sera publie</h2>
+        <div class="items-grid">
+          <div class="item-card">
+            <span class="item-label">Chiffre d'affaires</span>
+            <span class="item-desc">Revenu total, par branche</span>
+          </div>
+          <div class="item-card">
+            <span class="item-label">Charges principales</span>
+            <span class="item-desc">URSSAF, licences, serveurs</span>
+          </div>
+          <div class="item-card">
+            <span class="item-label">Resultat net</span>
+            <span class="item-desc">Ce qui reste, en toute clarte</span>
+          </div>
+          <div class="item-card">
+            <span class="item-label">Salaires</span>
+            <span class="item-desc">Accessibles aux employes via l'intranet</span>
+          </div>
         </div>
+      </section>
+
+      <!-- Note -->
+      <div class="tr-note">
+        <UIcon name="i-lucide-lock-open" class="size-5 tr-note-icon" />
+        <p>Cette page est en preparation. Les premiers chiffres seront publies prochainement, dans un tableau clair que n'importe qui comprend. Pas un bilan comptable — une preuve de confiance.</p>
       </div>
 
       <!-- Ornament -->
@@ -55,7 +77,7 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
 }
 
 .transparence-container {
-  max-width: 620px;
+  max-width: 660px;
   margin: 0 auto;
   opacity: 0;
   transform: translateY(16px);
@@ -98,52 +120,83 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
   background: linear-gradient(90deg, transparent, var(--gold), transparent);
 }
 
-/* Body */
-.tr-body {
-  text-align: center;
-  padding: clamp(32px, 6vh, 56px) 0;
+/* Section */
+.section {
+  margin-bottom: clamp(40px, 6vh, 56px);
 }
 
-.tr-icon {
-  color: var(--gold);
-  opacity: 0.3;
-  margin-bottom: 28px;
-}
-
-.tr-lead {
+.section-heading {
   font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-style: italic;
-  font-size: 1.3rem;
+  font-size: 1.15rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--gold);
-  opacity: 0.7;
+  opacity: 0.8;
   margin-bottom: 24px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--gold-faint);
 }
 
-.tr-text {
+.section-body p {
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: 1.05rem;
   line-height: 2;
-  opacity: 0.6;
-  max-width: 500px;
-  margin: 0 auto 16px;
-  text-align: left;
+  opacity: 0.7;
+  margin-bottom: 16px;
 }
-.tr-text:last-of-type { margin-bottom: 0; }
+.section-body p:last-child { margin-bottom: 0; }
 
-.tr-note {
-  margin-top: 40px;
-  padding: 16px 24px;
+/* Items grid */
+.items-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.item-card {
+  padding: 22px 20px;
   border: 1px solid var(--gold-faint);
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.tr-note-label {
+.item-label {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+}
+
+.item-desc {
   font-family: 'Crimson Pro', Georgia, serif;
   font-size: 0.8rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  opacity: 0.45;
+  line-height: 1.5;
+}
+
+/* Note */
+.tr-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--gold-faint);
+  margin-top: clamp(16px, 3vh, 32px);
+}
+
+.tr-note-icon {
   color: var(--gold);
-  opacity: 0.5;
+  opacity: 0.4;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.tr-note p {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.92rem;
+  line-height: 1.8;
+  opacity: 0.55;
 }
 
 /* End ornament */
@@ -165,5 +218,9 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
   font-size: 1.2rem;
   color: var(--gold);
   line-height: 1;
+}
+
+@media (max-width: 480px) {
+  .items-grid { grid-template-columns: 1fr; }
 }
 </style>

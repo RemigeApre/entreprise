@@ -3,7 +3,7 @@ definePageMeta({ layout: 'public' })
 
 useSeoMeta({
   title: 'Nos engagements — Le Geai',
-  description: 'Les engagements concrets du groupe Le Geai : recrutement, stages, tarifs solidaires.'
+  description: 'Les engagements concrets du groupe Le Geai : recrutement, stages, tarifs solidaires, art.'
 })
 
 const visible = ref(false)
@@ -12,21 +12,27 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
 const engagements = [
   {
     numeral: 'I',
-    title: 'Recruter sur la competence',
-    text: 'Nous embauchons sur ce que les gens savent faire, pas sur ce qu\'ils sont. Ni le nom, ni l\'adresse, ni le parcours scolaire ne definissent la valeur d\'un individu. Seules comptent la competence, la rigueur et la volonte de bien faire.',
-    color: '#AF8F3C'
+    title: 'Envers nos stagiaires',
+    text: 'Nous prenons des stagiaires. Le maximum legal, toute l\'annee. Pas par calcul, par necessite et par conviction. Etudiants en formation, mais aussi personnes en reinsertion professionnelle. Un vrai travail, un vrai portfolio, une vraie lettre de recommandation pour ceux qui le meritent. Pas un stage cafe-photocopieuse. Donner sa chance a quelqu\'un qui debute ou qui recommence, c\'est un devoir, pas une variable d\'ajustement.',
+    color: '#7A6A8A'
   },
   {
     numeral: 'II',
-    title: 'Accueillir les stagiaires',
-    text: 'Le fondateur a ete etudiant. Il sait ce que c\'est que de chercher un stage pour valider son annee et de ne pas en trouver. Le Geai s\'engage a prendre des stagiaires dans les limites legales — pas par charite, mais parce que c\'est normal. Un etudiant qui a besoin d\'apprendre merite une porte ouverte.',
-    color: '#6B8F71'
+    title: 'Envers nos futurs employes',
+    text: 'La competence est le seul critere, rien d\'autre. Ni le nom, ni l\'adresse, ni le parcours scolaire ne definissent la valeur d\'un individu. Le jour ou l\'argent rentre : des alternants, des CDI, des stagiaires payes. Ceux qui sont bons passent en alternance, puis en poste fixe. On valorise et on garde ceux qui font du bon travail. C\'est la promesse.',
+    color: '#AF8F3C'
   },
   {
     numeral: 'III',
-    title: 'Tarifs solidaires',
-    text: 'Nous appliquons des reductions pour les structures associatives, les acteurs de la sante et ceux qui travaillent au plus pres de la terre — paysans, cooperatives agricoles, associations environnementales. Ce ne sont pas des clients comme les autres : ce sont des gens qui font tourner le monde, souvent sans les moyens qu\'ils meritent.',
+    title: 'Envers l\'art',
+    text: 'Chaque euro gagne par Le Geai Informatique finance Le Geai Editions. Nos livres sont vendus a prix reduit aux entreprises et aux CSE. L\'art dans un bureau n\'est pas un luxe, c\'est un acte.',
     color: '#8B6F4E'
+  },
+  {
+    numeral: 'IV',
+    title: 'Envers nos clients',
+    text: 'Nos sites web sont concus avec empathie. Se mettre a la place de chaque visiteur, faire preuve d\'une empathie reelle et pratique : ca ne se genere pas, ca se travaille. Nos sites web commencent a 800 euros. Le meilleur site est celui ou l\'on ne remarque jamais qu\'il a ete concu.',
+    color: '#6B8F71'
   }
 ]
 </script>
@@ -63,10 +69,21 @@ const engagements = [
         </article>
       </div>
 
-      <!-- Closing -->
-      <div class="eng-closing">
-        <p>Ces engagements ne sont pas negociables. Ils sont le socle sur lequel repose tout ce que nous construisons. Si un jour nous ne les tenons plus, c'est que nous aurons echoue.</p>
-      </div>
+      <!-- Tarifs solidaires -->
+      <section class="tarifs-section">
+        <h2 class="tarifs-heading">Tarifs solidaires</h2>
+        <p class="tarifs-intro">L'art n'appartient pas aux prix absurdes. Nos reductions existent pour ceux qui en ont besoin :</p>
+        <div class="tarifs-grid">
+          <div class="tarif-card">
+            <span class="tarif-pct">20 %</span>
+            <span class="tarif-label">Acteurs de la sante et de l'environnement</span>
+          </div>
+          <div class="tarif-card">
+            <span class="tarif-pct">30 %</span>
+            <span class="tarif-label">Associations et ONG</span>
+          </div>
+        </div>
+      </section>
 
       <!-- Ornament -->
       <div class="end-ornament">
@@ -165,7 +182,6 @@ const engagements = [
   inset: 0;
   border: 1px solid color-mix(in srgb, var(--card-color) 18%, transparent);
   pointer-events: none;
-  transition: border-color 0.5s ease;
 }
 .eng-card::after {
   content: '';
@@ -215,21 +231,61 @@ const engagements = [
   opacity: 0.65;
 }
 
-/* Closing */
-.eng-closing {
-  margin-top: clamp(40px, 6vh, 56px);
-  padding: 24px 0;
-  border-top: 1px solid var(--gold-faint);
+/* Tarifs solidaires */
+.tarifs-section {
+  margin-top: clamp(48px, 8vh, 68px);
   text-align: center;
 }
-.eng-closing p {
+
+.tarifs-heading {
   font-family: 'IM Fell DW Pica', Georgia, serif;
-  font-style: italic;
-  font-size: 1rem;
-  line-height: 1.8;
-  opacity: 0.55;
-  max-width: 540px;
+  font-size: 1.15rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0.8;
+  margin-bottom: 16px;
+}
+
+.tarifs-intro {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.95rem;
+  opacity: 0.6;
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+
+.tarifs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  max-width: 440px;
   margin: 0 auto;
+}
+
+.tarif-card {
+  padding: 24px 16px;
+  border: 1px solid var(--gold-faint);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tarif-pct {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 2rem;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.tarif-label {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  opacity: 0.55;
+  line-height: 1.5;
 }
 
 /* End ornament */
@@ -238,7 +294,7 @@ const engagements = [
   align-items: center;
   justify-content: center;
   gap: 14px;
-  padding-top: clamp(20px, 4vh, 40px);
+  padding-top: clamp(40px, 6vh, 60px);
   opacity: 0.3;
 }
 .end-line {
@@ -251,5 +307,9 @@ const engagements = [
   font-size: 1.2rem;
   color: var(--gold);
   line-height: 1;
+}
+
+@media (max-width: 480px) {
+  .tarifs-grid { grid-template-columns: 1fr; }
 }
 </style>

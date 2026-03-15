@@ -44,10 +44,10 @@ function goBack() {
 }
 
 const values = [
-  { numeral: 'I', title: 'Exigence', text: 'Chaque detail compte. Nous ne livrons que ce dont nous sommes fiers, du premier pixel a la derniere ligne de code.', color: '#AF8F3C' },
-  { numeral: 'II', title: 'Accessibilite', text: 'Si un utilisateur ne s\u2019y retrouve pas, c\u2019est nous qui avons echoue. La simplicite est notre complexite.', color: '#6B8F71' },
-  { numeral: 'III', title: 'Creativite', text: 'L\u2019innovation nait au croisement des disciplines. Edition, technologie et medias se nourrissent mutuellement.', color: '#8B6F4E' },
-  { numeral: 'IV', title: 'Integrite', text: 'Des engagements tenus, une transparence totale. La confiance se construit sur la constance.', color: '#7A6A8A' }
+  { numeral: 'I', title: 'Exigence', text: 'Un bon artiste transforme tout ce qu\u2019il experimente pour y insuffler son ame. Retirer un de ces deux criteres et vous avez un mediocre. Cette regle s\u2019applique a nos livres, a nos sites web, a nos articles — a tout ce qui porte le nom Le Geai.', color: '#AF8F3C' },
+  { numeral: 'II', title: 'Accessibilite', text: 'L\u2019art n\u2019appartient pas aux musees ni aux prix absurdes. Il appartient aux bureaux, aux ateliers, aux foyers. Nous refusons de fermer la porte aux petits budgets, aux lecteurs lents, a ceux qui pensent que l\u2019art n\u2019est pas pour eux.', color: '#6B8F71' },
+  { numeral: 'III', title: 'Transparence', text: 'Nous publions nos comptes. Chiffre d\u2019affaires, charges, resultat. Nous disons quand nous galerons. Le mensonge est plus couteux que la verite. La confiance ne se decrete pas, elle se prouve.', color: '#8B6F4E' },
+  { numeral: 'IV', title: 'Transmission', text: 'Nous prenons des stagiaires, le maximum legal, toute l\u2019annee. Donner sa chance a quelqu\u2019un qui debute ou qui recommence, c\u2019est un devoir, pas une variable d\u2019ajustement. Ceux qui font du bon travail restent.', color: '#7A6A8A' }
 ]
 </script>
 
@@ -103,8 +103,8 @@ const values = [
           <div class="ornament-line" />
         </div>
 
-        <p class="motto">Creer avec exigence, partager avec sincerite.</p>
-        <p class="motto-sub">Les valeurs du groupe Le Geai.</p>
+        <p class="motto">Obscuritas nutrit flammam.</p>
+        <p class="motto-sub">L'obscurite nourrit la flamme.</p>
       </div>
     </div>
 
@@ -160,9 +160,8 @@ const values = [
 
         <Transition name="devise-explain">
           <div v-if="deviseOpen" class="devise-explanation">
-            <p>La devise du Geai est un rappel : c'est dans les periodes d'incertitude, dans l'ombre et le doute, que naissent les idees les plus lumineuses.</p>
-            <p>Nous ne fuyons pas la difficulte. Nous croyons que l'obscurite — l'inconnu, la complexite, les debuts difficiles — est le terreau de toute creation durable. La flamme n'a pas besoin de confort pour bruler : elle a besoin de sens.</p>
-            <p>Cette devise est aussi un hommage a ceux qui avancent sans garantie, les fondateurs, les stagiaires, les independants — tous ceux qui construisent quelque chose a partir de rien.</p>
+            <p>Ce n'est pas un slogan. C'est une devise, en latin et en francais, car elle porte en son coeur un heritage. Par sa forme comme par son sens.</p>
+            <p>Dans l'obscurite d'une modernite ou le sens disparait et ou l'exigence s'envole, nous portons les dernieres flammes. Cette flamme, notre flamme, brule de l'obscurite. Elle s'en nourrit. Plus le monde s'assombrit, plus la flamme grandit.</p>
           </div>
         </Transition>
 
