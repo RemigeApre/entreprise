@@ -24,24 +24,46 @@ const visible = ref(false)
 const revealed = ref(false)
 
 const deviseHover = ref(false)
+const deviseOpen = ref(false)
 const deviseX = ref(0)
 const deviseY = ref(0)
+const isMobile = ref(false)
 
 function onDeviseMove(e: MouseEvent) {
   deviseX.value = e.clientX
   deviseY.value = e.clientY
 }
 
+function onDeviseClick() {
+  if (isMobile.value) deviseOpen.value = !deviseOpen.value
+}
+
+const panelRef = ref<HTMLElement | null>(null)
+
+function checkMobile() {
+  isMobile.value = window.matchMedia('(max-width: 640px)').matches
+}
+
 onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
   requestAnimationFrame(() => {
     visible.value = true
     setTimeout(() => { revealed.value = true }, 1200)
   })
 })
 
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
+})
+
 function goBack() {
   revealed.value = false
   setTimeout(() => { navigateTo('/') }, 1400)
+}
+
+function scrollToTop() {
+  panelRef.value?.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 const values = [
@@ -127,7 +149,7 @@ const links = [
     <!-- ==============================
          PANEL
          ============================== -->
-    <div class="valeurs-panel">
+    <div ref="panelRef" class="valeurs-panel">
       <button class="panel-back" @click="goBack">
         <UIcon name="i-lucide-arrow-left" class="size-4 back-arrow" />
         <span>Retour à l'accueil</span>
@@ -144,12 +166,14 @@ const links = [
           <p class="manifesto-closing">Si vous êtes tièdes, passez votre chemin. Nous ne sommes pas faits pour les tièdes. Si quelque chose brûle en vous : entrez. La porte est ouverte. La bougie est allumée.</p>
         </div>
 
-        <!-- DEVISE - hover overlay -->
+        <!-- DEVISE - hover on desktop, click on mobile -->
         <div
           class="devise-zone"
-          @mouseenter="deviseHover = true"
-          @mouseleave="deviseHover = false"
-          @mousemove="onDeviseMove"
+          :class="{ 'is-open': deviseOpen }"
+          @mouseenter="!isMobile && (deviseHover = true)"
+          @mouseleave="!isMobile && (deviseHover = false)"
+          @mousemove="!isMobile && onDeviseMove($event)"
+          @click="onDeviseClick"
         >
           <div class="devise-ornament">
             <div class="devise-line" />
@@ -158,13 +182,22 @@ const links = [
           </div>
           <p class="devise-latin">Obscuritas nutrit flammam.</p>
           <p class="devise-fr">L'obscurité nourrit la flamme.</p>
+          <p class="devise-hint">Touchez pour découvrir le sens</p>
+
+          <!-- Mobile inline explanation -->
+          <Transition name="devise-expand">
+            <div v-if="deviseOpen" class="devise-inline">
+              <p>Ce n'est pas un slogan. C'est une devise, en latin et en français, car elle porte en son cœur un héritage.</p>
+              <p>Dans l'obscurité d'une modernité où le sens disparaît et où l'exigence s'envole, nous portons les dernières flammes. Cette flamme, notre flamme, brûle de l'obscurité. Elle s'en nourrit. Plus le monde s'assombrit, plus la flamme grandit.</p>
+            </div>
+          </Transition>
         </div>
 
-        <!-- Tooltip overlay -->
+        <!-- Tooltip overlay (desktop only) -->
         <Teleport to="body">
           <Transition name="tooltip">
             <div
-              v-if="deviseHover"
+              v-if="deviseHover && !isMobile"
               class="devise-tooltip"
               :style="{ left: deviseX + 20 + 'px', top: deviseY + 16 + 'px' }"
             >
@@ -191,14 +224,44 @@ const links = [
           </div>
         </div>
 
-        <!-- 3. HISTOIRE - grosse carte -->
+        <!-- 3. HISTOIRE - timeline -->
         <div class="section-separator" />
         <h2 class="section-title-big">Notre histoire</h2>
 
-        <div class="histoire-card">
-          <p>En 2024, un éditeur a qualifié nos textes de &laquo;&nbsp;remarquables&nbsp;&raquo;. Puis il a refusé de les publier. Le format ne se vendait pas. Les lecteurs lents ne l'intéressaient pas. Nos histoires n'étaient, selon lui, que des &laquo;&nbsp;états d'âme&nbsp;&raquo; sans valeur marchande.</p>
-          <p>Ce jour-là, une chose est devenue claire : nous ne voulions pas être publiés par des gens qui méprisent leurs lecteurs. Nous ne voulions pas financer des structures qui impriment sans respect pour l'humain ni la nature.</p>
-          <p>Alors Le Geai est né. Légalement en 2021, concrètement en 2024 avec la publication du premier livre, et officiellement en 2025 comme maison d'édition. La vraie naissance est antérieure : celle d'un enfant qui écrivait parce que c'était vital, pas parce que c'était un métier.</p>
+        <div class="histoire-timeline">
+          <div class="histoire-entry">
+            <div class="histoire-marker">
+              <span class="histoire-year">2024</span>
+              <div class="histoire-dot" />
+            </div>
+            <div class="histoire-content">
+              <h3 class="histoire-heading">Le refus fondateur</h3>
+              <p>Un éditeur a qualifié nos textes de &laquo;&nbsp;remarquables&nbsp;&raquo;. Puis il a refusé de les publier. Le format ne se vendait pas. Les lecteurs lents ne l'intéressaient pas. Nos histoires n'étaient, selon lui, que des &laquo;&nbsp;états d'âme&nbsp;&raquo; sans valeur marchande.</p>
+              <p>Ce jour-là, une chose est devenue claire : nous ne voulions pas être publiés par des gens qui méprisent leurs lecteurs. Nous ne voulions pas financer des structures qui impriment sans respect pour l'humain ni la nature.</p>
+            </div>
+          </div>
+
+          <div class="histoire-entry">
+            <div class="histoire-marker">
+              <span class="histoire-year">2021</span>
+              <div class="histoire-dot" />
+            </div>
+            <div class="histoire-content">
+              <h3 class="histoire-heading">La naissance légale</h3>
+              <p>Le Geai est né légalement en 2021. Concrètement en 2024 avec la publication du premier livre. Officiellement en 2025 comme maison d'édition. Mais la vraie naissance est antérieure : celle d'un enfant qui écrivait parce que c'était vital, pas parce que c'était un métier.</p>
+            </div>
+          </div>
+
+          <div class="histoire-entry">
+            <div class="histoire-marker">
+              <span class="histoire-year">2025</span>
+              <div class="histoire-dot" />
+            </div>
+            <div class="histoire-content">
+              <h3 class="histoire-heading">Trois branches, une flamme</h3>
+              <p>Aujourd'hui, Le Geai est un groupe à trois branches : édition, informatique et médias. Trois disciplines, une seule exigence. Chaque euro gagné par l'une nourrit les autres. Nous ne sommes pas une startup. Nous sommes une flamme.</p>
+            </div>
+          </div>
         </div>
 
         <!-- 4. BRANCHES - bien separees -->
@@ -286,6 +349,11 @@ const links = [
         <div class="closing-quote">
           <p>Nous étions chenilles, nous sommes en chrysalide. Bientôt, nous serons ces papillons de nuit, attirés par la bougie.</p>
         </div>
+
+        <!-- Scroll to top -->
+        <button class="scroll-top" @click="scrollToTop" aria-label="Remonter">
+          <UIcon name="i-lucide-arrow-up" class="size-4" />
+        </button>
 
       </div>
     </div>
@@ -574,7 +642,9 @@ const links = [
   padding: 8px 18px 8px 14px;
   border: 1px solid var(--gold-dim);
   border-radius: 2px;
-  background: rgba(175, 143, 60, 0.04);
+  background: color-mix(in srgb, var(--cream) 85%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   transition: opacity 0.4s ease, gap 0.3s, background 0.3s, border-color 0.3s;
   cursor: pointer;
 }
@@ -667,6 +737,30 @@ const links = [
   text-transform: uppercase;
   color: var(--text-secondary);
 }
+
+/* Mobile hint + inline explanation */
+.devise-hint {
+  display: none;
+}
+.devise-inline {
+  text-align: center;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--gold-faint);
+}
+.devise-inline p {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 0.92rem;
+  line-height: 1.9;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.devise-inline p:last-child { margin-bottom: 0; }
+
+.devise-expand-enter-active { transition: opacity 0.4s ease, max-height 0.5s ease; }
+.devise-expand-leave-active { transition: opacity 0.3s ease, max-height 0.4s ease; }
+.devise-expand-enter-from, .devise-expand-leave-to { opacity: 0; max-height: 0; overflow: hidden; }
+.devise-expand-enter-to { max-height: 300px; overflow: hidden; }
 
 /* ============================
    SHARED
@@ -780,29 +874,80 @@ const links = [
 .valeur-card:hover .valeur-text { color: var(--text); }
 
 /* ============================
-   HISTOIRE - grosse carte
+   HISTOIRE - timeline
    ============================ */
-.histoire-card {
+.histoire-timeline {
   width: 100%;
   position: relative;
-  padding: clamp(32px, 5vw, 48px);
-  border: 1px solid var(--gold-dim);
+  padding-left: 28px;
 }
-.histoire-card::after {
+.histoire-timeline::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
-  opacity: 0.4;
+  top: 8px; bottom: 8px; left: 0;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, var(--gold-dim) 15%, var(--gold-dim) 85%, transparent);
 }
-.histoire-card p {
+
+.histoire-entry {
+  position: relative;
+  padding-bottom: clamp(32px, 5vh, 48px);
+}
+.histoire-entry:last-child { padding-bottom: 0; }
+
+.histoire-marker {
+  position: absolute;
+  left: -28px;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.histoire-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid var(--gold);
+  background: var(--cream);
+  transition: background 0.3s;
+}
+.histoire-entry:hover .histoire-dot {
+  background: var(--gold);
+}
+.histoire-year {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 0.82rem;
+  color: var(--gold);
+  letter-spacing: 0.06em;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  margin-top: 8px;
+}
+
+.histoire-content {
+  padding-left: 20px;
+  border-left: none;
+}
+.histoire-heading {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  margin-bottom: 14px;
+  transition: color 0.3s;
+}
+.histoire-entry:hover .histoire-heading { color: var(--gold); }
+
+.histoire-content p {
   font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 1.05rem;
-  line-height: 2.1;
+  font-size: 1.02rem;
+  line-height: 2;
   color: var(--text);
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
-.histoire-card p:last-child { margin-bottom: 0; }
+.histoire-content p:last-child { margin-bottom: 0; }
 
 /* ============================
    BRANCHES - bien separees
@@ -1029,6 +1174,29 @@ const links = [
 }
 
 /* ============================
+   SCROLL TO TOP
+   ============================ */
+.scroll-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px; height: 44px;
+  margin: clamp(28px, 4vh, 44px) auto 0;
+  border: 1px solid var(--gold-dim);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--gold);
+  opacity: 0.4;
+  cursor: pointer;
+  transition: opacity 0.3s, border-color 0.3s, transform 0.3s;
+}
+.scroll-top:hover {
+  opacity: 1;
+  border-color: var(--gold);
+  transform: translateY(-3px);
+}
+
+/* ============================
    RESPONSIVE
    ============================ */
 @media (max-height: 580px) {
@@ -1037,9 +1205,169 @@ const links = [
 }
 
 @media (max-width: 640px) {
-  .valeurs-grid { grid-template-columns: 1fr; }
-  .links-row { grid-template-columns: 1fr; }
+
+  /* --- Center / loading page --- */
+  .center { padding: 0 16px; }
+  .title-main {
+    font-size: clamp(1.8rem, 10vw, 2.8rem);
+    letter-spacing: 0.15em;
+  }
+  .ornament { gap: 10px; margin-top: 10px; }
+  .ornament-line { width: 28px; }
+  .ornament-glyph { font-size: 1rem; }
+  .motto { font-size: clamp(0.9rem, 3.5vw, 1.15rem); margin-top: 12px; }
+  .motto-sub { font-size: 0.6rem; letter-spacing: 0.1em; }
+  .watermark {
+    width: clamp(280px, 80vmin, 400px);
+    height: clamp(280px, 80vmin, 400px);
+  }
+  .frame { inset: 8px; }
+  .corner { width: 18px; height: 18px; }
+  .top-bar { top: 12px; left: 12px; }
+  .top-back {
+    font-size: 11px;
+    padding: 6px 12px 6px 10px;
+    gap: 6px;
+  }
+  .footer-text { font-size: 8px; }
+
+  /* --- Panel --- */
+  .valeurs-panel {
+    padding: 16px;
+    padding-top: 64px;
+    padding-bottom: 32px;
+  }
+  .panel-back {
+    top: 12px; left: 12px;
+    font-size: 11px;
+    padding: 6px 12px 6px 10px;
+    gap: 6px;
+  }
+  .panel-content { max-width: 100%; }
+  .section-title-big {
+    font-size: 1.3rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 20px;
+  }
+  .section-separator { margin: 32px auto; }
+
+  /* --- Manifesto --- */
+  .manifesto { padding-bottom: 0; }
+  .manifesto-lead { font-size: 1.2rem; margin-bottom: 16px; }
+  .manifesto p { font-size: 0.95rem; line-height: 1.85; margin-bottom: 14px; }
+  .manifesto-closing { font-size: 0.98rem; margin-top: 20px; }
+
+  /* --- Devise mobile: click to expand --- */
+  .devise-zone {
+    cursor: pointer;
+    padding: 20px 16px;
+    margin-top: 16px;
+    border: 1px solid var(--gold-faint);
+    transition: border-color 0.3s;
+  }
+  .devise-zone.is-open { border-color: var(--gold-dim); }
+  .devise-hint {
+    display: block;
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.5;
+    margin-top: 10px;
+    transition: opacity 0.3s;
+  }
+  .devise-zone.is-open .devise-hint { opacity: 0; height: 0; margin: 0; overflow: hidden; }
+
+  /* --- Valeurs --- */
+  .valeurs-grid { grid-template-columns: 1fr; gap: 14px; }
+  .valeur-card { padding: 24px 20px 20px; }
+  .valeur-numeral { font-size: 1.3rem; margin-bottom: 10px; }
+  .valeur-title { font-size: 1.1rem; margin-bottom: 10px; }
+  .valeur-text { font-size: 0.88rem; }
+
+  /* --- Histoire: horizontal frieze --- */
+  .histoire-timeline {
+    padding-left: 0;
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 0;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+  }
+  .histoire-timeline::before {
+    content: '';
+    position: absolute;
+    top: 22px; left: 16px; right: 16px;
+    height: 1px; width: auto;
+    bottom: auto;
+    background: linear-gradient(90deg, transparent, var(--gold-dim) 10%, var(--gold-dim) 90%, transparent);
+  }
+  .histoire-entry {
+    flex: 0 0 75vw;
+    max-width: 280px;
+    padding-bottom: 0;
+    padding-top: 44px;
+    scroll-snap-align: center;
+    position: relative;
+  }
+  .histoire-marker {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    flex-direction: row;
+    gap: 0;
+  }
+  .histoire-year {
+    writing-mode: horizontal-tb;
+    transform: none;
+    margin-top: 0;
+    font-size: 0.78rem;
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+  .histoire-dot {
+    margin-top: 20px;
+  }
+  .histoire-content {
+    padding: 16px;
+    padding-left: 16px;
+    text-align: center;
+    border: 1px solid var(--gold-faint);
+    margin-top: 8px;
+  }
+  .histoire-heading { font-size: 1rem; margin-bottom: 10px; }
+  .histoire-content p { font-size: 0.88rem; line-height: 1.8; margin-bottom: 10px; }
+
+  /* --- Branches --- */
+  .branch-card { padding: 22px 18px; }
+  .branch-text { font-size: 0.88rem; line-height: 1.8; }
   .branch-tarifs { flex-direction: column; gap: 10px; }
+  .tarif-pct { font-size: 1.1rem; }
+  .tarif-label { font-size: 0.78rem; }
+
+  /* --- Engagements --- */
+  .eng-item { gap: 16px; padding: 20px 0; }
+  .eng-num { font-size: 0.95rem; width: 26px; }
+  .eng-title { font-size: 0.92rem; }
+  .eng-text { font-size: 0.88rem; line-height: 1.75; }
+
+  /* --- Links --- */
+  .links-row { grid-template-columns: 1fr; gap: 10px; }
+  .link-card { padding: 14px 16px; gap: 12px; }
+  .link-icon { width: 28px; height: 28px; }
+  .link-title { font-size: 0.88rem; }
+  .link-sub { font-size: 0.7rem; }
+
+  /* --- Closing --- */
+  .closing-quote p { font-size: 0.92rem; }
+  .scroll-top { width: 38px; height: 38px; }
 }
 </style>
 
