@@ -358,17 +358,32 @@ const userMenuItems = computed(() => [
           <!-- Drawer header -->
           <div class="drawer-header">
             <NuxtLink to="/dashboard" class="drawer-logo" @click="mobileOpen = false">
-              <span class="font-fraktur text-2xl text-[var(--gold)] leading-none">G</span>
-              <span class="font-heading text-lg tracking-wide">Le Geai</span>
+              <span class="drawer-logo-glyph">G</span>
+              <div class="drawer-logo-text">
+                <span class="drawer-logo-name">Le Geai</span>
+                <span class="drawer-logo-role">{{ roleName }}</span>
+              </div>
             </NuxtLink>
             <button class="drawer-close" @click="mobileOpen = false">
-              <UIcon name="i-lucide-x" class="size-4" />
+              <UIcon name="i-lucide-x" class="size-5" />
             </button>
           </div>
 
           <!-- Drawer navigation -->
           <nav class="drawer-nav">
-            <div v-for="domain in domains" :key="domain.id">
+            <!-- Dashboard link -->
+            <NuxtLink
+              to="/dashboard"
+              class="drawer-link drawer-link--dashboard"
+              :class="{ 'is-active': isOnDashboard }"
+              @click="mobileOpen = false"
+            >
+              <UIcon name="i-lucide-layout-dashboard" class="size-5" />
+              Tableau de bord
+            </NuxtLink>
+
+            <!-- Domain groups -->
+            <div v-for="domain in domains" :key="domain.id" class="drawer-group">
               <NuxtLink
                 v-if="domain.tabs.length === 0"
                 :to="domain.to"
@@ -381,17 +396,20 @@ const userMenuItems = computed(() => [
               </NuxtLink>
 
               <template v-else>
-                <p class="drawer-section-title">{{ domain.label }}</p>
-                <div class="space-y-0.5">
+                <p class="drawer-group-title">
+                  <UIcon :name="domain.icon" class="size-4" />
+                  {{ domain.label }}
+                </p>
+                <div class="drawer-group-items">
                   <template v-for="tab in domain.tabs" :key="tab.to">
-                    <span v-if="tab.disabled" class="drawer-link is-disabled">
+                    <span v-if="tab.disabled" class="drawer-tab is-disabled">
                       <UIcon :name="tab.icon" class="size-4" />
                       {{ tab.label }}
                     </span>
                     <NuxtLink
                       v-else
                       :to="tab.to"
-                      class="drawer-link"
+                      class="drawer-tab"
                       :class="{ 'is-active': isTabActive(tab) }"
                       @click="mobileOpen = false"
                     >
@@ -406,50 +424,22 @@ const userMenuItems = computed(() => [
 
           <!-- Drawer footer -->
           <div class="drawer-footer">
-            <div class="drawer-settings">
-              <div class="settings-section">
-                <p class="settings-label">Modules</p>
-                <label v-for="mod in DASHBOARD_MODULES" :key="mod.key" class="settings-row">
-                  <span class="settings-text text-xs">{{ mod.label }}</span>
-                  <USwitch
-                    :model-value="isVisible(mod.key)"
-                    size="xs"
-                    @update:model-value="$event ? show(mod.key) : hide(mod.key)"
-                  />
-                </label>
-                <button v-if="hiddenCount > 0" class="settings-reset" @click="showAll()">
-                  Tout reafficher
-                </button>
-              </div>
-              <div class="separator-gold" />
-              <div class="settings-section">
-                <p class="settings-label">Planning</p>
-                <label v-for="opt in PLANNING_DISPLAY_OPTIONS" :key="opt.value" class="settings-radio text-xs">
-                  <input type="radio" name="mobile-planning-mode" :value="opt.value" :checked="planningMode === opt.value" @change="setPlanningMode(opt.value)" />
-                  {{ opt.label }}
-                </label>
-              </div>
-              <div class="separator-gold" />
-              <div class="settings-section">
-                <p class="settings-label">Presence</p>
-                <label v-for="opt in PRESENCE_DISPLAY_OPTIONS" :key="opt.value" class="settings-radio text-xs">
-                  <input type="radio" name="mobile-presence-mode" :value="opt.value" :checked="presenceMode === opt.value" @change="setPresenceMode(opt.value)" />
-                  {{ opt.label }}
-                </label>
-              </div>
-            </div>
+            <button class="drawer-action" @click="searchToggle(); mobileOpen = false">
+              <UIcon name="i-lucide-search" class="size-5" />
+              Rechercher
+            </button>
 
             <NuxtLink
               to="/profil"
-              class="drawer-profile"
+              class="drawer-action"
               @click="mobileOpen = false"
             >
-              <UAvatar :alt="userDisplayName" size="xs" />
+              <UAvatar :alt="userDisplayName" size="sm" />
               <span class="truncate">{{ userDisplayName }}</span>
             </NuxtLink>
 
-            <button class="drawer-logout" @click="logout()">
-              <UIcon name="i-lucide-log-out" class="size-4" />
+            <button class="drawer-action drawer-action--logout" @click="logout()">
+              <UIcon name="i-lucide-log-out" class="size-5" />
               Se deconnecter
             </button>
           </div>
@@ -726,94 +716,144 @@ const userMenuItems = computed(() => [
 /* ============================
    MOBILE DRAWER
    ============================ */
-/* Mobile drawer */
+/* ============================
+   MOBILE DRAWER — full redesign
+   ============================ */
 .mobile-drawer {
   position: fixed;
   inset: 0 auto 0 0;
   z-index: 61;
-  width: min(320px, 85vw);
-  background: var(--parchment);
-  box-shadow: 4px 0 24px rgba(44, 36, 25, 0.18);
+  width: min(340px, 88vw);
+  background: linear-gradient(180deg, #f0e8d4 0%, var(--parchment) 100%);
+  box-shadow: 6px 0 32px rgba(44, 36, 25, 0.2);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
-
 @media (min-width: 1024px) {
   .mobile-drawer { display: none; }
 }
 
-/* Drawer header */
+/* Header */
 .drawer-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--gold-faint);
+  padding: 20px;
+  border-bottom: 1px solid rgba(175, 143, 60, 0.15);
   flex-shrink: 0;
-  min-height: 60px;
+  background: linear-gradient(180deg, rgba(175, 143, 60, 0.06) 0%, transparent 100%);
 }
-
 .drawer-logo {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   text-decoration: none;
   color: inherit;
 }
-
+.drawer-logo-glyph {
+  font-family: 'UnifrakturCook', cursive;
+  font-size: 2rem;
+  color: var(--gold);
+  line-height: 1;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid rgba(175, 143, 60, 0.3);
+  border-radius: 12px;
+  background: rgba(175, 143, 60, 0.06);
+}
+.drawer-logo-text {
+  display: flex;
+  flex-direction: column;
+}
+.drawer-logo-name {
+  font-family: 'IM Fell DW Pica', Georgia, serif;
+  font-size: 1.2rem;
+  letter-spacing: 0.06em;
+}
+.drawer-logo-role {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0.6;
+}
 .drawer-close {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 44px;
   height: 44px;
-  border-radius: 10px;
+  border-radius: 12px;
   color: var(--ink);
-  opacity: 0.5;
-  transition: opacity 0.2s, background 0.2s;
-}
-.drawer-close:hover {
-  opacity: 0.8;
-  background: var(--gold-faint);
+  opacity: 0.4;
+  transition: opacity 0.15s, background 0.15s;
 }
 .drawer-close:active {
-  background: rgba(175, 143, 60, 0.12);
+  opacity: 0.8;
+  background: rgba(175, 143, 60, 0.1);
 }
 
-/* Drawer navigation */
+/* Navigation */
 .drawer-nav {
   flex: 1;
-  padding: 12px 10px;
+  padding: 16px 14px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 6px;
 }
 
-.drawer-section-title {
-  font-size: 11px;
+/* Dashboard link - prominent */
+.drawer-link--dashboard {
+  border: 1px solid rgba(175, 143, 60, 0.15);
+  background: rgba(175, 143, 60, 0.04);
+  margin-bottom: 8px;
+}
+.drawer-link--dashboard.is-active {
+  border-color: rgba(175, 143, 60, 0.3);
+}
+
+/* Domain groups */
+.drawer-group {
+  border: 1px solid rgba(175, 143, 60, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+}
+.drawer-group-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.14em;
   color: var(--gold);
-  opacity: 0.6;
-  padding: 4px 14px;
-  margin-bottom: 2px;
+  padding: 14px 18px 6px;
+}
+.drawer-group-items {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 6px 6px;
 }
 
+/* Standalone domain link (no tabs) */
 .drawer-link {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 14px 16px;
-  min-height: 50px;
-  border-radius: 10px;
-  font-size: 15px;
+  padding: 16px 18px;
+  min-height: 54px;
+  border-radius: 12px;
+  font-size: 16px;
   text-decoration: none;
   color: var(--ink);
-  opacity: 0.6;
-  transition: all 0.2s;
+  opacity: 0.65;
+  transition: background 0.15s;
 }
 .drawer-link:active {
   background: rgba(175, 143, 60, 0.1);
@@ -824,64 +864,77 @@ const userMenuItems = computed(() => [
   background: rgba(175, 143, 60, 0.1);
   font-weight: 500;
 }
-.drawer-link.is-disabled {
-  opacity: 0.2;
-  cursor: not-allowed;
-}
 
-/* Drawer footer */
-.drawer-footer {
-  border-top: 1px solid var(--gold-faint);
-  padding: 14px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.drawer-settings {
-  padding: 12px;
-  border-radius: 10px;
-  background: rgba(175, 143, 60, 0.04);
-  border: 1px solid var(--gold-faint);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 6px;
-}
-
-.drawer-profile {
+/* Tab links inside groups */
+.drawer-tab {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 12px;
+  padding: 14px 16px;
   min-height: 50px;
   border-radius: 10px;
   font-size: 15px;
   text-decoration: none;
-  color: inherit;
-  opacity: 0.7;
-  transition: opacity 0.2s, background 0.2s;
+  color: var(--ink);
+  opacity: 0.55;
+  transition: background 0.15s;
 }
-.drawer-profile:active {
-  background: var(--gold-faint);
+.drawer-tab:active {
+  background: rgba(175, 143, 60, 0.08);
+}
+.drawer-tab.is-active {
+  opacity: 1;
+  color: var(--gold);
+  background: rgba(175, 143, 60, 0.08);
+  font-weight: 500;
+}
+.drawer-tab.is-active::before {
+  content: '';
+  width: 3px;
+  height: 18px;
+  background: var(--gold);
+  border-radius: 2px;
+  margin-right: 2px;
+  flex-shrink: 0;
+}
+.drawer-tab.is-disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
 }
 
-.drawer-logout {
+/* Footer */
+.drawer-footer {
+  border-top: 1px solid rgba(175, 143, 60, 0.15);
+  padding: 14px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: linear-gradient(0deg, rgba(175, 143, 60, 0.04) 0%, transparent 100%);
+}
+.drawer-action {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  padding: 16px 18px;
+  min-height: 54px;
+  border-radius: 12px;
+  font-size: 16px;
+  text-decoration: none;
+  color: var(--ink);
+  opacity: 0.65;
   width: 100%;
-  padding: 14px 12px;
-  min-height: 50px;
-  border-radius: 10px;
-  font-size: 15px;
-  color: var(--color-brand-terracotta);
-  opacity: 0.7;
-  transition: opacity 0.2s, background 0.2s;
+  transition: background 0.15s;
 }
-.drawer-logout:active {
-  background: rgba(183, 77, 52, 0.08);
+.drawer-action:active {
+  background: rgba(175, 143, 60, 0.08);
+}
+.drawer-action--logout {
+  color: #B74D34;
+  opacity: 0.7;
+}
+.drawer-action--logout:active {
+  background: rgba(183, 77, 52, 0.06);
 }
 
 /* ============================
