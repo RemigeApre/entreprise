@@ -540,4 +540,64 @@ const branches = [
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 640px) {
+  .watermark {
+    width: clamp(280px, 80vmin, 400px);
+    height: clamp(280px, 80vmin, 400px);
+  }
+  .frame { inset: 8px; }
+  .corner { width: 18px; height: 18px; }
+
+  .center { padding: 0 16px; }
+  .title-main {
+    font-size: clamp(2.2rem, 12vw, 3.6rem);
+    letter-spacing: 0.2em;
+  }
+  .motto {
+    font-size: clamp(0.95rem, 4vw, 1.2rem);
+  }
+  .motto-sub {
+    font-size: clamp(0.55rem, 2.5vw, 0.68rem);
+  }
+
+  .top-bar { top: 14px; left: 14px; }
+  .top-back { font-size: 11px; gap: 6px; }
+
+  .poles-panel {
+    padding: 16px;
+    padding-top: 56px;
+    justify-content: flex-start;
+  }
+  .panel-back {
+    top: 14px;
+    font-size: 11px;
+    gap: 6px;
+  }
+  .panel-title {
+    font-size: 1.5rem;
+  }
+  .panel-ornament {
+    margin-bottom: 20px;
+  }
+
+  /* Pole cards */
+  .pole-card {
+    padding: 20px 16px;
+  }
+  .pole-title {
+    font-size: 1.05rem;
+    margin-bottom: 8px;
+  }
+  .pole-desc {
+    font-size: 0.82rem;
+    margin-bottom: 12px;
+  }
+  .pole-link-label {
+    font-size: 11px;
+  }
+  .pole-status {
+    font-size: 11px;
+  }
+}
 </style>

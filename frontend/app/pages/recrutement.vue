@@ -826,4 +826,96 @@ function formatDate(date: string) {
     height: clamp(350px, 90vmin, 600px);
   }
 }
+
+@media (max-width: 640px) {
+  .watermark {
+    width: clamp(280px, 80vmin, 400px);
+    height: clamp(280px, 80vmin, 400px);
+  }
+  .frame { inset: 8px; }
+  .corner { width: 18px; height: 18px; }
+
+  .top-bar { top: 14px; left: 14px; }
+  .top-back { font-size: 11px; gap: 6px; }
+
+  .offres-panel {
+    padding: 16px;
+    padding-top: 56px;
+    justify-content: flex-start;
+  }
+  .panel-back {
+    top: 14px;
+    right: 14px;
+    font-size: 11px;
+    gap: 6px;
+  }
+  .panel-content {
+    max-width: 100%;
+  }
+  .panel-title {
+    font-size: 1.5rem;
+    margin-top: 0;
+  }
+  .panel-ornament {
+    margin-bottom: 16px;
+  }
+
+  /* Filters */
+  .panel-filters {
+    margin-bottom: 14px;
+    gap: 6px;
+  }
+  .filter-row {
+    gap: 5px;
+  }
+  .filter-pill {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+
+  /* Offre cards */
+  .offre-body {
+    padding: 10px 12px;
+  }
+  .offre-band {
+    width: 26px;
+  }
+  .offre-band-text {
+    font-size: 8px;
+  }
+  .offre-title {
+    font-size: 0.9rem;
+  }
+  .offre-meta {
+    font-size: 0.72rem;
+    gap: 8px;
+  }
+  .offre-cats {
+    gap: 4px;
+    margin-top: 6px;
+  }
+  .offre-cat {
+    font-size: 9px;
+    padding: 1px 5px;
+  }
+
+  /* Slideover */
+  .slideover-inner {
+    padding: 16px;
+    gap: 14px;
+  }
+  .slideover-title {
+    font-size: 1.1rem;
+  }
+  .slideover-meta {
+    font-size: 0.78rem;
+    gap: 10px;
+  }
+  .slideover-heading {
+    font-size: 0.9rem;
+  }
+  .slideover-prose {
+    font-size: 0.82rem;
+  }
+}
 </style>

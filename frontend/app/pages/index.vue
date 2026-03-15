@@ -812,8 +812,59 @@ async function handleLogin() {
   }
 }
 
-@media (max-width: 379px) {
+@media (max-width: 640px) {
+  /* --- Center / splash --- */
+  .center { padding: 0 16px; }
+  .title-main {
+    font-size: clamp(2.2rem, 12vw, 3.6rem);
+    letter-spacing: 0.2em;
+  }
+  .title-sub { font-size: 0.65rem; letter-spacing: 0.25em; margin-top: 6px; }
+  .ornament { gap: 10px; margin-top: 8px; }
+  .ornament-line { width: 24px; }
+  .ornament-glyph { font-size: 1rem; }
+  .motto { font-size: clamp(0.9rem, 3.5vw, 1.15rem); margin-top: 10px; }
+  .motto-sub { font-size: 0.6rem; letter-spacing: 0.1em; }
+  .watermark {
+    width: clamp(280px, 80vmin, 400px);
+    height: clamp(280px, 80vmin, 400px);
+  }
+  .frame { inset: 8px; }
+  .corner { width: 18px; height: 18px; }
+  .footer-text { font-size: 8px; }
+  .footer-sep { font-size: 6px; }
+  .footer-btn { font-size: 8px; }
+
+  /* --- Nav --- */
+  .landing-nav { margin-top: 24px; }
+  .nav-item { padding: 10px clamp(10px, 3vw, 18px); gap: 4px; }
+  .nav-numeral { font-size: 0.65rem; }
+  .nav-label { font-size: 9px; letter-spacing: 0.12em; }
+  .nav-divider { height: 20px; }
+
+  /* --- Key button --- */
   .top-bar { top: 12px; right: 12px; }
   .top-btn { width: 36px; height: 36px; }
+
+  /* --- Login panel --- */
+  .login-panel { padding: 16px; }
+  .login-back {
+    top: 14px; left: 14px;
+    font-size: 11px; gap: 6px;
+  }
+  .login-title {
+    font-size: 1.5rem;
+    letter-spacing: 0.1em;
+    margin-top: 40px;
+  }
+  .login-ornament { margin-bottom: 24px; }
+  .login-form { gap: 18px; }
+  .login-input { padding: 12px 14px; font-size: 15px; }
+  .login-label { font-size: 11px; }
+  .login-submit { padding: 14px 24px; font-size: 13px; }
+  .login-mode .watermark {
+    width: clamp(250px, 70vmin, 380px);
+    height: clamp(250px, 70vmin, 380px);
+  }
 }
 </style>
