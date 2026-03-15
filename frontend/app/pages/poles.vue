@@ -558,18 +558,21 @@ const branches = [
     font-size: clamp(0.55rem, 2.5vw, 0.68rem);
   }
 
-  .top-bar { top: 14px; left: 14px; }
-  .top-back { font-size: 11px; gap: 6px; }
+  .top-bar { top: 12px; left: 12px; }
+  .top-back { font-size: 13px; gap: 8px; min-height: 44px; display: flex; align-items: center; }
 
   .poles-panel {
     padding: 16px;
-    padding-top: 56px;
+    padding-top: 60px;
     justify-content: flex-start;
   }
   .panel-back {
-    top: 14px;
-    font-size: 11px;
-    gap: 6px;
+    top: 12px;
+    left: 12px;
+    font-size: 13px;
+    gap: 8px;
+    min-height: 44px;
+    padding: 8px 12px;
   }
   .panel-title {
     font-size: 1.5rem;
@@ -578,20 +581,22 @@ const branches = [
     margin-bottom: 20px;
   }
 
-  /* Pole cards */
+  /* Pole cards — large touch targets */
   .pole-card {
-    padding: 20px 16px;
+    padding: 22px 20px;
+    min-height: 80px;
   }
   .pole-title {
-    font-size: 1.05rem;
+    font-size: 1.1rem;
     margin-bottom: 8px;
   }
   .pole-desc {
-    font-size: 0.82rem;
-    margin-bottom: 12px;
+    font-size: 0.88rem;
+    margin-bottom: 14px;
   }
   .pole-link-label {
-    font-size: 11px;
+    font-size: 12px;
+    padding: 6px 0;
   }
   .pole-status {
     font-size: 11px;

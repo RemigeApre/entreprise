@@ -828,19 +828,21 @@ function formatDate(date: string) {
   .frame { inset: 8px; }
   .corner { width: 18px; height: 18px; }
 
-  .top-bar { top: 14px; left: 14px; }
-  .top-back { font-size: 11px; gap: 6px; }
+  .top-bar { top: 12px; left: 12px; }
+  .top-back { font-size: 13px; gap: 8px; min-height: 44px; display: flex; align-items: center; }
 
   .offres-panel {
     padding: 16px;
-    padding-top: 56px;
+    padding-top: 60px;
     justify-content: flex-start;
   }
   .panel-back {
-    top: 14px;
-    right: 14px;
-    font-size: 11px;
-    gap: 6px;
+    top: 12px;
+    right: 12px;
+    font-size: 13px;
+    gap: 8px;
+    min-height: 44px;
+    padding: 8px 12px;
   }
   .panel-content {
     max-width: 100%;
@@ -853,43 +855,47 @@ function formatDate(date: string) {
     margin-bottom: 16px;
   }
 
-  /* Filters */
+  /* Filters — large touch targets */
   .panel-filters {
     margin-bottom: 14px;
-    gap: 6px;
+    gap: 8px;
   }
   .filter-row {
-    gap: 5px;
+    gap: 6px;
   }
   .filter-pill {
-    font-size: 10px;
-    padding: 3px 8px;
+    font-size: 11px;
+    padding: 8px 14px;
+    min-height: 38px;
   }
 
-  /* Offre cards */
+  /* Offre cards — comfortable tap */
+  .offre-card {
+    min-height: 64px;
+  }
   .offre-body {
-    padding: 10px 12px;
+    padding: 14px 14px;
   }
   .offre-band {
-    width: 26px;
+    width: 28px;
   }
   .offre-band-text {
     font-size: 8px;
   }
   .offre-title {
-    font-size: 0.9rem;
+    font-size: 1rem;
   }
   .offre-meta {
-    font-size: 0.72rem;
-    gap: 8px;
+    font-size: 0.78rem;
+    gap: 10px;
   }
   .offre-cats {
-    gap: 4px;
-    margin-top: 6px;
+    gap: 5px;
+    margin-top: 8px;
   }
   .offre-cat {
-    font-size: 9px;
-    padding: 1px 5px;
+    font-size: 10px;
+    padding: 4px 8px;
   }
 
   /* Slideover */

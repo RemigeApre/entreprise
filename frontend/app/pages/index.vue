@@ -822,12 +822,13 @@ async function handleLogin() {
   .footer-sep { font-size: 6px; }
   .footer-btn { font-size: 8px; }
 
-  /* --- Nav: vertical stack on mobile --- */
+  /* --- Nav: vertical stack, large touch targets --- */
   .landing-nav {
     flex-direction: column;
     margin-top: 24px;
-    padding: 10px 0;
+    padding: 6px 0;
     gap: 0;
+    width: min(280px, 80vw);
     background: radial-gradient(ellipse at center, rgba(247, 240, 222, 0.7) 0%, rgba(247, 240, 222, 0.3) 70%, transparent 100%);
   }
   :global(.dark) .landing-nav {
@@ -835,37 +836,44 @@ async function handleLogin() {
   }
   .nav-item {
     flex-direction: row;
-    padding: 10px 28px;
-    gap: 12px;
+    padding: 16px 24px;
+    gap: 14px;
+    min-height: 52px;
+    align-items: center;
+    width: 100%;
+    justify-content: center;
   }
-  .nav-numeral { font-size: 0.65rem; min-width: 18px; text-align: center; }
-  .nav-label { font-size: 11px; letter-spacing: 0.14em; }
+  .nav-numeral { font-size: 0.75rem; min-width: 22px; text-align: center; }
+  .nav-label { font-size: 13px; letter-spacing: 0.14em; }
   .nav-divider {
     width: 40px;
     height: 1px;
     background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+    align-self: center;
   }
 
-  /* --- Key button --- */
+  /* --- Key button: bigger touch target --- */
   .top-bar { top: 12px; right: 12px; }
-  .top-btn { width: 36px; height: 36px; }
+  .top-btn { width: 48px; height: 48px; }
 
   /* --- Login panel --- */
-  .login-panel { padding: 16px; }
+  .login-panel { padding: 20px; }
   .login-back {
-    top: 14px; left: 14px;
-    font-size: 11px; gap: 6px;
+    top: 16px; left: 16px;
+    font-size: 13px; gap: 8px;
+    min-height: 44px;
+    display: flex; align-items: center;
   }
   .login-title {
     font-size: 1.5rem;
     letter-spacing: 0.1em;
-    margin-top: 40px;
+    margin-top: 48px;
   }
   .login-ornament { margin-bottom: 24px; }
-  .login-form { gap: 18px; }
-  .login-input { padding: 12px 14px; font-size: 15px; }
-  .login-label { font-size: 11px; }
-  .login-submit { padding: 14px 24px; font-size: 13px; }
+  .login-form { gap: 20px; }
+  .login-input { padding: 16px 16px; font-size: 16px; min-height: 52px; }
+  .login-label { font-size: 12px; }
+  .login-submit { padding: 18px 28px; font-size: 14px; min-height: 54px; }
   .login-mode .watermark {
     left: -15%;
   }
