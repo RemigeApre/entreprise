@@ -1,6 +1,7 @@
 export type DashboardModule =
   | 'notifications'
   | 'weekSummary'
+  | 'upcomingEvents'
   | 'activeProjects'
   | 'prospectSummary'
   | 'stageTracker'
@@ -17,6 +18,7 @@ export type PresenceDisplayMode = 'today' | 'todayNext'
 export const DASHBOARD_MODULES: { key: DashboardModule; label: string }[] = [
   { key: 'notifications', label: 'Notifications' },
   { key: 'weekSummary', label: 'Mon planning' },
+  { key: 'upcomingEvents', label: 'Evenements' },
   { key: 'presence', label: 'Qui est la' },
   { key: 'activeProjects', label: 'Projets actifs' },
   { key: 'prospectSummary', label: 'Prospection' },

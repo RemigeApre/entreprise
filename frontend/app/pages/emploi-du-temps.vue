@@ -276,6 +276,32 @@ async function handleCopyPreviousWeek() {
   }
 }
 
+// --- Events ---
+const eventsRowRef = ref<{ load: () => void } | null>(null)
+const showEventModal = ref(false)
+const selectedEvent = ref<import('~/utils/types').Evenement | undefined>(undefined)
+const eventDefaultDate = ref('')
+
+function openCreateEvent(date: string) {
+  selectedEvent.value = undefined
+  eventDefaultDate.value = date
+  showEventModal.value = true
+}
+
+function openEvent(event: import('~/utils/types').Evenement) {
+  selectedEvent.value = event
+  eventDefaultDate.value = ''
+  showEventModal.value = true
+}
+
+function onEventSaved() {
+  eventsRowRef.value?.load()
+}
+
+watch(currentMonday, () => {
+  eventsRowRef.value?.load()
+})
+
 onMounted(() => {
   loadStats()
 })
@@ -361,6 +387,17 @@ onMounted(() => {
         </button>
       </div>
 
+      <!-- Events row -->
+      <EventsSemaineRow
+        v-if="user"
+        ref="eventsRowRef"
+        :monday="currentMonday"
+        :user-id="user.id"
+        :is-admin="isDirecteur"
+        @create="openCreateEvent"
+        @click-event="openEvent"
+      />
+
       <!-- Timetable -->
       <div class="flex flex-col sm:flex-row gap-4 sm:gap-6">
         <div class="flex-1 min-w-0">
@@ -385,6 +422,19 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <!-- Event modal -->
+    <EvenementModal
+      v-if="user"
+      :open="showEventModal"
+      :event="selectedEvent"
+      :default-date="eventDefaultDate"
+      :is-admin="isDirecteur"
+      :current-user-id="user.id"
+      @update:open="showEventModal = $event"
+      @saved="onEventSaved"
+      @deleted="onEventSaved"
+    />
 
     <!-- Motif modal -->
     <UModal :open="showMotifModal" @update:open="showMotifModal = $event">

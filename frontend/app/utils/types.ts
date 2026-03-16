@@ -321,6 +321,32 @@ export interface Article {
   user_created: string
 }
 
+export type EvenementType = 'personnel' | 'equipe' | 'entreprise'
+export type EvenementParticipantStatut = 'invite' | 'accepte' | 'refuse'
+
+export interface EvenementParticipant {
+  id: string
+  evenement: string
+  user: UserProfile | string
+  statut: EvenementParticipantStatut
+}
+
+export interface Evenement {
+  id: string
+  titre: string
+  description: string | null
+  lieu: string | null
+  date_debut: string  // ISO: '2026-03-16T09:00:00'
+  date_fin: string    // ISO: '2026-03-16T10:00:00'
+  toute_journee: boolean
+  couleur: string | null
+  type: EvenementType
+  organisateur: UserProfile | string
+  participants?: EvenementParticipant[]
+  date_created: string
+  user_created: string
+}
+
 // Directus schema type for SDK
 export interface DirectusSchema {
   categories: Category[]
@@ -343,5 +369,7 @@ export interface DirectusSchema {
   candidats: Candidat[]
   candidat_commentaires: CandidatCommentaire[]
   articles: Article[]
+  evenements: Evenement[]
+  evenements_participants: EvenementParticipant[]
   directus_users: UserProfile[]
 }

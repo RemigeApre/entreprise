@@ -56,6 +56,7 @@ interface CardDef {
 
 const cardDefs: CardDef[] = [
   { key: 'weekSummary', condition: () => true },
+  { key: 'upcomingEvents', condition: () => true },
   { key: 'presence', condition: () => true },
   { key: 'activeProjects', condition: () => true },
   { key: 'prospectSummary', condition: () => true },
@@ -71,6 +72,7 @@ type CardSize = 'full' | 'half'
 const cardOrder = ref<DashboardModule[]>(cardDefs.map(d => d.key))
 const cardSizes = ref<Record<string, CardSize>>({
   weekSummary: 'full',
+  upcomingEvents: 'half',
   presence: 'half',
   activeProjects: 'half',
   prospectSummary: 'half',
@@ -225,6 +227,7 @@ function onDragEnd(e: DragEvent) {
 
             <!-- Component -->
             <DashboardWeekSummary v-if="key === 'weekSummary'" />
+            <DashboardUpcomingEvents v-else-if="key === 'upcomingEvents'" />
             <DashboardPresence v-else-if="key === 'presence'" />
             <DashboardActiveProjects v-else-if="key === 'activeProjects'" />
             <DashboardProspectSummary v-else-if="key === 'prospectSummary'" />
