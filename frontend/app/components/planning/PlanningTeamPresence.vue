@@ -142,40 +142,69 @@ onMounted(load)
       <table class="w-full text-xs">
         <thead>
           <tr>
-            <th class="text-left pb-2 pr-3">
+            <!-- Title + search -->
+            <th class="text-left pb-3 pr-4" style="min-width: 140px">
               <div class="flex items-center gap-2">
                 <span class="text-sm font-semibold text-stone-900 dark:text-stone-100 whitespace-nowrap">Presence de l'equipe</span>
-                <UInput
-                  v-if="teamMembers.length > 3"
-                  v-model="search"
-                  placeholder="Rechercher..."
-                  icon="i-lucide-search"
-                  size="xs"
-                  class="w-32"
-                />
+                <span class="text-[10px] font-normal text-stone-400 dark:text-stone-500">{{ teamMembers.length }}</span>
               </div>
+              <UInput
+                v-if="teamMembers.length > 3"
+                v-model="search"
+                placeholder="Rechercher..."
+                icon="i-lucide-search"
+                size="xs"
+                class="w-36 mt-1.5"
+              />
             </th>
+            <!-- Day columns -->
             <th
               v-for="day in weekDays"
               :key="formatDate(day)"
-              class="text-center pb-1 px-1 font-medium"
+              class="text-center pb-1 px-1"
               :class="[
-                publicHolidays.has(formatDate(day)) ? 'text-stone-400 dark:text-stone-500' :
-                isHighlightedDay(day) ? 'text-amber-600 dark:text-amber-400' : 'text-stone-500 dark:text-stone-400'
+                isHighlightedDay(day)
+                  ? 'bg-amber-50/60 dark:bg-amber-950/20 rounded-t-md'
+                  : ''
               ]"
               colspan="2"
             >
-              {{ getDayName(day) }}
-              <div v-if="publicHolidays.has(formatDate(day))" class="text-[9px] font-normal text-stone-400 dark:text-stone-500 leading-tight truncate max-w-[56px] mx-auto">
+              <div
+                class="text-[11px] font-semibold uppercase tracking-wide"
+                :class="publicHolidays.has(formatDate(day)) ? 'text-stone-400 dark:text-stone-500' : isHighlightedDay(day) ? 'text-amber-600 dark:text-amber-400' : 'text-stone-400 dark:text-stone-500'"
+              >
+                {{ getDayName(day) }}
+              </div>
+              <div
+                class="inline-flex items-center justify-center rounded-full text-[13px] font-bold leading-none mt-0.5"
+                :class="isHighlightedDay(day)
+                  ? 'size-6 bg-amber-500 text-white'
+                  : 'text-stone-700 dark:text-stone-300'"
+              >
+                {{ day.getDate() }}
+              </div>
+              <div v-if="publicHolidays.has(formatDate(day))" class="text-[9px] font-normal text-stone-400 dark:text-stone-500 leading-tight truncate max-w-[56px] mx-auto mt-0.5">
                 {{ publicHolidays.get(formatDate(day)) }}
               </div>
             </th>
           </tr>
           <tr>
-            <th />
+            <th class="pb-2" />
             <template v-for="day in weekDays" :key="'h-' + formatDate(day)">
-              <th class="text-center pb-1 px-0.5 text-[10px] text-stone-400 dark:text-stone-500 font-normal">M</th>
-              <th class="text-center pb-1 px-0.5 text-[10px] text-stone-400 dark:text-stone-500 font-normal">AP</th>
+              <th
+                class="text-center pb-2 px-0.5 text-[10px] font-normal"
+                :class="[
+                  isHighlightedDay(day) ? 'bg-amber-50/60 dark:bg-amber-950/20 text-amber-500/70 dark:text-amber-400/60' : 'text-stone-400 dark:text-stone-500',
+                  publicHolidays.has(formatDate(day)) ? 'opacity-50' : ''
+                ]"
+              >M</th>
+              <th
+                class="text-center pb-2 px-0.5 text-[10px] font-normal"
+                :class="[
+                  isHighlightedDay(day) ? 'bg-amber-50/60 dark:bg-amber-950/20 text-amber-500/70 dark:text-amber-400/60' : 'text-stone-400 dark:text-stone-500',
+                  publicHolidays.has(formatDate(day)) ? 'opacity-50' : ''
+                ]"
+              >AP</th>
             </template>
           </tr>
         </thead>
@@ -183,46 +212,42 @@ onMounted(load)
           <tr
             v-for="member in filteredMembers"
             :key="member.id"
-            class="border-t border-[rgba(175,143,60,0.06)]"
+            class="border-t border-[rgba(175,143,60,0.06)] group hover:bg-stone-50/60 dark:hover:bg-stone-800/20 transition-colors"
           >
-            <td class="py-2 pr-3 whitespace-nowrap">
-              <div class="flex items-center gap-1.5">
-                <div>
-                  <NuxtLink
-                    v-if="isAdmin"
-                    :to="`/planning/${member.id}`"
-                    class="text-stone-700 dark:text-stone-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
-                  >
-                    {{ getMemberName(member) }}
-                  </NuxtLink>
-                  <span v-else class="text-stone-700 dark:text-stone-300">
-                    {{ getMemberName(member) }}
-                  </span>
-                  <span v-if="getMemberPole(member)" class="block text-[10px] text-stone-400 dark:text-stone-500 leading-tight">
-                    {{ getMemberPole(member) }}
-                  </span>
-                </div>
-              </div>
+            <td class="py-2.5 pr-4 whitespace-nowrap">
+              <NuxtLink
+                v-if="isAdmin"
+                :to="`/planning/${member.id}`"
+                class="font-medium text-stone-700 dark:text-stone-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
+              >
+                {{ getMemberName(member) }}
+              </NuxtLink>
+              <span v-else class="font-medium text-stone-700 dark:text-stone-300">
+                {{ getMemberName(member) }}
+              </span>
+              <span v-if="getMemberPole(member)" class="block text-[10px] text-stone-400 dark:text-stone-500 leading-tight mt-0.5">
+                {{ getMemberPole(member) }}
+              </span>
             </td>
             <template v-for="day in weekDays" :key="member.id + '-' + formatDate(day)">
               <td
-                class="py-2 px-0.5 text-center"
-                :class="publicHolidays.has(formatDate(day)) ? 'opacity-40' : isHighlightedDay(day) ? 'bg-amber-50/40 dark:bg-amber-950/15' : ''"
+                class="py-2.5 px-1 text-center"
+                :class="publicHolidays.has(formatDate(day)) ? 'opacity-30' : isHighlightedDay(day) ? 'bg-amber-50/60 dark:bg-amber-950/20' : ''"
               >
                 <UTooltip :text="publicHolidays.has(formatDate(day)) ? publicHolidays.get(formatDate(day)) : getDotTooltip(getEntry(member.id, day, 'matin'))">
                   <span
-                    class="inline-block size-3.5 rounded-full"
+                    class="inline-block size-4 rounded-full ring-1 ring-white/50 dark:ring-stone-900/50"
                     :class="publicHolidays.has(formatDate(day)) ? PLANNING_COLORS.ferie.dot : getDotClasses(getEntry(member.id, day, 'matin'))"
                   />
                 </UTooltip>
               </td>
               <td
-                class="py-2 px-0.5 text-center"
-                :class="publicHolidays.has(formatDate(day)) ? 'opacity-40' : isHighlightedDay(day) ? 'bg-amber-50/40 dark:bg-amber-950/15' : ''"
+                class="py-2.5 px-1 text-center"
+                :class="publicHolidays.has(formatDate(day)) ? 'opacity-30' : isHighlightedDay(day) ? 'bg-amber-50/60 dark:bg-amber-950/20' : ''"
               >
                 <UTooltip :text="publicHolidays.has(formatDate(day)) ? publicHolidays.get(formatDate(day)) : getDotTooltip(getEntry(member.id, day, 'apres_midi'))">
                   <span
-                    class="inline-block size-3.5 rounded-full"
+                    class="inline-block size-4 rounded-full ring-1 ring-white/50 dark:ring-stone-900/50"
                     :class="publicHolidays.has(formatDate(day)) ? PLANNING_COLORS.ferie.dot : getDotClasses(getEntry(member.id, day, 'apres_midi'))"
                   />
                 </UTooltip>
@@ -237,14 +262,14 @@ onMounted(load)
       </p>
 
       <!-- Legend -->
-      <div class="flex flex-wrap gap-3 mt-4 pt-3 border-t border-[rgba(175,143,60,0.06)]">
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 pt-3 border-t border-[rgba(175,143,60,0.06)]">
         <div
           v-for="item in legendItems"
           :key="item.label"
-          class="flex items-center gap-1.5"
+          class="flex items-center gap-1"
         >
-          <span class="inline-block size-3 rounded-full" :class="item.dot" />
-          <span class="text-[11px] text-stone-500 dark:text-stone-400">{{ item.label }}</span>
+          <span class="inline-block size-2.5 rounded-full" :class="item.dot" />
+          <span class="text-[10px] text-stone-400 dark:text-stone-500">{{ item.label }}</span>
         </div>
       </div>
     </div>
