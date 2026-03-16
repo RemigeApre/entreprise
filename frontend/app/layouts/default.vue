@@ -2,6 +2,8 @@
 import { DASHBOARD_MODULES, PLANNING_DISPLAY_OPTIONS, PRESENCE_DISPLAY_OPTIONS } from '~/composables/useDashboardPreferences'
 
 const { user, logout, isDirecteur, roleName, isProspecteur } = useAuth()
+const config = useRuntimeConfig()
+const cmsUrl = config.public.cmsUrl as string
 const route = useRoute()
 const mobileOpen = ref(false)
 const expandedDomains = ref<Set<string>>(new Set())
@@ -163,7 +165,8 @@ const userDisplayName = computed(() => {
 const userMenuItems = computed(() => [
   [
     { label: 'Mon profil', icon: 'i-lucide-user', to: '/profil' },
-    ...(isDirecteur.value ? [{ label: 'Administration', icon: 'i-lucide-shield', to: '/admin' }] : [])
+    ...(isDirecteur.value ? [{ label: 'Administration', icon: 'i-lucide-shield', to: '/admin' }] : []),
+    ...(isDirecteur.value && cmsUrl ? [{ label: 'Directus', icon: 'i-lucide-database', click: () => window.open(cmsUrl, '_blank') }] : [])
   ],
   [{ label: 'Se deconnecter', icon: 'i-lucide-log-out', click: () => logout() }]
 ])
@@ -287,6 +290,12 @@ const userMenuItems = computed(() => [
             </div>
           </template>
         </UPopover>
+
+        <UTooltip v-if="isDirecteur && cmsUrl" text="Directus" :delay-duration="300">
+          <a :href="cmsUrl" target="_blank" rel="noopener" class="sidebar-icon">
+            <UIcon name="i-lucide-database" class="size-4" />
+          </a>
+        </UTooltip>
 
         <UDropdownMenu :items="userMenuItems">
           <button
