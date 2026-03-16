@@ -344,51 +344,15 @@ async function handleCopyPreviousWeek() {
   }
 }
 
-const teleportReady = ref(false)
-
 onMounted(() => {
-  teleportReady.value = !!document.getElementById('page-actions')
   loadStats()
 })
 </script>
 
 <template>
   <div class="flex flex-col h-full">
-    <!-- Page actions teleported into the layout tab bar -->
-    <Teleport v-if="teleportReady" to="#page-actions">
-      <div class="flex items-center gap-1.5">
-        <UButton
-          v-if="isDirecteur"
-          label="Gestion"
-          icon="i-lucide-calendar-cog"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          to="/planning/admin"
-        />
-        <UButton
-          label="Conges"
-          icon="i-lucide-list"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          to="/planning/conges"
-        />
-        <UTooltip v-if="viewMode === 'week'" text="Copier la semaine precedente">
-          <UButton
-            icon="i-lucide-copy"
-            color="neutral"
-            variant="ghost"
-            size="xs"
-            :loading="copyLoading"
-            @click="handleCopyPreviousWeek"
-          />
-        </UTooltip>
-      </div>
-    </Teleport>
-
     <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
-      <!-- Navigation bar: nav + date left, view toggle + activity pills right -->
+      <!-- Navigation bar -->
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3">
           <div class="flex items-center gap-0.5">
@@ -421,11 +385,11 @@ onMounted(() => {
             S{{ weekNumber }} <span class="text-stone-300 dark:text-stone-600 mx-0.5">·</span> {{ weekLabel }}
           </span>
           <!-- View mode toggle -->
-          <div class="flex items-center rounded-lg border border-[rgba(175,143,60,0.12)] overflow-hidden">
+          <div class="flex items-center rounded-lg border border-stone-200 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 overflow-hidden">
             <UTooltip text="Semaine">
               <button
                 class="flex items-center justify-center size-7 transition-colors"
-                :class="viewMode === 'week' ? 'bg-primary/10 text-primary' : 'text-stone-400 dark:text-stone-500 hover:bg-[rgba(175,143,60,0.06)]'"
+                :class="viewMode === 'week' ? 'bg-primary/15 text-primary' : 'text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700'"
                 @click="viewMode = 'week'"
               >
                 <UIcon name="i-lucide-rows-3" class="size-3.5" />
@@ -434,7 +398,7 @@ onMounted(() => {
             <UTooltip text="Mois">
               <button
                 class="flex items-center justify-center size-7 transition-colors"
-                :class="viewMode === 'month' ? 'bg-primary/10 text-primary' : 'text-stone-400 dark:text-stone-500 hover:bg-[rgba(175,143,60,0.06)]'"
+                :class="viewMode === 'month' ? 'bg-primary/15 text-primary' : 'text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700'"
                 @click="viewMode = 'month'"
               >
                 <UIcon name="i-lucide-grid-3x3" class="size-3.5" />
@@ -443,20 +407,51 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Pills mobiles uniquement -->
-        <div class="flex flex-wrap items-center gap-1.5 sm:hidden">
-          <button
-            v-for="action in quickActions"
-            :key="action.key"
-            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors"
-            :class="activeAction === action.key
-              ? 'bg-primary text-white'
-              : 'bg-[rgba(175,143,60,0.06)] text-[#2c2419]/60 dark:text-[#e8e0d0]/50 hover:bg-[rgba(175,143,60,0.12)]'"
-            @click="activeAction = action.key"
-          >
-            <UIcon :name="action.icon" class="size-3.5" />
-            {{ action.label }}
-          </button>
+        <!-- Actions + pills mobiles -->
+        <div class="flex items-center gap-2">
+          <UButton
+            v-if="isDirecteur"
+            label="Gestion"
+            icon="i-lucide-calendar-cog"
+            color="neutral"
+            variant="ghost"
+            size="xs"
+            to="/planning/admin"
+          />
+          <UButton
+            label="Conges"
+            icon="i-lucide-list"
+            color="neutral"
+            variant="ghost"
+            size="xs"
+            to="/planning/conges"
+          />
+          <UTooltip v-if="viewMode === 'week'" text="Copier la semaine precedente">
+            <UButton
+              icon="i-lucide-copy"
+              color="neutral"
+              variant="ghost"
+              size="xs"
+              :loading="copyLoading"
+              @click="handleCopyPreviousWeek"
+            />
+          </UTooltip>
+
+          <!-- Pills mobiles uniquement -->
+          <div class="flex flex-wrap items-center gap-1.5 sm:hidden">
+            <button
+              v-for="action in quickActions"
+              :key="action.key"
+              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors"
+              :class="activeAction === action.key
+                ? 'bg-primary text-white border-primary'
+                : 'bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'"
+              @click="activeAction = action.key"
+            >
+              <UIcon :name="action.icon" class="size-3.5" />
+              {{ action.label }}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -491,10 +486,10 @@ onMounted(() => {
           <button
             v-for="action in quickActions"
             :key="action.key"
-            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors"
+            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors"
             :class="activeAction === action.key
-              ? 'bg-primary text-white'
-              : 'bg-[rgba(175,143,60,0.06)] text-[#2c2419]/60 dark:text-[#e8e0d0]/50 hover:bg-[rgba(175,143,60,0.12)]'"
+              ? 'bg-primary text-white border-primary'
+              : 'bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'"
             @click="activeAction = action.key"
           >
             <UIcon :name="action.icon" class="size-3.5" />

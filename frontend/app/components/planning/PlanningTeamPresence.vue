@@ -15,7 +15,14 @@ const { getTeamEntries } = usePlanning()
 const loading = ref(true)
 const teamMembers = ref<UserProfile[]>([])
 const entries = ref<PlanningEntry[]>([])
+const search = ref('')
 const weekDays = computed(() => getWeekDays(props.monday))
+
+const filteredMembers = computed(() => {
+  if (!search.value.trim()) return teamMembers.value
+  const q = search.value.toLowerCase()
+  return teamMembers.value.filter(u => getMemberName(u).toLowerCase().includes(q))
+})
 
 // Effective day for highlighting the column
 const ferieDates = computed(() => {
@@ -135,7 +142,19 @@ onMounted(load)
       <table class="w-full text-xs">
         <thead>
           <tr>
-            <th class="text-left pb-2 pr-3 text-sm font-semibold text-stone-900 dark:text-stone-100 whitespace-nowrap">Presence de l'equipe</th>
+            <th class="text-left pb-2 pr-3">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-semibold text-stone-900 dark:text-stone-100 whitespace-nowrap">Presence de l'equipe</span>
+                <UInput
+                  v-if="teamMembers.length > 3"
+                  v-model="search"
+                  placeholder="Rechercher..."
+                  icon="i-lucide-search"
+                  size="xs"
+                  class="w-32"
+                />
+              </div>
+            </th>
             <th
               v-for="day in weekDays"
               :key="formatDate(day)"
@@ -162,7 +181,7 @@ onMounted(load)
         </thead>
         <tbody>
           <tr
-            v-for="member in teamMembers"
+            v-for="member in filteredMembers"
             :key="member.id"
             class="border-t border-[rgba(175,143,60,0.06)]"
           >
@@ -212,6 +231,10 @@ onMounted(load)
           </tr>
         </tbody>
       </table>
+
+      <p v-if="search && !filteredMembers.length" class="text-center py-3 text-sm text-stone-500 dark:text-stone-400">
+        Aucun resultat
+      </p>
 
       <!-- Legend -->
       <div class="flex flex-wrap gap-3 mt-4 pt-3 border-t border-[rgba(175,143,60,0.06)]">

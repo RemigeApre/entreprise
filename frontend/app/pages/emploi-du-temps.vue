@@ -324,10 +324,10 @@ onMounted(() => {
         <button
           v-for="action in quickActions"
           :key="action.key"
-          class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors"
+          class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors"
           :class="activeAction === action.key
-            ? 'bg-primary text-white'
-            : 'bg-[rgba(175,143,60,0.06)] text-[#2c2419]/60 dark:text-[#e8e0d0]/50 hover:bg-[rgba(175,143,60,0.12)]'"
+            ? 'bg-primary text-white border-primary'
+            : 'bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'"
           @click="activeAction = action.key"
         >
           <UIcon :name="action.icon" class="size-3.5" />
