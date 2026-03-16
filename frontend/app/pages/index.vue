@@ -503,6 +503,7 @@ async function handleLogin() {
   align-items: center;
   gap: 6px;
   padding: 12px clamp(18px, 3.5vw, 36px);
+  min-width: clamp(120px, 13vw, 170px);
   cursor: pointer;
   text-decoration: none;
   color: inherit;
