@@ -157,7 +157,7 @@ onMounted(() => {
         </p>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <span class="text-[10px] font-medium text-stone-400 dark:text-stone-500 block mb-1">Matin</span>
+            <span class="text-[10px] font-medium text-stone-400 dark:text-stone-500 block mb-1">M</span>
             <PlanningDaySlot
               :entry="getEntry(day, 'matin')"
               periode="matin"
@@ -169,7 +169,7 @@ onMounted(() => {
             />
           </div>
           <div>
-            <span class="text-[10px] font-medium text-stone-400 dark:text-stone-500 block mb-1">Apres-midi</span>
+            <span class="text-[10px] font-medium text-stone-400 dark:text-stone-500 block mb-1">AP</span>
             <PlanningDaySlot
               :entry="getEntry(day, 'apres_midi')"
               periode="apres_midi"
@@ -205,7 +205,7 @@ onMounted(() => {
 
       <!-- Matin row -->
       <div class="flex items-center pr-2">
-        <span class="text-[11px] font-medium text-stone-500 dark:text-stone-400 whitespace-nowrap">Matin</span>
+        <span class="text-[11px] font-medium text-stone-500 dark:text-stone-400 whitespace-nowrap">M</span>
       </div>
       <div
         v-for="day in weekDays"
@@ -225,7 +225,7 @@ onMounted(() => {
 
       <!-- Apres-midi row -->
       <div class="flex items-center pr-2">
-        <span class="text-[11px] font-medium text-stone-500 dark:text-stone-400 whitespace-nowrap">Apres-midi</span>
+        <span class="text-[11px] font-medium text-stone-500 dark:text-stone-400 whitespace-nowrap">AP</span>
       </div>
       <div
         v-for="day in weekDays"
