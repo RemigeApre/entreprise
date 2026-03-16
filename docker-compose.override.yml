@@ -12,6 +12,10 @@ services:
       LOG_LEVEL: "info"
       CACHE_ENABLED: "false"
 
+  frontend:
+    environment:
+      NUXT_PUBLIC_CMS_URL: "http://localhost:8060/admin"
+
   nginx:
     ports:
       - "80:80"

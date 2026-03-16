@@ -61,7 +61,7 @@ export default defineNuxtConfig({
     directusUrl: process.env.NUXT_DIRECTUS_URL || 'http://localhost:8055',
     public: {
       directusUrl: process.env.NUXT_PUBLIC_DIRECTUS_URL || '/api',
-      cmsUrl: process.env.NUXT_PUBLIC_CMS_URL || 'http://localhost:8055/admin'
+      cmsUrl: process.env.NUXT_PUBLIC_CMS_URL || ''
     }
   },
 
