@@ -267,49 +267,13 @@ async function handleCopyPreviousWeek() {
   }
 }
 
-const teleportReady = ref(false)
-
 onMounted(() => {
-  teleportReady.value = !!document.getElementById('page-actions')
   loadStats()
 })
 </script>
 
 <template>
   <div class="flex flex-col h-full">
-    <!-- Page actions teleported into the layout tab bar -->
-    <Teleport v-if="teleportReady" to="#page-actions">
-      <div class="flex items-center gap-1.5">
-        <UButton
-          v-if="isDirecteur"
-          label="Gestion"
-          icon="i-lucide-calendar-cog"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          to="/planning/admin"
-        />
-        <UButton
-          label="Conges"
-          icon="i-lucide-list"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          to="/planning/conges"
-        />
-        <UTooltip text="Copier la semaine precedente">
-          <UButton
-            icon="i-lucide-copy"
-            color="neutral"
-            variant="ghost"
-            size="xs"
-            :loading="copyLoading"
-            @click="handleCopyPreviousWeek"
-          />
-        </UTooltip>
-      </div>
-    </Teleport>
-
     <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
       <!-- Navigation bar -->
       <div class="flex flex-wrap items-center justify-between gap-3">
@@ -324,20 +288,51 @@ onMounted(() => {
           </span>
         </div>
 
-        <div class="flex flex-wrap items-center gap-1.5">
-          <button
-            v-for="action in quickActions"
-            :key="action.key"
-            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors"
-            :class="activeAction === action.key
-              ? 'bg-primary text-white'
-              : 'bg-[rgba(175,143,60,0.06)] text-[#2c2419]/60 dark:text-[#e8e0d0]/50 hover:bg-[rgba(175,143,60,0.12)]'"
-            @click="activeAction = action.key"
-          >
-            <UIcon :name="action.icon" class="size-3.5" />
-            {{ action.label }}
-          </button>
+        <div class="flex items-center gap-1.5">
+          <UButton
+            v-if="isDirecteur"
+            label="Gestion"
+            icon="i-lucide-calendar-cog"
+            color="neutral"
+            variant="ghost"
+            size="xs"
+            to="/planning/admin"
+          />
+          <UButton
+            label="Conges"
+            icon="i-lucide-list"
+            color="neutral"
+            variant="ghost"
+            size="xs"
+            to="/planning/conges"
+          />
+          <UTooltip text="Copier la semaine precedente">
+            <UButton
+              icon="i-lucide-copy"
+              color="neutral"
+              variant="ghost"
+              size="xs"
+              :loading="copyLoading"
+              @click="handleCopyPreviousWeek"
+            />
+          </UTooltip>
         </div>
+      </div>
+
+      <!-- Quick action pills -->
+      <div class="flex flex-wrap items-center gap-1.5">
+        <button
+          v-for="action in quickActions"
+          :key="action.key"
+          class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors"
+          :class="activeAction === action.key
+            ? 'bg-primary text-white'
+            : 'bg-[rgba(175,143,60,0.06)] text-[#2c2419]/60 dark:text-[#e8e0d0]/50 hover:bg-[rgba(175,143,60,0.12)]'"
+          @click="activeAction = action.key"
+        >
+          <UIcon :name="action.icon" class="size-3.5" />
+          {{ action.label }}
+        </button>
       </div>
 
       <!-- Timetable -->
