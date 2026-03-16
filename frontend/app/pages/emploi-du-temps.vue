@@ -332,13 +332,13 @@ onMounted(() => {
             <button
               v-for="action in quickActions"
               :key="action.key"
-              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-colors cursor-pointer"
               :class="activeAction === action.key
                 ? (ACTION_PILL_COLORS[action.key] || 'bg-primary/10 border-primary/40 text-primary')
                 : 'bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'"
               @click="activeAction = action.key"
             >
-              <UIcon :name="action.icon" class="size-3.5" />
+              <UIcon :name="action.icon" class="size-4" />
               {{ action.label }}
             </button>
           </div>
