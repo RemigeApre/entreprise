@@ -23,17 +23,13 @@ export function useAuth() {
     await fetchCurrentUser()
   }
 
-  const logout = async () => {
-    try {
-      await $directus.logout()
-    } catch {
-      // Ignore logout errors
-    }
+  const logout = () => {
+    $directus.logout().catch(() => {})
     user.value = null
     if (import.meta.client) {
       window.location.replace('/login')
     } else {
-      await navigateTo('/login')
+      navigateTo('/login')
     }
   }
 
