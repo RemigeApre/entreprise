@@ -194,16 +194,12 @@ onMounted(() => {
         class="text-center pb-1"
       >
         <p
-          class="text-[11px] font-medium uppercase"
+          class="text-[11px] font-medium"
           :class="isHighlightedDay(day) ? 'text-amber-600 dark:text-amber-400' : 'text-stone-500 dark:text-stone-400'"
         >
-          {{ getDayName(day) }}
-        </p>
-        <p
-          class="text-xs"
-          :class="isHighlightedDay(day) ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-stone-400 dark:text-stone-500'"
-        >
-          {{ getDayNumber(day) }}
+          <span class="uppercase">{{ getDayName(day) }}</span>
+          <span class="mx-1 opacity-40">·</span>
+          <span :class="isHighlightedDay(day) ? 'font-semibold' : ''">{{ getDayNumber(day) }}</span>
         </p>
       </div>
 
