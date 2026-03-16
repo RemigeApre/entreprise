@@ -1490,6 +1490,27 @@ async function fixExistingPermissions() {
         }, 'Fix: ajout permission create notifications')
       }
     }
+
+    // Re-ensure all role → Base Authentifie policy links exist
+    // (covers cases where link was lost or role was created after initial setup)
+    try {
+      const policies = await api('GET', `/policies?filter[name][_eq]=Base%20Authentifi%C3%A9&limit=1`)
+      if (policies && policies.length > 0) {
+        const policyId = policies[0].id
+        const roles = await api('GET', '/roles?limit=-1')
+        const accessList = await api('GET', `/access?filter[policy][_eq]=${policyId}&limit=-1`)
+        const linkedRoleIds = new Set((accessList || []).map(a => a.role))
+        for (const role of (roles || [])) {
+          if (!linkedRoleIds.has(role.id)) {
+            await safeApi('POST', '/access', { role: role.id, policy: policyId }, `Fix: lien role "${role.name}" → Base Authentifie`)
+          } else {
+            console.log(`  ⊘ Lien role "${role.name}" → Base Authentifie (existe deja)`)
+          }
+        }
+      }
+    } catch (e) {
+      console.log(`  ⚠ Impossible de verifier les liens role→policy: ${e.message.substring(0, 150)}`)
+    }
   } catch (e) {
     console.log(`  ⚠ Impossible de corriger les permissions: ${e.message.substring(0, 150)}`)
   }
