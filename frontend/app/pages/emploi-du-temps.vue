@@ -295,6 +295,16 @@ onMounted(() => {
           <span class="text-sm font-medium text-stone-500 dark:text-stone-400">
             S{{ weekNumber }} <span class="text-stone-300 dark:text-stone-600 mx-0.5">·</span> {{ weekLabel }}
           </span>
+          <UTooltip text="Copier la semaine precedente">
+            <UButton
+              icon="i-lucide-copy"
+              color="neutral"
+              variant="ghost"
+              size="xs"
+              :loading="copyLoading"
+              @click="handleCopyPreviousWeek"
+            />
+          </UTooltip>
         </div>
 
         <div class="flex items-center gap-2">
@@ -333,16 +343,6 @@ onMounted(() => {
             size="xs"
             to="/planning/conges"
           />
-          <UTooltip text="Copier la semaine precedente">
-            <UButton
-              icon="i-lucide-copy"
-              color="neutral"
-              variant="ghost"
-              size="xs"
-              :loading="copyLoading"
-              @click="handleCopyPreviousWeek"
-            />
-          </UTooltip>
         </div>
       </div>
 

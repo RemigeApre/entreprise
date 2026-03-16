@@ -415,6 +415,16 @@ onMounted(() => {
               </button>
             </UTooltip>
           </div>
+          <UTooltip v-if="viewMode === 'week'" text="Copier la semaine precedente">
+            <UButton
+              icon="i-lucide-copy"
+              color="neutral"
+              variant="ghost"
+              size="xs"
+              :loading="copyLoading"
+              @click="handleCopyPreviousWeek"
+            />
+          </UTooltip>
         </div>
 
         <!-- Actions + pills mobiles -->
@@ -436,16 +446,6 @@ onMounted(() => {
             size="xs"
             to="/planning/conges"
           />
-          <UTooltip v-if="viewMode === 'week'" text="Copier la semaine precedente">
-            <UButton
-              icon="i-lucide-copy"
-              color="neutral"
-              variant="ghost"
-              size="xs"
-              :loading="copyLoading"
-              @click="handleCopyPreviousWeek"
-            />
-          </UTooltip>
 
           <!-- Pills mobiles uniquement -->
           <div class="flex flex-wrap items-center gap-1.5 sm:hidden">
