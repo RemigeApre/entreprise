@@ -1,15 +1,15 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'landing' })
 
+const fontsUrl = 'https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IM+Fell+DW+Pica:ital@0;1&family=UnifrakturCook:wght@700&display=swap'
+
 useHead({
   htmlAttrs: { lang: 'fr' },
   link: [
     { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
     { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-    {
-      rel: 'stylesheet',
-      href: 'https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IM+Fell+DW+Pica:ital@0;1&family=UnifrakturCook:wght@700&display=swap'
-    },
+    { rel: 'preload', as: 'style', href: fontsUrl },
+    { rel: 'stylesheet', href: fontsUrl },
     { rel: 'canonical', href: 'https://entreprise.legeai-editions.com' }
   ]
 })
@@ -57,6 +57,22 @@ const t = computed(() => lang.value === 'fr' ? {
 const visible = ref(false)
 onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
 
+// Accessibility modes
+const contrastMode = ref(false)
+const dyslexicMode = ref(false)
+
+function bionic(text: string): string {
+  return text.replace(/\p{L}+/gu, word => {
+    const len = word.length
+    const n = len <= 3 ? 1 : len <= 6 ? 2 : 3
+    return `<b>${word.slice(0, n)}</b>${word.slice(n)}`
+  })
+}
+
+function bx(text: string): string {
+  return dyslexicMode.value ? bionic(text) : text
+}
+
 // Login
 const loginMode = ref(false)
 const email = ref('')
@@ -92,7 +108,7 @@ async function handleLogin() {
 </script>
 
 <template>
-  <div class="landing" :class="{ 'is-visible': visible, 'login-mode': loginMode }">
+  <div class="landing" :class="{ 'is-visible': visible, 'login-mode': loginMode, 'high-contrast': contrastMode, 'dyslexic': dyslexicMode }">
 
     <!-- Noise filter -->
     <svg class="sr-only" aria-hidden="true">
@@ -144,28 +160,28 @@ async function handleLogin() {
           <div class="ornament-line" />
         </div>
 
-        <p class="motto">Obscuritas nutrit flammam.</p>
-        <p class="motto-sub">{{ t.motto }}</p>
+        <p class="motto" v-html="bx('Obscuritas nutrit flammam.')" />
+        <p class="motto-sub" v-html="bx(t.motto)" />
 
         <!-- ===== NAV — 3 items ===== -->
         <nav class="landing-nav" aria-label="Navigation">
           <NuxtLink to="/le-geai" class="nav-item">
             <span class="nav-numeral" aria-hidden="true">I</span>
-            <span class="nav-label">{{ t.entreprise }}</span>
+            <span class="nav-label" v-html="bx(t.entreprise)" />
           </NuxtLink>
 
           <div class="nav-divider" aria-hidden="true" />
 
           <NuxtLink to="/recrutement" class="nav-item">
             <span class="nav-numeral" aria-hidden="true">II</span>
-            <span class="nav-label">{{ t.recrutement }}</span>
+            <span class="nav-label" v-html="bx(t.recrutement)" />
           </NuxtLink>
 
           <div class="nav-divider" aria-hidden="true" />
 
           <NuxtLink to="/poles" class="nav-item">
             <span class="nav-numeral" aria-hidden="true">III</span>
-            <span class="nav-label">{{ t.poles }}</span>
+            <span class="nav-label" v-html="bx(t.poles)" />
           </NuxtLink>
         </nav>
       </div>
@@ -176,6 +192,13 @@ async function handleLogin() {
       <span class="footer-text">{{ t.copyright }}</span>
       <span class="footer-sep">&middot;</span>
       <button class="footer-btn" @click="toggleLang">{{ lang === 'fr' ? 'EN' : 'FR' }}</button>
+      <span class="footer-sep">&middot;</span>
+      <button class="footer-btn footer-btn--a11y" :class="{ 'is-active': contrastMode }" @click="contrastMode = !contrastMode" :aria-label="lang === 'fr' ? 'Mode contraste élevé' : 'High contrast mode'" :aria-pressed="contrastMode">
+        <UIcon name="i-lucide-contrast" class="size-3" />
+      </button>
+      <button class="footer-btn footer-btn--a11y" :class="{ 'is-active': dyslexicMode }" @click="dyslexicMode = !dyslexicMode" :aria-label="lang === 'fr' ? 'Mode lecture facilitée' : 'Dyslexia-friendly mode'" :aria-pressed="dyslexicMode">
+        <UIcon name="i-lucide-book-open-text" class="size-3" />
+      </button>
     </div>
 
     <!-- ===== LOGIN PANEL ===== -->
@@ -186,7 +209,7 @@ async function handleLogin() {
       </button>
 
       <div class="login-form-wrap">
-        <h2 class="login-title">{{ t.connecter }}</h2>
+        <h2 class="login-title" v-html="bx(t.connecter)" />
         <div class="login-ornament">
           <div class="login-ornament-line" />
         </div>
@@ -218,7 +241,7 @@ async function handleLogin() {
             />
           </div>
 
-          <p v-if="error" class="login-error">{{ error }}</p>
+          <p aria-live="assertive" class="login-error" :class="{ 'login-error--visible': error }">{{ error }}</p>
 
           <button type="submit" class="login-submit" :disabled="loading">
             <span v-if="loading" class="login-spinner" />
@@ -633,6 +656,18 @@ async function handleLogin() {
 }
 .footer-btn:hover { opacity: 1; }
 
+.footer-btn--a11y {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 3px;
+  border-radius: 50%;
+  transition: opacity 0.2s, color 0.3s, background 0.3s;
+}
+.footer-btn--a11y.is-active {
+  color: var(--gold);
+  opacity: 1;
+  background: var(--gold-faint);
+}
+
 /* ============================
    LOGIN PANEL
    ============================ */
@@ -746,6 +781,11 @@ async function handleLogin() {
   font-size: 14px;
   color: var(--terracotta);
   text-align: center;
+  min-height: 1.4em;
+  visibility: hidden;
+}
+.login-error--visible {
+  visibility: visible;
 }
 
 .login-submit {
@@ -878,5 +918,58 @@ async function handleLogin() {
   .login-mode .watermark {
     left: -15%;
   }
+}
+
+/* ============================
+   HIGH CONTRAST MODE
+   ============================ */
+.high-contrast {
+  --gold: #D4A017;
+  --gold-dim: rgba(212, 160, 23, 0.5);
+  --gold-faint: rgba(212, 160, 23, 0.25);
+  --cream: #FFFFFF;
+  --ink: #000000;
+}
+.high-contrast .title-sub { opacity: 0.7; }
+.high-contrast .ornament { opacity: 0.8 !important; }
+.high-contrast .motto-sub { opacity: 0.75 !important; }
+.high-contrast .nav-label { opacity: 1; }
+.high-contrast .nav-numeral { opacity: 1; }
+.high-contrast .nav-divider { opacity: 0.7; }
+.high-contrast .vignette { opacity: 0.3; }
+:global(.dark) .high-contrast .vignette { opacity: 0.2; }
+.high-contrast .frame { border-color: var(--gold-dim); }
+.high-contrast .corner { border-color: var(--gold) !important; }
+.high-contrast .login-label { opacity: 0.85; }
+.high-contrast .login-input {
+  border-color: var(--gold);
+  background: rgba(212, 160, 23, 0.08);
+}
+.high-contrast .login-error { color: #E53E3E; font-weight: 600; }
+.high-contrast .footer-bar { opacity: 0.6 !important; }
+.high-contrast.is-visible .footer-bar { opacity: 0.6; }
+
+/* ============================
+   DYSLEXIC / BIONIC READING
+   ============================ */
+.dyslexic {
+  letter-spacing: 0.03em;
+  word-spacing: 0.08em;
+}
+.dyslexic :deep(b) {
+  font-weight: 800;
+  opacity: 1;
+}
+.dyslexic .motto :deep(b),
+.dyslexic .motto-sub :deep(b),
+.dyslexic .nav-label :deep(b),
+.dyslexic .login-title :deep(b) {
+  font-weight: 800;
+}
+.dyslexic .motto-sub,
+.dyslexic .nav-label,
+.dyslexic .title-sub {
+  letter-spacing: 0.25em;
+  word-spacing: 0.12em;
 }
 </style>
