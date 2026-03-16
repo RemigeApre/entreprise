@@ -81,7 +81,9 @@ export default defineNuxtConfig({
     '/profil/**': { ssr: false },
     '/clients/**': { ssr: false },
     '/admin/**': { ssr: false },
-    '/candidats/**': { ssr: false }
+    '/candidats/**': { ssr: false },
+    '/wiki/**': { ssr: false },
+    '/stages/**': { ssr: false }
   },
 
   colorMode: {
