@@ -1351,6 +1351,7 @@ async function createTestUsers(roleIds) {
       last_name: 'Dupont',
       role: roleIds.Employe,
       actif: true,
+      statut_emploi: 'test',
       type_contrat: 'CDI',
       date_debut_contrat: '2024-03-01'
     },
@@ -1361,6 +1362,7 @@ async function createTestUsers(roleIds) {
       last_name: 'Martin',
       role: roleIds.Freelance,
       actif: true,
+      statut_emploi: 'test',
       type_contrat: 'Freelance',
       date_debut_contrat: '2025-01-15',
       date_fin_contrat: '2025-12-31'
@@ -1372,6 +1374,7 @@ async function createTestUsers(roleIds) {
       last_name: 'Bernard',
       role: roleIds.Alternant,
       actif: true,
+      statut_emploi: 'test',
       type_contrat: 'Alternance',
       date_debut_contrat: '2025-09-01',
       date_fin_contrat: '2026-08-31'
@@ -1383,6 +1386,7 @@ async function createTestUsers(roleIds) {
       last_name: 'Petit',
       role: roleIds.Stagiaire,
       actif: true,
+      statut_emploi: 'test',
       type_contrat: 'Stage',
       date_debut_contrat: '2026-01-15',
       date_fin_contrat: '2026-07-15'
@@ -1390,7 +1394,12 @@ async function createTestUsers(roleIds) {
   ]
 
   for (const u of testUsers) {
-    await safeApi('POST', '/users', u, `Utilisateur "${u.first_name} ${u.last_name}" (${u.email})`)
+    const existing = await api('GET', `/users?filter[email][_eq]=${encodeURIComponent(u.email)}&limit=1`).catch(() => null)
+    if (existing && existing.length > 0) {
+      await safeApi('PATCH', `/users/${existing[0].id}`, { role: u.role, statut_emploi: u.statut_emploi }, `Utilisateur "${u.email}" (mise a jour role/statut)`)
+    } else {
+      await safeApi('POST', '/users', u, `Utilisateur "${u.first_name} ${u.last_name}" (${u.email})`)
+    }
   }
 
   // Assign admin user to Directeur role
@@ -1494,7 +1503,7 @@ async function fixExistingPermissions() {
     // Re-ensure all role → Base Authentifie policy links exist
     // (covers cases where link was lost or role was created after initial setup)
     try {
-      const policies = await api('GET', `/policies?filter[name][_eq]=Base%20Authentifi%C3%A9&limit=1`)
+      const policies = await api('GET', `/policies?filter[name][_eq]=Base%20Authentifie&limit=1`)
       if (policies && policies.length > 0) {
         const policyId = policies[0].id
         const roles = await api('GET', '/roles?limit=-1')

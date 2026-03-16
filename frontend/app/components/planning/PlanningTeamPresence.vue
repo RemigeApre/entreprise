@@ -138,8 +138,8 @@ const filteredMembers = computed(() => {
 async function load() {
   loading.value = true
   try {
-    const users = await getActiveUsers()
-    teamMembers.value = users.filter(u => u.id !== props.currentUserId)
+    const allUsers = await getActiveUsers()
+    teamMembers.value = allUsers.filter(u => u.id !== props.currentUserId && u.statut_emploi !== 'test' && u.statut_emploi !== 'a_venir')
     if (!teamMembers.value.length) return
 
     const userIds = teamMembers.value.map(u => u.id)

@@ -27,9 +27,9 @@ export function useAuth() {
     $directus.logout().catch(() => {})
     user.value = null
     if (import.meta.client) {
-      window.location.replace('/login')
+      window.location.replace('/')
     } else {
-      navigateTo('/login')
+      navigateTo('/')
     }
   }
 

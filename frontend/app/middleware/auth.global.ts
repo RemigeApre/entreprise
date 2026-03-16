@@ -1,5 +1,5 @@
 export default defineNuxtRouteMiddleware(async (to) => {
-  const publicPaths = ['/', '/login', '/recrutement', '/le-geai', '/poles', '/soutenir', '/articles']
+  const publicPaths = ['/', '/recrutement', '/le-geai', '/poles', '/soutenir', '/articles']
   const publicPrefixes = ['/le-geai/']
 
   const path = to.path.replace(/\/+$/, '') || '/'
@@ -22,7 +22,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     }
 
     if (!user.value) {
-      return navigateTo('/login')
+      return navigateTo('/')
     }
   }
 
@@ -31,7 +31,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // Termine : pas de connexion possible — deconnecter immediatement
   if (statut === 'termine') {
     await logout()
-    return navigateTo('/login')
+    return navigateTo('/')
   }
 
   // A venir : uniquement planning (presence)
