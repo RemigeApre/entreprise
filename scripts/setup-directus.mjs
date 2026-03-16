@@ -1518,6 +1518,50 @@ async function fixExistingPermissions() {
   console.log('')
 }
 
+// ─── Step 10: Assign missing roles ───────────────────────
+
+async function assignMissingRoles() {
+  console.log('👤 Verification des roles utilisateurs...')
+
+  try {
+    const roles = await api('GET', '/roles?limit=-1')
+    const roleMap = {}
+    for (const r of (roles || [])) roleMap[r.name] = r.id
+
+    // Mapping type_contrat → role name
+    const contractToRole = {
+      'Stage': 'Stagiaire',
+      'Alternance': 'Alternant',
+      'Freelance': 'Freelance',
+      'CDI': 'Employe',
+      'CDD': 'Employe'
+    }
+    const defaultRole = 'Employe'
+
+    // Fetch all users without a role
+    const users = await api('GET', '/users?filter[role][_null]=true&limit=-1&fields=id,email,type_contrat,first_name,last_name')
+    if (!users || users.length === 0) {
+      console.log('  ✓ Tous les utilisateurs ont un role')
+      console.log('')
+      return
+    }
+
+    for (const u of users) {
+      const roleName = contractToRole[u.type_contrat] || defaultRole
+      const roleId = roleMap[roleName]
+      if (!roleId) {
+        console.log(`  ⚠ Role "${roleName}" introuvable pour ${u.email}`)
+        continue
+      }
+      await safeApi('PATCH', `/users/${u.id}`, { role: roleId }, `Role "${roleName}" assigne a ${u.first_name || ''} ${u.last_name || ''} (${u.email})`)
+    }
+  } catch (e) {
+    console.log(`  ⚠ Impossible d'assigner les roles: ${e.message.substring(0, 150)}`)
+  }
+
+  console.log('')
+}
+
 // ─── Main ───────────────────────────────────────────────
 
 async function main() {
@@ -1539,6 +1583,7 @@ async function main() {
   await createTestUsers(roleIds)
 
   await fixExistingPermissions()
+  await assignMissingRoles()
 
   console.log('╔══════════════════════════════════════════╗')
   console.log('║   ✅ Setup termine avec succes !          ║')
