@@ -443,7 +443,8 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-1.5">
+        <!-- Pills mobiles uniquement -->
+        <div class="flex flex-wrap items-center gap-1.5 sm:hidden">
           <button
             v-for="action in quickActions"
             :key="action.key"
@@ -483,6 +484,22 @@ onMounted(() => {
               :total-half-days="stats.totalHalfDays"
             />
           </div>
+        </div>
+
+        <!-- Pills desktop — centrées sous la vue semaine -->
+        <div class="hidden sm:flex flex-wrap justify-center gap-1.5">
+          <button
+            v-for="action in quickActions"
+            :key="action.key"
+            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors"
+            :class="activeAction === action.key
+              ? 'bg-primary text-white'
+              : 'bg-[rgba(175,143,60,0.06)] text-[#2c2419]/60 dark:text-[#e8e0d0]/50 hover:bg-[rgba(175,143,60,0.12)]'"
+            @click="activeAction = action.key"
+          >
+            <UIcon :name="action.icon" class="size-3.5" />
+            {{ action.label }}
+          </button>
         </div>
 
         <!-- Team presence -->
