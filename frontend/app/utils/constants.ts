@@ -146,6 +146,7 @@ export const TASK_PRIORITES = {
 export const STATUT_EMPLOI = {
   a_venir: { label: 'A venir', color: 'blue', icon: 'i-lucide-clock' },
   actif: { label: 'Actif', color: 'green', icon: 'i-lucide-check-circle' },
+  test: { label: 'Test', color: 'orange', icon: 'i-lucide-flask-conical' },
   termine: { label: 'Termine', color: 'neutral', icon: 'i-lucide-log-out' }
 } as const
 

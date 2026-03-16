@@ -11,6 +11,7 @@ const { data: users, status } = useAsyncData('team', () =>
 const search = ref('')
 const groupBy = ref<'contrat' | 'pole'>('contrat')
 const showAVenir = ref(false)
+const showTest = ref(false)
 const showTermine = ref(false)
 const showInactive = ref(false)
 
@@ -32,6 +33,11 @@ const aVenirUsers = computed(() => {
   return users.value.filter((u: UserProfile) => u.statut_emploi === 'a_venir' && matchSearch(u))
 })
 
+const testUsers = computed(() => {
+  if (!users.value || !isDirecteur.value) return []
+  return users.value.filter((u: UserProfile) => u.statut_emploi === 'test' && matchSearch(u))
+})
+
 const termineUsers = computed(() => {
   if (!users.value || !isDirecteur.value) return []
   return users.value.filter((u: UserProfile) => u.statut_emploi === 'termine' && matchSearch(u))
@@ -39,7 +45,7 @@ const termineUsers = computed(() => {
 
 const inactiveUsers = computed(() => {
   if (!users.value || !isDirecteur.value) return []
-  return users.value.filter((u: UserProfile) => !u.actif && u.statut_emploi !== 'a_venir' && u.statut_emploi !== 'termine' && matchSearch(u))
+  return users.value.filter((u: UserProfile) => !u.actif && u.statut_emploi !== 'a_venir' && u.statut_emploi !== 'test' && u.statut_emploi !== 'termine' && matchSearch(u))
 })
 
 // --- Ma carte (exclue des groupes) ---
@@ -113,12 +119,13 @@ const currentGroups = computed(() =>
 
 // --- Stats ---
 const stats = computed(() => {
-  if (!users.value) return { total: 0, actifs: 0, aVenir: 0, termines: 0, inactifs: 0 }
+  if (!users.value) return { total: 0, actifs: 0, aVenir: 0, tests: 0, termines: 0, inactifs: 0 }
   const total = users.value.length
   const actifs = activeUsers.value.length
   const aVenir = aVenirUsers.value.length
+  const tests = testUsers.value.length
   const termines = termineUsers.value.length
-  return { total, actifs, aVenir, termines, inactifs: inactiveUsers.value.length }
+  return { total, actifs, aVenir, tests, termines, inactifs: inactiveUsers.value.length }
 })
 
 // --- Helpers ---
@@ -227,6 +234,9 @@ function getContractStyle(contrat: string | null) {
             </span>
             <span v-if="stats.aVenir" class="text-stone-500 dark:text-stone-400">
               <strong class="text-blue-500">{{ stats.aVenir }}</strong> a venir
+            </span>
+            <span v-if="stats.tests" class="text-stone-500 dark:text-stone-400">
+              <strong class="text-orange-500">{{ stats.tests }}</strong> test
             </span>
             <span v-if="stats.termines" class="text-stone-500 dark:text-stone-400">
               <strong class="text-stone-400">{{ stats.termines }}</strong> termines
@@ -361,6 +371,60 @@ function getContractStyle(contrat: string | null) {
                       </span>
                       <span v-if="member.date_debut_contrat" class="text-[11px] text-blue-500 dark:text-blue-400">
                         debut {{ new Date(member.date_debut_contrat).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </NuxtLink>
+            </div>
+          </div>
+
+          <!-- Section Test (directeur) -->
+          <div v-if="isDirecteur && testUsers.length" class="pt-2">
+            <button
+              class="flex items-center gap-2 text-sm font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors mb-3"
+              @click="showTest = !showTest"
+            >
+              <UIcon
+                name="i-lucide-chevron-right"
+                class="size-4 transition-transform"
+                :class="showTest ? 'rotate-90' : ''"
+              />
+              <UIcon name="i-lucide-flask-conical" class="size-4" />
+              Test
+              <span class="text-xs text-orange-400 dark:text-orange-600">({{ testUsers.length }})</span>
+            </button>
+
+            <div v-if="showTest" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <NuxtLink
+                v-for="member in testUsers"
+                :key="member.id"
+                :to="`/equipe/${member.id}`"
+                class="group"
+              >
+                <div class="flex items-center gap-3 p-3 rounded-lg border border-orange-100 dark:border-orange-900/30 bg-orange-50/50 dark:bg-orange-900/10 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all">
+                  <UAvatar :alt="getUserName(member)" size="md" />
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2">
+                      <p class="font-medium text-sm text-stone-900 dark:text-white truncate">
+                        {{ getUserName(member) }}
+                      </p>
+                      <UBadge color="orange" variant="subtle" size="xs">Test</UBadge>
+                    </div>
+                    <div class="flex items-center gap-1.5 mt-1">
+                      <span
+                        v-if="getCategoryName(member)"
+                        class="text-xs font-medium text-stone-500 dark:text-stone-400"
+                      >
+                        {{ getCategoryName(member) }}
+                      </span>
+                      <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 dark:text-stone-600 text-xs">·</span>
+                      <span
+                        v-if="member.type_contrat"
+                        class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border"
+                        :class="[getContractStyle(member.type_contrat).bg, getContractStyle(member.type_contrat).text, getContractStyle(member.type_contrat).border]"
+                      >
+                        {{ member.type_contrat }}
                       </span>
                     </div>
                   </div>

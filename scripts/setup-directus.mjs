@@ -209,6 +209,7 @@ async function extendDirectusUsers() {
           choices: [
             { text: 'A venir', value: 'a_venir' },
             { text: 'Actif', value: 'actif' },
+            { text: 'Test', value: 'test' },
             { text: 'Termine', value: 'termine' }
           ]
         }

@@ -48,7 +48,7 @@ export interface Role {
 }
 
 export type TypeContrat = 'CDI' | 'CDD' | 'Freelance' | 'Alternance' | 'Stage'
-export type StatutEmploi = 'a_venir' | 'actif' | 'termine'
+export type StatutEmploi = 'a_venir' | 'actif' | 'test' | 'termine'
 export type RoleName = 'Directeur' | 'Employe' | 'Freelance' | 'Alternant' | 'Stagiaire'
 
 export type PlanningPeriode = 'matin' | 'apres_midi'

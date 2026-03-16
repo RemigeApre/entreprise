@@ -14,7 +14,7 @@ interface Stagiaire {
   ecole: string
   start: string // YYYY-MM-DD
   end: string   // YYYY-MM-DD
-  statut: 'a_venir' | 'actif' | 'termine'
+  statut: 'a_venir' | 'actif' | 'test' | 'termine'
 }
 
 const stagiaires = ref<Stagiaire[]>([])

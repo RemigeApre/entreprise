@@ -494,8 +494,9 @@ function pct(value: number, max: number) {
                 <UBadge v-if="member.type_contrat" color="neutral" variant="subtle">{{ member.type_contrat }}</UBadge>
                 <UBadge v-if="getCategoryName(member)" variant="outline" color="neutral">{{ getCategoryName(member) }}</UBadge>
                 <UBadge v-if="member.statut_emploi === 'a_venir'" color="blue" variant="subtle">A venir</UBadge>
+                <UBadge v-if="member.statut_emploi === 'test'" color="orange" variant="subtle">Test</UBadge>
                 <UBadge v-if="member.statut_emploi === 'termine'" color="neutral" variant="subtle">Termine</UBadge>
-                <UBadge v-if="!member.actif && member.statut_emploi !== 'a_venir' && member.statut_emploi !== 'termine'" color="error" variant="subtle">Inactif</UBadge>
+                <UBadge v-if="!member.actif && member.statut_emploi !== 'a_venir' && member.statut_emploi !== 'test' && member.statut_emploi !== 'termine'" color="error" variant="subtle">Inactif</UBadge>
               </div>
               <p v-if="member.bio && canSeeField(member, 'bio')" class="mt-2 text-sm text-stone-600 dark:text-stone-400 italic">{{ member.bio }}</p>
             </div>
@@ -862,7 +863,7 @@ function pct(value: number, max: number) {
                   <USelectMenu v-model="form.type_contrat" :items="contractTypeOptions" value-key="value" placeholder="Selectionner un type" />
                 </UFormField>
                 <UFormField label="Statut">
-                  <USelect v-model="form.statut_emploi" :items="[{ label: 'A venir', value: 'a_venir' }, { label: 'Actif', value: 'actif' }, { label: 'Termine', value: 'termine' }]" value-key="value" />
+                  <USelect v-model="form.statut_emploi" :items="[{ label: 'A venir', value: 'a_venir' }, { label: 'Actif', value: 'actif' }, { label: 'Test', value: 'test' }, { label: 'Termine', value: 'termine' }]" value-key="value" />
                 </UFormField>
               </div>
               <UFormField label="Ecole / Universite">
