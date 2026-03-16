@@ -56,7 +56,7 @@ async function load() {
   loading.value = true
   try {
     const users = await getActiveUsers()
-    const stags = users.filter(u => u.type_contrat === 'Stage')
+    const stags = users.filter(u => u.type_contrat === 'Stage' && u.statut_emploi !== 'test' && u.statut_emploi !== 'a_venir')
 
     stagiaires.value = stags.map((user) => {
       const start = user.date_debut_contrat

@@ -64,7 +64,8 @@ async function load() {
   if (!user.value) return
   loading.value = true
   try {
-    const users = await getActiveUsers()
+    const allUsers = await getActiveUsers()
+    const users = allUsers.filter(u => u.statut_emploi !== 'test' && u.statut_emploi !== 'a_venir')
     const userIds = users.map(u => u.id)
     const endDate = presenceMode.value === 'todayNext' ? nextDayStr : effectiveTodayStr
     const entries = await getTeamEntries(userIds, effectiveTodayStr, endDate)
