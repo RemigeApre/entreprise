@@ -135,6 +135,47 @@ export function getEffectiveWorkDay(now: Date = new Date(), ferieDates: Set<stri
   return d
 }
 
+/**
+ * Retourne les jours feries francais pour une annee donnee.
+ * Map<"YYYY-MM-DD", nom du jour ferie>
+ */
+export function getFrenchPublicHolidays(year: number): Map<string, string> {
+  // Calcul de Paques (algorithme Meeus/Jones/Butcher)
+  const a = year % 19
+  const b = Math.floor(year / 100)
+  const c = year % 100
+  const d = Math.floor(b / 4)
+  const e = b % 4
+  const f = Math.floor((b + 8) / 25)
+  const g = Math.floor((b - f + 1) / 3)
+  const h = (19 * a + b - d - g + 15) % 30
+  const i = Math.floor(c / 4)
+  const k = c % 4
+  const l = (32 + 2 * e + 2 * i - h - k) % 7
+  const m = Math.floor((a + 11 * h + 22 * l) / 451)
+  const easterMonth = Math.floor((h + l - 7 * m + 114) / 31) - 1
+  const easterDay = ((h + l - 7 * m + 114) % 31) + 1
+  const easter = new Date(year, easterMonth, easterDay)
+
+  const fmt = (d: Date) => formatDate(d)
+  const shift = (base: Date, n: number) => { const r = new Date(base); r.setDate(r.getDate() + n); return r }
+
+  const holidays = new Map<string, string>()
+  holidays.set(fmt(new Date(year, 0, 1)),   'Jour de l\'An')
+  holidays.set(fmt(shift(easter, 1)),        'Lundi de Paques')
+  holidays.set(fmt(new Date(year, 4, 1)),   'Fete du Travail')
+  holidays.set(fmt(new Date(year, 4, 8)),   'Victoire 1945')
+  holidays.set(fmt(shift(easter, 39)),       'Ascension')
+  holidays.set(fmt(shift(easter, 50)),       'Lundi de Pentecote')
+  holidays.set(fmt(new Date(year, 6, 14)),  'Fete Nationale')
+  holidays.set(fmt(new Date(year, 7, 15)),  'Assomption')
+  holidays.set(fmt(new Date(year, 10, 1)),  'Toussaint')
+  holidays.set(fmt(new Date(year, 10, 11)), 'Armistice')
+  holidays.set(fmt(new Date(year, 11, 25)), 'Noel')
+
+  return holidays
+}
+
 export function getEachDayBetween(start: string, end: string): string[] {
   const days: string[] = []
   const current = new Date(start)

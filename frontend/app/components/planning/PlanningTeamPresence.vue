@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PlanningEntry, UserProfile } from '~/utils/types'
 import { PLANNING_TYPES, PLANNING_COLORS } from '~/utils/constants'
-import { getWeekDays, formatDate, getEffectiveWorkDay } from '~/utils/dates'
+import { getWeekDays, formatDate, getEffectiveWorkDay, getFrenchPublicHolidays } from '~/utils/dates'
 
 const props = defineProps<{
   monday: Date
@@ -41,6 +41,17 @@ const ferieDates = computed(() => {
 })
 
 const effectiveDay = computed(() => formatDate(getEffectiveWorkDay(new Date(), ferieDates.value)))
+
+// Jours feries francais pour la semaine affichee
+const publicHolidays = computed(() => {
+  const map = new Map<string, string>()
+  for (const day of weekDays.value) {
+    const holidays = getFrenchPublicHolidays(day.getFullYear())
+    const dateStr = formatDate(day)
+    if (holidays.has(dateStr)) map.set(dateStr, holidays.get(dateStr)!)
+  }
+  return map
+})
 
 function isHighlightedDay(date: Date): boolean {
   return formatDate(date) === effectiveDay.value
@@ -139,7 +150,7 @@ async function load() {
   loading.value = true
   try {
     const allUsers = await getActiveUsers()
-    teamMembers.value = allUsers.filter(u => u.id !== props.currentUserId && u.statut_emploi !== 'test' && u.statut_emploi !== 'a_venir')
+    teamMembers.value = allUsers.filter(u => u.id !== props.currentUserId && u.statut_emploi === 'actif')
     if (!teamMembers.value.length) return
 
     const userIds = teamMembers.value.map(u => u.id)
@@ -287,24 +298,28 @@ onMounted(load)
     </div>
 
     <div v-else-if="!teamMembers.length" class="text-center py-4">
-      <p class="text-sm text-stone-500 dark:text-stone-400">Aucun autre collaborateur</p>
+      <p class="text-sm text-stone-500 dark:text-stone-400">Aucun membre actif dans l'equipe</p>
     </div>
 
     <div v-else class="overflow-x-auto">
       <table class="w-full text-xs">
         <thead>
           <tr>
-            <th class="text-left pb-2 pr-3 font-medium text-stone-500 dark:text-stone-400 whitespace-nowrap">
-              Collaborateur
-            </th>
+            <th class="text-left pb-2 pr-3" />
             <th
               v-for="day in weekDays"
               :key="formatDate(day)"
-              class="text-center pb-2 px-1 font-medium"
-              :class="isHighlightedDay(day) ? 'text-amber-600 dark:text-amber-400' : 'text-stone-500 dark:text-stone-400'"
+              class="text-center pb-1 px-1 font-medium"
+              :class="[
+                publicHolidays.has(formatDate(day)) ? 'text-stone-400 dark:text-stone-500' :
+                isHighlightedDay(day) ? 'text-amber-600 dark:text-amber-400' : 'text-stone-500 dark:text-stone-400'
+              ]"
               colspan="2"
             >
               {{ getDayName(day) }}
+              <div v-if="publicHolidays.has(formatDate(day))" class="text-[9px] font-normal text-stone-400 dark:text-stone-500 leading-tight truncate max-w-[56px] mx-auto">
+                {{ publicHolidays.get(formatDate(day)) }}
+              </div>
             </th>
           </tr>
           <tr>
@@ -343,23 +358,23 @@ onMounted(load)
             <template v-for="day in weekDays" :key="member.id + '-' + formatDate(day)">
               <td
                 class="py-2 px-0.5 text-center"
-                :class="isHighlightedDay(day) ? 'bg-amber-50/40 dark:bg-amber-950/15' : ''"
+                :class="publicHolidays.has(formatDate(day)) ? 'opacity-40' : isHighlightedDay(day) ? 'bg-amber-50/40 dark:bg-amber-950/15' : ''"
               >
-                <UTooltip :text="getDotTooltip(getEntry(member.id, day, 'matin'))">
+                <UTooltip :text="publicHolidays.has(formatDate(day)) ? publicHolidays.get(formatDate(day)) : getDotTooltip(getEntry(member.id, day, 'matin'))">
                   <span
                     class="inline-block size-3.5 rounded-full"
-                    :class="getDotClasses(getEntry(member.id, day, 'matin'))"
+                    :class="publicHolidays.has(formatDate(day)) ? PLANNING_COLORS.ferie.dot : getDotClasses(getEntry(member.id, day, 'matin'))"
                   />
                 </UTooltip>
               </td>
               <td
                 class="py-2 px-0.5 text-center"
-                :class="isHighlightedDay(day) ? 'bg-amber-50/40 dark:bg-amber-950/15' : ''"
+                :class="publicHolidays.has(formatDate(day)) ? 'opacity-40' : isHighlightedDay(day) ? 'bg-amber-50/40 dark:bg-amber-950/15' : ''"
               >
-                <UTooltip :text="getDotTooltip(getEntry(member.id, day, 'apres_midi'))">
+                <UTooltip :text="publicHolidays.has(formatDate(day)) ? publicHolidays.get(formatDate(day)) : getDotTooltip(getEntry(member.id, day, 'apres_midi'))">
                   <span
                     class="inline-block size-3.5 rounded-full"
-                    :class="getDotClasses(getEntry(member.id, day, 'apres_midi'))"
+                    :class="publicHolidays.has(formatDate(day)) ? PLANNING_COLORS.ferie.dot : getDotClasses(getEntry(member.id, day, 'apres_midi'))"
                   />
                 </UTooltip>
               </td>
