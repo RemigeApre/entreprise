@@ -30,7 +30,11 @@ export function useAuth() {
       // Ignore logout errors
     }
     user.value = null
-    await navigateTo('/login')
+    if (import.meta.client) {
+      window.location.replace('/login')
+    } else {
+      await navigateTo('/login')
+    }
   }
 
   const refresh = async () => {
