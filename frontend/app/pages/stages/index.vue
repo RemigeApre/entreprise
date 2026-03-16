@@ -29,7 +29,7 @@ async function load() {
   try {
     const users = await getAllUsers()
     stagiaires.value = users
-      .filter(u => u.type_contrat === 'Stage' && u.date_debut_contrat && u.date_fin_contrat)
+      .filter(u => u.type_contrat === 'Stage' && u.date_debut_contrat && u.date_fin_contrat && u.statut_emploi !== 'test')
       .map(u => ({
         id: u.id,
         name: getUserName(u),
@@ -88,7 +88,7 @@ function daySpan(startStr: string, endStr: string): { offset: number; width: num
 
 // ─── Capacity per month ──────────────────────────────
 function countStagiairesOnDate(dateStr: string): number {
-  return stagiaires.value.filter(s => s.start <= dateStr && s.end >= dateStr).length
+  return stagiaires.value.filter(s => s.statut !== 'test' && s.start <= dateStr && s.end >= dateStr).length
 }
 
 const monthCapacity = computed(() => {
