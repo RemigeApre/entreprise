@@ -166,9 +166,9 @@ const userMenuItems = computed(() => [
   [
     { label: 'Mon profil', icon: 'i-lucide-user', to: '/profil' },
     ...(isDirecteur.value ? [{ label: 'Administration', icon: 'i-lucide-shield', to: '/admin' }] : []),
-    ...(isDirecteur.value && cmsUrl ? [{ label: 'Directus', icon: 'i-lucide-database', click: () => window.open(cmsUrl, '_blank') }] : [])
+    ...(isDirecteur.value && cmsUrl ? [{ label: 'Directus', icon: 'i-lucide-database', onSelect: () => window.open(cmsUrl, '_blank') }] : [])
   ],
-  [{ label: 'Se deconnecter', icon: 'i-lucide-log-out', click: () => logout() }]
+  [{ label: 'Se deconnecter', icon: 'i-lucide-log-out', onSelect: () => logout() }]
 ])
 </script>
 
