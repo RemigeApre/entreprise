@@ -45,7 +45,6 @@ services:
       REFRESH_TOKEN_COOKIE_SECURE: "true"
       REFRESH_TOKEN_COOKIE_SAME_SITE: "lax"
       REFRESH_TOKEN_COOKIE_NAME: "intranet_refresh_token"
-      ADMIN_APP_PATH: "/_cms"
       LOG_LEVEL: "warn"
       CACHE_ENABLED: "true"
       CACHE_AUTO_PURGE: "true"
@@ -73,7 +72,7 @@ services:
     environment:
       NUXT_PUBLIC_DIRECTUS_URL: ${NUXT_PUBLIC_DIRECTUS_URL}
       NUXT_DIRECTUS_URL: http://directus:8055
-      NUXT_PUBLIC_CMS_URL: "/_cms"
+      NUXT_PUBLIC_CMS_URL: ${DIRECTUS_PUBLIC_URL}/admin
       NODE_ENV: production
     depends_on:
       directus:
