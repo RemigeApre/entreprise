@@ -144,10 +144,7 @@ onMounted(load)
           <tr>
             <!-- Title + search -->
             <th class="text-left pb-3 pr-4" style="min-width: 140px">
-              <div class="flex items-center gap-2">
-                <span class="text-sm font-semibold text-stone-900 dark:text-stone-100 whitespace-nowrap">Presence de l'equipe</span>
-                <span class="text-[10px] font-normal text-stone-400 dark:text-stone-500">{{ teamMembers.length }}</span>
-              </div>
+              <span class="text-sm font-semibold text-stone-900 dark:text-stone-100 whitespace-nowrap">Presence de l'equipe</span>
               <UInput
                 v-if="teamMembers.length > 3"
                 v-model="search"

@@ -293,7 +293,7 @@ onMounted(() => {
             <UButton icon="i-lucide-chevron-right" color="neutral" variant="ghost" size="xs" @click="timetableRef?.nextWeek()" />
           </div>
           <span class="text-sm font-medium text-stone-500 dark:text-stone-400">
-            S{{ weekNumber }} <span class="text-stone-300 dark:text-stone-600 mx-0.5">·</span> {{ weekLabel }}
+            S{{ weekNumber }}
           </span>
           <UTooltip text="Copier la semaine precedente">
             <UButton
@@ -307,25 +307,8 @@ onMounted(() => {
           </UTooltip>
         </div>
 
+        <!-- Actions + pills mobiles -->
         <div class="flex items-center gap-2">
-          <!-- Pills desktop : dans la nav row -->
-          <div class="hidden sm:flex flex-wrap items-center gap-1.5">
-            <button
-              v-for="action in quickActions"
-              :key="action.key"
-              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors"
-              :class="activeAction === action.key
-                ? 'bg-primary text-white border-primary'
-                : 'bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'"
-              @click="activeAction = action.key"
-            >
-              <UIcon :name="action.icon" class="size-3.5" />
-              {{ action.label }}
-            </button>
-          </div>
-
-          <div class="w-px h-5 bg-stone-200 dark:bg-stone-700 hidden sm:block" />
-
           <UButton
             v-if="isDirecteur"
             label="Gestion"
@@ -343,11 +326,27 @@ onMounted(() => {
             size="xs"
             to="/planning/conges"
           />
+
+          <!-- Pills mobiles uniquement -->
+          <div class="flex flex-wrap items-center gap-1.5 sm:hidden">
+            <button
+              v-for="action in quickActions"
+              :key="action.key"
+              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors"
+              :class="activeAction === action.key
+                ? (ACTION_PILL_COLORS[action.key] || 'bg-primary/10 border-primary/40 text-primary')
+                : 'bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'"
+              @click="activeAction = action.key"
+            >
+              <UIcon :name="action.icon" class="size-3.5" />
+              {{ action.label }}
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Pills mobile uniquement -->
-      <div class="flex sm:hidden flex-wrap items-center gap-1.5">
+      <!-- Pills desktop — centrées sous la nav -->
+      <div class="hidden sm:flex flex-wrap justify-center gap-1.5">
         <button
           v-for="action in quickActions"
           :key="action.key"
