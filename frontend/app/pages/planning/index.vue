@@ -361,7 +361,6 @@ onMounted(() => {
 <template>
   <div class="flex flex-col h-full">
     <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
-      <div class="max-w-5xl mx-auto space-y-4">
       <!-- Navigation bar -->
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3">
@@ -540,7 +539,6 @@ onMounted(() => {
           </div>
         </div>
       </template>
-      </div>
     </div>
 
     <!-- Motif modal -->
