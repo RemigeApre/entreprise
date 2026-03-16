@@ -274,7 +274,7 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col h-full">
-    <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+    <div class="flex-1 overflow-y-auto p-4 sm:p-4 space-y-3">
       <!-- Navigation bar -->
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3">
@@ -288,7 +288,25 @@ onMounted(() => {
           </span>
         </div>
 
-        <div class="flex items-center gap-1.5">
+        <div class="flex items-center gap-2">
+          <!-- Pills desktop : dans la nav row -->
+          <div class="hidden sm:flex flex-wrap items-center gap-1.5">
+            <button
+              v-for="action in quickActions"
+              :key="action.key"
+              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors"
+              :class="activeAction === action.key
+                ? 'bg-primary text-white border-primary'
+                : 'bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'"
+              @click="activeAction = action.key"
+            >
+              <UIcon :name="action.icon" class="size-3.5" />
+              {{ action.label }}
+            </button>
+          </div>
+
+          <div class="w-px h-5 bg-stone-200 dark:bg-stone-700 hidden sm:block" />
+
           <UButton
             v-if="isDirecteur"
             label="Gestion"
@@ -319,8 +337,8 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Quick action pills -->
-      <div class="flex flex-wrap items-center gap-1.5">
+      <!-- Pills mobile uniquement -->
+      <div class="flex sm:hidden flex-wrap items-center gap-1.5">
         <button
           v-for="action in quickActions"
           :key="action.key"

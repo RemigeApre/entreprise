@@ -417,7 +417,7 @@ onUnmounted(() => {
       </div>
 
       <!-- Scrollable time grid -->
-      <div ref="gridRef" class="overflow-y-auto" style="max-height: 560px;">
+      <div ref="gridRef" class="overflow-y-auto" style="max-height: min(560px, calc(100svh - 260px)); min-height: 280px;">
         <div class="grid grid-cols-[52px_repeat(5,1fr)] relative" :style="{ height: GRID_HEIGHT + 'px' }">
 
           <!-- Hour labels column -->
