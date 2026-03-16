@@ -54,6 +54,15 @@ const quickActions = computed<QuickAction[]>(() => {
 const activeAction = ref('travail')
 const currentAction = computed(() => quickActions.value.find(a => a.key === activeAction.value)!)
 
+const ACTION_PILL_COLORS: Record<string, string> = {
+  travail:       'bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 dark:border-emerald-600 text-emerald-800 dark:text-emerald-200',
+  teletravail:   'bg-indigo-100 dark:bg-indigo-900/40 border-indigo-400 dark:border-indigo-600 text-indigo-800 dark:text-indigo-200',
+  conge_paye:    'bg-orange-100 dark:bg-orange-900/40 border-orange-400 dark:border-orange-600 text-orange-800 dark:text-orange-200',
+  arret_maladie: 'bg-red-100 dark:bg-red-900/40 border-red-400 dark:border-red-600 text-red-800 dark:text-red-200',
+  ecole:         'bg-sky-100 dark:bg-sky-900/40 border-sky-400 dark:border-sky-600 text-sky-800 dark:text-sky-200',
+  autre:         'bg-stone-200 dark:bg-stone-700 border-stone-400 dark:border-stone-500 text-stone-700 dark:text-stone-200',
+}
+
 // --- Motif modal ---
 const showMotifModal = ref(false)
 const motifInput = ref('')
@@ -344,7 +353,7 @@ onMounted(() => {
           :key="action.key"
           class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors"
           :class="activeAction === action.key
-            ? 'bg-primary text-white border-primary'
+            ? (ACTION_PILL_COLORS[action.key] || 'bg-primary/10 border-primary/40 text-primary')
             : 'bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'"
           @click="activeAction = action.key"
         >
