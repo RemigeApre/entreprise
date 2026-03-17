@@ -372,12 +372,9 @@ function openEvent(event: import('~/utils/types').Evenement) {
 }
 
 function onEventSaved() {
-  eventsRowRef.value?.load()
+  const ref = eventsRowRef.value
+  if (ref && typeof ref.load === 'function') ref.load()
 }
-
-watch(currentMonday, () => {
-  eventsRowRef.value?.load()
-})
 
 onMounted(() => {
   loadStats()

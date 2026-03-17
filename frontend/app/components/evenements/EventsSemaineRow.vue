@@ -26,6 +26,9 @@ async function load() {
   try {
     const friday = weekDays.value[4]
     events.value = await getMyEvents(props.userId, formatDate(props.monday), formatDate(friday))
+  } catch {
+    // silent fail — events are non-critical
+    events.value = []
   } finally {
     loading.value = false
   }
