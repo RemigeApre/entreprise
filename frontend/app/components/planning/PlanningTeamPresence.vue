@@ -73,7 +73,7 @@ async function load() {
         const fin = new Date(u.date_fin_contrat + 'T00:00:00')
         if (fin < today) return false
       }
-      return u.statut_emploi === 'actif' || u.statut_emploi === 'test'
+      return u.statut_emploi === 'actif'
     })
     if (!teamMembers.value.length) return
 

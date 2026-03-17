@@ -10,7 +10,7 @@ const { data: users, status } = useAsyncData('team', () =>
 )
 
 const search = ref('')
-const groupBy = ref<'contrat' | 'pole'>('contrat')
+const groupBy = ref<'contrat' | 'pole'>('pole')
 const adminView = ref(false)
 const showAVenir = ref(false)
 const showTest = ref(false)
@@ -143,18 +143,6 @@ const groupedByPole = computed(() => {
 const currentGroups = computed(() =>
   groupBy.value === 'contrat' ? groupedByContract.value : groupedByPole.value
 )
-
-// --- Stats ---
-const stats = computed(() => {
-  if (!users.value) return { total: 0, actifs: 0, aVenir: 0, tests: 0, bloques: 0, termines: 0, inactifs: 0 }
-  const total = users.value.length
-  const actifs = activeUsers.value.length
-  const aVenir = aVenirUsers.value.length
-  const tests = testUsers.value.length
-  const bloques = bloqueUsers.value.length
-  const termines = termineUsers.value.length
-  return { total, actifs, aVenir, tests, bloques, termines, inactifs: inactiveUsers.value.length }
-})
 
 // --- Helpers ---
 function getUserName(u: UserProfile) {
@@ -415,7 +403,9 @@ function getContractStyle(contrat: string | null) {
             class="block group"
           >
             <div class="flex rounded-lg border border-[rgba(175,143,60,0.15)] bg-[rgba(175,143,60,0.04)] hover:bg-[rgba(175,143,60,0.08)] overflow-hidden transition-colors">
-              <div class="w-[3px] shrink-0" :style="{ background: getContractBand(myCard) }" />
+              <div class="w-7 shrink-0 flex items-center justify-center" :style="{ background: getContractBand(myCard) }">
+                <span class="text-white text-[9px] font-semibold uppercase tracking-wider [writing-mode:vertical-rl] rotate-180 whitespace-nowrap">{{ myCard.type_contrat || '' }}</span>
+              </div>
               <div class="flex items-center gap-3 p-3 flex-1">
                 <UAvatar :alt="getUserName(myCard)" size="md" />
                 <div class="flex-1 min-w-0">
@@ -423,79 +413,12 @@ function getContractStyle(contrat: string | null) {
                     {{ getUserName(myCard) }}
                     <span class="text-xs font-normal text-stone-400 ml-1">— c'est vous</span>
                   </p>
-                  <div class="flex items-center gap-1.5 mt-1">
-                    <span
-                      v-if="getCategoryName(myCard)"
-                      class="text-xs font-medium"
-                      :style="getCategoryColor(myCard) ? { color: getCategoryColor(myCard)! } : {}"
-                      :class="!getCategoryColor(myCard) ? 'text-stone-500' : ''"
-                    >
-                      {{ getCategoryName(myCard) }}
-                    </span>
-                    <span v-if="getCategoryName(myCard) && myCard.type_contrat" class="text-stone-300 text-xs">·</span>
-                    <span
-                      v-if="myCard.type_contrat"
-                      class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border"
-                      :class="[getContractStyle(myCard.type_contrat).bg, getContractStyle(myCard.type_contrat).text, getContractStyle(myCard.type_contrat).border]"
-                    >
-                      {{ myCard.type_contrat }}
-                    </span>
-                  </div>
                 </div>
                 <UIcon name="i-lucide-chevron-right" class="size-4 text-stone-300 group-hover:text-primary transition-colors shrink-0" />
               </div>
             </div>
           </NuxtLink>
 
-          <!-- Stats (directeur) -->
-          <div v-if="isDirecteur" class="flex items-center gap-6 text-sm">
-            <span class="text-stone-500">
-              <strong class="text-stone-900">{{ stats.total }}</strong> membres
-            </span>
-            <span class="text-stone-500">
-              <strong class="text-emerald-600">{{ stats.actifs }}</strong> actifs
-            </span>
-            <span v-if="stats.aVenir" class="text-stone-500">
-              <strong class="text-blue-500">{{ stats.aVenir }}</strong> a venir
-            </span>
-            <span v-if="stats.tests" class="text-stone-500">
-              <strong class="text-orange-500">{{ stats.tests }}</strong> test
-            </span>
-            <span v-if="stats.bloques" class="text-stone-500">
-              <strong class="text-red-500">{{ stats.bloques }}</strong> bloques
-            </span>
-            <span v-if="stats.termines" class="text-stone-500">
-              <strong class="text-stone-400">{{ stats.termines }}</strong> termines
-            </span>
-            <span v-if="stats.inactifs" class="text-stone-500">
-              <strong class="text-red-500">{{ stats.inactifs }}</strong> inactifs
-            </span>
-          </div>
-
-          <!-- Toggle groupement -->
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-stone-400 uppercase tracking-wider font-semibold">Trier par</span>
-            <div class="flex rounded-lg border border-[rgba(175,143,60,0.12)] overflow-hidden">
-              <button
-                class="px-3 py-1 text-xs font-medium transition-colors"
-                :class="groupBy === 'contrat'
-                  ? 'bg-[#af8f3c] text-white'
-                  : 'text-[#2c2419]/50 hover:bg-[rgba(175,143,60,0.06)]'"
-                @click="groupBy = 'contrat'"
-              >
-                Contrat
-              </button>
-              <button
-                class="px-3 py-1 text-xs font-medium transition-colors"
-                :class="groupBy === 'pole'
-                  ? 'bg-[#af8f3c] text-white'
-                  : 'text-[#2c2419]/50 hover:bg-[rgba(175,143,60,0.06)]'"
-                @click="groupBy = 'pole'"
-              >
-                Pole
-              </button>
-            </div>
-          </div>
 
           <!-- Groupes actifs -->
           <div v-if="currentGroups.length" class="space-y-6">
@@ -512,31 +435,15 @@ function getContractStyle(contrat: string | null) {
                   class="group"
                 >
                   <div class="flex rounded-lg border border-[rgba(175,143,60,0.08)] hover:border-[rgba(175,143,60,0.2)] hover:bg-[rgba(175,143,60,0.04)] overflow-hidden transition-colors">
-                    <div class="w-[3px] shrink-0" :style="{ background: getContractBand(member) }" />
+                    <div class="w-7 shrink-0 flex items-center justify-center" :style="{ background: getContractBand(member) }">
+                      <span class="text-white text-[9px] font-semibold uppercase tracking-wider [writing-mode:vertical-rl] rotate-180 whitespace-nowrap">{{ member.type_contrat || '' }}</span>
+                    </div>
                     <div class="flex items-center gap-3 p-3 flex-1">
                       <UAvatar :alt="getUserName(member)" size="md" />
                       <div class="min-w-0 flex-1">
                         <p class="font-medium text-sm text-stone-900 truncate group-hover:text-primary transition-colors">
                           {{ getUserName(member) }}
                         </p>
-                        <div class="flex items-center gap-1.5 mt-1">
-                          <span
-                            v-if="getCategoryName(member) && groupBy !== 'pole'"
-                            class="text-xs font-medium"
-                            :style="getCategoryColor(member) ? { color: getCategoryColor(member)! } : {}"
-                            :class="!getCategoryColor(member) ? 'text-stone-500' : ''"
-                          >
-                            {{ getCategoryName(member) }}
-                          </span>
-                          <span v-if="getCategoryName(member) && groupBy !== 'pole' && member.type_contrat && groupBy !== 'contrat'" class="text-stone-300 text-xs">·</span>
-                          <span
-                            v-if="member.type_contrat && groupBy !== 'contrat'"
-                            class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border"
-                            :class="[getContractStyle(member.type_contrat).bg, getContractStyle(member.type_contrat).text, getContractStyle(member.type_contrat).border]"
-                          >
-                            {{ member.type_contrat }}
-                          </span>
-                        </div>
                       </div>
                     </div>
                   </div>
