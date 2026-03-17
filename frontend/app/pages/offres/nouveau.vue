@@ -13,7 +13,7 @@ const toast = useToast()
 const submitting = ref(false)
 const showSalaire = ref(false)
 
-const { data: allCategories } = useAsyncData('categories', getAllCategories)
+const { data: allCategories } = useAsyncData('categories-offre-nouveau', getAllCategories)
 const selectedCategoryIds = ref<string[]>([])
 
 const categoryOptions = computed(() =>

@@ -19,8 +19,13 @@ interface Stagiaire {
 }
 
 const stagiaires = ref<Stagiaire[]>([])
-const candidatsStage = ref<Candidat[]>([])
+const allCandidats = ref<Candidat[]>([])
 const loading = ref(true)
+
+// Candidats — search + sort
+const candidatSearch = ref('')
+const candidatSort = ref<'date' | 'nom' | 'statut'>('date')
+const candidatSortDir = ref<'asc' | 'desc'>('desc')
 
 function getUserName(u: UserProfile) {
   return [u.first_name, u.last_name].filter(Boolean).join(' ') || u.email
@@ -29,7 +34,7 @@ function getUserName(u: UserProfile) {
 async function load() {
   loading.value = true
   try {
-    const [users, allCandidats] = await Promise.all([getAllUsers(), getAllCandidats()])
+    const [users, candidats] = await Promise.all([getAllUsers(), getAllCandidats()])
     stagiaires.value = users
       .filter(u => u.type_contrat === 'Stage' && u.date_debut_contrat && u.date_fin_contrat && u.statut_emploi !== 'test')
       .map(u => ({
@@ -41,14 +46,41 @@ async function load() {
         statut: (u.statut_emploi || 'actif') as Stagiaire['statut']
       }))
       .sort((a, b) => a.start.localeCompare(b.start))
-    candidatsStage.value = allCandidats.filter(c => {
-      if (!c.offre || typeof c.offre === 'string') return false
-      return (c.offre as OffreEmploi).type_contrat === 'Stage'
-    })
+    allCandidats.value = candidats
   } catch {
     // silent
   } finally {
     loading.value = false
+  }
+}
+
+const filteredCandidats = computed(() => {
+  let list = allCandidats.value
+  if (candidatSearch.value.trim()) {
+    const q = candidatSearch.value.toLowerCase()
+    list = list.filter(c =>
+      `${c.prenom} ${c.nom}`.toLowerCase().includes(q)
+      || c.email?.toLowerCase().includes(q)
+      || c.source?.toLowerCase().includes(q)
+    )
+  }
+  list = [...list].sort((a, b) => {
+    let va: string, vb: string
+    if (candidatSort.value === 'nom') { va = `${a.nom} ${a.prenom}`; vb = `${b.nom} ${b.prenom}` }
+    else if (candidatSort.value === 'statut') { va = a.statut; vb = b.statut }
+    else { va = a.date_created; vb = b.date_created }
+    const cmp = va.localeCompare(vb)
+    return candidatSortDir.value === 'asc' ? cmp : -cmp
+  })
+  return list
+})
+
+function toggleSort(key: 'date' | 'nom' | 'statut') {
+  if (candidatSort.value === key) {
+    candidatSortDir.value = candidatSortDir.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    candidatSort.value = key
+    candidatSortDir.value = key === 'date' ? 'desc' : 'asc'
   }
 }
 
@@ -270,16 +302,51 @@ onMounted(() => {
               </div>
             </div>
           </div>
-          <!-- Candidats Stage -->
-          <div v-if="candidatsStage.length" class="pt-2 space-y-3">
-            <h3 class="text-sm font-semibold text-stone-700 flex items-center gap-2">
-              <UIcon name="i-lucide-user-search" class="size-4 text-stone-400" />
-              Candidats stage
-              <span class="text-xs font-normal text-stone-400">({{ candidatsStage.length }})</span>
-            </h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <!-- Tous les candidats -->
+          <div class="pt-2 space-y-3">
+            <!-- Header candidats -->
+            <div class="flex flex-wrap items-center gap-2">
+              <h3 class="text-sm font-semibold text-stone-700 flex items-center gap-2 mr-auto">
+                <UIcon name="i-lucide-user-search" class="size-4 text-stone-400" />
+                Candidats
+                <span class="text-xs font-normal text-stone-400">({{ filteredCandidats.length }})</span>
+              </h3>
+              <UInput
+                v-model="candidatSearch"
+                placeholder="Rechercher..."
+                icon="i-lucide-search"
+                size="xs"
+                class="w-44"
+              />
+              <div class="flex items-center gap-0.5 text-xs text-stone-400">
+                <button
+                  v-for="opt in [{ key: 'date', label: 'Date' }, { key: 'nom', label: 'Nom' }, { key: 'statut', label: 'Statut' }]"
+                  :key="opt.key"
+                  class="px-2 py-1 rounded transition-colors"
+                  :class="candidatSort === opt.key ? 'text-primary font-semibold bg-primary/10' : 'hover:text-stone-600'"
+                  @click="toggleSort(opt.key as 'date' | 'nom' | 'statut')"
+                >
+                  {{ opt.label }}
+                  <span v-if="candidatSort === opt.key">{{ candidatSortDir === 'asc' ? '↑' : '↓' }}</span>
+                </button>
+              </div>
+              <UButton label="Nouveau" icon="i-lucide-plus" size="xs" to="/candidats/nouveau" />
+            </div>
+
+            <!-- Liste vide -->
+            <div v-if="!allCandidats.length" class="flex flex-col items-center py-8 text-center">
+              <UIcon name="i-lucide-user-search" class="size-10 text-stone-300 mb-3" />
+              <p class="text-sm text-stone-500">Aucun candidat pour le moment</p>
+              <UButton label="Ajouter un candidat" icon="i-lucide-plus" size="sm" class="mt-3" to="/candidats/nouveau" />
+            </div>
+            <div v-else-if="!filteredCandidats.length" class="text-center py-6">
+              <p class="text-sm text-stone-400">Aucun candidat ne correspond à "{{ candidatSearch }}"</p>
+            </div>
+
+            <!-- Grille -->
+            <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <NuxtLink
-                v-for="c in candidatsStage"
+                v-for="c in filteredCandidats"
                 :key="c.id"
                 :to="`/candidats/${c.id}`"
                 class="block"

@@ -14,7 +14,7 @@ const toast = useToast()
 const offreId = route.params.id as string
 
 const { data: offre, status, refresh } = useAsyncData(`offre-${offreId}`, () => getById(offreId))
-const { data: allCategories } = useAsyncData('categories', getAllCategories)
+const { data: allCategories } = useAsyncData('categories-offre-edit', getAllCategories)
 
 const selectedCategoryIds = ref<string[]>([])
 

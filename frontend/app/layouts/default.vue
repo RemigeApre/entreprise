@@ -69,7 +69,7 @@ const domains = computed<Domain[]>(() => {
         { label: 'Equipe', icon: 'i-lucide-users', to: '/equipe' },
         ...(isDirecteur.value ? [
           { label: 'Offres', icon: 'i-lucide-megaphone', to: '/offres' },
-          { label: 'Recrutement', icon: 'i-lucide-user-search', to: '/candidats' }
+          { label: 'Recrutement', icon: 'i-lucide-user-search', to: '/candidats/stages' }
         ] : [])
       ]
     },

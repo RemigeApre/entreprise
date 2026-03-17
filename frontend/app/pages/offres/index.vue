@@ -12,17 +12,17 @@ const toast = useToast()
 const { data: offres, status, refresh } = useAsyncData('offres-emploi', getAll)
 
 const search = ref('')
-const filterContrat = ref<string>('')
-const filterStatut = ref<string>('')
+const filterContrat = ref<string | null>(null)
+const filterStatut = ref<string | null>(null)
 const togglingId = ref<string | null>(null)
 
 const contratOptions = [
-  { label: 'Tous les contrats', value: '' },
+  { label: 'Tous les contrats', value: null },
   ...CONTRACT_OPTIONS
 ]
 
 const statutOptions = [
-  { label: 'Tous les statuts', value: '' },
+  { label: 'Tous les statuts', value: null },
   { label: 'Publiee', value: 'publie' },
   { label: 'Brouillon', value: 'brouillon' }
 ]
@@ -72,8 +72,8 @@ const hasFilters = computed(() => !!search.value || !!filterContrat.value || !!f
 
 function clearFilters() {
   search.value = ''
-  filterContrat.value = ''
-  filterStatut.value = ''
+  filterContrat.value = null
+  filterStatut.value = null
 }
 
 async function handleTogglePublish(offre: OffreEmploi) {
