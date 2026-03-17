@@ -59,6 +59,22 @@ function canSeeField(targetUser: UserProfile, field: keyof VisibiliteProfil): bo
 
 const isStagiaire = computed(() => member.value?.type_contrat === 'Stage')
 
+const memberEffectiveStatus = computed(() => {
+  const u = member.value
+  if (!u) return null
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  if (u.date_debut_contrat) {
+    const debut = new Date(u.date_debut_contrat + 'T00:00:00')
+    if (debut > today) return 'a_venir'
+  }
+  if (u.date_fin_contrat) {
+    const fin = new Date(u.date_fin_contrat + 'T00:00:00')
+    if (fin < today) return 'termine'
+  }
+  return u.statut_emploi || 'actif'
+})
+
 const hasTrialPeriod = computed(() => {
   if (!member.value) return true
   return member.value.type_contrat !== 'Stage' && member.value.type_contrat !== 'Freelance'
@@ -493,10 +509,11 @@ function pct(value: number, max: number) {
               <div class="flex flex-wrap items-center gap-2 mt-2">
                 <UBadge v-if="member.type_contrat" color="neutral" variant="subtle">{{ member.type_contrat }}</UBadge>
                 <UBadge v-if="getCategoryName(member)" variant="outline" color="neutral">{{ getCategoryName(member) }}</UBadge>
-                <UBadge v-if="member.statut_emploi === 'a_venir'" color="blue" variant="subtle">A venir</UBadge>
-                <UBadge v-if="member.statut_emploi === 'test'" color="orange" variant="subtle">Test</UBadge>
-                <UBadge v-if="member.statut_emploi === 'termine'" color="neutral" variant="subtle">Termine</UBadge>
-                <UBadge v-if="!member.actif && member.statut_emploi !== 'a_venir' && member.statut_emploi !== 'test' && member.statut_emploi !== 'termine'" color="error" variant="subtle">Inactif</UBadge>
+                <UBadge v-if="memberEffectiveStatus === 'a_venir'" color="blue" variant="subtle">A venir</UBadge>
+                <UBadge v-if="memberEffectiveStatus === 'test'" color="orange" variant="subtle">Test</UBadge>
+                <UBadge v-if="memberEffectiveStatus === 'bloque'" color="error" variant="subtle">Bloque</UBadge>
+                <UBadge v-if="memberEffectiveStatus === 'termine'" color="neutral" variant="subtle">Termine</UBadge>
+                <UBadge v-if="!member.actif && memberEffectiveStatus !== 'a_venir' && memberEffectiveStatus !== 'termine'" color="error" variant="subtle">Inactif</UBadge>
               </div>
               <p v-if="member.bio && canSeeField(member, 'bio')" class="mt-2 text-sm text-stone-600 italic">{{ member.bio }}</p>
             </div>
@@ -863,7 +880,7 @@ function pct(value: number, max: number) {
                   <USelectMenu v-model="form.type_contrat" :items="contractTypeOptions" value-key="value" placeholder="Selectionner un type" />
                 </UFormField>
                 <UFormField label="Statut">
-                  <USelect v-model="form.statut_emploi" :items="[{ label: 'A venir', value: 'a_venir' }, { label: 'Actif', value: 'actif' }, { label: 'Test', value: 'test' }, { label: 'Termine', value: 'termine' }]" value-key="value" />
+                  <USelect v-model="form.statut_emploi" :items="[{ label: 'Actif', value: 'actif' }, { label: 'Test', value: 'test' }, { label: 'Bloque', value: 'bloque' }]" value-key="value" />
                 </UFormField>
               </div>
               <UFormField label="Ecole / Universite">

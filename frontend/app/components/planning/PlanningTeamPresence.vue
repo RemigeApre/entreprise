@@ -61,7 +61,20 @@ async function load() {
   loading.value = true
   try {
     const allUsers = await getActiveUsers()
-    teamMembers.value = allUsers.filter(u => u.id !== props.currentUserId && u.statut_emploi === 'actif')
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    teamMembers.value = allUsers.filter(u => {
+      if (u.id === props.currentUserId) return false
+      if (u.date_debut_contrat) {
+        const debut = new Date(u.date_debut_contrat + 'T00:00:00')
+        if (debut > today) return false
+      }
+      if (u.date_fin_contrat) {
+        const fin = new Date(u.date_fin_contrat + 'T00:00:00')
+        if (fin < today) return false
+      }
+      return u.statut_emploi === 'actif' || u.statut_emploi === 'test'
+    })
     if (!teamMembers.value.length) return
 
     const userIds = teamMembers.value.map(u => u.id)

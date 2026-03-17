@@ -26,8 +26,8 @@ export const ROLES_WITH_HOUR_TRACKING = [
 export const PLANNING_TYPES = {
   travail: { label: 'Travail', color: 'green', icon: 'i-lucide-briefcase' },
   teletravail: { label: 'Teletravail', color: 'green', icon: 'i-lucide-house' },
-  conge: { label: 'Conge', color: 'orange', icon: 'i-lucide-plane' },
-  ecole: { label: 'Ecole', color: 'blue', icon: 'i-lucide-graduation-cap' },
+  conge: { label: 'Conge', color: 'neutral', icon: 'i-lucide-plane' },
+  ecole: { label: 'Ecole', color: 'red', icon: 'i-lucide-graduation-cap' },
   absent: { label: 'Absent', color: 'red', icon: 'i-lucide-x-circle' },
   ferie: { label: 'Ferie', color: 'neutral', icon: 'i-lucide-calendar-off' }
 } as const
@@ -46,22 +46,22 @@ export const PLANNING_COLORS: Record<string, { bg: string, text: string, border:
     dot: 'bg-indigo-500'
   },
   ecole: {
-    bg: 'bg-sky-100',
-    text: 'text-sky-800',
-    border: 'border-sky-400',
-    dot: 'bg-sky-500'
+    bg: 'bg-red-100',
+    text: 'text-red-700',
+    border: 'border-red-300',
+    dot: 'bg-red-400'
   },
   conge: {
-    bg: 'bg-orange-100',
-    text: 'text-orange-800',
-    border: 'border-orange-400',
-    dot: 'bg-orange-500'
+    bg: 'bg-stone-100',
+    text: 'text-stone-900',
+    border: 'border-stone-500',
+    dot: 'bg-stone-800'
   },
   absent: {
-    bg: 'bg-red-100',
-    text: 'text-red-800',
-    border: 'border-red-400',
-    dot: 'bg-red-500'
+    bg: 'bg-red-200',
+    text: 'text-red-900',
+    border: 'border-red-500',
+    dot: 'bg-red-600'
   },
   ferie: {
     bg: 'bg-stone-200',
@@ -147,6 +147,7 @@ export const STATUT_EMPLOI = {
   a_venir: { label: 'A venir', color: 'blue', icon: 'i-lucide-clock' },
   actif: { label: 'Actif', color: 'green', icon: 'i-lucide-check-circle' },
   test: { label: 'Test', color: 'orange', icon: 'i-lucide-flask-conical' },
+  bloque: { label: 'Bloque', color: 'error', icon: 'i-lucide-lock' },
   termine: { label: 'Termine', color: 'neutral', icon: 'i-lucide-log-out' }
 } as const
 
