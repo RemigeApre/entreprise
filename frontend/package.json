@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@directus/sdk": "^21.1.0",
-    "@nuxtjs/sitemap": "^6.2.0",
+    "@nuxtjs/sitemap": "^7.6.0",
     "isomorphic-dompurify": "^2.4.0",
     "@iconify-json/lucide": "^1.2.90",
     "@iconify-json/simple-icons": "^1.2.70",
