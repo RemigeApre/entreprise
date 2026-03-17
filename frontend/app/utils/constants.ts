@@ -307,16 +307,17 @@ export type RecurrenceType = 'aucune' | 'chaque_jour_ouvre' | 'chaque_jour' | 'c
 // --- Candidats (recrutement) ---
 
 export const CANDIDAT_STATUTS = {
-  nouveau: { label: 'Nouveau', color: 'neutral', icon: 'i-lucide-user-plus' },
-  preselection: { label: 'Preselection', color: 'blue', icon: 'i-lucide-filter' },
-  entretien_tel: { label: 'Entretien tel.', color: 'sky', icon: 'i-lucide-phone' },
-  entretien: { label: 'Entretien', color: 'violet', icon: 'i-lucide-message-square' },
-  test_technique: { label: 'Test technique', color: 'orange', icon: 'i-lucide-code' },
-  offre: { label: 'Offre', color: 'yellow', icon: 'i-lucide-file-text' },
-  accepte: { label: 'Accepte', color: 'green', icon: 'i-lucide-check-circle' },
-  refuse: { label: 'Refuse', color: 'red', icon: 'i-lucide-x-circle' },
-  archive: { label: 'Archive', color: 'neutral', icon: 'i-lucide-archive' }
+  premier_contact: { label: 'Premier contact', color: 'blue', icon: 'i-lucide-phone-outgoing', order: 1 },
+  entretien_prevu: { label: 'Entretien prevu', color: 'violet', icon: 'i-lucide-calendar-clock', order: 2 },
+  entretien_passe: { label: 'Entretien passe', color: 'sky', icon: 'i-lucide-message-square-check', order: 3 },
+  promesse: { label: 'Promesse', color: 'amber', icon: 'i-lucide-handshake', order: 4 },
+  convention_signee: { label: 'Convention signee', color: 'green', icon: 'i-lucide-file-check', order: 5 },
+  echec: { label: 'Echec', color: 'red', icon: 'i-lucide-x-circle', order: 99 }
 } as const
+
+export const CANDIDAT_PIPELINE_ORDER: (keyof typeof CANDIDAT_STATUTS)[] = [
+  'premier_contact', 'entretien_prevu', 'entretien_passe', 'promesse', 'convention_signee'
+]
 
 export const CANDIDAT_SOURCES = [
   'Site web', 'LinkedIn', 'Indeed', 'Cooptation',

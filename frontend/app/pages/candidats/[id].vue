@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Candidat, CandidatStatut, CandidatCommentaire } from '~/utils/types'
-import { CANDIDAT_STATUTS, CANDIDAT_SOURCES } from '~/utils/constants'
+import type { Candidat, CandidatStatut, CandidatCommentaire, ContactOrigin } from '~/utils/types'
+import { CANDIDAT_STATUTS, CANDIDAT_PIPELINE_ORDER, CANDIDAT_SOURCES } from '~/utils/constants'
 
 definePageMeta({ middleware: ['directeur'] })
 
@@ -27,15 +27,15 @@ const editForm = reactive({
   telephone: '',
   linkedin: '',
   source: null as string | null,
-  statut: 'nouveau' as CandidatStatut,
+  contact_origin: 'sortant' as ContactOrigin,
+  date_contact: '',
   offre: null as string | null,
   notes: ''
 })
 
-const statutOptions = Object.entries(CANDIDAT_STATUTS).map(([value, { label }]) => ({ label, value }))
 const sourceOptions = CANDIDAT_SOURCES.map(s => ({ label: s, value: s }))
 const offreOptions = computed(() =>
-  (offres.value || []).map(o => ({ label: o.titre, value: o.id }))
+  [{ label: 'Aucune offre', value: '' }, ...(offres.value || []).map(o => ({ label: o.titre, value: o.id }))]
 )
 
 function startEditing() {
@@ -47,7 +47,8 @@ function startEditing() {
   editForm.telephone = c.telephone || ''
   editForm.linkedin = c.linkedin || ''
   editForm.source = c.source || null
-  editForm.statut = c.statut
+  editForm.contact_origin = c.contact_origin || 'sortant'
+  editForm.date_contact = c.date_contact || ''
   editForm.offre = (typeof c.offre === 'object' && c.offre?.id) || null
   editForm.notes = c.notes || ''
   editing.value = true
@@ -64,7 +65,8 @@ async function saveChanges() {
       telephone: editForm.telephone.trim() || null,
       linkedin: editForm.linkedin.trim() || null,
       source: editForm.source || null,
-      statut: editForm.statut,
+      contact_origin: editForm.contact_origin,
+      date_contact: editForm.date_contact || null,
       offre: editForm.offre || null,
       notes: editForm.notes.trim() || null
     })
@@ -95,11 +97,25 @@ async function handleDelete() {
   }
 }
 
-// --- Quick status ---
-async function setStatut(statut: CandidatStatut) {
+// --- Pipeline progression ---
+function getPipelineIndex(statut: CandidatStatut): number {
+  return CANDIDAT_PIPELINE_ORDER.indexOf(statut as any)
+}
+
+async function advanceTo(statut: CandidatStatut) {
   try {
     await update(candidatId, { statut })
     toast.add({ title: `Statut: ${CANDIDAT_STATUTS[statut].label}`, color: 'success' })
+    await refresh()
+  } catch {
+    toast.add({ title: 'Erreur', color: 'error' })
+  }
+}
+
+async function markEchec() {
+  try {
+    await update(candidatId, { statut: 'echec' as CandidatStatut })
+    toast.add({ title: 'Marque en echec', color: 'error' })
     await refresh()
   } catch {
     toast.add({ title: 'Erreur', color: 'error' })
@@ -229,8 +245,10 @@ function formatDateShort(date: string | null) {
       <div v-else-if="candidat" class="max-w-3xl space-y-6">
         <!-- ===== READ MODE ===== -->
         <template v-if="!editing">
+          <!-- Pipeline progress -->
           <UCard>
-            <div class="space-y-4">
+            <div class="space-y-5">
+              <!-- Header -->
               <div class="flex items-start justify-between gap-3">
                 <div>
                   <div class="flex items-center gap-2 mb-1">
@@ -245,81 +263,124 @@ function formatDateShort(date: string | null) {
                   </p>
                 </div>
                 <div class="text-right text-xs text-stone-400 shrink-0 space-y-0.5">
-                  <p v-if="candidat.source">Source : {{ candidat.source }}</p>
+                  <p>
+                    {{ candidat.contact_origin === 'entrant' ? 'Candidature entrante' : 'Contact sortant' }}
+                  </p>
+                  <p v-if="candidat.date_contact">Contact : {{ formatDateFr(candidat.date_contact) }}</p>
                 </div>
               </div>
 
-              <!-- Quick statut buttons -->
-              <div class="flex flex-wrap gap-1.5">
+              <!-- Pipeline steps -->
+              <div v-if="candidat.statut !== 'echec'" class="flex items-center gap-1">
+                <template v-for="(step, i) in CANDIDAT_PIPELINE_ORDER" :key="step">
+                  <button
+                    class="flex-1 flex flex-col items-center gap-1 py-2 px-1 rounded-lg border transition-all text-center"
+                    :class="getPipelineIndex(candidat.statut) >= i
+                      ? 'border-primary/30 bg-primary/8 text-primary'
+                      : 'border-stone-200 text-stone-400 hover:border-stone-300 hover:text-stone-500'"
+                    @click="advanceTo(step as CandidatStatut)"
+                  >
+                    <UIcon :name="CANDIDAT_STATUTS[step].icon" class="size-4" />
+                    <span class="text-[10px] sm:text-xs font-medium leading-tight">{{ CANDIDAT_STATUTS[step].label }}</span>
+                  </button>
+                  <UIcon v-if="i < CANDIDAT_PIPELINE_ORDER.length - 1" name="i-lucide-chevron-right" class="size-3 text-stone-300 shrink-0" />
+                </template>
+              </div>
+
+              <!-- Echec banner -->
+              <div v-else class="flex items-center gap-3 p-3 rounded-lg bg-red-50 border border-red-200/60 text-sm text-red-700">
+                <UIcon name="i-lucide-x-circle" class="size-5 shrink-0" />
+                <span>Procedure en echec. Le profil sera supprime automatiquement 2 mois apres la mise en echec.</span>
+              </div>
+
+              <!-- Echec button -->
+              <div class="flex items-center gap-2 pt-1">
                 <UButton
-                  v-for="(config, key) in CANDIDAT_STATUTS"
-                  :key="key"
-                  :label="config.label"
-                  :icon="config.icon"
+                  v-if="candidat.statut !== 'echec'"
+                  label="Marquer en echec"
+                  icon="i-lucide-x-circle"
+                  color="error"
+                  variant="ghost"
                   size="xs"
-                  :variant="candidat.statut === key ? 'solid' : 'ghost'"
-                  :color="candidat.statut === key ? (config.color as any) : 'neutral'"
-                  @click="setStatut(key as CandidatStatut)"
+                  @click="markEchec"
+                />
+                <UButton
+                  v-else
+                  label="Reprendre le processus"
+                  icon="i-lucide-rotate-ccw"
+                  variant="ghost"
+                  size="xs"
+                  @click="advanceTo('premier_contact')"
                 />
               </div>
+            </div>
+          </UCard>
 
-              <!-- Info grid -->
-              <div class="grid grid-cols-2 gap-3 text-sm pt-3 border-t border-stone-100">
-                <div>
-                  <span class="text-xs text-stone-400">Email</span>
-                  <p class="font-medium text-stone-800">
-                    <a v-if="candidat.email" :href="`mailto:${candidat.email}`" class="text-primary hover:underline">{{ candidat.email }}</a>
-                    <span v-else>-</span>
-                  </p>
-                </div>
-                <div>
-                  <span class="text-xs text-stone-400">Telephone</span>
-                  <p class="font-medium text-stone-800">
-                    <a v-if="candidat.telephone" :href="`tel:${candidat.telephone}`" class="text-primary hover:underline">{{ candidat.telephone }}</a>
-                    <span v-else>-</span>
-                  </p>
-                </div>
-                <div>
-                  <span class="text-xs text-stone-400">LinkedIn</span>
-                  <p class="font-medium text-stone-800">
-                    <a v-if="candidat.linkedin" :href="candidat.linkedin" target="_blank" class="text-primary hover:underline truncate block">{{ candidat.linkedin }}</a>
-                    <span v-else>-</span>
-                  </p>
-                </div>
-                <div>
-                  <span class="text-xs text-stone-400">Cree le</span>
-                  <p class="font-medium text-stone-800">{{ formatDateFr(candidat.date_created) }}</p>
-                </div>
+          <!-- Info -->
+          <UCard>
+            <div class="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <span class="text-xs text-stone-400">Email</span>
+                <p class="font-medium text-stone-800">
+                  <a v-if="candidat.email" :href="`mailto:${candidat.email}`" class="text-primary hover:underline">{{ candidat.email }}</a>
+                  <span v-else>-</span>
+                </p>
               </div>
+              <div>
+                <span class="text-xs text-stone-400">Telephone</span>
+                <p class="font-medium text-stone-800">
+                  <a v-if="candidat.telephone" :href="`tel:${candidat.telephone}`" class="text-primary hover:underline">{{ candidat.telephone }}</a>
+                  <span v-else>-</span>
+                </p>
+              </div>
+              <div>
+                <span class="text-xs text-stone-400">LinkedIn</span>
+                <p class="font-medium text-stone-800">
+                  <a v-if="candidat.linkedin" :href="candidat.linkedin" target="_blank" class="text-primary hover:underline truncate block">{{ candidat.linkedin }}</a>
+                  <span v-else>-</span>
+                </p>
+              </div>
+              <div>
+                <span class="text-xs text-stone-400">Source</span>
+                <p class="font-medium text-stone-800">{{ candidat.source || '-' }}</p>
+              </div>
+              <div>
+                <span class="text-xs text-stone-400">Date contact</span>
+                <p class="font-medium text-stone-800">{{ formatDateFr(candidat.date_contact) }}</p>
+              </div>
+              <div>
+                <span class="text-xs text-stone-400">Cree le</span>
+                <p class="font-medium text-stone-800">{{ formatDateFr(candidat.date_created) }}</p>
+              </div>
+            </div>
 
-              <!-- CV -->
-              <div class="pt-3 border-t border-stone-100">
-                <span class="text-xs text-stone-400">CV</span>
-                <div class="mt-1 flex items-center gap-2">
-                  <template v-if="candidat.cv">
-                    <a
-                      :href="getCvUrl(candidat.cv)"
-                      target="_blank"
-                      class="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
-                    >
-                      <UIcon name="i-lucide-file-text" class="size-4" />
-                      Telecharger le CV
-                    </a>
-                  </template>
-                  <label class="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-primary cursor-pointer">
-                    <UIcon name="i-lucide-upload" class="size-4" />
-                    <span>{{ candidat.cv ? 'Remplacer' : 'Ajouter un CV' }}</span>
-                    <input type="file" accept=".pdf,.doc,.docx" class="hidden" @change="handleCvUpload">
-                  </label>
-                  <UIcon v-if="uploadingCv" name="i-lucide-loader-2" class="size-4 text-primary animate-spin" />
-                </div>
+            <!-- CV -->
+            <div class="pt-3 mt-3 border-t border-stone-100">
+              <span class="text-xs text-stone-400">CV</span>
+              <div class="mt-1 flex items-center gap-2">
+                <template v-if="candidat.cv">
+                  <a
+                    :href="getCvUrl(candidat.cv)"
+                    target="_blank"
+                    class="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+                  >
+                    <UIcon name="i-lucide-file-text" class="size-4" />
+                    Telecharger le CV
+                  </a>
+                </template>
+                <label class="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-primary cursor-pointer">
+                  <UIcon name="i-lucide-upload" class="size-4" />
+                  <span>{{ candidat.cv ? 'Remplacer' : 'Ajouter un CV' }}</span>
+                  <input type="file" accept=".pdf,.doc,.docx" class="hidden" @change="handleCvUpload">
+                </label>
+                <UIcon v-if="uploadingCv" name="i-lucide-loader-2" class="size-4 text-primary animate-spin" />
               </div>
+            </div>
 
-              <!-- Notes -->
-              <div v-if="candidat.notes" class="pt-3 border-t border-stone-100">
-                <span class="text-xs text-stone-400">Notes</span>
-                <p class="mt-1 text-sm text-stone-700 whitespace-pre-line">{{ candidat.notes }}</p>
-              </div>
+            <!-- Notes -->
+            <div v-if="candidat.notes" class="pt-3 mt-3 border-t border-stone-100">
+              <span class="text-xs text-stone-400">Notes</span>
+              <p class="mt-1 text-sm text-stone-700 whitespace-pre-line">{{ candidat.notes }}</p>
             </div>
           </UCard>
 
@@ -357,9 +418,8 @@ function formatDateShort(date: string | null) {
               <div
                 v-for="(comment, index) in sortedComments"
                 :key="comment.id"
-                class="relative flex gap-3"
+                class="relative flex gap-3 group"
               >
-                <!-- Timeline line -->
                 <div class="flex flex-col items-center">
                   <div class="flex items-center justify-center size-8 rounded-full shrink-0 bg-stone-100">
                     <UIcon name="i-lucide-message-square" class="size-4 text-stone-500" />
@@ -370,7 +430,6 @@ function formatDateShort(date: string | null) {
                   />
                 </div>
 
-                <!-- Content -->
                 <div class="flex-1 pb-4 min-w-0">
                   <div class="flex items-center justify-between gap-2 mb-1">
                     <div class="flex items-center gap-2">
@@ -435,17 +494,41 @@ function formatDateShort(date: string | null) {
 
           <UCard>
             <template #header>
-              <h3 class="text-sm font-semibold text-stone-900">Candidature</h3>
+              <h3 class="text-sm font-semibold text-stone-900">Contact</h3>
             </template>
             <div class="space-y-4">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <UFormField label="Offre associee">
-                  <USelect v-model="editForm.offre" :items="offreOptions" value-key="value" placeholder="Aucune offre" class="w-full" />
+                <UFormField label="Date du contact">
+                  <UInput v-model="editForm.date_contact" type="date" class="w-full" />
                 </UFormField>
-                <UFormField label="Statut">
-                  <USelect v-model="editForm.statut" :items="statutOptions" value-key="value" class="w-full" />
+                <UFormField label="Origine">
+                  <div class="flex items-center gap-2 pt-1">
+                    <button
+                      class="flex-1 flex items-center justify-center gap-1 px-2 py-2 rounded-lg border text-xs font-medium transition-colors"
+                      :class="editForm.contact_origin === 'sortant'
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-stone-200 text-stone-500 hover:bg-stone-50'"
+                      @click="editForm.contact_origin = 'sortant'"
+                    >
+                      <UIcon name="i-lucide-phone-outgoing" class="size-3.5" />
+                      Sortant
+                    </button>
+                    <button
+                      class="flex-1 flex items-center justify-center gap-1 px-2 py-2 rounded-lg border text-xs font-medium transition-colors"
+                      :class="editForm.contact_origin === 'entrant'
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-stone-200 text-stone-500 hover:bg-stone-50'"
+                      @click="editForm.contact_origin = 'entrant'"
+                    >
+                      <UIcon name="i-lucide-phone-incoming" class="size-3.5" />
+                      Entrant
+                    </button>
+                  </div>
                 </UFormField>
               </div>
+              <UFormField label="Offre associee">
+                <USelect v-model="editForm.offre" :items="offreOptions" value-key="value" placeholder="Aucune offre" class="w-full" />
+              </UFormField>
               <UFormField label="Notes">
                 <UTextarea v-model="editForm.notes" :rows="4" class="w-full" />
               </UFormField>

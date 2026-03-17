@@ -54,14 +54,25 @@ async function load() {
   }
 }
 
+const twoMonthsAgo = new Date()
+twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2)
+const twoMonthsAgoStr = twoMonthsAgo.toISOString()
+
 const filteredCandidats = computed(() => {
-  let list = allCandidats.value
+  // Filter out echec candidates older than 2 months
+  let list = allCandidats.value.filter(c => {
+    if (c.statut === 'echec') {
+      const updated = c.date_updated || c.date_created
+      return updated > twoMonthsAgoStr
+    }
+    return true
+  })
   if (candidatSearch.value.trim()) {
     const q = candidatSearch.value.toLowerCase()
     list = list.filter(c =>
       `${c.prenom} ${c.nom}`.toLowerCase().includes(q)
       || c.email?.toLowerCase().includes(q)
-      || c.source?.toLowerCase().includes(q)
+      || c.telephone?.toLowerCase().includes(q)
     )
   }
   list = [...list].sort((a, b) => {
@@ -179,9 +190,7 @@ onMounted(() => {
   <div class="flex flex-col h-full">
     <PageHeader title="Recrutement">
       <template #right>
-        <NuxtLink to="/equipe/nouveau" class="contents">
-          <UButton label="Nouveau stagiaire" icon="i-lucide-plus" size="sm" />
-        </NuxtLink>
+        <UButton label="Nouveau candidat" icon="i-lucide-plus" size="sm" to="/candidats/nouveau" />
       </template>
     </PageHeader>
 
@@ -364,8 +373,14 @@ onMounted(() => {
                       {{ getOffreTitre(c) }}
                     </p>
                     <div class="flex items-center justify-between text-xs text-stone-400">
-                      <span v-if="c.source">{{ c.source }}</span>
-                      <span>{{ formatCandidatDate(c.date_created) }}</span>
+                      <span class="flex items-center gap-1">
+                        <UIcon
+                          :name="c.contact_origin === 'entrant' ? 'i-lucide-phone-incoming' : 'i-lucide-phone-outgoing'"
+                          class="size-3"
+                        />
+                        {{ c.contact_origin === 'entrant' ? 'Entrant' : 'Sortant' }}
+                      </span>
+                      <span>{{ formatCandidatDate(c.date_contact || c.date_created) }}</span>
                     </div>
                   </div>
                 </UCard>

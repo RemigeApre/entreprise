@@ -248,7 +248,8 @@ export interface MonitoredSiteUser {
   utilisateur: UserProfile | string
 }
 
-export type CandidatStatut = 'nouveau' | 'preselection' | 'entretien_tel' | 'entretien' | 'test_technique' | 'offre' | 'accepte' | 'refuse' | 'archive'
+export type CandidatStatut = 'premier_contact' | 'entretien_prevu' | 'entretien_passe' | 'promesse' | 'convention_signee' | 'echec'
+export type ContactOrigin = 'sortant' | 'entrant'
 
 export interface Candidat {
   id: string
@@ -259,6 +260,8 @@ export interface Candidat {
   linkedin: string | null
   source: string | null
   statut: CandidatStatut
+  contact_origin: ContactOrigin | null
+  date_contact: string | null
   notes: string | null
   offre: OffreEmploi | string | null
   cv: string | null
