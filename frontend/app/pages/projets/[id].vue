@@ -20,7 +20,7 @@ const { data: project, status, refresh } = useAsyncData(`project-${projectId}`, 
 const { data: activeUsers } = useAsyncData('active-users', getActiveUsers)
 
 // Fetch categories + prospects for the edit form
-const { data: categories } = useAsyncData('categories', async () => {
+const { data: categories } = useAsyncData('categories-projets-edit', async () => {
   return await $directus.request(readItems('categories', {
     fields: ['id', 'nom', 'couleur'],
     sort: ['nom'],
@@ -28,7 +28,7 @@ const { data: categories } = useAsyncData('categories', async () => {
   })) as Category[]
 })
 
-const { data: prospects } = useAsyncData('prospects-list', async () => {
+const { data: prospects } = useAsyncData('prospects-projets-edit', async () => {
   return await $directus.request(readItems('prospects', {
     fields: ['id', 'nom_entreprise'],
     sort: ['nom_entreprise'],

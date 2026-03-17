@@ -22,7 +22,7 @@ const form = reactive({
 })
 
 // Fetch categories from Directus
-const { data: categories } = useAsyncData('categories', async () => {
+const { data: categories } = useAsyncData('categories-projets-nouveau', async () => {
   return await $directus.request(readItems('categories', {
     fields: ['id', 'nom', 'couleur'],
     sort: ['nom'],
@@ -31,7 +31,7 @@ const { data: categories } = useAsyncData('categories', async () => {
 })
 
 // Fetch prospects for client selection
-const { data: prospects } = useAsyncData('prospects-list', getAllProspects)
+const { data: prospects } = useAsyncData('prospects-projets-nouveau', getAllProspects)
 
 const statutOptions = computed(() => {
   return Object.entries(PROJECT_STATUTS).map(([key, val]) => ({

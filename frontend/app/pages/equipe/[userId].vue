@@ -182,14 +182,14 @@ const newPassword = ref('')
 const confirmPassword = ref('')
 const passwordSaving = ref(false)
 
-const { data: roles } = useAsyncData('directus-roles', async () => {
+const { data: roles } = useAsyncData('roles-equipe-edit', async () => {
   if (!isDirecteur.value) return []
   return await $directus.request(readItems('directus_roles', {
     fields: ['id', 'name'], limit: -1
   })) as { id: string; name: string }[]
 })
 
-const { data: categories } = useAsyncData('categories-list', async () => {
+const { data: categories } = useAsyncData('categories-equipe-edit', async () => {
   if (!isDirecteur.value) return []
   return await $directus.request(readItems('categories', {
     fields: ['id', 'nom'], sort: ['nom'], limit: -1
