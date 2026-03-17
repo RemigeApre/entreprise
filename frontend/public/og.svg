@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#EDE5D0"/>
+
+  <!-- Subtle texture overlay -->
+  <filter id="noise">
+    <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+  <rect width="1200" height="630" filter="url(#noise)" opacity="0.03"/>
+
+  <!-- Gold frame -->
+  <rect x="30" y="30" width="1140" height="570" fill="none" stroke="#AF8F3C" stroke-width="1" opacity="0.3"/>
+  <!-- Corner marks TL -->
+  <path d="M30,30 L70,30 M30,30 L30,70" stroke="#AF8F3C" stroke-width="1.5" opacity="0.6" fill="none"/>
+  <!-- Corner marks TR -->
+  <path d="M1170,30 L1130,30 M1170,30 L1170,70" stroke="#AF8F3C" stroke-width="1.5" opacity="0.6" fill="none"/>
+  <!-- Corner marks BL -->
+  <path d="M30,600 L70,600 M30,600 L30,560" stroke="#AF8F3C" stroke-width="1.5" opacity="0.6" fill="none"/>
+  <!-- Corner marks BR -->
+  <path d="M1170,600 L1130,600 M1170,600 L1170,560" stroke="#AF8F3C" stroke-width="1.5" opacity="0.6" fill="none"/>
+
+  <!-- Center mark top/bottom -->
+  <line x1="600" y1="30" x2="600" y2="44" stroke="#AF8F3C" stroke-width="1" opacity="0.4"/>
+  <line x1="600" y1="600" x2="600" y2="586" stroke="#AF8F3C" stroke-width="1" opacity="0.4"/>
+
+  <!-- Logo watermark -->
+  <image href="/logo.svg" x="430" y="130" width="340" height="340" opacity="0.08"/>
+
+  <!-- Title -->
+  <text x="600" y="295" font-family="Georgia, 'Times New Roman', serif" font-size="64" font-weight="700" fill="#2c2419" text-anchor="middle" letter-spacing="6">Groupe Le Geai</text>
+
+  <!-- Gold divider -->
+  <line x1="480" y1="330" x2="720" y2="330" stroke="#AF8F3C" stroke-width="1" opacity="0.5"/>
+
+  <!-- Subtitle -->
+  <text x="600" y="370" font-family="Georgia, 'Times New Roman', serif" font-size="22" fill="#2c2419" text-anchor="middle" letter-spacing="4" opacity="0.55">Édition · Informatique · Médias</text>
+
+  <!-- Motto -->
+  <text x="600" y="430" font-family="Georgia, 'Times New Roman', serif" font-size="14" font-style="italic" fill="#2c2419" text-anchor="middle" letter-spacing="2" opacity="0.3">Obscuritas nutrit flammam</text>
+
+  <!-- URL -->
+  <text x="600" y="580" font-family="Georgia, 'Times New Roman', serif" font-size="13" fill="#2c2419" text-anchor="middle" letter-spacing="1" opacity="0.25">entreprise.legeai-editions.com</text>
+</svg>

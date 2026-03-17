@@ -15,6 +15,9 @@ useSeoMeta({
 
 const { $directus } = useNuxtApp()
 
+const PAGE_SIZE = 20
+const page = ref(1)
+
 const { data: articles, status } = useAsyncData('articles-publics', async () => {
   try {
     const items = await $directus.request(readItems('articles', {
@@ -26,12 +29,25 @@ const { data: articles, status } = useAsyncData('articles-publics', async () => 
         'id', 'titre', 'contenu', 'date_publication',
         'auteur.first_name', 'auteur.last_name'
       ],
-      sort: ['-date_publication']
+      sort: ['-date_publication'],
+      limit: -1
     }))
     return items as Article[]
   } catch {
     return []
   }
+}, {
+  getCachedData: (key, nuxtApp) => nuxtApp.payload.data[key] ?? nuxtApp.static.data[key]
+})
+
+const visibleArticles = computed(() => {
+  if (!articles.value) return []
+  return articles.value.slice(0, page.value * PAGE_SIZE)
+})
+
+const hasMore = computed(() => {
+  if (!articles.value) return false
+  return visibleArticles.value.length < articles.value.length
 })
 
 const visible = ref(false)
@@ -55,6 +71,11 @@ function formatDate(date: string) {
 
 function formatDay(date: string) {
   return new Date(date).toLocaleDateString('fr-FR', { weekday: 'long' })
+}
+
+function excerpt(html: string): string {
+  const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+  return text.length > 180 ? text.slice(0, 180).trimEnd() + '…' : text
 }
 </script>
 
@@ -111,10 +132,10 @@ function formatDay(date: string) {
     </div>
 
     <!-- Articles feed -->
-    <section v-else class="px-6 pb-20">
+    <section v-else class="px-6 pb-12">
       <div class="max-w-2xl mx-auto space-y-10">
         <article
-          v-for="(article, i) in articles"
+          v-for="(article, i) in visibleArticles"
           :key="article.id"
           class="transition-all duration-700 ease-out"
           :class="visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'"
@@ -128,21 +149,39 @@ function formatDay(date: string) {
             </span>
           </div>
 
-          <!-- Card -->
-          <div class="rounded-2xl border border-stone-200/60 p-6 sm:p-8">
-            <h2 class="font-heading text-lg sm:text-xl font-semibold mb-4">
+          <!-- Card — clickable link -->
+          <NuxtLink
+            :to="`/articles/${article.id}`"
+            class="block rounded-2xl border border-stone-200/60 p-6 sm:p-8 hover:border-stone-300/80 hover:shadow-sm transition-all duration-200 group"
+          >
+            <h2 class="font-heading text-lg sm:text-xl font-semibold mb-3 group-hover:text-[var(--color-brand-gold)] transition-colors duration-200">
               {{ article.titre }}
             </h2>
-            <div class="text-sm text-stone-600 leading-relaxed article-content" v-html="article.contenu" />
+            <p class="text-sm text-stone-500 leading-relaxed line-clamp-3">
+              {{ excerpt(article.contenu) }}
+            </p>
 
-            <!-- Author -->
-            <div v-if="getAuteurNom(article)" class="mt-6 pt-4 border-t border-stone-200/40">
-              <span class="text-xs text-stone-400">
+            <!-- Author + read more -->
+            <div class="mt-5 flex items-center justify-between">
+              <span v-if="getAuteurNom(article)" class="text-xs text-stone-400">
                 {{ getAuteurNom(article) }}
               </span>
+              <span class="text-xs text-[var(--color-brand-gold)]/70 group-hover:text-[var(--color-brand-gold)] transition-colors duration-200 ml-auto">
+                Lire →
+              </span>
             </div>
-          </div>
+          </NuxtLink>
         </article>
+      </div>
+
+      <!-- Load more -->
+      <div v-if="hasMore" class="flex justify-center mt-12">
+        <button
+          class="px-8 py-2.5 border border-stone-300/60 text-stone-500 text-sm rounded-lg hover:border-stone-400 hover:text-stone-700 transition-all duration-200"
+          @click="page++"
+        >
+          Voir plus d'articles
+        </button>
       </div>
     </section>
 
@@ -156,23 +195,3 @@ function formatDay(date: string) {
     </footer>
   </div>
 </template>
-
-<style scoped>
-.article-content :deep(strong) {
-  font-weight: 600;
-  color: inherit;
-}
-.article-content :deep(u) {
-  text-decoration-color: rgba(175, 143, 60, 0.4);
-  text-underline-offset: 3px;
-}
-.article-content :deep(em) {
-  font-style: italic;
-}
-.article-content :deep(p) {
-  margin-bottom: 0.75em;
-}
-.article-content :deep(p:last-child) {
-  margin-bottom: 0;
-}
-</style>

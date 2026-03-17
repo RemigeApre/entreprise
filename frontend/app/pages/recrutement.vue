@@ -24,7 +24,9 @@ useSeoMeta({
   ogTitle: 'Recrutement - Groupe Le Geai',
   ogDescription: 'Rejoignez-nous. Stages, alternances, emplois en édition, informatique et médias. Lyon, télétravail.',
   ogType: 'website',
-  twitterCard: 'summary'
+  ogImage: 'https://entreprise.legeai-editions.com/og.svg',
+  twitterCard: 'summary_large_image',
+  twitterImage: 'https://entreprise.legeai-editions.com/og.svg'
 })
 
 const { $directus } = useNuxtApp()
@@ -52,6 +54,8 @@ const { data: offres, status } = useAsyncData('offres-publiques', async () => {
   } catch {
     return []
   }
+}, {
+  getCachedData: (key, nuxtApp) => nuxtApp.payload.data[key] ?? nuxtApp.static.data[key]
 })
 
 // ── Helpers ──

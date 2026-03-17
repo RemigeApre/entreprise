@@ -2,8 +2,34 @@
 export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
-    '@nuxt/ui'
+    '@nuxt/ui',
+    '@nuxtjs/sitemap'
   ],
+
+  site: {
+    url: 'https://entreprise.legeai-editions.com',
+    name: 'Groupe Le Geai'
+  },
+
+  sitemap: {
+    sources: [
+      '/api/sitemap/articles'
+    ],
+    urls: [
+      { loc: '/', priority: 1.0, changefreq: 'weekly' },
+      { loc: '/le-geai', priority: 0.8, changefreq: 'monthly' },
+      { loc: '/le-geai/transparence', priority: 0.6, changefreq: 'monthly' },
+      { loc: '/soutenir', priority: 0.7, changefreq: 'monthly' },
+      { loc: '/recrutement', priority: 0.9, changefreq: 'weekly' },
+      { loc: '/articles', priority: 0.8, changefreq: 'daily' }
+    ],
+    exclude: [
+      '/admin/**', '/dashboard/**', '/planning/**', '/equipe/**',
+      '/projets/**', '/offres/**', '/candidats/**', '/wiki/**',
+      '/profil/**', '/clients/**', '/stages/**', '/prospection/**',
+      '/emploi-du-temps/**'
+    ]
+  },
 
   devtools: {
     enabled: process.env.NODE_ENV !== 'production'
@@ -71,8 +97,9 @@ export default defineNuxtConfig({
     '/le-geai': { prerender: true },
     '/le-geai/**': { prerender: true },
     '/soutenir': { prerender: true },
-    '/recrutement': { prerender: false },
-    '/articles': { prerender: false },
+    '/recrutement': { prerender: false, headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60' } },
+    '/articles': { prerender: false, headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60' } },
+    '/articles/**': { prerender: false, headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60' } },
     // Intranet routes — SPA only (no SSR, auth is client-side)
     '/admin': { ssr: false },
     '/admin/**': { ssr: false },

@@ -17,7 +17,15 @@ const quotes = [
 const randomQuote = quotes[Math.floor(Math.random() * quotes.length)]
 
 function handleBack() {
-  clearError({ redirect: '/dashboard' })
+  const route = useRoute()
+  const isIntranet = route.path.startsWith('/dashboard') || route.path.startsWith('/planning')
+    || route.path.startsWith('/projets') || route.path.startsWith('/equipe')
+    || route.path.startsWith('/offres') || route.path.startsWith('/candidats')
+    || route.path.startsWith('/wiki') || route.path.startsWith('/admin')
+    || route.path.startsWith('/profil') || route.path.startsWith('/clients')
+    || route.path.startsWith('/stages') || route.path.startsWith('/prospection')
+    || route.path.startsWith('/emploi-du-temps')
+  clearError({ redirect: isIntranet ? '/dashboard' : '/' })
 }
 </script>
 

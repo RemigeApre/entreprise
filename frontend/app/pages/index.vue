@@ -21,7 +21,9 @@ useSeoMeta({
   ogDescription: 'Édition · Informatique · Médias. Groupe culturel pluridisciplinaire basé à Lyon.',
   ogType: 'website',
   ogSiteName: 'Le Geai',
-  twitterCard: 'summary'
+  ogImage: 'https://entreprise.legeai-editions.com/og.svg',
+  twitterCard: 'summary_large_image',
+  twitterImage: 'https://entreprise.legeai-editions.com/og.svg'
 })
 
 useHead({
