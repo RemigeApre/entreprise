@@ -190,7 +190,9 @@ export interface OffreEmploiCategoryJunction {
 export interface OffreEmploi {
   id: string
   titre: string
-  description: string
+  duree: string | null           // durée du contrat (pour CDD, Stage, Alternance)
+  description: string            // présentation de l'entreprise
+  missions: string | null        // missions du poste
   type_contrat: TypeContrat
   localisation: string
   teletravail: string | null
@@ -199,8 +201,9 @@ export interface OffreEmploi {
   salaire_periode: 'heure' | 'mois' | 'annee' | null
   categorie: Category | string | null
   categories?: OffreEmploiCategoryJunction[]
-  competences_requises: string | null
-  avantages: string | null
+  competences_requises: string | null  // attendus
+  avantages: string | null             // ce que vous gagnez
+  conditions: string | null            // conditions
   publie: boolean
   date_publication: string | null
   date_expiration: string | null

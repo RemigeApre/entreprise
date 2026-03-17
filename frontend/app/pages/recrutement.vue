@@ -37,9 +37,9 @@ const { data: offres, status } = useAsyncData('offres-publiques', async () => {
         ]
       },
       fields: [
-        'id', 'titre', 'description', 'type_contrat', 'localisation', 'teletravail',
+        'id', 'titre', 'duree', 'description', 'missions', 'type_contrat', 'localisation', 'teletravail',
         'salaire_min', 'salaire_max', 'salaire_periode',
-        'competences_requises', 'avantages', 'date_publication',
+        'competences_requises', 'avantages', 'conditions', 'date_publication',
         'categorie.id', 'categorie.nom', 'categorie.couleur',
         'categories.categories_id.id', 'categories.categories_id.nom', 'categories.categories_id.couleur'
       ],
@@ -139,6 +139,37 @@ function formatSalaire(offre: OffreEmploi) {
 
 function formatDate(date: string) {
   return new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+// ── Sharing ──
+const copiedLink = ref(false)
+
+function getShareUrl(offre: OffreEmploi) {
+  if (import.meta.client) {
+    return `${window.location.origin}/recrutement`
+  }
+  return '/recrutement'
+}
+
+function shareLinkedIn(offre: OffreEmploi) {
+  const url = encodeURIComponent(getShareUrl(offre))
+  window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank', 'noopener')
+}
+
+function shareTwitter(offre: OffreEmploi) {
+  const url = encodeURIComponent(getShareUrl(offre))
+  const text = encodeURIComponent(`${offre.titre} — Le Geai`)
+  window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank', 'noopener')
+}
+
+async function copyLink(offre: OffreEmploi) {
+  try {
+    await navigator.clipboard.writeText(getShareUrl(offre))
+    copiedLink.value = true
+    setTimeout(() => { copiedLink.value = false }, 2000)
+  } catch {
+    // ignore
+  }
 }
 </script>
 
@@ -291,6 +322,9 @@ function formatDate(date: string) {
             <span class="slideover-contrat" :style="{ borderColor: contratColor(selectedOffre.type_contrat) + '80', color: contratColor(selectedOffre.type_contrat) }">
               {{ selectedOffre.type_contrat }}
             </span>
+            <span v-if="selectedOffre.duree" class="slideover-contrat" style="opacity:0.6">
+              {{ selectedOffre.duree }}
+            </span>
             <span
               v-for="cat in getCategories(selectedOffre)"
               :key="cat.id"
@@ -309,26 +343,56 @@ function formatDate(date: string) {
           <div class="slideover-sep" />
 
           <div v-if="selectedOffre.description">
-            <h3 class="slideover-heading">Description</h3>
-            <div class="slideover-prose" v-html="selectedOffre.description" />
+            <h3 class="slideover-heading">Présentation de l'entreprise</h3>
+            <div class="slideover-prose" style="white-space: pre-line">{{ selectedOffre.description }}</div>
+          </div>
+
+          <div v-if="selectedOffre.missions">
+            <h3 class="slideover-heading">Missions</h3>
+            <div class="slideover-prose" style="white-space: pre-line">{{ selectedOffre.missions }}</div>
           </div>
 
           <div v-if="selectedOffre.competences_requises">
-            <h3 class="slideover-heading">Compétences requises</h3>
-            <div class="slideover-prose" v-html="selectedOffre.competences_requises" />
+            <h3 class="slideover-heading">Attendus</h3>
+            <div class="slideover-prose" style="white-space: pre-line">{{ selectedOffre.competences_requises }}</div>
           </div>
 
           <div v-if="selectedOffre.avantages">
-            <h3 class="slideover-heading">Avantages</h3>
-            <div class="slideover-prose" v-html="selectedOffre.avantages" />
+            <h3 class="slideover-heading">Ce que vous gagnez</h3>
+            <div class="slideover-prose" style="white-space: pre-line">{{ selectedOffre.avantages }}</div>
+          </div>
+
+          <div v-if="formatSalaire(selectedOffre)">
+            <h3 class="slideover-heading">Rémunération</h3>
+            <p class="slideover-prose">{{ formatSalaire(selectedOffre) }}</p>
+          </div>
+
+          <div v-if="selectedOffre.conditions">
+            <h3 class="slideover-heading">Conditions</h3>
+            <div class="slideover-prose" style="white-space: pre-line">{{ selectedOffre.conditions }}</div>
           </div>
 
           <div class="slideover-sep" />
 
           <p class="slideover-cta">
             Pour postuler, envoyez votre CV à
-            <strong>recrutement@legeai-editions.com</strong>
+            <strong>administration@legeai-editions.com</strong>
           </p>
+
+          <!-- Social sharing -->
+          <div class="slideover-share">
+            <span class="slideover-share-label">Partager</span>
+            <button class="share-btn" title="Partager sur LinkedIn" @click="shareLinkedIn(selectedOffre)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+            </button>
+            <button class="share-btn" title="Partager sur X (Twitter)" @click="shareTwitter(selectedOffre)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </button>
+            <button class="share-btn" :class="{ 'is-copied': copiedLink }" :title="copiedLink ? 'Lien copié !' : 'Copier le lien'" @click="copyLink(selectedOffre)">
+              <svg v-if="!copiedLink" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </button>
+          </div>
         </div>
       </template>
     </USlideover>
@@ -792,6 +856,33 @@ function formatDate(date: string) {
   opacity: 1;
   color: var(--gold);
 }
+.slideover-share {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.slideover-share-label {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.35;
+}
+.share-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--gold-faint);
+  background: none;
+  color: var(--gold);
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity 0.2s, border-color 0.2s;
+}
+.share-btn:hover { opacity: 1; border-color: var(--gold-dim); }
+.share-btn.is-copied { opacity: 1; color: #5a9a6a; border-color: #5a9a6a60; }
 
 /* ============================
    RESPONSIVE — mirror of index.vue

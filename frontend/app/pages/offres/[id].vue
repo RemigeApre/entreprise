@@ -38,7 +38,9 @@ const showSalaire = ref(false)
 
 const form = reactive({
   titre: '',
+  duree: '',
   description: '',
+  missions: '',
   type_contrat: 'CDI' as TypeContrat,
   localisation: '',
   teletravail: '',
@@ -47,6 +49,7 @@ const form = reactive({
   salaire_periode: 'mois' as 'heure' | 'mois' | 'annee',
   competences_requises: '',
   avantages: '',
+  conditions: '',
   publie: false,
   date_expiration: ''
 })
@@ -55,7 +58,9 @@ function startEditing() {
   if (!offre.value) return
   const val = offre.value
   form.titre = val.titre
+  form.duree = val.duree || ''
   form.description = val.description
+  form.missions = val.missions || ''
   form.type_contrat = val.type_contrat
   form.localisation = val.localisation
   form.teletravail = val.teletravail || ''
@@ -64,6 +69,7 @@ function startEditing() {
   form.salaire_periode = val.salaire_periode || 'mois'
   form.competences_requises = val.competences_requises || ''
   form.avantages = val.avantages || ''
+  form.conditions = val.conditions || ''
   form.publie = val.publie
   form.date_expiration = val.date_expiration ? val.date_expiration.split('T')[0] : ''
   showSalaire.value = !!(val.salaire_min || val.salaire_max)
@@ -72,8 +78,8 @@ function startEditing() {
 }
 
 async function handleSubmit() {
-  if (!form.titre || !form.description || !form.localisation) {
-    toast.add({ title: 'Veuillez remplir tous les champs obligatoires', color: 'warning' })
+  if (!form.titre || !form.localisation) {
+    toast.add({ title: 'Titre et lieu sont obligatoires', color: 'warning' })
     return
   }
 
@@ -81,7 +87,9 @@ async function handleSubmit() {
   try {
     const payload: Record<string, unknown> = {
       titre: form.titre,
-      description: form.description,
+      duree: form.duree || null,
+      description: form.description || null,
+      missions: form.missions || null,
       type_contrat: form.type_contrat,
       localisation: form.localisation,
       teletravail: form.teletravail || null,
@@ -90,6 +98,7 @@ async function handleSubmit() {
       salaire_periode: showSalaire.value ? form.salaire_periode : null,
       competences_requises: form.competences_requises || null,
       avantages: form.avantages || null,
+      conditions: form.conditions || null,
       publie: form.publie,
       date_expiration: form.date_expiration || null,
       categories: selectedCategoryIds.value.map(id => ({ categories_id: id }))
@@ -127,9 +136,7 @@ async function handleDelete() {
 function formatDateLong(date: string | null) {
   if (!date) return '-'
   return new Date(date).toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
+    day: 'numeric', month: 'long', year: 'numeric'
   })
 }
 
@@ -196,6 +203,10 @@ function formatSalaire(o: OffreEmploi) {
                 <UIcon name="i-lucide-map-pin" class="size-3.5" />
                 {{ offre.localisation }}
               </span>
+              <span v-if="offre.duree" class="flex items-center gap-1.5">
+                <UIcon name="i-lucide-timer" class="size-3.5" />
+                {{ offre.duree }}
+              </span>
               <span v-if="offre.teletravail" class="flex items-center gap-1.5">
                 <UIcon name="i-lucide-laptop" class="size-3.5" />
                 Teletravail {{ offre.teletravail }}
@@ -213,34 +224,56 @@ function formatSalaire(o: OffreEmploi) {
           </div>
         </UCard>
 
-        <!-- Description -->
-        <UCard>
+        <UCard v-if="offre.description">
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900">Description</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Presentation de l'entreprise</h3>
           </template>
           <p class="text-sm text-stone-700 whitespace-pre-line">{{ offre.description }}</p>
         </UCard>
 
-        <!-- Competences & Avantages -->
-        <UCard v-if="offre.competences_requises || offre.avantages">
+        <UCard v-if="offre.missions">
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900">Details complementaires</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Missions</h3>
           </template>
-          <div class="space-y-4">
-            <div v-if="offre.competences_requises">
-              <span class="text-xs font-medium text-stone-500 uppercase tracking-wider">Competences requises</span>
-              <p class="mt-1 text-sm text-stone-700 whitespace-pre-line">{{ offre.competences_requises }}</p>
-            </div>
-            <div v-if="offre.avantages">
-              <span class="text-xs font-medium text-stone-500 uppercase tracking-wider">Avantages</span>
-              <p class="mt-1 text-sm text-stone-700 whitespace-pre-line">{{ offre.avantages }}</p>
-            </div>
+          <p class="text-sm text-stone-700 whitespace-pre-line">{{ offre.missions }}</p>
+        </UCard>
+
+        <UCard v-if="offre.competences_requises">
+          <template #header>
+            <h3 class="text-sm font-semibold text-stone-900">Attendus</h3>
+          </template>
+          <p class="text-sm text-stone-700 whitespace-pre-line">{{ offre.competences_requises }}</p>
+        </UCard>
+
+        <UCard v-if="offre.avantages">
+          <template #header>
+            <h3 class="text-sm font-semibold text-stone-900">Ce que vous gagnez</h3>
+          </template>
+          <p class="text-sm text-stone-700 whitespace-pre-line">{{ offre.avantages }}</p>
+        </UCard>
+
+        <UCard v-if="formatSalaire(offre) || offre.conditions">
+          <template #header>
+            <h3 class="text-sm font-semibold text-stone-900">Conditions</h3>
+          </template>
+          <div class="space-y-3 text-sm text-stone-700">
+            <p v-if="formatSalaire(offre)" class="flex items-center gap-2">
+              <UIcon name="i-lucide-banknote" class="size-4 text-stone-400" />
+              {{ formatSalaire(offre) }}
+            </p>
+            <p v-if="offre.conditions" class="whitespace-pre-line">{{ offre.conditions }}</p>
           </div>
         </UCard>
+
+        <div class="p-3 rounded-lg bg-stone-50 border border-stone-100 text-xs text-stone-500">
+          Contact : <strong class="text-stone-700">administration@legeai-editions.com</strong>
+        </div>
       </div>
 
       <!-- ==================== MODE EDITION ==================== -->
       <div v-else-if="offre && isEditing" class="max-w-2xl mx-auto space-y-6">
+
+        <!-- Informations générales -->
         <UCard>
           <template #header>
             <h3 class="text-sm font-semibold text-stone-900">Informations generales</h3>
@@ -249,21 +282,22 @@ function formatSalaire(o: OffreEmploi) {
             <UFormField label="Titre *">
               <UInput v-model="form.titre" placeholder="Ex: Developpeur Full Stack" class="w-full" />
             </UFormField>
-            <UFormField label="Description *">
-              <UTextarea v-model="form.description" placeholder="Decrivez le poste en detail..." :rows="6" class="w-full" />
-            </UFormField>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <UFormField label="Type de contrat *">
                 <USelectMenu v-model="form.type_contrat" :items="CONTRACT_OPTIONS" value-key="value" class="w-full" />
               </UFormField>
-              <UFormField label="Localisation *">
-                <UInput v-model="form.localisation" placeholder="Ex: Lyon, France" icon="i-lucide-map-pin" class="w-full" />
+              <UFormField label="Duree">
+                <UInput v-model="form.duree" placeholder="Ex: 6 mois, 1 an, 2 ans" class="w-full" />
               </UFormField>
             </div>
-            <UFormField label="Teletravail">
-              <UInput v-model="form.teletravail" placeholder="Ex: 90%, 2j/sem, 100%" icon="i-lucide-laptop" class="w-full" />
-            </UFormField>
-
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <UFormField label="Lieu *">
+                <UInput v-model="form.localisation" placeholder="Ex: Lyon, France" icon="i-lucide-map-pin" class="w-full" />
+              </UFormField>
+              <UFormField label="Teletravail">
+                <UInput v-model="form.teletravail" placeholder="Ex: 2j/sem, 100%, Non" icon="i-lucide-laptop" class="w-full" />
+              </UFormField>
+            </div>
             <UFormField label="Categories">
               <USelectMenu
                 v-model="selectedCategoryIds"
@@ -277,6 +311,39 @@ function formatSalaire(o: OffreEmploi) {
           </div>
         </UCard>
 
+        <!-- Présentation de l'entreprise -->
+        <UCard>
+          <template #header>
+            <h3 class="text-sm font-semibold text-stone-900">Presentation de l'entreprise</h3>
+          </template>
+          <UTextarea v-model="form.description" placeholder="Presentez le groupe Le Geai, ses valeurs, son activite..." :rows="5" class="w-full" />
+        </UCard>
+
+        <!-- Missions -->
+        <UCard>
+          <template #header>
+            <h3 class="text-sm font-semibold text-stone-900">Missions</h3>
+          </template>
+          <UTextarea v-model="form.missions" placeholder="Decrivez les missions confiees au poste..." :rows="5" class="w-full" />
+        </UCard>
+
+        <!-- Attendus -->
+        <UCard>
+          <template #header>
+            <h3 class="text-sm font-semibold text-stone-900">Attendus</h3>
+          </template>
+          <UTextarea v-model="form.competences_requises" placeholder="Profil recherche, competences, experiences..." :rows="4" class="w-full" />
+        </UCard>
+
+        <!-- Ce que vous gagnez -->
+        <UCard>
+          <template #header>
+            <h3 class="text-sm font-semibold text-stone-900">Ce que vous gagnez</h3>
+          </template>
+          <UTextarea v-model="form.avantages" placeholder="Avantages, ambiance, perspectives, teletravail..." :rows="4" class="w-full" />
+        </UCard>
+
+        <!-- Rémunération -->
         <UCard>
           <template #header>
             <div class="flex items-center justify-between">
@@ -300,23 +367,17 @@ function formatSalaire(o: OffreEmploi) {
               </UFormField>
             </div>
           </div>
-          <p v-else class="text-sm text-stone-500">
-            Le salaire ne sera pas affiche sur l'offre.
-          </p>
+          <p v-else class="text-sm text-stone-500">La remuneration ne sera pas affichee sur l'offre.</p>
         </UCard>
 
+        <!-- Conditions -->
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900">Details complementaires</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Conditions</h3>
           </template>
           <div class="space-y-4">
-            <UFormField label="Competences requises">
-              <UTextarea v-model="form.competences_requises" placeholder="Listez les competences attendues..." :rows="4" class="w-full" />
-            </UFormField>
-            <UFormField label="Avantages">
-              <UTextarea v-model="form.avantages" placeholder="Ex: Teletravail, tickets restaurant, mutuelle..." :rows="3" class="w-full" />
-            </UFormField>
-            <UFormField label="Date d'expiration">
+            <UTextarea v-model="form.conditions" placeholder="Conditions particulieres, prise de poste, modalites..." :rows="3" class="w-full" />
+            <UFormField label="Date d'expiration de l'offre">
               <UInput v-model="form.date_expiration" type="date" class="w-full" />
             </UFormField>
           </div>
@@ -324,9 +385,7 @@ function formatSalaire(o: OffreEmploi) {
 
         <div class="flex items-center gap-3">
           <USwitch v-model="form.publie" />
-          <span class="text-sm text-stone-700">
-            {{ form.publie ? 'Publiee' : 'Brouillon' }}
-          </span>
+          <span class="text-sm text-stone-700">{{ form.publie ? 'Publiee' : 'Brouillon' }}</span>
         </div>
       </div>
 
@@ -338,7 +397,7 @@ function formatSalaire(o: OffreEmploi) {
       </div>
     </div>
 
-    <!-- Modal confirmation suppression -->
+    <!-- Modal suppression -->
     <UModal v-model:open="showDeleteModal">
       <template #content>
         <div class="p-6 space-y-4">
@@ -349,7 +408,7 @@ function formatSalaire(o: OffreEmploi) {
             <h3 class="text-lg font-semibold text-stone-900">Supprimer cette offre</h3>
           </div>
           <p class="text-sm text-stone-500">
-            Etes-vous sur de vouloir supprimer l'offre <strong>{{ offre?.titre }}</strong> ?
+            Etes-vous sur de vouloir supprimer <strong>{{ offre?.titre }}</strong> ?
             Cette action est irreversible.
           </p>
           <div class="flex justify-end gap-3">
