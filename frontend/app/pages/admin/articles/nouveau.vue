@@ -80,7 +80,7 @@ async function handleSubmit() {
       <div class="max-w-2xl mx-auto space-y-6">
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Contenu</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Contenu</h3>
           </template>
 
           <div class="space-y-4">
@@ -95,7 +95,7 @@ async function handleSubmit() {
                 :rows="12"
                 class="w-full"
               />
-              <p class="text-xs text-stone-400 dark:text-stone-500 mt-1">
+              <p class="text-xs text-stone-400 mt-1">
                 Mise en forme : &lt;strong&gt;gras&lt;/strong&gt;, &lt;u&gt;souligne&lt;/u&gt;, &lt;em&gt;italique&lt;/em&gt;. Les emojis sont supportes.
               </p>
             </UFormField>
@@ -104,7 +104,7 @@ async function handleSubmit() {
 
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Publication</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Publication</h3>
           </template>
 
           <div class="space-y-4">

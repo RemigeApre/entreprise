@@ -64,7 +64,7 @@ onMounted(fetchNotifications)
       <div v-for="notif in notifications" :key="notif.id" class="flex items-start gap-2">
         <UIcon :name="getIcon(notif.type)" class="size-4 text-primary mt-0.5 shrink-0" />
         <div class="flex-1 min-w-0">
-          <p class="text-[12px] text-stone-700 dark:text-stone-300">{{ notif.message }}</p>
+          <p class="text-[12px] text-stone-700">{{ notif.message }}</p>
           <p class="text-[11px] text-stone-400 mt-0.5">{{ formatRelativeTime(notif.date_created) }}</p>
         </div>
         <div class="flex items-center gap-0.5 shrink-0">

@@ -262,8 +262,8 @@ onUnmounted(() => {
 
       <!-- Not found -->
       <div v-else-if="!page" class="text-center py-12">
-        <UIcon name="i-lucide-file-x" class="size-10 text-stone-300 dark:text-stone-700 mx-auto mb-3" />
-        <p class="text-stone-500 dark:text-stone-400">Page introuvable</p>
+        <UIcon name="i-lucide-file-x" class="size-10 text-stone-300 mx-auto mb-3" />
+        <p class="text-stone-500">Page introuvable</p>
         <UButton label="Retour au wiki" to="/wiki" variant="subtle" class="mt-4" />
       </div>
 
@@ -272,10 +272,10 @@ onUnmounted(() => {
         <!-- Mode lecture -->
         <template v-if="!isEditing">
           <!-- Breadcrumb -->
-          <nav class="flex items-center gap-1.5 text-xs text-stone-400 dark:text-stone-600 mb-6">
+          <nav class="flex items-center gap-1.5 text-xs text-stone-400 mb-6">
             <NuxtLink to="/wiki" class="hover:text-[#AF8F3C] transition-colors">Wiki</NuxtLink>
             <UIcon name="i-lucide-chevron-right" class="size-3" />
-            <span class="text-stone-600 dark:text-stone-400 truncate">{{ page.titre }}</span>
+            <span class="text-stone-600 truncate">{{ page.titre }}</span>
           </nav>
 
           <div class="flex gap-10">
@@ -294,10 +294,10 @@ onUnmounted(() => {
                   />
                 </div>
                 <div class="min-w-0">
-                  <h1 class="font-heading text-2xl sm:text-3xl font-bold text-stone-900 dark:text-white leading-tight">
+                  <h1 class="font-heading text-2xl sm:text-3xl font-bold text-stone-900 leading-tight">
                     {{ page.titre }}
                   </h1>
-                  <div class="flex flex-wrap items-center gap-3 mt-2 text-xs text-stone-400 dark:text-stone-500">
+                  <div class="flex flex-wrap items-center gap-3 mt-2 text-xs text-stone-400">
                     <span class="flex items-center gap-1">
                       <UIcon name="i-lucide-clock" class="size-3" />
                       {{ readingTimeMin }} min de lecture
@@ -334,7 +334,7 @@ onUnmounted(() => {
                     <span class="wiki-chapter-num-text">{{ String(chapter.index).padStart(2, '0') }}</span>
                   </div>
                   <div
-                    class="wiki-article-content prose prose-stone dark:prose-invert prose-sm sm:prose-base max-w-none"
+                    class="wiki-article-content prose prose-stone prose-sm sm:prose-base max-w-none"
                     v-html="chapter.html"
                   />
                 </div>
@@ -343,13 +343,13 @@ onUnmounted(() => {
               <!-- ══ Contenu brut (pas de h2) ══ -->
               <div
                 v-else
-                class="wiki-article-content prose prose-stone dark:prose-invert prose-sm sm:prose-base max-w-none"
+                class="wiki-article-content prose prose-stone prose-sm sm:prose-base max-w-none"
                 v-html="processedContent"
               />
 
               <!-- Footer meta -->
               <div class="wiki-article-footer">
-                <div class="flex items-center gap-2 text-xs text-stone-400 dark:text-stone-600">
+                <div class="flex items-center gap-2 text-xs text-stone-400">
                   <UIcon name="i-lucide-info" class="size-3.5" />
                   <template v-if="page.date_updated">
                     Derniere mise a jour le {{ formatDate(page.date_updated) }}
@@ -360,7 +360,7 @@ onUnmounted(() => {
                 </div>
                 <NuxtLink
                   to="/wiki"
-                  class="flex items-center gap-1.5 text-xs text-stone-400 dark:text-stone-600 hover:text-[#AF8F3C] transition-colors"
+                  class="flex items-center gap-1.5 text-xs text-stone-400 hover:text-[#AF8F3C] transition-colors"
                 >
                   <UIcon name="i-lucide-arrow-left" class="size-3" />
                   Retour au wiki
@@ -380,17 +380,17 @@ onUnmounted(() => {
           <div class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="flex flex-col gap-1.5">
-                <label class="text-sm font-semibold text-stone-700 dark:text-stone-300">Titre</label>
+                <label class="text-sm font-semibold text-stone-700">Titre</label>
                 <UInput v-model="editTitre" placeholder="Titre de la page" />
               </div>
               <div class="flex flex-col gap-1.5">
-                <label class="text-sm font-semibold text-stone-700 dark:text-stone-300">Icone (Lucide)</label>
+                <label class="text-sm font-semibold text-stone-700">Icone (Lucide)</label>
                 <UInput v-model="editIcone" placeholder="i-lucide-file-text" />
               </div>
             </div>
 
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-semibold text-stone-700 dark:text-stone-300">Contenu</label>
+              <label class="text-sm font-semibold text-stone-700">Contenu</label>
               <WikiEditor v-model="editContent" />
             </div>
           </div>
@@ -403,7 +403,7 @@ onUnmounted(() => {
       <template #content>
         <div class="p-6">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Sommaire</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Sommaire</h3>
             <UButton
               icon="i-lucide-x"
               variant="ghost"
@@ -421,8 +421,8 @@ onUnmounted(() => {
     <UModal v-model:open="showDeleteConfirm">
       <template #content>
         <div class="p-6">
-          <h3 class="text-lg font-semibold text-stone-900 dark:text-white mb-2">Supprimer cette page ?</h3>
-          <p class="text-sm text-stone-500 dark:text-stone-400 mb-6">
+          <h3 class="text-lg font-semibold text-stone-900 mb-2">Supprimer cette page ?</h3>
+          <p class="text-sm text-stone-500 mb-6">
             La page "{{ page?.titre }}" sera definitivement supprimee. Cette action est irreversible.
           </p>
           <div class="flex justify-end gap-3">

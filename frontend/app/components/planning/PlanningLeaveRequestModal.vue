@@ -102,7 +102,7 @@ function handleSubmit() {
   <UModal :open="open" @update:open="emit('update:open', $event)">
     <template #content>
       <div class="p-6">
-        <h3 class="text-lg font-semibold text-stone-900 dark:text-white mb-4">
+        <h3 class="text-lg font-semibold text-stone-900 mb-4">
           Demander un conge
         </h3>
 
@@ -146,7 +146,7 @@ function handleSubmit() {
             {{ contractError }}
           </p>
 
-          <p v-if="halfDayCount > 0" class="text-sm text-stone-500 dark:text-stone-400 flex items-center gap-1.5">
+          <p v-if="halfDayCount > 0" class="text-sm text-stone-500 flex items-center gap-1.5">
             <UIcon name="i-lucide-calendar-days" class="size-4" />
             {{ halfDayCount }} demi-journee{{ halfDayCount > 1 ? 's' : '' }} de conge
           </p>

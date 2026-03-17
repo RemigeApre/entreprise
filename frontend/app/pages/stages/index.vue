@@ -109,15 +109,15 @@ const todayOffset = computed(() => dayOffset(todayStr))
 
 // ─── Stagiaire bar colors ────────────────────────────
 function barColor(s: Stagiaire): string {
-  if (s.statut === 'termine') return 'bg-stone-300 dark:bg-stone-600'
-  if (s.statut === 'a_venir') return 'bg-blue-400/80 dark:bg-blue-500/60'
-  return 'bg-amber-500/80 dark:bg-amber-400/70'
+  if (s.statut === 'termine') return 'bg-stone-300'
+  if (s.statut === 'a_venir') return 'bg-blue-400/80'
+  return 'bg-amber-500/80'
 }
 
 function barBorder(s: Stagiaire): string {
-  if (s.statut === 'termine') return 'border-stone-400 dark:border-stone-500'
-  if (s.statut === 'a_venir') return 'border-blue-500 dark:border-blue-400'
-  return 'border-amber-600 dark:border-amber-500'
+  if (s.statut === 'termine') return 'border-stone-400'
+  if (s.statut === 'a_venir') return 'border-blue-500'
+  return 'border-amber-600'
 }
 
 function formatDateFr(dateStr: string): string {
@@ -162,26 +162,26 @@ onMounted(() => {
         <div
           class="rounded-xl border p-4 sm:p-5"
           :class="canRecruit
-            ? 'border-emerald-300/40 bg-emerald-50/50 dark:border-emerald-700/30 dark:bg-emerald-950/20'
-            : 'border-red-300/40 bg-red-50/50 dark:border-red-700/30 dark:bg-red-950/20'"
+            ? 'border-emerald-300/40 bg-emerald-50/50'
+            : 'border-red-300/40 bg-red-50/50'"
         >
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-3">
               <div
                 class="size-10 rounded-lg flex items-center justify-center"
-                :class="canRecruit ? 'bg-emerald-100 dark:bg-emerald-900/40' : 'bg-red-100 dark:bg-red-900/40'"
+                :class="canRecruit ? 'bg-emerald-100' : 'bg-red-100'"
               >
                 <UIcon
                   :name="canRecruit ? 'i-lucide-check-circle' : 'i-lucide-alert-triangle'"
                   class="size-5"
-                  :class="canRecruit ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'"
+                  :class="canRecruit ? 'text-emerald-600' : 'text-red-600'"
                 />
               </div>
               <div>
-                <p class="text-sm font-semibold text-stone-900 dark:text-white">
+                <p class="text-sm font-semibold text-stone-900">
                   {{ currentCount }} / {{ MAX_STAGIAIRES }} stagiaire{{ currentCount > 1 ? 's' : '' }} aujourd'hui
                 </p>
-                <p class="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+                <p class="text-xs text-stone-500 mt-0.5">
                   {{ canRecruit
                     ? `Vous pouvez recruter ${MAX_STAGIAIRES - currentCount} stagiaire${MAX_STAGIAIRES - currentCount > 1 ? 's' : ''} supplementaire${MAX_STAGIAIRES - currentCount > 1 ? 's' : ''}`
                     : 'Capacite maximale atteinte — attendez la fin d\'un stage pour en recruter un nouveau'
@@ -197,13 +197,13 @@ onMounted(() => {
                 :key="i"
                 class="size-8 rounded-lg border-2 flex items-center justify-center transition-colors"
                 :class="i <= currentCount
-                  ? 'border-amber-500 bg-amber-500/20 dark:border-amber-400 dark:bg-amber-400/20'
-                  : 'border-stone-200 bg-stone-50 dark:border-stone-700 dark:bg-stone-800'"
+                  ? 'border-amber-500 bg-amber-500/20'
+                  : 'border-stone-200 bg-stone-50'"
               >
                 <UIcon
                   v-if="i <= currentCount"
                   name="i-lucide-user"
-                  class="size-4 text-amber-600 dark:text-amber-400"
+                  class="size-4 text-amber-600"
                 />
               </div>
             </div>
@@ -212,7 +212,7 @@ onMounted(() => {
 
         <!-- ═══ Capacity bar per month ═══ -->
         <div class="space-y-2">
-          <p class="text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+          <p class="text-xs font-semibold uppercase tracking-wider text-stone-400">
             Occupation par mois
           </p>
           <div class="flex gap-1 overflow-x-auto pb-1">
@@ -227,21 +227,21 @@ onMounted(() => {
                   :key="i"
                   class="w-3 h-5 rounded-sm transition-colors"
                   :class="i <= mc.count
-                    ? mc.count >= MAX_STAGIAIRES ? 'bg-red-400 dark:bg-red-500' : 'bg-amber-400 dark:bg-amber-500'
-                    : 'bg-stone-200 dark:bg-stone-700'"
+                    ? mc.count >= MAX_STAGIAIRES ? 'bg-red-400' : 'bg-amber-400'
+                    : 'bg-stone-200'"
                 />
               </div>
               <span
                 class="text-[10px] font-medium"
                 :class="mc.key === months[3]?.key
                   ? 'text-[#af8f3c] font-semibold'
-                  : 'text-stone-400 dark:text-stone-500'"
+                  : 'text-stone-400'"
               >
                 {{ mc.label }}
               </span>
               <span
                 v-if="mc.year !== months[0]?.year || mc.month === 0"
-                class="text-[9px] text-stone-300 dark:text-stone-600 -mt-1"
+                class="text-[9px] text-stone-300 -mt-1"
               >
                 {{ mc.year }}
               </span>
@@ -251,13 +251,13 @@ onMounted(() => {
 
         <!-- ═══ Timeline Gantt ═══ -->
         <div class="space-y-2">
-          <p class="text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+          <p class="text-xs font-semibold uppercase tracking-wider text-stone-400">
             Timeline
           </p>
 
           <div v-if="!stagiaires.length" class="text-center py-8">
-            <UIcon name="i-lucide-graduation-cap" class="size-10 text-stone-300 dark:text-stone-700 mx-auto mb-3" />
-            <p class="text-sm text-stone-500 dark:text-stone-400">Aucun stagiaire avec des dates de contrat</p>
+            <UIcon name="i-lucide-graduation-cap" class="size-10 text-stone-300 mx-auto mb-3" />
+            <p class="text-sm text-stone-500">Aucun stagiaire avec des dates de contrat</p>
           </div>
 
           <div v-else ref="timelineRef" class="gantt-scroll">
@@ -286,7 +286,7 @@ onMounted(() => {
                   v-for="m in monthCapacity"
                   :key="'cap-' + m.key"
                   class="gantt-capacity-zone"
-                  :class="m.full ? 'bg-red-50/60 dark:bg-red-950/20' : ''"
+                  :class="m.full ? 'bg-red-50/60' : ''"
                   :style="{ width: m.days * 4 + 'px' }"
                 />
               </div>
@@ -321,10 +321,10 @@ onMounted(() => {
                   <span
                     class="gantt-count-badge"
                     :class="m.full
-                      ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
+                      ? 'bg-red-100 text-red-700'
                       : m.count > 0
-                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400'
-                        : 'bg-stone-100 text-stone-400 dark:bg-stone-800 dark:text-stone-500'"
+                        ? 'bg-amber-100 text-amber-700'
+                        : 'bg-stone-100 text-stone-400'"
                   >
                     {{ m.count }}/{{ MAX_STAGIAIRES }}
                   </span>
@@ -336,7 +336,7 @@ onMounted(() => {
 
         <!-- ═══ Liste detaillee ═══ -->
         <div class="space-y-2">
-          <p class="text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+          <p class="text-xs font-semibold uppercase tracking-wider text-stone-400">
             Detail des stages
           </p>
           <div v-if="stagiaires.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -349,8 +349,8 @@ onMounted(() => {
               <div class="stage-card" :class="{ 'is-termine': s.statut === 'termine' }">
                 <div class="flex items-start justify-between gap-2 mb-2">
                   <div class="min-w-0">
-                    <p class="text-sm font-semibold text-stone-900 dark:text-white truncate">{{ s.name }}</p>
-                    <p v-if="s.ecole" class="text-xs text-stone-500 dark:text-stone-400 truncate">{{ s.ecole }}</p>
+                    <p class="text-sm font-semibold text-stone-900 truncate">{{ s.name }}</p>
+                    <p v-if="s.ecole" class="text-xs text-stone-500 truncate">{{ s.ecole }}</p>
                   </div>
                   <UBadge
                     :color="s.statut === 'actif' ? 'green' : s.statut === 'a_venir' ? 'blue' : 'neutral'"
@@ -360,7 +360,7 @@ onMounted(() => {
                     {{ s.statut === 'actif' ? 'Actif' : s.statut === 'a_venir' ? 'A venir' : 'Termine' }}
                   </UBadge>
                 </div>
-                <div class="flex items-center gap-1.5 text-xs text-stone-400 dark:text-stone-500">
+                <div class="flex items-center gap-1.5 text-xs text-stone-400">
                   <UIcon name="i-lucide-calendar" class="size-3" />
                   {{ formatDateFr(s.start) }} — {{ formatDateFr(s.end) }}
                 </div>

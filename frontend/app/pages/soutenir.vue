@@ -40,16 +40,16 @@ const ways = [
       >
         <!-- Ornament -->
         <div class="flex items-center justify-center gap-3 mb-6 opacity-40">
-          <div class="w-10 h-px bg-stone-400 dark:bg-stone-600" />
-          <div class="size-1.5 rotate-45 bg-stone-400 dark:bg-stone-600" />
-          <div class="w-10 h-px bg-stone-400 dark:bg-stone-600" />
+          <div class="w-10 h-px bg-stone-400" />
+          <div class="size-1.5 rotate-45 bg-stone-400" />
+          <div class="w-10 h-px bg-stone-400" />
         </div>
 
         <h1 class="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
           Nous soutenir
         </h1>
         <div class="w-14 h-px bg-gradient-to-r from-transparent via-[var(--color-brand-gold)]/50 to-transparent mx-auto mt-5 mb-4" />
-        <p class="text-stone-500 dark:text-stone-400 text-base sm:text-lg leading-relaxed max-w-md mx-auto">
+        <p class="text-stone-500 text-base sm:text-lg leading-relaxed max-w-md mx-auto">
           Le Geai est un projet indépendant. Votre soutien, sous toutes ses formes, nous permet de continuer à créer librement.
         </p>
       </div>
@@ -65,12 +65,12 @@ const ways = [
           :class="visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'"
           :style="{ transitionDelay: `${300 + i * 150}ms` }"
         >
-          <div class="size-11 rounded-xl bg-stone-100 dark:bg-stone-800/60 flex items-center justify-center shrink-0 border border-stone-200/60 dark:border-stone-700/40">
-            <UIcon :name="way.icon" class="size-5 text-stone-500 dark:text-stone-400" />
+          <div class="size-11 rounded-xl bg-stone-100 flex items-center justify-center shrink-0 border border-stone-200/60">
+            <UIcon :name="way.icon" class="size-5 text-stone-500" />
           </div>
           <div>
             <h2 class="font-heading text-lg font-semibold mb-1">{{ way.title }}</h2>
-            <p class="text-sm text-stone-500 dark:text-stone-400 leading-relaxed">{{ way.text }}</p>
+            <p class="text-sm text-stone-500 leading-relaxed">{{ way.text }}</p>
           </div>
         </div>
       </div>
@@ -82,13 +82,13 @@ const ways = [
         class="max-w-md mx-auto text-center transition-all duration-700 delay-700 ease-out"
         :class="visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'"
       >
-        <div class="rounded-2xl border border-stone-200/60 dark:border-stone-800/60 p-8">
-          <p class="text-sm text-stone-500 dark:text-stone-400 mb-4">
+        <div class="rounded-2xl border border-stone-200/60 p-8">
+          <p class="text-sm text-stone-500 mb-4">
             Pour toute question ou proposition de collaboration :
           </p>
           <a
             href="mailto:contact@legeai-editions.com"
-            class="inline-flex items-center gap-2 text-sm font-medium text-stone-700 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 transition-colors duration-300"
+            class="inline-flex items-center gap-2 text-sm font-medium text-stone-700 hover:text-stone-900 transition-colors duration-300"
           >
             <UIcon name="i-lucide-mail" class="size-4" />
             contact@legeai-editions.com
@@ -99,8 +99,8 @@ const ways = [
 
     <!-- Footer -->
     <footer class="px-6 pb-6 text-center">
-      <div class="max-w-4xl mx-auto pt-6 border-t border-stone-200/40 dark:border-stone-800/40">
-        <p class="text-[11px] text-stone-400 dark:text-stone-600">
+      <div class="max-w-4xl mx-auto pt-6 border-t border-stone-200/40">
+        <p class="text-[11px] text-stone-400">
           &copy; {{ new Date().getFullYear() }} Groupe Le Geai. Tous droits réservés
         </p>
       </div>

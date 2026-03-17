@@ -118,9 +118,9 @@ onMounted(load)
     </div>
 
     <div v-else-if="!daysWithEvents.length" class="flex flex-col items-center justify-center h-14 gap-2">
-      <p class="text-xs text-stone-400 dark:text-stone-500">Aucun evenement cette semaine</p>
+      <p class="text-xs text-stone-400">Aucun evenement cette semaine</p>
       <button
-        class="text-xs text-amber-600 dark:text-amber-400 hover:underline"
+        class="text-xs text-amber-600 hover:underline"
         @click="openCreate"
       >
         + Creer un evenement
@@ -132,14 +132,14 @@ onMounted(load)
         v-for="{ dayStr, evs } in daysWithEvents"
         :key="dayStr"
       >
-        <p class="text-[10px] font-semibold uppercase tracking-wide text-stone-400 dark:text-stone-500 mb-1 capitalize">
+        <p class="text-[10px] font-semibold uppercase tracking-wide text-stone-400 mb-1 capitalize">
           {{ formatDayLabel(dayStr) }}
         </p>
         <div class="space-y-1">
           <button
             v-for="e in evs"
             :key="e.id"
-            class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800/40 transition-colors text-left group"
+            class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-stone-50 transition-colors text-left group"
             @click="openEvent(e)"
           >
             <span
@@ -147,8 +147,8 @@ onMounted(load)
               :style="{ background: e.couleur || '#AF8F3C' }"
             />
             <span class="flex-1 min-w-0">
-              <span class="text-xs font-medium text-stone-700 dark:text-stone-300 truncate block">{{ e.titre }}</span>
-              <span class="text-[10px] text-stone-400 dark:text-stone-500">{{ formatEventTime(e) }}</span>
+              <span class="text-xs font-medium text-stone-700 truncate block">{{ e.titre }}</span>
+              <span class="text-[10px] text-stone-400">{{ formatEventTime(e) }}</span>
             </span>
             <span
               v-if="e.participants?.length"

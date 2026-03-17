@@ -62,12 +62,12 @@ const activeAction = ref('travail')
 const currentAction = computed(() => quickActions.value.find(a => a.key === activeAction.value)!)
 
 const ACTION_PILL_COLORS: Record<string, string> = {
-  travail:       'bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 dark:border-emerald-600 text-emerald-800 dark:text-emerald-200',
-  teletravail:   'bg-indigo-100 dark:bg-indigo-900/40 border-indigo-400 dark:border-indigo-600 text-indigo-800 dark:text-indigo-200',
-  conge_paye:    'bg-orange-100 dark:bg-orange-900/40 border-orange-400 dark:border-orange-600 text-orange-800 dark:text-orange-200',
-  arret_maladie: 'bg-red-100 dark:bg-red-900/40 border-red-400 dark:border-red-600 text-red-800 dark:text-red-200',
-  ecole:         'bg-sky-100 dark:bg-sky-900/40 border-sky-400 dark:border-sky-600 text-sky-800 dark:text-sky-200',
-  autre:         'bg-stone-200 dark:bg-stone-700 border-stone-400 dark:border-stone-500 text-stone-700 dark:text-stone-200',
+  travail:       'bg-emerald-100 border-emerald-400 text-emerald-800',
+  teletravail:   'bg-indigo-100 border-indigo-400 text-indigo-800',
+  conge_paye:    'bg-orange-100 border-orange-400 text-orange-800',
+  arret_maladie: 'bg-red-100 border-red-400 text-red-800',
+  ecole:         'bg-sky-100 border-sky-400 text-sky-800',
+  autre:         'bg-stone-200 border-stone-400 text-stone-700',
 }
 
 // --- Motif modal for "Autre" ---
@@ -413,18 +413,18 @@ onMounted(() => {
               @click="navigateNext"
             />
           </div>
-          <span v-if="viewMode === 'month'" class="text-sm font-medium text-stone-500 dark:text-stone-400 capitalize">
+          <span v-if="viewMode === 'month'" class="text-sm font-medium text-stone-500 capitalize">
             {{ currentMonthLabel }}
           </span>
-          <span v-else class="text-sm font-medium text-stone-500 dark:text-stone-400">
+          <span v-else class="text-sm font-medium text-stone-500">
             S{{ weekNumber }}
           </span>
           <!-- View mode toggle -->
-          <div class="flex items-center rounded-lg border border-stone-200 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 overflow-hidden">
+          <div class="flex items-center rounded-lg border border-stone-200 bg-stone-100 overflow-hidden">
             <UTooltip text="Semaine">
               <button
                 class="flex items-center justify-center size-7 transition-colors"
-                :class="viewMode === 'week' ? 'bg-primary/15 text-primary' : 'text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700'"
+                :class="viewMode === 'week' ? 'bg-primary/15 text-primary' : 'text-stone-500 hover:bg-stone-200'"
                 @click="viewMode = 'week'"
               >
                 <UIcon name="i-lucide-rows-3" class="size-3.5" />
@@ -433,7 +433,7 @@ onMounted(() => {
             <UTooltip text="Mois">
               <button
                 class="flex items-center justify-center size-7 transition-colors"
-                :class="viewMode === 'month' ? 'bg-primary/15 text-primary' : 'text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700'"
+                :class="viewMode === 'month' ? 'bg-primary/15 text-primary' : 'text-stone-500 hover:bg-stone-200'"
                 @click="viewMode = 'month'"
               >
                 <UIcon name="i-lucide-grid-3x3" class="size-3.5" />
@@ -480,7 +480,7 @@ onMounted(() => {
               class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-colors cursor-pointer"
               :class="activeAction === action.key
                 ? (ACTION_PILL_COLORS[action.key] || 'bg-primary/10 border-primary/40 text-primary')
-                : 'bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'"
+                : 'bg-stone-100 border-stone-200 text-stone-600 hover:bg-stone-200'"
               @click="activeAction = action.key"
             >
               <UIcon :name="action.icon" class="size-4" />
@@ -535,7 +535,7 @@ onMounted(() => {
             class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-colors cursor-pointer"
             :class="activeAction === action.key
               ? (ACTION_PILL_COLORS[action.key] || 'bg-primary/10 border-primary/40 text-primary')
-              : 'bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'"
+              : 'bg-stone-100 border-stone-200 text-stone-600 hover:bg-stone-200'"
             @click="activeAction = action.key"
           >
             <UIcon :name="action.icon" class="size-4" />
@@ -595,7 +595,7 @@ onMounted(() => {
     <UModal :open="showMotifModal" @update:open="showMotifModal = $event">
       <template #content>
         <div class="p-6">
-          <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-4">Motif</h3>
+          <h3 class="text-lg font-semibold text-stone-900 mb-4">Motif</h3>
           <form class="space-y-4" @submit.prevent="handleMotifSubmit">
             <UFormField label="Justification">
               <UTextarea v-model="motifInput" placeholder="Indiquez le motif..." required />
@@ -618,9 +618,9 @@ onMounted(() => {
     >
       <div
         v-if="modifSelections.size > 0"
-        class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[#f7f0de] dark:bg-[#1a2520] border border-[rgba(175,143,60,0.12)] shadow-lg"
+        class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[#f7f0de] border border-[rgba(175,143,60,0.12)] shadow-lg"
       >
-        <span class="text-sm text-stone-600 dark:text-stone-300">
+        <span class="text-sm text-stone-600">
           {{ modifSelections.size }} creneau(x) selectionne(s)
         </span>
         <UButton
@@ -643,8 +643,8 @@ onMounted(() => {
     <UModal :open="showModifModal" @update:open="showModifModal = $event">
       <template #content>
         <div class="p-6">
-          <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-1">Demander une modification</h3>
-          <p class="text-sm text-stone-500 dark:text-stone-400 mb-4">
+          <h3 class="text-lg font-semibold text-stone-900 mb-1">Demander une modification</h3>
+          <p class="text-sm text-stone-500 mb-4">
             Decrivez la modification souhaitee, elle sera transmise a l'administrateur.
           </p>
 
@@ -652,15 +652,15 @@ onMounted(() => {
             <div
               v-for="slot in sortedModifSlots"
               :key="modifSlotKey(slot.date, slot.periode)"
-              class="flex items-center justify-between p-2 rounded-lg bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)] text-sm"
+              class="flex items-center justify-between p-2 rounded-lg bg-[rgba(175,143,60,0.04)],143,60,0.03)] text-sm"
             >
               <div>
-                <span class="font-medium text-stone-900 dark:text-white">
+                <span class="font-medium text-stone-900">
                   {{ formatDateFr(slot.date + 'T00:00:00') }}
                 </span>
                 <span class="text-stone-400 ml-1">({{ slot.periode === 'matin' ? 'matin' : 'apres-midi' }})</span>
               </div>
-              <span v-if="slot.existingEntry" class="text-xs text-stone-500 dark:text-stone-400">
+              <span v-if="slot.existingEntry" class="text-xs text-stone-500">
                 {{ slot.existingEntry.motif || slot.existingEntry.type }}
               </span>
               <span v-else class="text-xs text-stone-400">vide</span>

@@ -33,7 +33,7 @@ const remainingWorkDays = computed(() => {
         <p class="text-[11px] text-stone-400 uppercase tracking-wide">Heures</p>
         <p class="text-lg font-bold tabular-nums">{{ totalHours.toFixed(1) }}<span class="text-sm font-normal text-stone-400">h</span></p>
       </div>
-      <div class="border-t border-stone-100 dark:border-stone-800 pt-2.5 grid grid-cols-2 gap-3">
+      <div class="border-t border-stone-100 pt-2.5 grid grid-cols-2 gap-3">
         <div>
           <p class="text-[11px] text-stone-400">Jours</p>
           <p class="text-sm font-semibold tabular-nums">{{ totalDays }}<span class="text-xs font-normal text-stone-400">j</span></p>
@@ -43,7 +43,7 @@ const remainingWorkDays = computed(() => {
           <p class="text-sm font-semibold tabular-nums">{{ totalHalfDays }}</p>
         </div>
       </div>
-      <div class="border-t border-stone-100 dark:border-stone-800 pt-2">
+      <div class="border-t border-stone-100 pt-2">
         <p class="text-[10px] text-stone-400">{{ remainingWorkDays }} jours ouvres restants</p>
       </div>
     </div>

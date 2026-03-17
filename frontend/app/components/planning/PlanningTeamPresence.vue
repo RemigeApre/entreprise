@@ -96,7 +96,7 @@ function getDisplayKey(entry: PlanningEntry | undefined) {
 }
 
 function getDotClasses(entry: PlanningEntry | undefined) {
-  if (!entry) return 'bg-stone-200 dark:bg-stone-700'
+  if (!entry) return 'bg-stone-200'
   const key = getDisplayKey(entry)
   return (key && PLANNING_COLORS[key]?.dot) || PLANNING_COLORS[entry.type]?.dot || 'bg-stone-400'
 }
@@ -121,7 +121,7 @@ const legendItems = [
   { label: 'Conge', dot: PLANNING_COLORS.conge.dot },
   { label: 'Absent', dot: PLANNING_COLORS.absent.dot },
   { label: 'Ferie', dot: PLANNING_COLORS.ferie.dot },
-  { label: 'Non renseigne', dot: 'bg-stone-200 dark:bg-stone-700' }
+  { label: 'Non renseigne', dot: 'bg-stone-200' }
 ]
 
 watch(() => props.monday, () => load())
@@ -135,7 +135,7 @@ onMounted(load)
     </div>
 
     <div v-else-if="!teamMembers.length" class="text-center py-4">
-      <p class="text-sm text-stone-500 dark:text-stone-400">Aucun membre actif dans l'equipe</p>
+      <p class="text-sm text-stone-500">Aucun membre actif dans l'equipe</p>
     </div>
 
     <div v-else class="overflow-x-auto">
@@ -144,7 +144,7 @@ onMounted(load)
           <tr>
             <!-- Title + search -->
             <th class="text-left pb-3 pr-4" style="min-width: 140px">
-              <span class="text-sm font-semibold text-stone-900 dark:text-stone-100 whitespace-nowrap">Presence de l'equipe</span>
+              <span class="text-sm font-semibold text-stone-900 whitespace-nowrap">Presence de l'equipe</span>
               <UInput
                 v-if="teamMembers.length > 3"
                 v-model="search"
@@ -161,14 +161,14 @@ onMounted(load)
               class="text-center pb-1 px-1"
               :class="[
                 isHighlightedDay(day)
-                  ? 'bg-amber-50/60 dark:bg-amber-950/20 rounded-t-md'
+                  ? 'bg-amber-50/60 rounded-t-md'
                   : ''
               ]"
               colspan="2"
             >
               <div
                 class="text-[11px] font-semibold uppercase tracking-wide"
-                :class="publicHolidays.has(formatDate(day)) ? 'text-stone-400 dark:text-stone-500' : isHighlightedDay(day) ? 'text-amber-600 dark:text-amber-400' : 'text-stone-400 dark:text-stone-500'"
+                :class="publicHolidays.has(formatDate(day)) ? 'text-stone-400' : isHighlightedDay(day) ? 'text-amber-600' : 'text-stone-400'"
               >
                 {{ getDayName(day) }}
               </div>
@@ -176,11 +176,11 @@ onMounted(load)
                 class="inline-flex items-center justify-center rounded-full text-[13px] font-bold leading-none mt-0.5"
                 :class="isHighlightedDay(day)
                   ? 'size-6 bg-amber-500 text-white'
-                  : 'text-stone-700 dark:text-stone-300'"
+                  : 'text-stone-700'"
               >
                 {{ day.getDate() }}
               </div>
-              <div v-if="publicHolidays.has(formatDate(day))" class="text-[9px] font-normal text-stone-400 dark:text-stone-500 leading-tight truncate max-w-[56px] mx-auto mt-0.5">
+              <div v-if="publicHolidays.has(formatDate(day))" class="text-[9px] font-normal text-stone-400 leading-tight truncate max-w-[56px] mx-auto mt-0.5">
                 {{ publicHolidays.get(formatDate(day)) }}
               </div>
             </th>
@@ -191,14 +191,14 @@ onMounted(load)
               <th
                 class="text-center pb-2 px-0.5 text-[10px] font-normal"
                 :class="[
-                  isHighlightedDay(day) ? 'bg-amber-50/60 dark:bg-amber-950/20 text-amber-500/70 dark:text-amber-400/60' : 'text-stone-400 dark:text-stone-500',
+                  isHighlightedDay(day) ? 'bg-amber-50/60 text-amber-500/70' : 'text-stone-400',
                   publicHolidays.has(formatDate(day)) ? 'opacity-50' : ''
                 ]"
               >M</th>
               <th
                 class="text-center pb-2 px-0.5 text-[10px] font-normal"
                 :class="[
-                  isHighlightedDay(day) ? 'bg-amber-50/60 dark:bg-amber-950/20 text-amber-500/70 dark:text-amber-400/60' : 'text-stone-400 dark:text-stone-500',
+                  isHighlightedDay(day) ? 'bg-amber-50/60 text-amber-500/70' : 'text-stone-400',
                   publicHolidays.has(formatDate(day)) ? 'opacity-50' : ''
                 ]"
               >AP</th>
@@ -209,42 +209,42 @@ onMounted(load)
           <tr
             v-for="member in filteredMembers"
             :key="member.id"
-            class="border-t border-[rgba(175,143,60,0.06)] group hover:bg-stone-50/60 dark:hover:bg-stone-800/20 transition-colors"
+            class="border-t border-[rgba(175,143,60,0.06)] group hover:bg-stone-50/60 transition-colors"
           >
             <td class="py-2.5 pr-4 whitespace-nowrap">
               <NuxtLink
                 v-if="isAdmin"
                 :to="`/planning/${member.id}`"
-                class="font-medium text-stone-700 dark:text-stone-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
+                class="font-medium text-stone-700 hover:text-amber-600 transition-colors"
               >
                 {{ getMemberName(member) }}
               </NuxtLink>
-              <span v-else class="font-medium text-stone-700 dark:text-stone-300">
+              <span v-else class="font-medium text-stone-700">
                 {{ getMemberName(member) }}
               </span>
-              <span v-if="getMemberPole(member)" class="block text-[10px] text-stone-400 dark:text-stone-500 leading-tight mt-0.5">
+              <span v-if="getMemberPole(member)" class="block text-[10px] text-stone-400 leading-tight mt-0.5">
                 {{ getMemberPole(member) }}
               </span>
             </td>
             <template v-for="day in weekDays" :key="member.id + '-' + formatDate(day)">
               <td
                 class="py-2.5 px-1 text-center"
-                :class="publicHolidays.has(formatDate(day)) ? 'opacity-30' : isHighlightedDay(day) ? 'bg-amber-50/60 dark:bg-amber-950/20' : ''"
+                :class="publicHolidays.has(formatDate(day)) ? 'opacity-30' : isHighlightedDay(day) ? 'bg-amber-50/60' : ''"
               >
                 <UTooltip :text="publicHolidays.has(formatDate(day)) ? publicHolidays.get(formatDate(day)) : getDotTooltip(getEntry(member.id, day, 'matin'))">
                   <span
-                    class="inline-block size-4 rounded-full ring-1 ring-white/50 dark:ring-stone-900/50"
+                    class="inline-block size-4 rounded-full ring-1 ring-white/50"
                     :class="publicHolidays.has(formatDate(day)) ? PLANNING_COLORS.ferie.dot : getDotClasses(getEntry(member.id, day, 'matin'))"
                   />
                 </UTooltip>
               </td>
               <td
                 class="py-2.5 px-1 text-center"
-                :class="publicHolidays.has(formatDate(day)) ? 'opacity-30' : isHighlightedDay(day) ? 'bg-amber-50/60 dark:bg-amber-950/20' : ''"
+                :class="publicHolidays.has(formatDate(day)) ? 'opacity-30' : isHighlightedDay(day) ? 'bg-amber-50/60' : ''"
               >
                 <UTooltip :text="publicHolidays.has(formatDate(day)) ? publicHolidays.get(formatDate(day)) : getDotTooltip(getEntry(member.id, day, 'apres_midi'))">
                   <span
-                    class="inline-block size-4 rounded-full ring-1 ring-white/50 dark:ring-stone-900/50"
+                    class="inline-block size-4 rounded-full ring-1 ring-white/50"
                     :class="publicHolidays.has(formatDate(day)) ? PLANNING_COLORS.ferie.dot : getDotClasses(getEntry(member.id, day, 'apres_midi'))"
                   />
                 </UTooltip>
@@ -254,7 +254,7 @@ onMounted(load)
         </tbody>
       </table>
 
-      <p v-if="search && !filteredMembers.length" class="text-center py-3 text-sm text-stone-500 dark:text-stone-400">
+      <p v-if="search && !filteredMembers.length" class="text-center py-3 text-sm text-stone-500">
         Aucun resultat
       </p>
 
@@ -266,7 +266,7 @@ onMounted(load)
           class="flex items-center gap-1"
         >
           <span class="inline-block size-2.5 rounded-full" :class="item.dot" />
-          <span class="text-[10px] text-stone-400 dark:text-stone-500">{{ item.label }}</span>
+          <span class="text-[10px] text-stone-400">{{ item.label }}</span>
         </div>
       </div>
     </div>

@@ -105,27 +105,27 @@ onMounted(load)
         </div>
 
         <div v-else-if="!myRequests.length" class="text-center py-8">
-          <UIcon name="i-lucide-inbox" class="size-10 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
-          <p class="text-gray-500 dark:text-gray-400">Aucune demande de conge</p>
+          <UIcon name="i-lucide-inbox" class="size-10 text-gray-300 mx-auto mb-3" />
+          <p class="text-gray-500">Aucune demande de conge</p>
         </div>
 
         <UCard v-for="req in myRequests" :key="req.id">
           <div class="flex items-start justify-between gap-4">
             <div class="space-y-1">
               <div class="flex items-center gap-2">
-                <span class="font-medium text-gray-900 dark:text-white">
+                <span class="font-medium text-gray-900">
                   {{ CONGE_TYPES[req.type_conge] }}
                 </span>
                 <UBadge :color="getStatusColor(req.statut)" variant="subtle" size="sm">
                   {{ getStatusLabel(req.statut) }}
                 </UBadge>
               </div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
+              <p class="text-sm text-gray-500">
                 Du {{ new Date(req.date_debut).toLocaleDateString('fr-FR') }}
                 au {{ new Date(req.date_fin).toLocaleDateString('fr-FR') }}
               </p>
-              <p class="text-sm text-gray-600 dark:text-gray-300">{{ req.motif }}</p>
-              <p v-if="req.reponse_commentaire" class="text-sm text-gray-500 dark:text-gray-400 italic">
+              <p class="text-sm text-gray-600">{{ req.motif }}</p>
+              <p v-if="req.reponse_commentaire" class="text-sm text-gray-500 italic">
                 Reponse : {{ req.reponse_commentaire }}
               </p>
             </div>
@@ -137,7 +137,7 @@ onMounted(load)
       <div v-if="activeTab === 'pending' && isDirecteur" class="space-y-3">
         <div v-if="!pendingRequests.length" class="text-center py-8">
           <UIcon name="i-lucide-check-circle" class="size-10 text-green-500 mx-auto mb-3" />
-          <p class="text-gray-500 dark:text-gray-400">Aucune demande en attente</p>
+          <p class="text-gray-500">Aucune demande en attente</p>
         </div>
 
         <UCard v-for="req in pendingRequests" :key="req.id">
@@ -145,18 +145,18 @@ onMounted(load)
             <div class="flex items-start justify-between gap-4">
               <div class="space-y-1">
                 <div class="flex items-center gap-2">
-                  <span class="font-medium text-gray-900 dark:text-white">
+                  <span class="font-medium text-gray-900">
                     {{ getUserName(req) }}
                   </span>
                   <UBadge variant="subtle" size="sm">
                     {{ CONGE_TYPES[req.type_conge] }}
                   </UBadge>
                 </div>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
+                <p class="text-sm text-gray-500">
                   Du {{ new Date(req.date_debut).toLocaleDateString('fr-FR') }}
                   au {{ new Date(req.date_fin).toLocaleDateString('fr-FR') }}
                 </p>
-                <p class="text-sm text-gray-600 dark:text-gray-300">{{ req.motif }}</p>
+                <p class="text-sm text-gray-600">{{ req.motif }}</p>
               </div>
             </div>
 

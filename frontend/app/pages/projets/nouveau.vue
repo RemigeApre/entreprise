@@ -111,10 +111,10 @@ async function handleSubmit() {
       <div class="max-w-2xl mx-auto">
         <UCard>
           <template #header>
-            <h2 class="text-lg font-semibold text-stone-900 dark:text-white">
+            <h2 class="text-lg font-semibold text-stone-900">
               Creer un nouveau projet
             </h2>
-            <p class="text-sm text-stone-500 dark:text-stone-400 mt-1">
+            <p class="text-sm text-stone-500 mt-1">
               Remplissez les informations du projet. Les champs marques d'un * sont obligatoires.
             </p>
           </template>

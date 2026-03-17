@@ -44,7 +44,7 @@ const editor = useEditor({
   ],
   editorProps: {
     attributes: {
-      class: 'prose prose-stone dark:prose-invert prose-sm max-w-none focus:outline-none min-h-[400px] px-4 py-3'
+      class: 'prose prose-stone prose-sm max-w-none focus:outline-none min-h-[400px] px-4 py-3'
     }
   },
   onUpdate: ({ editor: e }) => {

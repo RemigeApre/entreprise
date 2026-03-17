@@ -174,7 +174,7 @@ function getBlockIcon(entry: PlanningEntry) {
 function getBlockBg(entry: PlanningEntry) {
   const key = getDisplayKey(entry)
   const c = PLANNING_COLORS[key] || PLANNING_COLORS[entry.type]
-  return c ? `${c.bg} ${c.border} ${c.text}` : 'bg-stone-100 dark:bg-stone-800 border-stone-300 text-stone-600'
+  return c ? `${c.bg} ${c.border} ${c.text}` : 'bg-stone-100 border-stone-300 text-stone-600'
 }
 
 function getDayName(date: Date): string {
@@ -257,7 +257,7 @@ onUnmounted(() => {
             >
               <span
                 class="absolute -top-2 right-2 text-[10px] font-medium select-none"
-                :class="(h >= 8 && h <= 18) ? 'text-stone-500 dark:text-stone-400' : 'text-stone-300 dark:text-stone-600'"
+                :class="(h >= 8 && h <= 18) ? 'text-stone-500' : 'text-stone-300'"
               >
                 {{ String(h).padStart(2, '0') }}h
               </span>
@@ -265,38 +265,38 @@ onUnmounted(() => {
           </div>
 
           <!-- Day column -->
-          <div class="relative border-l border-stone-200/60 dark:border-stone-700/40">
+          <div class="relative border-l border-stone-200/60">
             <!-- Grey zones -->
-            <div class="absolute inset-x-0 top-0 bg-stone-100/60 dark:bg-stone-800/30" :style="{ height: WORK_START + 'px' }" />
-            <div class="absolute inset-x-0 bottom-0 bg-stone-100/60 dark:bg-stone-800/30" :style="{ top: WORK_END + 'px' }" />
+            <div class="absolute inset-x-0 top-0 bg-stone-100/60" :style="{ height: WORK_START + 'px' }" />
+            <div class="absolute inset-x-0 bottom-0 bg-stone-100/60" :style="{ top: WORK_END + 'px' }" />
 
             <!-- Highlighted day bg -->
             <div
               v-if="isHighlightedDay(mobileDayDate)"
-              class="absolute inset-x-0 bg-amber-50/50 dark:bg-amber-950/15"
+              class="absolute inset-x-0 bg-amber-50/50"
               :style="{ top: WORK_START + 'px', height: (WORK_END - WORK_START) + 'px' }"
             />
 
             <!-- Lunch zone -->
             <div class="absolute inset-x-0" :style="{ top: LUNCH_START + 'px', height: (LUNCH_END - LUNCH_START) + 'px' }">
-              <div class="absolute inset-0 bg-stone-50/60 dark:bg-stone-800/20" />
-              <div class="absolute inset-x-0 top-0 border-t border-dashed border-stone-300/50 dark:border-stone-600/30" />
-              <div class="absolute inset-x-0 bottom-0 border-t border-dashed border-stone-300/50 dark:border-stone-600/30" />
-              <span class="absolute inset-0 flex items-center justify-center text-[10px] text-stone-300 dark:text-stone-600 select-none tracking-wider uppercase">Pause</span>
+              <div class="absolute inset-0 bg-stone-50/60" />
+              <div class="absolute inset-x-0 top-0 border-t border-dashed border-stone-300/50" />
+              <div class="absolute inset-x-0 bottom-0 border-t border-dashed border-stone-300/50" />
+              <span class="absolute inset-0 flex items-center justify-center text-[10px] text-stone-300 select-none tracking-wider uppercase">Pause</span>
             </div>
 
             <!-- Hour grid lines -->
             <template v-for="h in hourLabels" :key="'mline-' + h">
               <div
                 class="absolute inset-x-0 border-t"
-                :class="h === 8 || h === 18 ? 'border-stone-300/80 dark:border-stone-600/50' : h >= 8 && h < 18 ? 'border-stone-200/60 dark:border-stone-700/30' : 'border-stone-200/30 dark:border-stone-700/20'"
+                :class="h === 8 || h === 18 ? 'border-stone-300/80' : h >= 8 && h < 18 ? 'border-stone-200/60' : 'border-stone-200/30'"
                 :style="{ top: hourToY(h) + 'px' }"
               />
             </template>
 
             <!-- Legal time markers -->
-            <div class="absolute inset-x-0 border-t-2 border-dashed border-amber-400/30 dark:border-amber-600/25" :style="{ top: LEGAL_AM_START + 'px' }" />
-            <div class="absolute inset-x-0 border-t-2 border-dashed border-amber-400/30 dark:border-amber-600/25" :style="{ top: LEGAL_PM_END + 'px' }" />
+            <div class="absolute inset-x-0 border-t-2 border-dashed border-amber-400/30" :style="{ top: LEGAL_AM_START + 'px' }" />
+            <div class="absolute inset-x-0 border-t-2 border-dashed border-amber-400/30" :style="{ top: LEGAL_PM_END + 'px' }" />
             <span class="absolute left-1 text-[8px] font-medium text-amber-500/60 select-none" :style="{ top: LEGAL_AM_START + 2 + 'px' }">8h30</span>
             <span class="absolute right-1 text-[8px] font-medium text-amber-500/60 select-none" :style="{ top: LEGAL_PM_END - 12 + 'px' }">17h30</span>
 
@@ -307,10 +307,10 @@ onUnmounted(() => {
                 getEntry(mobileDayDate, 'matin')
                   ? getBlockBg(getEntry(mobileDayDate, 'matin')!) + (getEntry(mobileDayDate, 'matin')!.statut === 'en_attente' ? ' opacity-60 border-dashed' : '')
                   : getSlotDisabled(mobileDayDate)
-                    ? 'bg-stone-100/30 dark:bg-stone-800/20 border-stone-200 dark:border-stone-700 cursor-not-allowed'
+                    ? 'bg-stone-100/30 border-stone-200 cursor-not-allowed'
                     : readonly
                       ? 'border-transparent'
-                      : 'border-transparent hover:bg-amber-50/40 dark:hover:bg-amber-950/20 hover:border-amber-300 cursor-pointer group',
+                      : 'border-transparent hover:bg-amber-50/40 hover:border-amber-300 cursor-pointer group',
                 isSlotSelected(mobileDayDate, 'matin') ? 'ring-2 ring-primary ring-offset-1' : ''
               ]"
               :style="{ top: LEGAL_AM_START + 1 + 'px', height: (LEGAL_AM_END - LEGAL_AM_START) - 2 + 'px' }"
@@ -339,10 +339,10 @@ onUnmounted(() => {
                 getEntry(mobileDayDate, 'apres_midi')
                   ? getBlockBg(getEntry(mobileDayDate, 'apres_midi')!) + (getEntry(mobileDayDate, 'apres_midi')!.statut === 'en_attente' ? ' opacity-60 border-dashed' : '')
                   : getSlotDisabled(mobileDayDate)
-                    ? 'bg-stone-100/30 dark:bg-stone-800/20 border-stone-200 dark:border-stone-700 cursor-not-allowed'
+                    ? 'bg-stone-100/30 border-stone-200 cursor-not-allowed'
                     : readonly
                       ? 'border-transparent'
-                      : 'border-transparent hover:bg-amber-50/40 dark:hover:bg-amber-950/20 hover:border-amber-300 cursor-pointer group',
+                      : 'border-transparent hover:bg-amber-50/40 hover:border-amber-300 cursor-pointer group',
                 isSlotSelected(mobileDayDate, 'apres_midi') ? 'ring-2 ring-primary ring-offset-1' : ''
               ]"
               :style="{ top: LEGAL_PM_START + 1 + 'px', height: (LEGAL_PM_END - LEGAL_PM_START) - 2 + 'px' }"
@@ -383,17 +383,17 @@ onUnmounted(() => {
          ═══════════════════════════════════════════════ -->
     <div class="desktop-timetable">
       <!-- Header row -->
-      <div class="grid grid-cols-[52px_repeat(5,1fr)] border-b border-stone-200 dark:border-stone-700">
+      <div class="grid grid-cols-[52px_repeat(5,1fr)] border-b border-stone-200">
         <div class="py-2" />
         <div
           v-for="day in weekDays"
           :key="formatDate(day)"
-          class="py-2 text-center border-l border-stone-200/60 dark:border-stone-700/40"
-          :class="isHighlightedDay(day) ? 'bg-amber-50/50 dark:bg-amber-950/20' : ''"
+          class="py-2 text-center border-l border-stone-200/60"
+          :class="isHighlightedDay(day) ? 'bg-amber-50/50' : ''"
         >
           <p
             class="text-[11px] font-medium uppercase tracking-wide"
-            :class="isHighlightedDay(day) ? 'text-amber-600 dark:text-amber-400' : 'text-stone-400 dark:text-stone-500'"
+            :class="isHighlightedDay(day) ? 'text-amber-600' : 'text-stone-400'"
           >
             {{ getDayName(day) }}
           </p>
@@ -402,13 +402,13 @@ onUnmounted(() => {
               class="inline-flex items-center justify-center rounded-full text-sm font-bold leading-none"
               :class="isHighlightedDay(day)
                 ? 'size-7 bg-amber-500 text-white'
-                : 'text-stone-700 dark:text-stone-300'"
+                : 'text-stone-700'"
             >
               {{ getDayNumber(day) }}
             </span>
             <span
               v-if="!isHighlightedDay(day)"
-              class="text-[10px] text-stone-400 dark:text-stone-500"
+              class="text-[10px] text-stone-400"
             >
               {{ getDayMonth(day) }}
             </span>
@@ -431,14 +431,14 @@ onUnmounted(() => {
               <span
                 class="absolute -top-2 right-2 text-[10px] font-medium select-none"
                 :class="(h >= 8 && h <= 18)
-                  ? 'text-stone-500 dark:text-stone-400'
-                  : 'text-stone-300 dark:text-stone-600'"
+                  ? 'text-stone-500'
+                  : 'text-stone-300'"
               >
                 {{ String(h).padStart(2, '0') }}:00
               </span>
               <!-- Half-hour tick -->
               <span
-                class="absolute right-2 text-[9px] text-stone-300 dark:text-stone-600 select-none"
+                class="absolute right-2 text-[9px] text-stone-300 select-none"
                 :style="{ top: HALF_HOUR - 6 + 'px' }"
               >
                 {{ String(h).padStart(2, '0') }}:30
@@ -450,24 +450,24 @@ onUnmounted(() => {
           <div
             v-for="(day, dayIdx) in weekDays"
             :key="'col-' + formatDate(day)"
-            class="relative border-l border-stone-200/60 dark:border-stone-700/40"
+            class="relative border-l border-stone-200/60"
           >
             <!-- Full column background -->
             <!-- Grey zone: before 8h -->
             <div
-              class="absolute inset-x-0 top-0 bg-stone-100/60 dark:bg-stone-800/30"
+              class="absolute inset-x-0 top-0 bg-stone-100/60"
               :style="{ height: WORK_START + 'px' }"
             />
             <!-- Grey zone: after 18h -->
             <div
-              class="absolute inset-x-0 bottom-0 bg-stone-100/60 dark:bg-stone-800/30"
+              class="absolute inset-x-0 bottom-0 bg-stone-100/60"
               :style="{ top: WORK_END + 'px' }"
             />
 
             <!-- Highlighted day bg (within work zone) -->
             <div
               v-if="isHighlightedDay(day)"
-              class="absolute inset-x-0 bg-amber-50/50 dark:bg-amber-950/15"
+              class="absolute inset-x-0 bg-amber-50/50"
               :style="{ top: WORK_START + 'px', height: (WORK_END - WORK_START) + 'px' }"
             />
 
@@ -476,10 +476,10 @@ onUnmounted(() => {
               class="absolute inset-x-0"
               :style="{ top: LUNCH_START + 'px', height: (LUNCH_END - LUNCH_START) + 'px' }"
             >
-              <div class="absolute inset-0 bg-stone-50/60 dark:bg-stone-800/20" />
-              <div class="absolute inset-x-0 top-0 border-t border-dashed border-stone-300/50 dark:border-stone-600/30" />
-              <div class="absolute inset-x-0 bottom-0 border-t border-dashed border-stone-300/50 dark:border-stone-600/30" />
-              <span class="absolute inset-0 flex items-center justify-center text-[9px] text-stone-300 dark:text-stone-600 select-none tracking-wider uppercase">
+              <div class="absolute inset-0 bg-stone-50/60" />
+              <div class="absolute inset-x-0 top-0 border-t border-dashed border-stone-300/50" />
+              <div class="absolute inset-x-0 bottom-0 border-t border-dashed border-stone-300/50" />
+              <span class="absolute inset-0 flex items-center justify-center text-[9px] text-stone-300 select-none tracking-wider uppercase">
                 Pause
               </span>
             </div>
@@ -489,38 +489,38 @@ onUnmounted(() => {
               <div
                 class="absolute inset-x-0 border-t"
                 :class="h === 8 || h === 18
-                  ? 'border-stone-300/80 dark:border-stone-600/50'
+                  ? 'border-stone-300/80'
                   : h >= 8 && h < 18
-                    ? 'border-stone-200/60 dark:border-stone-700/30'
-                    : 'border-stone-200/30 dark:border-stone-700/20'"
+                    ? 'border-stone-200/60'
+                    : 'border-stone-200/30'"
                 :style="{ top: hourToY(h) + 'px' }"
               />
               <!-- Half-hour line -->
               <div
-                class="absolute inset-x-0 border-t border-dotted border-stone-200/30 dark:border-stone-700/15"
+                class="absolute inset-x-0 border-t border-dotted border-stone-200/30"
                 :style="{ top: hourToY(h, 30) + 'px' }"
               />
             </template>
 
             <!-- Legal time markers: 8h30 and 17h30 -->
             <div
-              class="absolute inset-x-0 border-t-2 border-dashed border-amber-400/30 dark:border-amber-600/25"
+              class="absolute inset-x-0 border-t-2 border-dashed border-amber-400/30"
               :style="{ top: LEGAL_AM_START + 'px' }"
             />
             <div
-              class="absolute inset-x-0 border-t-2 border-dashed border-amber-400/30 dark:border-amber-600/25"
+              class="absolute inset-x-0 border-t-2 border-dashed border-amber-400/30"
               :style="{ top: LEGAL_PM_END + 'px' }"
             />
 
             <!-- Legal time label badges -->
             <span
-              class="absolute left-1 text-[8px] font-medium text-amber-500/60 dark:text-amber-500/40 select-none"
+              class="absolute left-1 text-[8px] font-medium text-amber-500/60 select-none"
               :style="{ top: LEGAL_AM_START + 2 + 'px' }"
             >
               8h30
             </span>
             <span
-              class="absolute right-1 text-[8px] font-medium text-amber-500/60 dark:text-amber-500/40 select-none"
+              class="absolute right-1 text-[8px] font-medium text-amber-500/60 select-none"
               :style="{ top: LEGAL_PM_END - 12 + 'px' }"
             >
               17h30
@@ -533,11 +533,11 @@ onUnmounted(() => {
                 getEntry(day, 'matin')
                   ? getBlockBg(getEntry(day, 'matin')!) + (getEntry(day, 'matin')!.statut === 'en_attente' ? ' opacity-60 border-dashed' : '')
                   : getSlotDisabled(day)
-                    ? 'bg-stone-100/30 dark:bg-stone-800/20 border-stone-200 dark:border-stone-700 cursor-not-allowed'
+                    ? 'bg-stone-100/30 border-stone-200 cursor-not-allowed'
                     : readonly
                       ? 'border-transparent'
-                      : 'border-transparent hover:bg-amber-50/40 dark:hover:bg-amber-950/20 hover:border-amber-300 dark:hover:border-amber-700 cursor-pointer group',
-                isSlotSelected(day, 'matin') ? 'ring-2 ring-primary ring-offset-1 dark:ring-offset-stone-900' : ''
+                      : 'border-transparent hover:bg-amber-50/40 hover:border-amber-300 cursor-pointer group',
+                isSlotSelected(day, 'matin') ? 'ring-2 ring-primary ring-offset-1' : ''
               ]"
               :style="{ top: LEGAL_AM_START + 1 + 'px', height: (LEGAL_AM_END - LEGAL_AM_START) - 2 + 'px' }"
               :disabled="(readonly && !getEntry(day, 'matin')) || getSlotDisabled(day)"
@@ -565,11 +565,11 @@ onUnmounted(() => {
                 getEntry(day, 'apres_midi')
                   ? getBlockBg(getEntry(day, 'apres_midi')!) + (getEntry(day, 'apres_midi')!.statut === 'en_attente' ? ' opacity-60 border-dashed' : '')
                   : getSlotDisabled(day)
-                    ? 'bg-stone-100/30 dark:bg-stone-800/20 border-stone-200 dark:border-stone-700 cursor-not-allowed'
+                    ? 'bg-stone-100/30 border-stone-200 cursor-not-allowed'
                     : readonly
                       ? 'border-transparent'
-                      : 'border-transparent hover:bg-amber-50/40 dark:hover:bg-amber-950/20 hover:border-amber-300 dark:hover:border-amber-700 cursor-pointer group',
-                isSlotSelected(day, 'apres_midi') ? 'ring-2 ring-primary ring-offset-1 dark:ring-offset-stone-900' : ''
+                      : 'border-transparent hover:bg-amber-50/40 hover:border-amber-300 cursor-pointer group',
+                isSlotSelected(day, 'apres_midi') ? 'ring-2 ring-primary ring-offset-1' : ''
               ]"
               :style="{ top: LEGAL_PM_START + 1 + 'px', height: (LEGAL_PM_END - LEGAL_PM_START) - 2 + 'px' }"
               :disabled="(readonly && !getEntry(day, 'apres_midi')) || getSlotDisabled(day)"
@@ -607,18 +607,18 @@ onUnmounted(() => {
       </div>
 
       <!-- Legend -->
-      <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 pt-3 border-t border-stone-200/60 dark:border-stone-700/40">
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 pt-3 border-t border-stone-200/60">
         <div class="flex items-center gap-1.5">
           <span class="inline-block w-3 h-1 border-t-2 border-dashed border-amber-400/60" />
-          <span class="text-[10px] text-stone-400 dark:text-stone-500">Horaires legaux (7h/jour)</span>
+          <span class="text-[10px] text-stone-400">Horaires legaux (7h/jour)</span>
         </div>
         <div class="flex items-center gap-1.5">
           <span class="inline-block w-3 h-[2px] bg-red-500 rounded" />
-          <span class="text-[10px] text-stone-400 dark:text-stone-500">Heure actuelle</span>
+          <span class="text-[10px] text-stone-400">Heure actuelle</span>
         </div>
         <div class="flex items-center gap-1.5">
-          <span class="inline-block size-3 rounded bg-stone-100 dark:bg-stone-800/40" />
-          <span class="text-[10px] text-stone-400 dark:text-stone-500">Hors horaires</span>
+          <span class="inline-block size-3 rounded bg-stone-100" />
+          <span class="text-[10px] text-stone-400">Hors horaires</span>
         </div>
       </div>
     </div>

@@ -80,16 +80,16 @@ async function handleCreate() {
           <!-- Titre & Icone -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-semibold text-stone-700 dark:text-stone-300">Titre *</label>
+              <label class="text-sm font-semibold text-stone-700">Titre *</label>
               <UInput v-model="form.titre" placeholder="Titre de la page" />
-              <p v-if="form.titre" class="text-xs text-stone-400 dark:text-stone-600">
+              <p v-if="form.titre" class="text-xs text-stone-400">
                 Slug : {{ generateSlug(form.titre) }}
               </p>
             </div>
             <div class="flex flex-col gap-1.5">
-              <label class="text-sm font-semibold text-stone-700 dark:text-stone-300">Icone (optionnel)</label>
+              <label class="text-sm font-semibold text-stone-700">Icone (optionnel)</label>
               <UInput v-model="form.icone" placeholder="i-lucide-file-text" />
-              <p class="text-xs text-stone-400 dark:text-stone-600">
+              <p class="text-xs text-stone-400">
                 Format : i-lucide-nom-icone
               </p>
             </div>
@@ -97,7 +97,7 @@ async function handleCreate() {
 
           <!-- Contenu -->
           <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-semibold text-stone-700 dark:text-stone-300">Contenu</label>
+            <label class="text-sm font-semibold text-stone-700">Contenu</label>
             <WikiEditor v-model="form.contenu" />
           </div>
         </div>

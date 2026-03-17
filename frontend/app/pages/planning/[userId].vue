@@ -310,8 +310,8 @@ onMounted(async () => {
       <!-- User name -->
       <div class="flex items-center gap-2">
         <UAvatar :alt="userName" size="xs" />
-        <span class="text-sm font-semibold text-stone-700 dark:text-stone-300">{{ userName }}</span>
-        <span v-if="!isDirecteur" class="text-xs text-stone-400 dark:text-stone-500">(lecture seule)</span>
+        <span class="text-sm font-semibold text-stone-700">{{ userName }}</span>
+        <span v-if="!isDirecteur" class="text-xs text-stone-400">(lecture seule)</span>
       </div>
 
       <!-- Navigation bar -->
@@ -322,18 +322,18 @@ onMounted(async () => {
             <UButton label="Aujourd'hui" color="neutral" variant="soft" size="xs" @click="navigateToday" />
             <UButton icon="i-lucide-chevron-right" color="neutral" variant="ghost" size="xs" @click="navigateNext" />
           </div>
-          <span v-if="viewMode === 'month'" class="text-sm font-medium text-stone-500 dark:text-stone-400 capitalize">
+          <span v-if="viewMode === 'month'" class="text-sm font-medium text-stone-500 capitalize">
             {{ currentMonthLabel }}
           </span>
-          <span v-else class="text-sm font-medium text-stone-500 dark:text-stone-400">
-            S{{ weekNumber }} <span class="text-stone-300 dark:text-stone-600 mx-0.5">·</span> {{ weekLabel }}
+          <span v-else class="text-sm font-medium text-stone-500">
+            S{{ weekNumber }} <span class="text-stone-300 mx-0.5">·</span> {{ weekLabel }}
           </span>
           <!-- View mode toggle -->
           <div class="flex items-center rounded-lg border border-[rgba(175,143,60,0.12)] overflow-hidden">
             <UTooltip text="Semaine">
               <button
                 class="flex items-center justify-center size-7 transition-colors"
-                :class="viewMode === 'week' ? 'bg-primary/10 text-primary' : 'text-stone-400 dark:text-stone-500 hover:bg-[rgba(175,143,60,0.06)]'"
+                :class="viewMode === 'week' ? 'bg-primary/10 text-primary' : 'text-stone-400 hover:bg-[rgba(175,143,60,0.06)]'"
                 @click="viewMode = 'week'"
               >
                 <UIcon name="i-lucide-rows-3" class="size-3.5" />
@@ -342,7 +342,7 @@ onMounted(async () => {
             <UTooltip text="Emploi du temps">
               <button
                 class="flex items-center justify-center size-7 transition-colors"
-                :class="viewMode === 'timetable' ? 'bg-primary/10 text-primary' : 'text-stone-400 dark:text-stone-500 hover:bg-[rgba(175,143,60,0.06)]'"
+                :class="viewMode === 'timetable' ? 'bg-primary/10 text-primary' : 'text-stone-400 hover:bg-[rgba(175,143,60,0.06)]'"
                 @click="viewMode = 'timetable'"
               >
                 <UIcon name="i-lucide-clock" class="size-3.5" />
@@ -351,7 +351,7 @@ onMounted(async () => {
             <UTooltip text="Mois">
               <button
                 class="flex items-center justify-center size-7 transition-colors"
-                :class="viewMode === 'month' ? 'bg-primary/10 text-primary' : 'text-stone-400 dark:text-stone-500 hover:bg-[rgba(175,143,60,0.06)]'"
+                :class="viewMode === 'month' ? 'bg-primary/10 text-primary' : 'text-stone-400 hover:bg-[rgba(175,143,60,0.06)]'"
                 @click="viewMode = 'month'"
               >
                 <UIcon name="i-lucide-grid-3x3" class="size-3.5" />
@@ -368,7 +368,7 @@ onMounted(async () => {
             class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors"
             :class="activeAction === action.key
               ? 'bg-primary text-white'
-              : 'bg-[rgba(175,143,60,0.06)] text-[#2c2419]/60 dark:text-[#e8e0d0]/50 hover:bg-[rgba(175,143,60,0.12)]'"
+              : 'bg-[rgba(175,143,60,0.06)] text-[#2c2419]/60 hover:bg-[rgba(175,143,60,0.12)]'"
             @click="activeAction = action.key"
           >
             <UIcon :name="action.icon" class="size-3.5" />
@@ -426,7 +426,7 @@ onMounted(async () => {
     <UModal v-if="isDirecteur" :open="showMotifModal" @update:open="showMotifModal = $event">
       <template #content>
         <div class="p-6">
-          <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-4">Motif</h3>
+          <h3 class="text-lg font-semibold text-stone-900 mb-4">Motif</h3>
           <form class="space-y-4" @submit.prevent="handleMotifSubmit">
             <UFormField label="Justification">
               <UTextarea v-model="motifInput" placeholder="Indiquez le motif..." required />

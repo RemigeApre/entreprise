@@ -225,7 +225,7 @@ onUnmounted(() => {
             >
               <span
                 class="absolute -top-2.5 right-2 text-[11px] font-medium select-none"
-                :class="(h >= 8 && h <= 18) ? 'text-[#2c2419]/80 dark:text-stone-300' : 'text-[#2c2419]/35 dark:text-stone-600'"
+                :class="(h >= 8 && h <= 18) ? 'text-[#2c2419]/80' : 'text-[#2c2419]/35'"
               >
                 {{ String(h).padStart(2, '0') }}h
               </span>
@@ -234,24 +234,24 @@ onUnmounted(() => {
 
           <!-- Day column -->
           <div
-            class="relative border-l border-[#af8f3c]/25 dark:border-stone-600/60"
+            class="relative border-l border-[#af8f3c]/25"
             @click="handleGridClick(mobileDayDate, $event)"
           >
             <!-- Grey zone: before 8h -->
             <div
-              class="absolute inset-x-0 top-0 bg-stone-200/70 dark:bg-stone-800/60"
+              class="absolute inset-x-0 top-0 bg-stone-200/70"
               :style="{ height: WORK_START_Y + 'px' }"
             />
             <!-- Grey zone: after 18h -->
             <div
-              class="absolute inset-x-0 bg-stone-200/70 dark:bg-stone-800/60"
+              class="absolute inset-x-0 bg-stone-200/70"
               :style="{ top: WORK_END_Y + 'px', bottom: '0' }"
             />
 
             <!-- Highlighted day bg -->
             <div
               v-if="isHighlightedDay(mobileDayDate)"
-              class="absolute inset-x-0 bg-[#af8f3c]/[0.06] dark:bg-amber-900/10"
+              class="absolute inset-x-0 bg-[#af8f3c]/[0.06]"
               :style="{ top: WORK_START_Y + 'px', height: (WORK_END_Y - WORK_START_Y) + 'px' }"
             />
 
@@ -260,10 +260,10 @@ onUnmounted(() => {
               class="absolute inset-x-0"
               :style="{ top: LUNCH_START_Y + 'px', height: (LUNCH_END_Y - LUNCH_START_Y) + 'px' }"
             >
-              <div class="absolute inset-0 bg-stone-100/70 dark:bg-stone-800/40" />
-              <div class="absolute inset-x-0 top-0 border-t border-dashed border-[#af8f3c]/30 dark:border-stone-500/50" />
-              <div class="absolute inset-x-0 bottom-0 border-t border-dashed border-[#af8f3c]/30 dark:border-stone-500/50" />
-              <span class="absolute inset-0 flex items-center justify-center text-[11px] text-[#2c2419]/40 dark:text-stone-400 select-none tracking-wider uppercase font-medium">
+              <div class="absolute inset-0 bg-stone-100/70" />
+              <div class="absolute inset-x-0 top-0 border-t border-dashed border-[#af8f3c]/30" />
+              <div class="absolute inset-x-0 bottom-0 border-t border-dashed border-[#af8f3c]/30" />
+              <span class="absolute inset-0 flex items-center justify-center text-[11px] text-[#2c2419]/40 select-none tracking-wider uppercase font-medium">
                 Pause
               </span>
             </div>
@@ -273,10 +273,10 @@ onUnmounted(() => {
               <div
                 class="absolute inset-x-0 border-t"
                 :class="h === 8 || h === 18
-                  ? 'border-[#af8f3c]/40 dark:border-stone-500/60'
+                  ? 'border-[#af8f3c]/40'
                   : h >= 8 && h < 18
-                    ? 'border-[#af8f3c]/20 dark:border-stone-600/50'
-                    : 'border-stone-300/50 dark:border-stone-700/40'"
+                    ? 'border-[#af8f3c]/20'
+                    : 'border-stone-300/50'"
                 :style="{ top: hourToY(h) + 'px' }"
               />
             </template>
@@ -316,17 +316,17 @@ onUnmounted(() => {
          ═══════════════════════════════════════════════ -->
     <div class="desktop-schedule">
       <!-- Fixed header -->
-      <div class="grid grid-cols-[56px_repeat(5,1fr)] border-b border-[#af8f3c]/30 dark:border-stone-600 shrink-0 bg-[#ede4cc]/40 dark:bg-transparent">
+      <div class="grid grid-cols-[56px_repeat(5,1fr)] border-b border-[#af8f3c]/30 shrink-0 bg-[#ede4cc]/40">
         <div class="py-2.5" />
         <div
           v-for="day in weekDays"
           :key="formatDate(day)"
-          class="py-2.5 text-center border-l border-[#af8f3c]/20 dark:border-stone-600/60"
-          :class="isHighlightedDay(day) ? 'bg-[#af8f3c]/10 dark:bg-amber-950/20' : ''"
+          class="py-2.5 text-center border-l border-[#af8f3c]/20"
+          :class="isHighlightedDay(day) ? 'bg-[#af8f3c]/10' : ''"
         >
           <p
             class="text-xs font-semibold uppercase tracking-wide"
-            :class="isHighlightedDay(day) ? 'text-[#af8f3c] dark:text-amber-400' : 'text-[#2c2419]/60 dark:text-stone-400'"
+            :class="isHighlightedDay(day) ? 'text-[#af8f3c]' : 'text-[#2c2419]/60'"
           >
             {{ getDayName(day) }}
           </p>
@@ -335,13 +335,13 @@ onUnmounted(() => {
               class="inline-flex items-center justify-center rounded-full text-sm font-bold leading-none"
               :class="isHighlightedDay(day)
                 ? 'size-7 bg-[#af8f3c] text-white'
-                : 'text-[#2c2419] dark:text-stone-200'"
+                : 'text-[#2c2419]'"
             >
               {{ getDayNumber(day) }}
             </span>
             <span
               v-if="!isHighlightedDay(day)"
-              class="text-[11px] text-[#2c2419]/50 dark:text-stone-500"
+              class="text-[11px] text-[#2c2419]/50"
             >
               {{ getDayMonth(day) }}
             </span>
@@ -362,13 +362,13 @@ onUnmounted(() => {
             >
               <span
                 class="absolute -top-2.5 right-2 text-[11px] font-medium select-none"
-                :class="(h >= 8 && h <= 18) ? 'text-[#2c2419]/80 dark:text-stone-300' : 'text-[#2c2419]/35 dark:text-stone-600'"
+                :class="(h >= 8 && h <= 18) ? 'text-[#2c2419]/80' : 'text-[#2c2419]/35'"
               >
                 {{ String(h).padStart(2, '0') }}:00
               </span>
               <span
                 class="absolute right-2 text-[10px] select-none"
-                :class="(h >= 8 && h < 18) ? 'text-[#2c2419]/45 dark:text-stone-500' : 'text-[#2c2419]/25 dark:text-stone-600'"
+                :class="(h >= 8 && h < 18) ? 'text-[#2c2419]/45' : 'text-[#2c2419]/25'"
                 :style="{ top: HALF_HOUR - 6 + 'px' }"
               >
                 {{ String(h).padStart(2, '0') }}:30
@@ -380,24 +380,24 @@ onUnmounted(() => {
           <div
             v-for="day in weekDays"
             :key="'col-' + formatDate(day)"
-            class="relative border-l border-[#af8f3c]/25 dark:border-stone-600/60"
+            class="relative border-l border-[#af8f3c]/25"
             @click="handleGridClick(day, $event)"
           >
             <!-- Grey zone: before 8h -->
             <div
-              class="absolute inset-x-0 top-0 bg-stone-200/70 dark:bg-stone-800/60"
+              class="absolute inset-x-0 top-0 bg-stone-200/70"
               :style="{ height: WORK_START_Y + 'px' }"
             />
             <!-- Grey zone: after 18h -->
             <div
-              class="absolute inset-x-0 bg-stone-200/70 dark:bg-stone-800/60"
+              class="absolute inset-x-0 bg-stone-200/70"
               :style="{ top: WORK_END_Y + 'px', bottom: '0' }"
             />
 
             <!-- Highlighted day bg -->
             <div
               v-if="isHighlightedDay(day)"
-              class="absolute inset-x-0 bg-[#af8f3c]/[0.06] dark:bg-amber-900/10"
+              class="absolute inset-x-0 bg-[#af8f3c]/[0.06]"
               :style="{ top: WORK_START_Y + 'px', height: (WORK_END_Y - WORK_START_Y) + 'px' }"
             />
 
@@ -406,10 +406,10 @@ onUnmounted(() => {
               class="absolute inset-x-0"
               :style="{ top: LUNCH_START_Y + 'px', height: (LUNCH_END_Y - LUNCH_START_Y) + 'px' }"
             >
-              <div class="absolute inset-0 bg-stone-100/70 dark:bg-stone-800/40" />
-              <div class="absolute inset-x-0 top-0 border-t border-dashed border-[#af8f3c]/30 dark:border-stone-500/50" />
-              <div class="absolute inset-x-0 bottom-0 border-t border-dashed border-[#af8f3c]/30 dark:border-stone-500/50" />
-              <span class="absolute inset-0 flex items-center justify-center text-[11px] text-[#2c2419]/40 dark:text-stone-400 select-none tracking-wider uppercase font-medium">
+              <div class="absolute inset-0 bg-stone-100/70" />
+              <div class="absolute inset-x-0 top-0 border-t border-dashed border-[#af8f3c]/30" />
+              <div class="absolute inset-x-0 bottom-0 border-t border-dashed border-[#af8f3c]/30" />
+              <span class="absolute inset-0 flex items-center justify-center text-[11px] text-[#2c2419]/40 select-none tracking-wider uppercase font-medium">
                 Pause
               </span>
             </div>
@@ -419,17 +419,17 @@ onUnmounted(() => {
               <div
                 class="absolute inset-x-0 border-t"
                 :class="h === 8 || h === 18
-                  ? 'border-[#af8f3c]/40 dark:border-stone-500/60'
+                  ? 'border-[#af8f3c]/40'
                   : h >= 8 && h < 18
-                    ? 'border-[#af8f3c]/20 dark:border-stone-600/50'
-                    : 'border-stone-300/50 dark:border-stone-700/40'"
+                    ? 'border-[#af8f3c]/20'
+                    : 'border-stone-300/50'"
                 :style="{ top: hourToY(h) + 'px' }"
               />
               <div
                 class="absolute inset-x-0 border-t border-dotted"
                 :class="(h >= 8 && h < 18)
-                  ? 'border-[#af8f3c]/15 dark:border-stone-600/40'
-                  : 'border-stone-300/30 dark:border-stone-700/30'"
+                  ? 'border-[#af8f3c]/15'
+                  : 'border-stone-300/30'"
                 :style="{ top: hourToY(h, 30) + 'px' }"
               />
             </template>
@@ -464,14 +464,14 @@ onUnmounted(() => {
       </div>
 
       <!-- Legend -->
-      <div class="flex flex-wrap items-center gap-x-4 gap-y-1 py-2.5 border-t border-[#af8f3c]/20 dark:border-stone-600 shrink-0">
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-1 py-2.5 border-t border-[#af8f3c]/20 shrink-0">
         <div class="flex items-center gap-1.5">
           <span class="inline-block w-3 h-[2px] bg-[#b74d34] rounded" />
-          <span class="text-[11px] text-[#2c2419]/60 dark:text-stone-400">Heure actuelle</span>
+          <span class="text-[11px] text-[#2c2419]/60">Heure actuelle</span>
         </div>
         <div class="flex items-center gap-1.5">
-          <span class="inline-block size-3 rounded bg-stone-200 dark:bg-stone-800/60" />
-          <span class="text-[11px] text-[#2c2419]/60 dark:text-stone-400">Hors horaires</span>
+          <span class="inline-block size-3 rounded bg-stone-200" />
+          <span class="text-[11px] text-[#2c2419]/60">Hors horaires</span>
         </div>
       </div>
     </div>

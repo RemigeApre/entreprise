@@ -146,18 +146,18 @@ onMounted(() => {
         :key="'m-' + formatDate(day)"
         class="rounded-lg border p-3"
         :class="isHighlightedDay(day)
-          ? 'border-amber-300/40 dark:border-amber-700/30 bg-amber-50/50 dark:bg-amber-950/15'
-          : 'border-stone-200/60 dark:border-stone-700/30'"
+          ? 'border-amber-300/40 bg-amber-50/50'
+          : 'border-stone-200/60'"
       >
         <p
           class="text-xs font-semibold uppercase mb-2"
-          :class="isHighlightedDay(day) ? 'text-amber-600 dark:text-amber-400' : 'text-stone-500 dark:text-stone-400'"
+          :class="isHighlightedDay(day) ? 'text-amber-600' : 'text-stone-500'"
         >
           {{ getDayName(day) }} {{ getDayNumber(day) }}
         </p>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <span class="text-[10px] font-medium text-stone-400 dark:text-stone-500 block mb-1">M</span>
+            <span class="text-[10px] font-medium text-stone-400 block mb-1">M</span>
             <PlanningDaySlot
               :entry="getEntry(day, 'matin')"
               periode="matin"
@@ -169,7 +169,7 @@ onMounted(() => {
             />
           </div>
           <div>
-            <span class="text-[10px] font-medium text-stone-400 dark:text-stone-500 block mb-1">AP</span>
+            <span class="text-[10px] font-medium text-stone-400 block mb-1">AP</span>
             <PlanningDaySlot
               :entry="getEntry(day, 'apres_midi')"
               periode="apres_midi"
@@ -195,7 +195,7 @@ onMounted(() => {
       >
         <p
           class="text-[11px] font-medium"
-          :class="isHighlightedDay(day) ? 'text-amber-600 dark:text-amber-400' : 'text-stone-500 dark:text-stone-400'"
+          :class="isHighlightedDay(day) ? 'text-amber-600' : 'text-stone-500'"
         >
           <span class="uppercase">{{ getDayName(day) }}</span>
           <span class="mx-1 opacity-40">·</span>
@@ -205,12 +205,12 @@ onMounted(() => {
 
       <!-- Matin row -->
       <div class="flex items-center pr-2">
-        <span class="text-[11px] font-medium text-stone-500 dark:text-stone-400 whitespace-nowrap">M</span>
+        <span class="text-[11px] font-medium text-stone-500 whitespace-nowrap">M</span>
       </div>
       <div
         v-for="day in weekDays"
         :key="'am-' + formatDate(day)"
-        :class="isHighlightedDay(day) ? 'bg-amber-50/60 dark:bg-amber-950/20 rounded-t-lg -mx-0.5 px-0.5' : ''"
+        :class="isHighlightedDay(day) ? 'bg-amber-50/60 rounded-t-lg -mx-0.5 px-0.5' : ''"
       >
         <PlanningDaySlot
           :entry="getEntry(day, 'matin')"
@@ -225,12 +225,12 @@ onMounted(() => {
 
       <!-- Apres-midi row -->
       <div class="flex items-center pr-2">
-        <span class="text-[11px] font-medium text-stone-500 dark:text-stone-400 whitespace-nowrap">AP</span>
+        <span class="text-[11px] font-medium text-stone-500 whitespace-nowrap">AP</span>
       </div>
       <div
         v-for="day in weekDays"
         :key="'pm-' + formatDate(day)"
-        :class="isHighlightedDay(day) ? 'bg-amber-50/60 dark:bg-amber-950/20 rounded-b-lg -mx-0.5 px-0.5' : ''"
+        :class="isHighlightedDay(day) ? 'bg-amber-50/60 rounded-b-lg -mx-0.5 px-0.5' : ''"
       >
         <PlanningDaySlot
           :entry="getEntry(day, 'apres_midi')"

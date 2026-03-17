@@ -41,12 +41,12 @@ const displayLabel = computed(() => {
 
 const hasFill = computed(() => !!props.entry && !!colorConfig.value)
 
-const selectedRing = 'ring-2 ring-primary ring-offset-1 dark:ring-offset-stone-900'
+const selectedRing = 'ring-2 ring-primary ring-offset-1'
 
 const slotClasses = computed(() => {
   const sel = props.selected ? ` ${selectedRing}` : ''
   if (props.disabled) {
-    return 'border-dashed border-[rgba(175,143,60,0.1)] bg-[rgba(175,143,60,0.03)] text-stone-300 dark:text-stone-600 cursor-not-allowed'
+    return 'border-dashed border-[rgba(175,143,60,0.1)] bg-[rgba(175,143,60,0.03)] text-stone-300 cursor-not-allowed'
   }
   if (hasFill.value) {
     const c = colorConfig.value!
@@ -54,9 +54,9 @@ const slotClasses = computed(() => {
     return (isPending.value ? `${base} border-dashed opacity-60` : `${base} border-solid`) + sel
   }
   if (!props.readonly) {
-    return 'border-dashed border-stone-300 dark:border-stone-700 hover:border-amber-400 dark:hover:border-amber-600 text-stone-500 dark:text-stone-400 cursor-pointer hover:bg-amber-50/50 dark:hover:bg-amber-950/30' + sel
+    return 'border-dashed border-stone-300 hover:border-amber-400 text-stone-500 cursor-pointer hover:bg-amber-50/50' + sel
   }
-  return 'border-dashed border-stone-300 dark:border-stone-700 text-stone-400 dark:text-stone-500 cursor-default' + sel
+  return 'border-dashed border-stone-300 text-stone-400 cursor-default' + sel
 })
 </script>
 
@@ -85,7 +85,7 @@ const slotClasses = computed(() => {
       </UBadge>
     </template>
     <template v-else-if="!readonly && !disabled">
-      <UIcon name="i-lucide-plus" class="size-3.5 shrink-0 text-stone-400 dark:text-stone-500" />
+      <UIcon name="i-lucide-plus" class="size-3.5 shrink-0 text-stone-400" />
     </template>
   </button>
 </template>

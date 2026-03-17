@@ -145,12 +145,12 @@ function formatDateLong(date: string | null) {
         <UCard>
           <div class="space-y-3">
             <div class="flex flex-wrap items-center gap-2">
-              <h2 class="text-xl font-bold text-stone-900 dark:text-white">{{ article.titre }}</h2>
+              <h2 class="text-xl font-bold text-stone-900">{{ article.titre }}</h2>
               <UBadge :color="ARTICLE_STATUTS[article.statut]?.color || 'neutral'" variant="subtle">
                 {{ ARTICLE_STATUTS[article.statut]?.label || article.statut }}
               </UBadge>
             </div>
-            <div class="flex flex-wrap items-center gap-4 text-sm text-stone-500 dark:text-stone-400">
+            <div class="flex flex-wrap items-center gap-4 text-sm text-stone-500">
               <span class="flex items-center gap-1.5">
                 <UIcon name="i-lucide-user" class="size-3.5" />
                 {{ getAuteurNom(article) }}
@@ -167,9 +167,9 @@ function formatDateLong(date: string | null) {
         <!-- Contenu -->
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Contenu</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Contenu</h3>
           </template>
-          <div class="prose prose-sm dark:prose-invert max-w-none text-stone-700 dark:text-stone-300" v-html="article.contenu" />
+          <div class="prose prose-sm max-w-none text-stone-700" v-html="article.contenu" />
         </UCard>
       </div>
 
@@ -177,7 +177,7 @@ function formatDateLong(date: string | null) {
       <div v-else-if="article && isEditing" class="max-w-2xl mx-auto space-y-6">
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Contenu</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Contenu</h3>
           </template>
           <div class="space-y-4">
             <UFormField label="Titre *">
@@ -190,7 +190,7 @@ function formatDateLong(date: string | null) {
                 :rows="12"
                 class="w-full"
               />
-              <p class="text-xs text-stone-400 dark:text-stone-500 mt-1">
+              <p class="text-xs text-stone-400 mt-1">
                 Mise en forme : &lt;strong&gt;gras&lt;/strong&gt;, &lt;u&gt;souligne&lt;/u&gt;, &lt;em&gt;italique&lt;/em&gt;. Les emojis sont supportes.
               </p>
             </UFormField>
@@ -199,7 +199,7 @@ function formatDateLong(date: string | null) {
 
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Publication</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Publication</h3>
           </template>
           <div class="space-y-4">
             <UFormField label="Statut">
@@ -214,8 +214,8 @@ function formatDateLong(date: string | null) {
 
       <!-- Not found -->
       <div v-else class="text-center py-12">
-        <UIcon name="i-lucide-file-x" class="size-10 text-stone-300 dark:text-stone-700 mx-auto mb-3" />
-        <p class="text-stone-500 dark:text-stone-400">Article introuvable</p>
+        <UIcon name="i-lucide-file-x" class="size-10 text-stone-300 mx-auto mb-3" />
+        <p class="text-stone-500">Article introuvable</p>
         <UButton label="Retour aux articles" icon="i-lucide-arrow-left" class="mt-4" variant="subtle" to="/admin/articles" />
       </div>
     </div>
@@ -225,12 +225,12 @@ function formatDateLong(date: string | null) {
       <template #content>
         <div class="p-6 space-y-4">
           <div class="flex items-center gap-3">
-            <div class="rounded-full bg-red-100 dark:bg-red-900/30 p-2">
-              <UIcon name="i-lucide-alert-triangle" class="size-5 text-red-600 dark:text-red-400" />
+            <div class="rounded-full bg-red-100 p-2">
+              <UIcon name="i-lucide-alert-triangle" class="size-5 text-red-600" />
             </div>
-            <h3 class="text-lg font-semibold text-stone-900 dark:text-white">Supprimer cet article</h3>
+            <h3 class="text-lg font-semibold text-stone-900">Supprimer cet article</h3>
           </div>
-          <p class="text-sm text-stone-500 dark:text-stone-400">
+          <p class="text-sm text-stone-500">
             Etes-vous sur de vouloir supprimer l'article <strong>{{ article?.titre }}</strong> ?
             Cette action est irreversible.
           </p>

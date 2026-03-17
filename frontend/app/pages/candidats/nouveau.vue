@@ -108,7 +108,7 @@ function handleFileChange(e: Event) {
       <div class="max-w-2xl mx-auto space-y-6">
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Identite</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Identite</h3>
           </template>
           <div class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -140,7 +140,7 @@ function handleFileChange(e: Event) {
 
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Candidature</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Candidature</h3>
           </template>
           <div class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -155,7 +155,7 @@ function handleFileChange(e: Event) {
               <input
                 type="file"
                 accept=".pdf,.doc,.docx"
-                class="block w-full text-sm text-stone-500 dark:text-stone-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer"
+                class="block w-full text-sm text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer"
                 @change="handleFileChange"
               >
             </UFormField>

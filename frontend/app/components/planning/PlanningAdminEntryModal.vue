@@ -69,7 +69,7 @@ function handleSubmit() {
   <UModal :open="open" @update:open="emit('update:open', $event)">
     <template #content>
       <div class="p-6">
-        <h3 class="text-lg font-semibold text-stone-900 dark:text-white mb-4">
+        <h3 class="text-lg font-semibold text-stone-900 mb-4">
           {{ entry ? 'Modifier l\'entree' : 'Ajouter une entree' }}
         </h3>
 

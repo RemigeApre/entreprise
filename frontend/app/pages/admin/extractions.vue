@@ -277,10 +277,10 @@ onMounted(initPresenceDates)
         <UCard>
           <template #header>
             <div class="flex items-center gap-2">
-              <UIcon name="i-lucide-calendar-check" class="size-5 text-emerald-600 dark:text-emerald-400" />
-              <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Presence</h3>
+              <UIcon name="i-lucide-calendar-check" class="size-5 text-emerald-600" />
+              <h3 class="text-sm font-semibold text-stone-900">Presence</h3>
             </div>
-            <p class="text-xs text-stone-400 dark:text-stone-500 mt-0.5">
+            <p class="text-xs text-stone-400 mt-0.5">
               Exporter les jours de presence sur une periode (CSV)
             </p>
           </template>
@@ -314,10 +314,10 @@ onMounted(initPresenceDates)
         <UCard>
           <template #header>
             <div class="flex items-center gap-2">
-              <UIcon name="i-lucide-target" class="size-5 text-amber-600 dark:text-amber-400" />
-              <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Prospection</h3>
+              <UIcon name="i-lucide-target" class="size-5 text-amber-600" />
+              <h3 class="text-sm font-semibold text-stone-900">Prospection</h3>
             </div>
-            <p class="text-xs text-stone-400 dark:text-stone-500 mt-0.5">
+            <p class="text-xs text-stone-400 mt-0.5">
               Exporter tous les prospects et leur historique de contacts (CSV)
             </p>
           </template>
@@ -325,7 +325,7 @@ onMounted(initPresenceDates)
           <div class="space-y-4">
             <div class="flex items-center gap-3">
               <USwitch v-model="prospectionWithContacts" />
-              <span class="text-sm text-stone-700 dark:text-stone-300">
+              <span class="text-sm text-stone-700">
                 {{ prospectionWithContacts ? 'Export detaille (avec historique contacts)' : 'Export simple (1 ligne par prospect)' }}
               </span>
             </div>

@@ -150,10 +150,10 @@ async function handleLogout() {
               size="xl"
             />
             <div class="min-w-0 flex-1">
-              <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+              <h2 class="text-xl font-bold text-gray-900">
                 {{ getUserName(user) }}
               </h2>
-              <p class="text-gray-500 dark:text-gray-400">{{ user.email }}</p>
+              <p class="text-gray-500">{{ user.email }}</p>
               <div class="flex flex-wrap items-center gap-2 mt-2">
                 <UBadge :color="getRoleColor(getRoleName(user))" variant="subtle">
                   {{ getRoleName(user) }}
@@ -165,7 +165,7 @@ async function handleLogout() {
                   {{ user.type_contrat }}
                 </UBadge>
               </div>
-              <div v-if="user.bio" class="mt-2 text-sm text-stone-600 dark:text-stone-400 italic">
+              <div v-if="user.bio" class="mt-2 text-sm text-stone-600 italic">
                 {{ user.bio }}
               </div>
             </div>
@@ -176,7 +176,7 @@ async function handleLogout() {
         <UCard>
           <template #header>
             <div class="flex items-center justify-between">
-              <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Coordonnees</h3>
+              <h3 class="text-sm font-semibold text-gray-900">Coordonnees</h3>
               <UButton
                 v-if="!editingInfo"
                 label="Modifier"
@@ -207,29 +207,29 @@ async function handleLogout() {
           <!-- Mode lecture -->
           <div v-if="!editingInfo" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
-              <span class="text-gray-500 dark:text-gray-400">Telephone</span>
-              <p class="font-medium text-gray-900 dark:text-white">{{ user.telephone || '-' }}</p>
+              <span class="text-gray-500">Telephone</span>
+              <p class="font-medium text-gray-900">{{ user.telephone || '-' }}</p>
             </div>
             <div>
-              <span class="text-gray-500 dark:text-gray-400">LinkedIn</span>
+              <span class="text-gray-500">LinkedIn</span>
               <p v-if="user.linkedin" class="font-medium">
                 <a :href="user.linkedin" target="_blank" rel="noopener" class="text-primary hover:underline">
                   {{ user.linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, '').replace(/\/$/, '') || 'Profil' }}
                 </a>
               </p>
-              <p v-else class="font-medium text-gray-900 dark:text-white">-</p>
+              <p v-else class="font-medium text-gray-900">-</p>
             </div>
             <div>
-              <span class="text-gray-500 dark:text-gray-400">Localisation</span>
-              <p class="font-medium text-gray-900 dark:text-white">{{ user.localisation || '-' }}</p>
+              <span class="text-gray-500">Localisation</span>
+              <p class="font-medium text-gray-900">{{ user.localisation || '-' }}</p>
             </div>
             <div>
-              <span class="text-gray-500 dark:text-gray-400">Email</span>
-              <p class="font-medium text-gray-900 dark:text-white">{{ user.email }}</p>
+              <span class="text-gray-500">Email</span>
+              <p class="font-medium text-gray-900">{{ user.email }}</p>
             </div>
             <div v-if="user.bio" class="sm:col-span-2">
-              <span class="text-gray-500 dark:text-gray-400">Presentation</span>
-              <p class="font-medium text-gray-900 dark:text-white whitespace-pre-line">{{ user.bio }}</p>
+              <span class="text-gray-500">Presentation</span>
+              <p class="font-medium text-gray-900 whitespace-pre-line">{{ user.bio }}</p>
             </div>
           </div>
 
@@ -255,29 +255,29 @@ async function handleLogout() {
         <!-- Informations personnelles -->
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Informations personnelles</h3>
+            <h3 class="text-sm font-semibold text-gray-900">Informations personnelles</h3>
           </template>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
-              <span class="text-gray-500 dark:text-gray-400">Prenom</span>
-              <p class="font-medium text-gray-900 dark:text-white">{{ user.first_name || '-' }}</p>
+              <span class="text-gray-500">Prenom</span>
+              <p class="font-medium text-gray-900">{{ user.first_name || '-' }}</p>
             </div>
             <div>
-              <span class="text-gray-500 dark:text-gray-400">Nom</span>
-              <p class="font-medium text-gray-900 dark:text-white">{{ user.last_name || '-' }}</p>
+              <span class="text-gray-500">Nom</span>
+              <p class="font-medium text-gray-900">{{ user.last_name || '-' }}</p>
             </div>
             <div>
-              <span class="text-gray-500 dark:text-gray-400">Role</span>
-              <p class="font-medium text-gray-900 dark:text-white">{{ getRoleName(user) }}</p>
+              <span class="text-gray-500">Role</span>
+              <p class="font-medium text-gray-900">{{ getRoleName(user) }}</p>
             </div>
             <div v-if="getCategoryName(user)">
-              <span class="text-gray-500 dark:text-gray-400">Categorie</span>
-              <p class="font-medium text-gray-900 dark:text-white">{{ getCategoryName(user) }}</p>
+              <span class="text-gray-500">Categorie</span>
+              <p class="font-medium text-gray-900">{{ getCategoryName(user) }}</p>
             </div>
             <div v-if="user.type_contrat">
-              <span class="text-gray-500 dark:text-gray-400">Type de contrat</span>
-              <p class="font-medium text-gray-900 dark:text-white">{{ user.type_contrat }}</p>
+              <span class="text-gray-500">Type de contrat</span>
+              <p class="font-medium text-gray-900">{{ user.type_contrat }}</p>
             </div>
           </div>
         </UCard>
@@ -285,24 +285,24 @@ async function handleLogout() {
         <!-- Informations contrat -->
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Informations contrat</h3>
+            <h3 class="text-sm font-semibold text-gray-900">Informations contrat</h3>
           </template>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
-              <span class="text-gray-500 dark:text-gray-400">Debut de contrat</span>
-              <p class="font-medium text-gray-900 dark:text-white">{{ formatDateFr(user.date_debut_contrat) }}</p>
+              <span class="text-gray-500">Debut de contrat</span>
+              <p class="font-medium text-gray-900">{{ formatDateFr(user.date_debut_contrat) }}</p>
             </div>
             <div>
-              <span class="text-gray-500 dark:text-gray-400">Fin de contrat</span>
-              <p class="font-medium text-gray-900 dark:text-white">{{ formatDateFr(user.date_fin_contrat) }}</p>
+              <span class="text-gray-500">Fin de contrat</span>
+              <p class="font-medium text-gray-900">{{ formatDateFr(user.date_fin_contrat) }}</p>
             </div>
             <div v-if="user.type_contrat !== 'Stage' && user.type_contrat !== 'Freelance'">
-              <span class="text-gray-500 dark:text-gray-400">Fin de periode d'essai</span>
-              <p class="font-medium text-gray-900 dark:text-white">{{ formatDateFr(user.date_fin_periode_essai) }}</p>
+              <span class="text-gray-500">Fin de periode d'essai</span>
+              <p class="font-medium text-gray-900">{{ formatDateFr(user.date_fin_periode_essai) }}</p>
             </div>
             <div>
-              <span class="text-gray-500 dark:text-gray-400">Statut</span>
+              <span class="text-gray-500">Statut</span>
               <UBadge :color="user.actif ? 'green' : 'red'" variant="subtle" size="sm">
                 {{ user.actif ? 'Actif' : 'Inactif' }}
               </UBadge>
@@ -313,7 +313,7 @@ async function handleLogout() {
         <!-- Securite -->
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Securite</h3>
+            <h3 class="text-sm font-semibold text-gray-900">Securite</h3>
           </template>
 
           <div class="space-y-4">

@@ -149,7 +149,7 @@ onMounted(() => {
       <div
         v-for="name in ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven']"
         :key="name"
-        class="text-center text-[11px] font-medium uppercase text-stone-500 dark:text-stone-400 py-1"
+        class="text-center text-[11px] font-medium uppercase text-stone-500 py-1"
       >
         {{ name }}
       </div>
@@ -178,7 +178,7 @@ onMounted(() => {
           <!-- Day number -->
           <p
             class="text-[11px] font-medium mb-0.5 px-0.5"
-            :class="day.isToday ? 'text-amber-600 dark:text-amber-400 font-bold' : day.isCurrentMonth ? 'text-stone-700 dark:text-stone-300' : 'text-stone-400 dark:text-stone-600'"
+            :class="day.isToday ? 'text-amber-600 font-bold' : day.isCurrentMonth ? 'text-stone-700' : 'text-stone-400'"
           >
             {{ day.dayNumber }}
           </p>
@@ -193,9 +193,9 @@ onMounted(() => {
                 getEntry(day.dateStr, periode)
                   ? `${getBgClass(getEntry(day.dateStr, periode)!)} ${getEntry(day.dateStr, periode)!.statut === 'en_attente' ? 'opacity-60' : ''}`
                   : day.isCurrentMonth && !day.disabled && !readonly
-                    ? 'bg-stone-100 dark:bg-stone-800/50 hover:bg-stone-200 dark:hover:bg-stone-700/50 cursor-pointer'
-                    : 'bg-stone-100/50 dark:bg-stone-800/30',
-                isSlotSelected(day.dateStr, periode) ? 'ring-2 ring-primary ring-offset-1 dark:ring-offset-stone-900' : ''
+                    ? 'bg-stone-100 hover:bg-stone-200 cursor-pointer'
+                    : 'bg-stone-100/50',
+                isSlotSelected(day.dateStr, periode) ? 'ring-2 ring-primary ring-offset-1' : ''
               ]"
               :disabled="day.disabled || !day.isCurrentMonth"
               @click="handleSlotClick(day, periode)"
@@ -212,7 +212,7 @@ onMounted(() => {
     </div>
 
     <!-- Legend: AM/PM -->
-    <div class="flex items-center gap-3 mt-2 text-[10px] text-stone-400 dark:text-stone-500">
+    <div class="flex items-center gap-3 mt-2 text-[10px] text-stone-400">
       <span>Gauche = Matin</span>
       <span>Droite = Apres-midi</span>
     </div>

@@ -230,16 +230,16 @@ function formatDateShort(date: string | null) {
               <div class="flex items-start justify-between gap-3">
                 <div>
                   <div class="flex items-center gap-2 mb-1">
-                    <h2 class="text-xl font-bold text-stone-900 dark:text-white">{{ prospect.nom_entreprise }}</h2>
+                    <h2 class="text-xl font-bold text-stone-900">{{ prospect.nom_entreprise }}</h2>
                     <UBadge :color="(PROSPECT_STATUTS[prospect.statut]?.color as any)" variant="subtle">
                       {{ PROSPECT_STATUTS[prospect.statut]?.label }}
                     </UBadge>
                   </div>
-                  <p v-if="prospect.contact_nom" class="text-sm text-stone-500 dark:text-stone-400">
+                  <p v-if="prospect.contact_nom" class="text-sm text-stone-500">
                     Contact : {{ prospect.contact_nom }}
                   </p>
                 </div>
-                <div class="text-right text-xs text-stone-400 dark:text-stone-500 shrink-0">
+                <div class="text-right text-xs text-stone-400 shrink-0">
                   <p>{{ prospect.nb_contacts || 0 }} contact{{ (prospect.nb_contacts || 0) > 1 ? 's' : '' }}</p>
                   <p>Par {{ getProspecteurName(prospect) }}</p>
                 </div>
@@ -260,53 +260,53 @@ function formatDateShort(date: string | null) {
               </div>
 
               <!-- Info grid -->
-              <div class="grid grid-cols-2 gap-3 text-sm pt-3 border-t border-stone-100 dark:border-stone-800">
+              <div class="grid grid-cols-2 gap-3 text-sm pt-3 border-t border-stone-100">
                 <div>
-                  <span class="text-xs text-stone-400 dark:text-stone-500">Ville</span>
-                  <p class="font-medium text-stone-800 dark:text-stone-200">{{ prospect.ville }}</p>
+                  <span class="text-xs text-stone-400">Ville</span>
+                  <p class="font-medium text-stone-800">{{ prospect.ville }}</p>
                 </div>
                 <div>
-                  <span class="text-xs text-stone-400 dark:text-stone-500">Secteur</span>
-                  <p class="font-medium text-stone-800 dark:text-stone-200">{{ prospect.secteur || '-' }}</p>
+                  <span class="text-xs text-stone-400">Secteur</span>
+                  <p class="font-medium text-stone-800">{{ prospect.secteur || '-' }}</p>
                 </div>
                 <div>
-                  <span class="text-xs text-stone-400 dark:text-stone-500">Telephone</span>
-                  <p class="font-medium text-stone-800 dark:text-stone-200">
+                  <span class="text-xs text-stone-400">Telephone</span>
+                  <p class="font-medium text-stone-800">
                     <a v-if="prospect.telephone" :href="`tel:${prospect.telephone}`" class="text-primary hover:underline">{{ prospect.telephone }}</a>
                     <span v-else>-</span>
                   </p>
                 </div>
                 <div>
-                  <span class="text-xs text-stone-400 dark:text-stone-500">Email</span>
-                  <p class="font-medium text-stone-800 dark:text-stone-200">
+                  <span class="text-xs text-stone-400">Email</span>
+                  <p class="font-medium text-stone-800">
                     <a v-if="prospect.email" :href="`mailto:${prospect.email}`" class="text-primary hover:underline">{{ prospect.email }}</a>
                     <span v-else>-</span>
                   </p>
                 </div>
                 <div v-if="prospect.emails_secondaires">
-                  <span class="text-xs text-stone-400 dark:text-stone-500">Emails secondaires</span>
-                  <p class="font-medium text-stone-800 dark:text-stone-200 whitespace-pre-line text-xs">{{ prospect.emails_secondaires }}</p>
+                  <span class="text-xs text-stone-400">Emails secondaires</span>
+                  <p class="font-medium text-stone-800 whitespace-pre-line text-xs">{{ prospect.emails_secondaires }}</p>
                 </div>
                 <div>
-                  <span class="text-xs text-stone-400 dark:text-stone-500">Site web</span>
-                  <p class="font-medium text-stone-800 dark:text-stone-200">
+                  <span class="text-xs text-stone-400">Site web</span>
+                  <p class="font-medium text-stone-800">
                     <a v-if="prospect.site_web" :href="prospect.site_web" target="_blank" class="text-primary hover:underline">{{ prospect.site_web }}</a>
                     <span v-else>-</span>
                   </p>
                 </div>
                 <div>
-                  <span class="text-xs text-stone-400 dark:text-stone-500">Adresse</span>
-                  <p class="font-medium text-stone-800 dark:text-stone-200">{{ prospect.adresse || '-' }}</p>
+                  <span class="text-xs text-stone-400">Adresse</span>
+                  <p class="font-medium text-stone-800">{{ prospect.adresse || '-' }}</p>
                 </div>
                 <div>
-                  <span class="text-xs text-stone-400 dark:text-stone-500">Cree le</span>
-                  <p class="font-medium text-stone-800 dark:text-stone-200">{{ formatDateFr(prospect.date_created) }}</p>
+                  <span class="text-xs text-stone-400">Cree le</span>
+                  <p class="font-medium text-stone-800">{{ formatDateFr(prospect.date_created) }}</p>
                 </div>
               </div>
 
-              <div v-if="prospect.notes" class="pt-3 border-t border-stone-100 dark:border-stone-800">
-                <span class="text-xs text-stone-400 dark:text-stone-500">Notes</span>
-                <p class="mt-1 text-sm text-stone-700 dark:text-stone-300 whitespace-pre-line">{{ prospect.notes }}</p>
+              <div v-if="prospect.notes" class="pt-3 border-t border-stone-100">
+                <span class="text-xs text-stone-400">Notes</span>
+                <p class="mt-1 text-sm text-stone-700 whitespace-pre-line">{{ prospect.notes }}</p>
               </div>
             </div>
           </UCard>
@@ -315,7 +315,7 @@ function formatDateShort(date: string | null) {
           <UCard>
             <template #header>
               <div class="flex items-center justify-between">
-                <h3 class="text-sm font-semibold text-stone-900 dark:text-white">
+                <h3 class="text-sm font-semibold text-stone-900">
                   Historique des contacts
                   <span v-if="sortedContacts.length" class="text-stone-400 font-normal">({{ sortedContacts.length }})</span>
                 </h3>
@@ -329,8 +329,8 @@ function formatDateShort(date: string | null) {
             </template>
 
             <div v-if="!sortedContacts.length" class="text-center py-6">
-              <UIcon name="i-lucide-message-circle" class="size-8 text-stone-300 dark:text-stone-700 mx-auto mb-2" />
-              <p class="text-sm text-stone-500 dark:text-stone-400">Aucun contact enregistre</p>
+              <UIcon name="i-lucide-message-circle" class="size-8 text-stone-300 mx-auto mb-2" />
+              <p class="text-sm text-stone-500">Aucun contact enregistre</p>
               <UButton
                 label="Premier contact"
                 icon="i-lucide-phone"
@@ -352,26 +352,26 @@ function formatDateShort(date: string | null) {
                   <div
                     class="flex items-center justify-center size-8 rounded-full shrink-0"
                     :class="CONTACT_RESULTATS[contact.resultat]?.color === 'green'
-                      ? 'bg-emerald-100 dark:bg-emerald-900/30'
+                      ? 'bg-emerald-100'
                       : CONTACT_RESULTATS[contact.resultat]?.color === 'red'
-                        ? 'bg-red-100 dark:bg-red-900/30'
+                        ? 'bg-red-100'
                         : CONTACT_RESULTATS[contact.resultat]?.color === 'orange'
-                          ? 'bg-orange-100 dark:bg-orange-900/30'
-                          : 'bg-stone-100 dark:bg-stone-800'"
+                          ? 'bg-orange-100'
+                          : 'bg-stone-100'"
                   >
                     <UIcon
                       :name="CONTACT_CANAUX[contact.canal]?.icon || 'i-lucide-message-circle'"
                       class="size-4"
                       :class="CONTACT_RESULTATS[contact.resultat]?.color === 'green'
-                        ? 'text-emerald-600 dark:text-emerald-400'
+                        ? 'text-emerald-600'
                         : CONTACT_RESULTATS[contact.resultat]?.color === 'red'
-                          ? 'text-red-600 dark:text-red-400'
-                          : 'text-stone-500 dark:text-stone-400'"
+                          ? 'text-red-600'
+                          : 'text-stone-500'"
                     />
                   </div>
                   <div
                     v-if="index < sortedContacts.length - 1"
-                    class="w-px flex-1 bg-stone-200 dark:bg-stone-700 mt-1"
+                    class="w-px flex-1 bg-stone-200 mt-1"
                   />
                 </div>
 
@@ -384,14 +384,14 @@ function formatDateShort(date: string | null) {
                     <UBadge :color="(CONTACT_RESULTATS[contact.resultat]?.color as any) || 'neutral'" variant="subtle" size="xs">
                       {{ CONTACT_RESULTATS[contact.resultat]?.label || contact.resultat }}
                     </UBadge>
-                    <span class="text-[11px] text-stone-400 dark:text-stone-500">
+                    <span class="text-[11px] text-stone-400">
                       {{ formatDateShort(contact.date_contact) }}
                     </span>
                   </div>
-                  <p v-if="contact.notes" class="text-sm text-stone-700 dark:text-stone-300 whitespace-pre-line">
+                  <p v-if="contact.notes" class="text-sm text-stone-700 whitespace-pre-line">
                     {{ contact.notes }}
                   </p>
-                  <p class="text-[11px] text-stone-400 dark:text-stone-500 mt-1">
+                  <p class="text-[11px] text-stone-400 mt-1">
                     Par {{ getContactUserName(contact) }}
                   </p>
                 </div>
@@ -404,7 +404,7 @@ function formatDateShort(date: string | null) {
         <template v-else>
           <UCard>
             <template #header>
-              <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Modifier le prospect</h3>
+              <h3 class="text-sm font-semibold text-stone-900">Modifier le prospect</h3>
             </template>
             <form class="space-y-4" @submit.prevent="saveChanges">
               <UFormField label="Nom (entreprise ou personne)" required>
@@ -460,8 +460,8 @@ function formatDateShort(date: string | null) {
 
       <!-- Not found -->
       <div v-else class="text-center py-12">
-        <UIcon name="i-lucide-search-x" class="size-10 text-stone-300 dark:text-stone-700 mx-auto mb-3" />
-        <p class="text-stone-500 dark:text-stone-400">Prospect introuvable</p>
+        <UIcon name="i-lucide-search-x" class="size-10 text-stone-300 mx-auto mb-3" />
+        <p class="text-stone-500">Prospect introuvable</p>
         <UButton label="Retour" icon="i-lucide-arrow-left" variant="subtle" class="mt-4" to="/prospection" />
       </div>
     </div>
@@ -470,7 +470,7 @@ function formatDateShort(date: string | null) {
     <UModal :open="showContactModal" @update:open="showContactModal = $event">
       <template #content>
         <div class="p-6">
-          <h3 class="text-lg font-semibold text-stone-900 dark:text-white mb-4">
+          <h3 class="text-lg font-semibold text-stone-900 mb-4">
             Enregistrer un contact
           </h3>
           <form class="space-y-4" @submit.prevent="handleAddContact">
@@ -505,12 +505,12 @@ function formatDateShort(date: string | null) {
       <template #content>
         <div class="p-6 space-y-4">
           <div class="flex items-center gap-3">
-            <div class="rounded-full bg-red-100 dark:bg-red-900/30 p-2">
-              <UIcon name="i-lucide-alert-triangle" class="size-5 text-red-600 dark:text-red-400" />
+            <div class="rounded-full bg-red-100 p-2">
+              <UIcon name="i-lucide-alert-triangle" class="size-5 text-red-600" />
             </div>
-            <h3 class="text-lg font-semibold text-stone-900 dark:text-white">Supprimer ce prospect</h3>
+            <h3 class="text-lg font-semibold text-stone-900">Supprimer ce prospect</h3>
           </div>
-          <p class="text-sm text-stone-500 dark:text-stone-400">
+          <p class="text-sm text-stone-500">
             Supprimer <strong>{{ prospect?.nom_entreprise }}</strong> et tout son historique ? Irreversible.
           </p>
           <div class="flex justify-end gap-3">

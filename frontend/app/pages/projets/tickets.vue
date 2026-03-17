@@ -274,18 +274,18 @@ onMounted(loadData)
       <template v-else>
         <!-- Stats -->
         <div class="flex flex-wrap items-center gap-4 text-xs">
-          <span class="text-[#2c2419]/60 dark:text-stone-400">
-            <strong class="text-[#2c2419] dark:text-stone-200">{{ stats.total }}</strong> ticket{{ stats.total > 1 ? 's' : '' }}
+          <span class="text-[#2c2419]/60">
+            <strong class="text-[#2c2419]">{{ stats.total }}</strong> ticket{{ stats.total > 1 ? 's' : '' }}
           </span>
-          <span class="flex items-center gap-1 text-orange-600 dark:text-orange-400">
+          <span class="flex items-center gap-1 text-orange-600">
             <span class="size-1.5 rounded-full bg-orange-500" />
             {{ stats.ouverts }} ouvert{{ stats.ouverts > 1 ? 's' : '' }}
           </span>
-          <span class="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+          <span class="flex items-center gap-1 text-blue-600">
             <span class="size-1.5 rounded-full bg-blue-500" />
             {{ stats.en_cours }} en cours
           </span>
-          <span v-if="stats.critiques" class="flex items-center gap-1 text-red-600 dark:text-red-400 font-semibold">
+          <span v-if="stats.critiques" class="flex items-center gap-1 text-red-600 font-semibold">
             <UIcon name="i-lucide-alert-triangle" class="size-3" />
             {{ stats.critiques }} critique{{ stats.critiques > 1 ? 's' : '' }}
           </span>
@@ -313,15 +313,15 @@ onMounted(loadData)
             size="xs"
             @click="clearFilters"
           />
-          <span v-if="hasFilters" class="text-xs text-stone-400 dark:text-stone-500 ml-1">
+          <span v-if="hasFilters" class="text-xs text-stone-400 ml-1">
             {{ filteredTickets.length }} resultat{{ filteredTickets.length > 1 ? 's' : '' }}
           </span>
         </div>
 
         <!-- Empty -->
         <div v-if="!filteredTickets.length" class="text-center py-12">
-          <UIcon name="i-lucide-ticket" class="size-10 text-stone-300 dark:text-stone-700 mx-auto mb-3" />
-          <p class="text-stone-500 dark:text-stone-400">
+          <UIcon name="i-lucide-ticket" class="size-10 text-stone-300 mx-auto mb-3" />
+          <p class="text-stone-500">
             {{ hasFilters ? 'Aucun ticket pour ces filtres' : 'Aucun ticket' }}
           </p>
           <UButton
@@ -346,14 +346,14 @@ onMounted(loadData)
           <button
             v-for="ticket in filteredTickets"
             :key="ticket.id"
-            class="w-full text-left rounded-xl border p-3.5 transition-all hover:bg-[#af8f3c]/[0.03] dark:hover:bg-stone-800/30 group"
+            class="w-full text-left rounded-xl border p-3.5 transition-all hover:bg-[#af8f3c]/[0.03] group"
             :class="ticket.statut === 'ferme' || ticket.statut === 'resolu'
-              ? 'border-stone-200/60 dark:border-stone-700/40 opacity-60'
+              ? 'border-stone-200/60 opacity-60'
               : ticket.priorite === 'critique'
-                ? 'border-red-200 dark:border-red-900/40'
+                ? 'border-red-200'
                 : ticket.priorite === 'haute'
-                  ? 'border-orange-200/60 dark:border-orange-900/30'
-                  : 'border-stone-200 dark:border-stone-700/60'"
+                  ? 'border-orange-200/60'
+                  : 'border-stone-200'"
             @click="openEdit(ticket)"
           >
             <div class="flex items-start gap-3">
@@ -377,8 +377,8 @@ onMounted(loadData)
                   <h3
                     class="text-sm font-semibold truncate"
                     :class="ticket.statut === 'ferme' || ticket.statut === 'resolu'
-                      ? 'text-stone-400 dark:text-stone-500 line-through'
-                      : 'text-[#2c2419] dark:text-stone-100'"
+                      ? 'text-stone-400 line-through'
+                      : 'text-[#2c2419]'"
                   >
                     {{ ticket.titre }}
                   </h3>
@@ -391,14 +391,14 @@ onMounted(loadData)
                   <UBadge :color="(TICKET_STATUTS[ticket.statut]?.color as any) || 'neutral'" variant="subtle" size="xs" class="cursor-pointer" @click.stop="cycleStatut(ticket)">
                     {{ TICKET_STATUTS[ticket.statut]?.label || ticket.statut }}
                   </UBadge>
-                  <span class="text-[11px] text-stone-400 dark:text-stone-500">
+                  <span class="text-[11px] text-stone-400">
                     {{ getProjetNom(ticket) }}
                   </span>
                 </div>
               </div>
 
               <!-- Right side -->
-              <div class="flex items-center gap-3 shrink-0 text-[11px] text-stone-400 dark:text-stone-500">
+              <div class="flex items-center gap-3 shrink-0 text-[11px] text-stone-400">
                 <span v-if="getAssigneNom(ticket)" class="hidden sm:flex items-center gap-1">
                   <UIcon name="i-lucide-user" class="size-3" />
                   {{ getAssigneNom(ticket) }}
@@ -415,7 +415,7 @@ onMounted(loadData)
     <UModal :open="showModal" @update:open="showModal = $event">
       <template #content>
         <div class="p-6">
-          <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-4">
+          <h3 class="text-lg font-semibold text-stone-900 mb-4">
             {{ editingTicket ? 'Modifier le ticket' : 'Nouveau ticket' }}
           </h3>
           <form class="space-y-4" @submit.prevent="handleSubmit">
@@ -478,12 +478,12 @@ onMounted(loadData)
       <template #content>
         <div class="p-6 space-y-4">
           <div class="flex items-center gap-3">
-            <div class="rounded-full bg-red-100 dark:bg-red-900/30 p-2">
-              <UIcon name="i-lucide-alert-triangle" class="size-5 text-red-600 dark:text-red-400" />
+            <div class="rounded-full bg-red-100 p-2">
+              <UIcon name="i-lucide-alert-triangle" class="size-5 text-red-600" />
             </div>
-            <h3 class="text-lg font-semibold text-stone-900 dark:text-white">Supprimer ce ticket</h3>
+            <h3 class="text-lg font-semibold text-stone-900">Supprimer ce ticket</h3>
           </div>
-          <p class="text-sm text-stone-500 dark:text-stone-400">
+          <p class="text-sm text-stone-500">
             Supprimer <strong>{{ editingTicket?.titre }}</strong> ? Cette action est irreversible.
           </p>
           <div class="flex justify-end gap-3">

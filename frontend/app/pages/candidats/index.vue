@@ -137,11 +137,11 @@ function exportCsv() {
 
         <!-- Stats -->
         <div class="flex items-center gap-4 text-sm">
-          <span class="text-stone-500 dark:text-stone-400">
-            <strong class="text-stone-900 dark:text-white">{{ stats.total }}</strong> candidat{{ stats.total > 1 ? 's' : '' }}
+          <span class="text-stone-500">
+            <strong class="text-stone-900">{{ stats.total }}</strong> candidat{{ stats.total > 1 ? 's' : '' }}
           </span>
-          <span class="text-stone-500 dark:text-stone-400">
-            <strong class="text-emerald-600 dark:text-emerald-400">{{ stats.actifs }}</strong> actif{{ stats.actifs > 1 ? 's' : '' }}
+          <span class="text-stone-500">
+            <strong class="text-emerald-600">{{ stats.actifs }}</strong> actif{{ stats.actifs > 1 ? 's' : '' }}
           </span>
         </div>
 
@@ -161,7 +161,7 @@ function exportCsv() {
               v-for="opt in sortOptions"
               :key="opt.key"
               class="px-2 py-1 text-xs rounded transition-colors"
-              :class="sort.key === opt.key ? 'text-primary font-semibold bg-primary/10' : 'text-stone-400 hover:text-stone-600 dark:hover:text-stone-300'"
+              :class="sort.key === opt.key ? 'text-primary font-semibold bg-primary/10' : 'text-stone-400 hover:text-stone-600'"
               @click="toggleSort(opt.key)"
             >
               {{ opt.label }}
@@ -177,8 +177,8 @@ function exportCsv() {
 
         <!-- Empty -->
         <div v-else-if="!filteredCandidats.length" class="flex flex-col items-center py-16 text-center">
-          <UIcon name="i-lucide-user-search" class="size-12 text-stone-300 dark:text-stone-600 mb-3" />
-          <p class="text-sm text-stone-500 dark:text-stone-400">
+          <UIcon name="i-lucide-user-search" class="size-12 text-stone-300 mb-3" />
+          <p class="text-sm text-stone-500">
             {{ candidats?.length ? 'Aucun candidat ne correspond aux filtres' : 'Aucun candidat pour le moment' }}
           </p>
           <UButton v-if="!candidats?.length" label="Ajouter un candidat" icon="i-lucide-plus" size="sm" class="mt-3" to="/candidats/nouveau" />
@@ -195,7 +195,7 @@ function exportCsv() {
             <UCard class="hover:ring-2 hover:ring-primary/30 transition-all cursor-pointer h-full">
               <div class="space-y-2">
                 <div class="flex items-start justify-between gap-2">
-                  <h3 class="text-sm font-semibold text-stone-900 dark:text-white truncate">
+                  <h3 class="text-sm font-semibold text-stone-900 truncate">
                     {{ c.prenom }} {{ c.nom }}
                   </h3>
                   <UBadge :color="getStatutConfig(c.statut).color" variant="subtle" size="xs">
@@ -205,10 +205,10 @@ function exportCsv() {
 
                 <div v-if="getOffreTitre(c)" class="flex items-center gap-1.5">
                   <UIcon name="i-lucide-megaphone" class="size-3.5 text-stone-400" />
-                  <span class="text-xs text-stone-500 dark:text-stone-400 truncate">{{ getOffreTitre(c) }}</span>
+                  <span class="text-xs text-stone-500 truncate">{{ getOffreTitre(c) }}</span>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-stone-400 dark:text-stone-500">
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-stone-400">
                   <span v-if="c.email" class="flex items-center gap-1">
                     <UIcon name="i-lucide-mail" class="size-3" /> {{ c.email }}
                   </span>
@@ -217,7 +217,7 @@ function exportCsv() {
                   </span>
                 </div>
 
-                <div class="flex items-center justify-between text-xs text-stone-400 dark:text-stone-500">
+                <div class="flex items-center justify-between text-xs text-stone-400">
                   <span v-if="c.source">{{ c.source }}</span>
                   <span>{{ formatDate(c.date_created) }}</span>
                 </div>
@@ -229,7 +229,7 @@ function exportCsv() {
         <!-- Pagination (list view only) -->
         <div v-if="viewMode === 'list' && showPagination" class="flex items-center justify-center gap-2 pt-4">
           <UButton icon="i-lucide-chevron-left" size="xs" color="neutral" variant="ghost" :disabled="page <= 1" @click="prev" />
-          <span class="text-xs text-stone-500 dark:text-stone-400 tabular-nums">
+          <span class="text-xs text-stone-500 tabular-nums">
             {{ page }} / {{ totalPages }}
           </span>
           <UButton icon="i-lucide-chevron-right" size="xs" color="neutral" variant="ghost" :disabled="page >= totalPages" @click="next" />
@@ -244,7 +244,7 @@ function exportCsv() {
           >
             <div class="flex items-center gap-2 mb-2 px-1">
               <UIcon :name="config.icon" class="size-4 text-stone-500" />
-              <span class="text-xs font-semibold text-stone-700 dark:text-stone-300">{{ config.label }}</span>
+              <span class="text-xs font-semibold text-stone-700">{{ config.label }}</span>
               <UBadge :color="config.color" variant="subtle" size="xs">
                 {{ pipelineCandidats(statut).length }}
               </UBadge>
@@ -258,20 +258,20 @@ function exportCsv() {
               >
                 <UCard class="hover:ring-2 hover:ring-primary/30 transition-all cursor-pointer" :ui="{ body: 'p-3' }">
                   <div class="space-y-1">
-                    <p class="text-sm font-medium text-stone-900 dark:text-white truncate">
+                    <p class="text-sm font-medium text-stone-900 truncate">
                       {{ c.prenom }} {{ c.nom }}
                     </p>
-                    <p v-if="getOffreTitre(c)" class="text-xs text-stone-500 dark:text-stone-400 truncate">
+                    <p v-if="getOffreTitre(c)" class="text-xs text-stone-500 truncate">
                       {{ getOffreTitre(c) }}
                     </p>
-                    <p class="text-xs text-stone-400 dark:text-stone-500">
+                    <p class="text-xs text-stone-400">
                       {{ formatDate(c.date_created) }}
                     </p>
                   </div>
                 </UCard>
               </NuxtLink>
               <div v-if="!pipelineCandidats(statut).length" class="text-center py-4">
-                <p class="text-xs text-stone-400 dark:text-stone-500">Aucun</p>
+                <p class="text-xs text-stone-400">Aucun</p>
               </div>
             </div>
           </div>

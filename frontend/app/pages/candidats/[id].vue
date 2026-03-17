@@ -234,17 +234,17 @@ function formatDateShort(date: string | null) {
               <div class="flex items-start justify-between gap-3">
                 <div>
                   <div class="flex items-center gap-2 mb-1">
-                    <h2 class="text-xl font-bold text-stone-900 dark:text-white">{{ candidat.prenom }} {{ candidat.nom }}</h2>
+                    <h2 class="text-xl font-bold text-stone-900">{{ candidat.prenom }} {{ candidat.nom }}</h2>
                     <UBadge :color="(CANDIDAT_STATUTS[candidat.statut]?.color as any)" variant="subtle">
                       {{ CANDIDAT_STATUTS[candidat.statut]?.label }}
                     </UBadge>
                   </div>
-                  <p v-if="getOffreTitre(candidat)" class="text-sm text-stone-500 dark:text-stone-400 flex items-center gap-1.5">
+                  <p v-if="getOffreTitre(candidat)" class="text-sm text-stone-500 flex items-center gap-1.5">
                     <UIcon name="i-lucide-megaphone" class="size-3.5" />
                     {{ getOffreTitre(candidat) }}
                   </p>
                 </div>
-                <div class="text-right text-xs text-stone-400 dark:text-stone-500 shrink-0 space-y-0.5">
+                <div class="text-right text-xs text-stone-400 shrink-0 space-y-0.5">
                   <p v-if="candidat.source">Source : {{ candidat.source }}</p>
                 </div>
               </div>
@@ -264,37 +264,37 @@ function formatDateShort(date: string | null) {
               </div>
 
               <!-- Info grid -->
-              <div class="grid grid-cols-2 gap-3 text-sm pt-3 border-t border-stone-100 dark:border-stone-800">
+              <div class="grid grid-cols-2 gap-3 text-sm pt-3 border-t border-stone-100">
                 <div>
-                  <span class="text-xs text-stone-400 dark:text-stone-500">Email</span>
-                  <p class="font-medium text-stone-800 dark:text-stone-200">
+                  <span class="text-xs text-stone-400">Email</span>
+                  <p class="font-medium text-stone-800">
                     <a v-if="candidat.email" :href="`mailto:${candidat.email}`" class="text-primary hover:underline">{{ candidat.email }}</a>
                     <span v-else>-</span>
                   </p>
                 </div>
                 <div>
-                  <span class="text-xs text-stone-400 dark:text-stone-500">Telephone</span>
-                  <p class="font-medium text-stone-800 dark:text-stone-200">
+                  <span class="text-xs text-stone-400">Telephone</span>
+                  <p class="font-medium text-stone-800">
                     <a v-if="candidat.telephone" :href="`tel:${candidat.telephone}`" class="text-primary hover:underline">{{ candidat.telephone }}</a>
                     <span v-else>-</span>
                   </p>
                 </div>
                 <div>
-                  <span class="text-xs text-stone-400 dark:text-stone-500">LinkedIn</span>
-                  <p class="font-medium text-stone-800 dark:text-stone-200">
+                  <span class="text-xs text-stone-400">LinkedIn</span>
+                  <p class="font-medium text-stone-800">
                     <a v-if="candidat.linkedin" :href="candidat.linkedin" target="_blank" class="text-primary hover:underline truncate block">{{ candidat.linkedin }}</a>
                     <span v-else>-</span>
                   </p>
                 </div>
                 <div>
-                  <span class="text-xs text-stone-400 dark:text-stone-500">Cree le</span>
-                  <p class="font-medium text-stone-800 dark:text-stone-200">{{ formatDateFr(candidat.date_created) }}</p>
+                  <span class="text-xs text-stone-400">Cree le</span>
+                  <p class="font-medium text-stone-800">{{ formatDateFr(candidat.date_created) }}</p>
                 </div>
               </div>
 
               <!-- CV -->
-              <div class="pt-3 border-t border-stone-100 dark:border-stone-800">
-                <span class="text-xs text-stone-400 dark:text-stone-500">CV</span>
+              <div class="pt-3 border-t border-stone-100">
+                <span class="text-xs text-stone-400">CV</span>
                 <div class="mt-1 flex items-center gap-2">
                   <template v-if="candidat.cv">
                     <a
@@ -316,9 +316,9 @@ function formatDateShort(date: string | null) {
               </div>
 
               <!-- Notes -->
-              <div v-if="candidat.notes" class="pt-3 border-t border-stone-100 dark:border-stone-800">
-                <span class="text-xs text-stone-400 dark:text-stone-500">Notes</span>
-                <p class="mt-1 text-sm text-stone-700 dark:text-stone-300 whitespace-pre-line">{{ candidat.notes }}</p>
+              <div v-if="candidat.notes" class="pt-3 border-t border-stone-100">
+                <span class="text-xs text-stone-400">Notes</span>
+                <p class="mt-1 text-sm text-stone-700 whitespace-pre-line">{{ candidat.notes }}</p>
               </div>
             </div>
           </UCard>
@@ -327,7 +327,7 @@ function formatDateShort(date: string | null) {
           <UCard>
             <template #header>
               <div class="flex items-center justify-between">
-                <h3 class="text-sm font-semibold text-stone-900 dark:text-white">
+                <h3 class="text-sm font-semibold text-stone-900">
                   Commentaires
                   <span v-if="sortedComments.length" class="text-stone-400 font-normal">({{ sortedComments.length }})</span>
                 </h3>
@@ -341,8 +341,8 @@ function formatDateShort(date: string | null) {
             </template>
 
             <div v-if="!sortedComments.length" class="text-center py-6">
-              <UIcon name="i-lucide-message-circle" class="size-8 text-stone-300 dark:text-stone-700 mx-auto mb-2" />
-              <p class="text-sm text-stone-500 dark:text-stone-400">Aucun commentaire</p>
+              <UIcon name="i-lucide-message-circle" class="size-8 text-stone-300 mx-auto mb-2" />
+              <p class="text-sm text-stone-500">Aucun commentaire</p>
               <UButton
                 label="Premier commentaire"
                 icon="i-lucide-message-square"
@@ -361,12 +361,12 @@ function formatDateShort(date: string | null) {
               >
                 <!-- Timeline line -->
                 <div class="flex flex-col items-center">
-                  <div class="flex items-center justify-center size-8 rounded-full shrink-0 bg-stone-100 dark:bg-stone-800">
-                    <UIcon name="i-lucide-message-square" class="size-4 text-stone-500 dark:text-stone-400" />
+                  <div class="flex items-center justify-center size-8 rounded-full shrink-0 bg-stone-100">
+                    <UIcon name="i-lucide-message-square" class="size-4 text-stone-500" />
                   </div>
                   <div
                     v-if="index < sortedComments.length - 1"
-                    class="w-px flex-1 bg-stone-200 dark:bg-stone-700 mt-1"
+                    class="w-px flex-1 bg-stone-200 mt-1"
                   />
                 </div>
 
@@ -374,10 +374,10 @@ function formatDateShort(date: string | null) {
                 <div class="flex-1 pb-4 min-w-0">
                   <div class="flex items-center justify-between gap-2 mb-1">
                     <div class="flex items-center gap-2">
-                      <span class="text-sm font-medium text-stone-800 dark:text-stone-200">
+                      <span class="text-sm font-medium text-stone-800">
                         {{ getCommentAuthorName(comment) }}
                       </span>
-                      <span class="text-[11px] text-stone-400 dark:text-stone-500">
+                      <span class="text-[11px] text-stone-400">
                         {{ formatDateShort(comment.date_created) }}
                       </span>
                     </div>
@@ -390,7 +390,7 @@ function formatDateShort(date: string | null) {
                       @click="handleDeleteComment(comment.id)"
                     />
                   </div>
-                  <p class="text-sm text-stone-700 dark:text-stone-300 whitespace-pre-line">
+                  <p class="text-sm text-stone-700 whitespace-pre-line">
                     {{ comment.contenu }}
                   </p>
                 </div>
@@ -403,7 +403,7 @@ function formatDateShort(date: string | null) {
         <template v-else>
           <UCard>
             <template #header>
-              <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Identite</h3>
+              <h3 class="text-sm font-semibold text-stone-900">Identite</h3>
             </template>
             <div class="space-y-4">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -435,7 +435,7 @@ function formatDateShort(date: string | null) {
 
           <UCard>
             <template #header>
-              <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Candidature</h3>
+              <h3 class="text-sm font-semibold text-stone-900">Candidature</h3>
             </template>
             <div class="space-y-4">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -459,8 +459,8 @@ function formatDateShort(date: string | null) {
     <UModal v-model:open="showDeleteModal">
       <template #content>
         <div class="p-6 space-y-4">
-          <h3 class="text-lg font-semibold text-stone-900 dark:text-white">Supprimer ce candidat ?</h3>
-          <p class="text-sm text-stone-500 dark:text-stone-400">
+          <h3 class="text-lg font-semibold text-stone-900">Supprimer ce candidat ?</h3>
+          <p class="text-sm text-stone-500">
             Cette action est irreversible. Le candidat et tous ses commentaires seront supprimes.
           </p>
           <div class="flex justify-end gap-2">
@@ -475,7 +475,7 @@ function formatDateShort(date: string | null) {
     <UModal v-model:open="showCommentModal">
       <template #content>
         <div class="p-6 space-y-4">
-          <h3 class="text-lg font-semibold text-stone-900 dark:text-white">Ajouter un commentaire</h3>
+          <h3 class="text-lg font-semibold text-stone-900">Ajouter un commentaire</h3>
           <UTextarea
             v-model="commentText"
             placeholder="Votre commentaire..."

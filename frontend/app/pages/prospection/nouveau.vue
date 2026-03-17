@@ -80,7 +80,7 @@ async function handleSubmit() {
         <!-- Ville first -->
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Localisation</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Localisation</h3>
           </template>
           <div class="space-y-3">
             <UFormField label="Ville" required>
@@ -101,7 +101,7 @@ async function handleSubmit() {
         <!-- Prospect info -->
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Informations</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Informations</h3>
           </template>
           <div class="space-y-4">
             <UFormField label="Nom (entreprise ou personne)" required>
@@ -130,7 +130,7 @@ async function handleSubmit() {
         <!-- Contact -->
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Coordonnees</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Coordonnees</h3>
           </template>
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
@@ -150,7 +150,7 @@ async function handleSubmit() {
         <!-- Notes -->
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Notes</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Notes</h3>
           </template>
           <UTextarea v-model="form.notes" placeholder="Informations complementaires, contexte..." :rows="4" class="w-full" />
         </UCard>

@@ -108,7 +108,7 @@ function smartExcerpt(html: string): string {
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2">
-                  <h2 class="font-heading text-lg font-bold text-stone-900 dark:text-white group-hover:text-[#AF8F3C] transition-colors">
+                  <h2 class="font-heading text-lg font-bold text-stone-900 group-hover:text-[#AF8F3C] transition-colors">
                     Notre identite
                   </h2>
                   <span class="wiki-pinned-badge">
@@ -116,11 +116,11 @@ function smartExcerpt(html: string): string {
                     Epingle
                   </span>
                 </div>
-                <p class="text-sm text-stone-500 dark:text-stone-400 mt-0.5">
+                <p class="text-sm text-stone-500 mt-0.5">
                   Charte graphique, mood board, logo, palette de couleurs et typographie
                 </p>
               </div>
-              <UIcon name="i-lucide-chevron-right" class="size-5 text-stone-300 dark:text-stone-600 group-hover:text-[#AF8F3C] transition-colors shrink-0" />
+              <UIcon name="i-lucide-chevron-right" class="size-5 text-stone-300 group-hover:text-[#AF8F3C] transition-colors shrink-0" />
             </div>
           </div>
         </NuxtLink>
@@ -131,7 +131,7 @@ function smartExcerpt(html: string): string {
         </div>
 
         <!-- Search results count -->
-        <div v-if="search && filteredPages.length" class="flex items-center gap-2 mb-4 text-sm text-stone-500 dark:text-stone-400">
+        <div v-if="search && filteredPages.length" class="flex items-center gap-2 mb-4 text-sm text-stone-500">
           <UIcon name="i-lucide-search" class="size-4" />
           <span>{{ filteredPages.length }} resultat{{ filteredPages.length > 1 ? 's' : '' }} pour "{{ search }}"</span>
         </div>
@@ -164,18 +164,18 @@ function smartExcerpt(html: string): string {
                     />
                   </div>
                   <h3
-                    class="font-semibold text-stone-900 dark:text-white group-hover:text-[#AF8F3C] transition-colors truncate"
+                    class="font-semibold text-stone-900 group-hover:text-[#AF8F3C] transition-colors truncate"
                     v-html="highlightMatch(page.titre)"
                   />
                 </div>
 
                 <p
-                  class="text-sm text-stone-500 dark:text-stone-400 flex-1 line-clamp-3"
+                  class="text-sm text-stone-500 flex-1 line-clamp-3"
                   v-html="search ? highlightMatch(smartExcerpt(page.contenu)) : excerpt(page.contenu)"
                 />
 
                 <div class="flex items-center justify-between mt-4 pt-3 border-t border-[rgba(175,143,60,0.06)]">
-                  <div class="flex items-center gap-3 text-xs text-stone-400 dark:text-stone-600">
+                  <div class="flex items-center gap-3 text-xs text-stone-400">
                     <span v-if="page.date_updated" class="flex items-center gap-1">
                       <UIcon name="i-lucide-clock" class="size-3" />
                       {{ formatDate(page.date_updated) }}
@@ -187,7 +187,7 @@ function smartExcerpt(html: string): string {
                   </div>
                   <UIcon
                     name="i-lucide-arrow-right"
-                    class="size-4 text-stone-300 dark:text-stone-700 group-hover:text-[#AF8F3C] group-hover:translate-x-0.5 transition-all"
+                    class="size-4 text-stone-300 group-hover:text-[#AF8F3C] group-hover:translate-x-0.5 transition-all"
                   />
                 </div>
               </div>
@@ -197,13 +197,13 @@ function smartExcerpt(html: string): string {
 
         <!-- Vide -->
         <div v-else-if="search && wikiPages?.length" class="text-center py-12">
-          <UIcon name="i-lucide-search-x" class="size-10 text-stone-300 dark:text-stone-700 mx-auto mb-3" />
-          <p class="text-stone-500 dark:text-stone-400">Aucune page ne correspond a "{{ search }}"</p>
+          <UIcon name="i-lucide-search-x" class="size-10 text-stone-300 mx-auto mb-3" />
+          <p class="text-stone-500">Aucune page ne correspond a "{{ search }}"</p>
         </div>
 
         <div v-else-if="!wikiPages?.length" class="text-center py-12">
-          <UIcon name="i-lucide-book-open" class="size-10 text-stone-300 dark:text-stone-700 mx-auto mb-3" />
-          <p class="text-stone-500 dark:text-stone-400">Aucune page wiki pour le moment</p>
+          <UIcon name="i-lucide-book-open" class="size-10 text-stone-300 mx-auto mb-3" />
+          <p class="text-stone-500">Aucune page wiki pour le moment</p>
           <UButton
             v-if="isDirecteur"
             label="Creer la premiere page"

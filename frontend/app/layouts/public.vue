@@ -108,13 +108,6 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
   color: var(--text);
   font-family: 'Crimson Pro', Georgia, serif;
   position: relative;
-  transition: background-color 0.4s ease, color 0.4s ease;
-}
-:global(.dark) .public-layout {
-  --cream: #1a2318;
-  --text: #d4cbba;
-  background-color: var(--cream);
-  color: var(--text);
 }
 
 /* Noise */
@@ -123,18 +116,12 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
   pointer-events: none; z-index: 0;
   opacity: 0.02; mix-blend-mode: overlay;
 }
-:global(.dark) .pub-noise { opacity: 0.035; }
-
 /* Vignette */
 .pub-vignette {
   position: fixed; inset: 0;
   pointer-events: none; z-index: 0;
   background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.15) 100%);
 }
-:global(.dark) .pub-vignette {
-  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.35) 100%);
-}
-
 /* Watermark */
 .pub-watermark {
   position: fixed;
@@ -150,11 +137,6 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
   object-fit: contain;
   opacity: 0.06;
 }
-:global(.dark) .pub-watermark-img {
-  filter: brightness(0) invert(0.85);
-  opacity: 0.08;
-}
-
 /* Frame */
 .pub-frame {
   position: fixed;
@@ -257,9 +239,5 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
 <style>
 html:has(.public-layout) {
   background-color: #EDE5D0;
-  transition: background-color 0.4s ease;
-}
-html.dark:has(.public-layout) {
-  background-color: #1a2318;
 }
 </style>

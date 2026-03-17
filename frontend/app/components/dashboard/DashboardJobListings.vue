@@ -51,7 +51,7 @@ onMounted(load)
           <span class="text-stone-500">{{ publiees.length }} publiee(s)</span>
         </span>
         <span v-if="brouillons.length" class="flex items-center gap-1">
-          <span class="size-1.5 rounded-full bg-stone-300 dark:bg-stone-600" />
+          <span class="size-1.5 rounded-full bg-stone-300" />
           <span class="text-stone-400">{{ brouillons.length }} brouillon(s)</span>
         </span>
       </div>
@@ -63,7 +63,7 @@ onMounted(load)
           class="flex items-center justify-between py-1.5 px-1 rounded hover:bg-[rgba(175,143,60,0.04)] transition-colors"
         >
           <div class="flex items-center gap-1.5 min-w-0">
-            <span class="size-1.5 rounded-full shrink-0" :class="offre.publie ? 'bg-emerald-500' : 'bg-stone-300 dark:bg-stone-600'" />
+            <span class="size-1.5 rounded-full shrink-0" :class="offre.publie ? 'bg-emerald-500' : 'bg-stone-300'" />
             <p class="text-[12px] font-medium truncate">{{ offre.titre }}</p>
           </div>
           <UBadge :color="getContractColor(offre.type_contrat)" variant="subtle" size="xs" class="shrink-0 ml-2">

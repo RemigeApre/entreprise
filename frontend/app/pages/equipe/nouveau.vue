@@ -103,7 +103,7 @@ async function handleSubmit() {
       <div class="max-w-2xl mx-auto space-y-6">
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Informations personnelles</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Informations personnelles</h3>
           </template>
           <div class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -133,7 +133,7 @@ async function handleSubmit() {
 
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Contrat</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Contrat</h3>
           </template>
           <div class="space-y-4">
             <UFormField label="Type de contrat">
@@ -155,11 +155,11 @@ async function handleSubmit() {
 
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Statut</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Statut</h3>
           </template>
           <div class="flex items-center gap-3">
             <USwitch v-model="form.actif" />
-            <span class="text-sm text-stone-700 dark:text-stone-300">
+            <span class="text-sm text-stone-700">
               {{ form.actif ? 'Utilisateur actif' : 'Utilisateur inactif' }}
             </span>
           </div>

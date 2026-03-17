@@ -266,8 +266,8 @@ onMounted(() => {
               @click="weekViewRef?.nextWeek()"
             />
           </div>
-          <span class="text-sm font-medium text-stone-500 dark:text-stone-400">
-            S{{ weekNumber }} <span class="text-stone-300 dark:text-stone-600 mx-0.5">&middot;</span> {{ weekLabel }}
+          <span class="text-sm font-medium text-stone-500">
+            S{{ weekNumber }} <span class="text-stone-300 mx-0.5">&middot;</span> {{ weekLabel }}
           </span>
         </div>
 
@@ -300,7 +300,7 @@ onMounted(() => {
     <UModal :open="showModal" @update:open="showModal = $event">
       <template #content>
         <div class="p-6">
-          <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-4">
+          <h3 class="text-lg font-semibold text-stone-900 mb-4">
             {{ editingEntry ? 'Modifier l\'entree' : 'Nouvelle entree' }}
           </h3>
           <form class="space-y-4" @submit.prevent="handleSubmit">
@@ -329,14 +329,14 @@ onMounted(() => {
             <template v-if="!editingEntry">
               <USeparator />
               <div class="space-y-3">
-                <p class="text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Recurrence</p>
+                <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider">Recurrence</p>
                 <UFormField label="Repeter">
                   <USelect v-model="recurrence" :items="RECURRENCE_OPTIONS" value-key="value" class="w-full" />
                 </UFormField>
                 <UFormField v-if="recurrence !== 'aucune'" label="Date de fin de recurrence" required>
                   <UInput v-model="recurrenceEndDate" type="date" :min="form.date" class="w-full" />
                 </UFormField>
-                <p v-if="recurrence !== 'aucune' && recurrenceEndDate" class="text-xs text-stone-400 dark:text-stone-500">
+                <p v-if="recurrence !== 'aucune' && recurrenceEndDate" class="text-xs text-stone-400">
                   Les entrees seront creees individuellement du {{ form.date }} au {{ recurrenceEndDate }}.
                 </p>
               </div>

@@ -477,8 +477,8 @@ function pct(value: number, max: number) {
 
       <!-- Not found -->
       <div v-else-if="!member" class="text-center py-12">
-        <UIcon name="i-lucide-user-x" class="size-10 text-stone-300 dark:text-stone-700 mx-auto mb-3" />
-        <p class="text-stone-500 dark:text-stone-400">Utilisateur introuvable</p>
+        <UIcon name="i-lucide-user-x" class="size-10 text-stone-300 mx-auto mb-3" />
+        <p class="text-stone-500">Utilisateur introuvable</p>
         <UButton label="Retour a l'equipe" to="/equipe" variant="subtle" class="mt-4" />
       </div>
 
@@ -489,7 +489,7 @@ function pct(value: number, max: number) {
           <div class="flex items-center gap-4">
             <UAvatar :alt="getUserName(member)" size="xl" />
             <div class="min-w-0 flex-1">
-              <h2 class="text-xl font-bold text-stone-900 dark:text-white">{{ getUserName(member) }}</h2>
+              <h2 class="text-xl font-bold text-stone-900">{{ getUserName(member) }}</h2>
               <div class="flex flex-wrap items-center gap-2 mt-2">
                 <UBadge v-if="member.type_contrat" color="neutral" variant="subtle">{{ member.type_contrat }}</UBadge>
                 <UBadge v-if="getCategoryName(member)" variant="outline" color="neutral">{{ getCategoryName(member) }}</UBadge>
@@ -498,7 +498,7 @@ function pct(value: number, max: number) {
                 <UBadge v-if="member.statut_emploi === 'termine'" color="neutral" variant="subtle">Termine</UBadge>
                 <UBadge v-if="!member.actif && member.statut_emploi !== 'a_venir' && member.statut_emploi !== 'test' && member.statut_emploi !== 'termine'" color="error" variant="subtle">Inactif</UBadge>
               </div>
-              <p v-if="member.bio && canSeeField(member, 'bio')" class="mt-2 text-sm text-stone-600 dark:text-stone-400 italic">{{ member.bio }}</p>
+              <p v-if="member.bio && canSeeField(member, 'bio')" class="mt-2 text-sm text-stone-600 italic">{{ member.bio }}</p>
             </div>
           </div>
         </UCard>
@@ -506,18 +506,18 @@ function pct(value: number, max: number) {
         <!-- Coordonnees -->
         <UCard v-if="(member.telephone && canSeeField(member, 'telephone')) || (member.linkedin && canSeeField(member, 'linkedin')) || (member.localisation && canSeeField(member, 'localisation')) || (member.date_naissance && canSeeField(member, 'date_naissance'))">
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Coordonnees</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Coordonnees</h3>
           </template>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div v-if="member.telephone && canSeeField(member, 'telephone')">
-              <span class="text-stone-500 dark:text-stone-400">Telephone</span>
-              <p class="font-medium text-stone-900 dark:text-white flex items-center gap-1.5">
+              <span class="text-stone-500">Telephone</span>
+              <p class="font-medium text-stone-900 flex items-center gap-1.5">
                 <UIcon name="i-lucide-phone" class="size-3.5 text-stone-400" />
                 {{ member.telephone }}
               </p>
             </div>
             <div v-if="member.linkedin && canSeeField(member, 'linkedin')">
-              <span class="text-stone-500 dark:text-stone-400">LinkedIn</span>
+              <span class="text-stone-500">LinkedIn</span>
               <p class="font-medium">
                 <a :href="member.linkedin" target="_blank" rel="noopener" class="text-primary hover:underline flex items-center gap-1.5">
                   <UIcon name="i-lucide-link" class="size-3.5" />
@@ -526,15 +526,15 @@ function pct(value: number, max: number) {
               </p>
             </div>
             <div v-if="member.localisation && canSeeField(member, 'localisation')">
-              <span class="text-stone-500 dark:text-stone-400">Localisation</span>
-              <p class="font-medium text-stone-900 dark:text-white flex items-center gap-1.5">
+              <span class="text-stone-500">Localisation</span>
+              <p class="font-medium text-stone-900 flex items-center gap-1.5">
                 <UIcon name="i-lucide-map-pin" class="size-3.5 text-stone-400" />
                 {{ member.localisation }}
               </p>
             </div>
             <div v-if="member.date_naissance && canSeeField(member, 'date_naissance')">
-              <span class="text-stone-500 dark:text-stone-400">Anniversaire</span>
-              <p class="font-medium text-stone-900 dark:text-white flex items-center gap-1.5">
+              <span class="text-stone-500">Anniversaire</span>
+              <p class="font-medium text-stone-900 flex items-center gap-1.5">
                 <UIcon name="i-lucide-cake" class="size-3.5 text-stone-400" />
                 {{ formatBirthday(member.date_naissance) }}
               </p>
@@ -545,27 +545,27 @@ function pct(value: number, max: number) {
         <!-- Infos contrat (directeur only) -->
         <UCard v-if="isDirecteur">
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Informations contrat</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Informations contrat</h3>
           </template>
           <div class="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <span class="text-stone-500 dark:text-stone-400">Debut de contrat</span>
-              <p class="font-medium text-stone-900 dark:text-white">{{ formatDateFr(member.date_debut_contrat) }}</p>
+              <span class="text-stone-500">Debut de contrat</span>
+              <p class="font-medium text-stone-900">{{ formatDateFr(member.date_debut_contrat) }}</p>
             </div>
             <div>
-              <span class="text-stone-500 dark:text-stone-400">Fin de contrat</span>
-              <p class="font-medium text-stone-900 dark:text-white">{{ formatDateFr(member.date_fin_contrat) }}</p>
+              <span class="text-stone-500">Fin de contrat</span>
+              <p class="font-medium text-stone-900">{{ formatDateFr(member.date_fin_contrat) }}</p>
             </div>
             <div v-if="member.ecole">
-              <span class="text-stone-500 dark:text-stone-400">Ecole</span>
-              <p class="font-medium text-stone-900 dark:text-white">{{ member.ecole }}</p>
+              <span class="text-stone-500">Ecole</span>
+              <p class="font-medium text-stone-900">{{ member.ecole }}</p>
             </div>
             <div v-if="hasTrialPeriod">
-              <span class="text-stone-500 dark:text-stone-400">Fin de periode d'essai</span>
-              <p class="font-medium text-stone-900 dark:text-white">{{ formatDateFr(member.date_fin_periode_essai) }}</p>
+              <span class="text-stone-500">Fin de periode d'essai</span>
+              <p class="font-medium text-stone-900">{{ formatDateFr(member.date_fin_periode_essai) }}</p>
             </div>
             <div>
-              <span class="text-stone-500 dark:text-stone-400">Statut</span>
+              <span class="text-stone-500">Statut</span>
               <UBadge :color="member.actif ? 'green' : 'red'" variant="subtle" size="sm">
                 {{ member.actif ? 'Actif' : 'Inactif' }}
               </UBadge>
@@ -576,41 +576,41 @@ function pct(value: number, max: number) {
         <!-- Presence stats (directeur only) -->
         <UCard v-if="isDirecteur && stats">
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Temps de presence</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Temps de presence</h3>
           </template>
           <div class="space-y-5">
             <div class="grid grid-cols-3 gap-4">
-              <div class="text-center p-3 rounded-lg bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)]">
-                <p class="text-2xl font-bold text-stone-900 dark:text-white">{{ stats.workDays }}</p>
-                <p class="text-xs text-stone-500 dark:text-stone-400">jours travailles</p>
+              <div class="text-center p-3 rounded-lg bg-[rgba(175,143,60,0.04)],143,60,0.03)]">
+                <p class="text-2xl font-bold text-stone-900">{{ stats.workDays }}</p>
+                <p class="text-xs text-stone-500">jours travailles</p>
               </div>
-              <div class="text-center p-3 rounded-lg bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)]">
-                <p class="text-2xl font-bold text-stone-900 dark:text-white">{{ stats.workHours.toFixed(1) }}h</p>
-                <p class="text-xs text-stone-500 dark:text-stone-400">heures travaillees</p>
+              <div class="text-center p-3 rounded-lg bg-[rgba(175,143,60,0.04)],143,60,0.03)]">
+                <p class="text-2xl font-bold text-stone-900">{{ stats.workHours.toFixed(1) }}h</p>
+                <p class="text-xs text-stone-500">heures travaillees</p>
               </div>
-              <div v-if="stats.schoolDays" class="text-center p-3 rounded-lg bg-sky-50 dark:bg-sky-900/20">
-                <p class="text-2xl font-bold text-sky-600 dark:text-sky-400">{{ stats.schoolDays }}</p>
-                <p class="text-xs text-stone-500 dark:text-stone-400">jours ecole</p>
+              <div v-if="stats.schoolDays" class="text-center p-3 rounded-lg bg-sky-50">
+                <p class="text-2xl font-bold text-sky-600">{{ stats.schoolDays }}</p>
+                <p class="text-xs text-stone-500">jours ecole</p>
               </div>
-              <div v-else class="text-center p-3 rounded-lg bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)]">
-                <p class="text-2xl font-bold text-stone-900 dark:text-white">{{ stats.totalDays }}</p>
-                <p class="text-xs text-stone-500 dark:text-stone-400">jours presents</p>
+              <div v-else class="text-center p-3 rounded-lg bg-[rgba(175,143,60,0.04)],143,60,0.03)]">
+                <p class="text-2xl font-bold text-stone-900">{{ stats.totalDays }}</p>
+                <p class="text-xs text-stone-500">jours presents</p>
               </div>
             </div>
 
             <!-- Limites stagiaire -->
             <div v-if="isStagiaire && stageLimits" class="space-y-4 pt-2">
               <USeparator />
-              <p class="text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Limites legales (stage)</p>
+              <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider">Limites legales (stage)</p>
               <div class="space-y-1.5">
                 <div class="flex items-center justify-between text-sm">
-                  <span class="text-stone-600 dark:text-stone-300">Seuil gratification</span>
-                  <span class="font-medium" :class="stats.totalDays >= stageLimits.gratifDays ? 'text-red-500' : 'text-stone-900 dark:text-white'">
+                  <span class="text-stone-600">Seuil gratification</span>
+                  <span class="font-medium" :class="stats.totalDays >= stageLimits.gratifDays ? 'text-red-500' : 'text-stone-900'">
                     {{ stats.totalDays }} / {{ stageLimits.gratifDays }} jours
                     <span class="text-xs text-stone-400 ml-1">({{ stats.totalHours.toFixed(0) }} / {{ stageLimits.gratifHours }}h)</span>
                   </span>
                 </div>
-                <div class="h-2 bg-[rgba(175,143,60,0.06)] dark:bg-[rgba(175,143,60,0.06)] rounded-full overflow-hidden">
+                <div class="h-2 bg-[rgba(175,143,60,0.06)],143,60,0.06)] rounded-full overflow-hidden">
                   <div
                     class="h-full rounded-full transition-all"
                     :class="pct(stats.totalDays, stageLimits.gratifDays) >= 90 ? 'bg-red-500' : pct(stats.totalDays, stageLimits.gratifDays) >= 70 ? 'bg-amber-500' : 'bg-emerald-500'"
@@ -622,13 +622,13 @@ function pct(value: number, max: number) {
               </div>
               <div class="space-y-1.5">
                 <div class="flex items-center justify-between text-sm">
-                  <span class="text-stone-600 dark:text-stone-300">Duree du contrat</span>
-                  <span class="font-medium text-stone-900 dark:text-white">
+                  <span class="text-stone-600">Duree du contrat</span>
+                  <span class="font-medium text-stone-900">
                     {{ stats.totalDays }} / {{ stageLimits.maxDays }} jours
                     <span class="text-xs text-stone-400 ml-1">({{ stats.totalHours.toFixed(0) }} / {{ stageLimits.maxHours }}h)</span>
                   </span>
                 </div>
-                <div class="h-2 bg-[rgba(175,143,60,0.06)] dark:bg-[rgba(175,143,60,0.06)] rounded-full overflow-hidden">
+                <div class="h-2 bg-[rgba(175,143,60,0.06)],143,60,0.06)] rounded-full overflow-hidden">
                   <div class="h-full rounded-full transition-all bg-primary" :style="{ width: pct(stats.totalDays, stageLimits.maxDays) + '%' }" />
                 </div>
               </div>
@@ -639,7 +639,7 @@ function pct(value: number, max: number) {
         <!-- Calculateur d'heures (directeur only) -->
         <UCard v-if="isDirecteur">
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Calculateur d'heures</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Calculateur d'heures</h3>
           </template>
           <div class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -653,15 +653,15 @@ function pct(value: number, max: number) {
                 <USelectMenu v-model="calcType" :items="calcTypeOptions" value-key="value" />
               </UFormField>
             </div>
-            <div v-if="calcResult" class="flex items-center gap-6 p-3 rounded-lg bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)]">
+            <div v-if="calcResult" class="flex items-center gap-6 p-3 rounded-lg bg-[rgba(175,143,60,0.04)],143,60,0.03)]">
               <div class="text-center">
-                <p class="text-xl font-bold text-stone-900 dark:text-white">{{ calcResult.workDays }}</p>
-                <p class="text-xs text-stone-500 dark:text-stone-400">{{ calcType === 'demi_journee' ? 'demi-journees' : 'jours' }}</p>
+                <p class="text-xl font-bold text-stone-900">{{ calcResult.workDays }}</p>
+                <p class="text-xs text-stone-500">{{ calcType === 'demi_journee' ? 'demi-journees' : 'jours' }}</p>
               </div>
-              <div class="text-stone-300 dark:text-stone-600">=</div>
+              <div class="text-stone-300">=</div>
               <div class="text-center">
                 <p class="text-xl font-bold text-primary">{{ calcResult.hours.toFixed(1) }}h</p>
-                <p class="text-xs text-stone-500 dark:text-stone-400">heures (base 7h/j)</p>
+                <p class="text-xs text-stone-500">heures (base 7h/j)</p>
               </div>
             </div>
           </div>
@@ -671,7 +671,7 @@ function pct(value: number, max: number) {
         <UCard v-if="isDirecteur">
           <template #header>
             <div class="flex items-center justify-between">
-              <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Documents</h3>
+              <h3 class="text-sm font-semibold text-stone-900">Documents</h3>
               <UButton
                 label="Ajouter"
                 icon="i-lucide-upload"
@@ -686,7 +686,7 @@ function pct(value: number, max: number) {
           </div>
 
           <div v-else-if="!documents.length" class="text-center py-4">
-            <UIcon name="i-lucide-file-x" class="size-6 text-stone-300 dark:text-stone-700 mx-auto mb-1" />
+            <UIcon name="i-lucide-file-x" class="size-6 text-stone-300 mx-auto mb-1" />
             <p class="text-xs text-stone-400">Aucun document</p>
           </div>
 
@@ -694,12 +694,12 @@ function pct(value: number, max: number) {
             <div
               v-for="doc in documents"
               :key="doc.id"
-              class="flex items-center justify-between p-2.5 rounded-lg bg-[rgba(175,143,60,0.03)] dark:bg-[rgba(175,143,60,0.02)] border border-stone-100 dark:border-stone-800"
+              class="flex items-center justify-between p-2.5 rounded-lg bg-[rgba(175,143,60,0.03)],143,60,0.02)] border border-stone-100"
             >
               <div class="flex items-center gap-2.5 min-w-0">
                 <UIcon name="i-lucide-file-text" class="size-4 text-stone-400 shrink-0" />
                 <div class="min-w-0">
-                  <p class="text-sm font-medium text-stone-800 dark:text-stone-200 truncate">{{ doc.nom }}</p>
+                  <p class="text-sm font-medium text-stone-800 truncate">{{ doc.nom }}</p>
                   <p class="text-[11px] text-stone-400">{{ formatDateFr(doc.date_created) }}</p>
                 </div>
               </div>
@@ -748,7 +748,7 @@ function pct(value: number, max: number) {
         <!-- Identite (tout le monde peut modifier son nom/prenom/email/naissance) -->
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Identite</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Identite</h3>
           </template>
           <div class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -773,7 +773,7 @@ function pct(value: number, max: number) {
         <!-- Coordonnees (tout le monde) -->
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Coordonnees</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Coordonnees</h3>
           </template>
           <div class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -796,8 +796,8 @@ function pct(value: number, max: number) {
         <!-- Visibilite -->
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Visibilite du profil</h3>
-            <p class="text-xs text-stone-400 dark:text-stone-500 mt-0.5">Choisissez qui peut voir chaque information</p>
+            <h3 class="text-sm font-semibold text-stone-900">Visibilite du profil</h3>
+            <p class="text-xs text-stone-400 mt-0.5">Choisissez qui peut voir chaque information</p>
           </template>
           <div class="space-y-3">
             <div
@@ -805,7 +805,7 @@ function pct(value: number, max: number) {
               :key="field.key"
               class="flex items-center justify-between py-1.5"
             >
-              <span class="text-sm text-stone-700 dark:text-stone-300">{{ field.label }}</span>
+              <span class="text-sm text-stone-700">{{ field.label }}</span>
               <USelect
                 v-model="form.visibilite[field.key]"
                 :items="VISIBILITY_OPTIONS"
@@ -820,10 +820,10 @@ function pct(value: number, max: number) {
         <!-- Mot de passe -->
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Securite</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Securite</h3>
           </template>
           <div class="flex items-center justify-between">
-            <p class="text-sm text-stone-500 dark:text-stone-400">Modifier le mot de passe</p>
+            <p class="text-sm text-stone-500">Modifier le mot de passe</p>
             <UButton
               label="Changer"
               icon="i-lucide-key-round"
@@ -839,7 +839,7 @@ function pct(value: number, max: number) {
         <template v-if="isDirecteur">
           <UCard>
             <template #header>
-              <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Administration</h3>
+              <h3 class="text-sm font-semibold text-stone-900">Administration</h3>
             </template>
             <div class="space-y-4">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -855,7 +855,7 @@ function pct(value: number, max: number) {
 
           <UCard>
             <template #header>
-              <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Contrat</h3>
+              <h3 class="text-sm font-semibold text-stone-900">Contrat</h3>
             </template>
             <div class="space-y-4">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -885,11 +885,11 @@ function pct(value: number, max: number) {
 
           <UCard>
             <template #header>
-              <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Statut</h3>
+              <h3 class="text-sm font-semibold text-stone-900">Statut</h3>
             </template>
             <div class="flex items-center gap-3">
               <USwitch v-model="form.actif" />
-              <span class="text-sm text-stone-700 dark:text-stone-300">
+              <span class="text-sm text-stone-700">
                 {{ form.actif ? 'Utilisateur actif' : 'Utilisateur inactif' }}
               </span>
             </div>
@@ -903,12 +903,12 @@ function pct(value: number, max: number) {
       <template #content>
         <div class="p-6 space-y-4">
           <div class="flex items-center gap-3">
-            <div class="rounded-full bg-red-100 dark:bg-red-900/30 p-2">
-              <UIcon name="i-lucide-alert-triangle" class="size-5 text-red-600 dark:text-red-400" />
+            <div class="rounded-full bg-red-100 p-2">
+              <UIcon name="i-lucide-alert-triangle" class="size-5 text-red-600" />
             </div>
-            <h3 class="text-lg font-semibold text-stone-900 dark:text-white">Supprimer cet utilisateur</h3>
+            <h3 class="text-lg font-semibold text-stone-900">Supprimer cet utilisateur</h3>
           </div>
-          <p class="text-sm text-stone-500 dark:text-stone-400">
+          <p class="text-sm text-stone-500">
             Etes-vous sur de vouloir supprimer <strong>{{ member ? getUserName(member) : '' }}</strong> ?
             Cette action est irreversible.
           </p>
@@ -925,17 +925,17 @@ function pct(value: number, max: number) {
       <template #content>
         <div class="p-6 space-y-4">
           <div class="flex items-center gap-3">
-            <div class="rounded-full bg-amber-100 dark:bg-amber-900/30 p-2">
-              <UIcon name="i-lucide-key-round" class="size-5 text-amber-600 dark:text-amber-400" />
+            <div class="rounded-full bg-amber-100 p-2">
+              <UIcon name="i-lucide-key-round" class="size-5 text-amber-600" />
             </div>
-            <h3 class="text-lg font-semibold text-stone-900 dark:text-white">
+            <h3 class="text-lg font-semibold text-stone-900">
               {{ isDirecteur && !isSelf ? 'Reinitialiser le mot de passe' : 'Changer le mot de passe' }}
             </h3>
           </div>
 
           <!-- Admin resetting someone else's password -->
           <template v-if="isDirecteur && !isSelf">
-            <p class="text-sm text-stone-500 dark:text-stone-400">
+            <p class="text-sm text-stone-500">
               Un mot de passe a ete genere. Vous pouvez le modifier avant de l'enregistrer.
             </p>
             <UFormField label="Nouveau mot de passe">
@@ -973,10 +973,10 @@ function pct(value: number, max: number) {
       <template #content>
         <div class="p-6 space-y-4">
           <div class="flex items-center gap-3">
-            <div class="rounded-full bg-blue-100 dark:bg-blue-900/30 p-2">
-              <UIcon name="i-lucide-upload" class="size-5 text-blue-600 dark:text-blue-400" />
+            <div class="rounded-full bg-blue-100 p-2">
+              <UIcon name="i-lucide-upload" class="size-5 text-blue-600" />
             </div>
-            <h3 class="text-lg font-semibold text-stone-900 dark:text-white">Ajouter un document</h3>
+            <h3 class="text-lg font-semibold text-stone-900">Ajouter un document</h3>
           </div>
 
           <UFormField label="Nom du document" required>
@@ -985,7 +985,7 @@ function pct(value: number, max: number) {
 
           <UFormField label="Fichier" required>
             <div
-              class="relative flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-stone-200 dark:border-stone-700 hover:border-primary/40 transition-colors cursor-pointer"
+              class="relative flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-stone-200 hover:border-primary/40 transition-colors cursor-pointer"
               @click="fileInputRef?.click()"
             >
               <UIcon
@@ -993,7 +993,7 @@ function pct(value: number, max: number) {
                 class="size-5"
                 :class="uploadFile ? 'text-emerald-500' : 'text-stone-400'"
               />
-              <span class="text-sm" :class="uploadFile ? 'text-stone-800 dark:text-stone-200' : 'text-stone-400'">
+              <span class="text-sm" :class="uploadFile ? 'text-stone-800' : 'text-stone-400'">
                 {{ uploadFile ? uploadFile.name : 'Cliquez pour selectionner un fichier' }}
               </span>
               <input

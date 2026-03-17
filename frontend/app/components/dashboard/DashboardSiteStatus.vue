@@ -78,12 +78,12 @@ onMounted(async () => {
       <div
         v-for="site in userSites"
         :key="site.id"
-        class="flex items-center justify-between p-2 rounded-lg bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)]"
+        class="flex items-center justify-between p-2 rounded-lg bg-[rgba(175,143,60,0.04)],143,60,0.03)]"
       >
         <div class="flex items-center gap-2.5 min-w-0">
           <span
             class="size-2.5 rounded-full shrink-0"
-            :class="!getStatus(site) ? 'bg-stone-300 dark:bg-stone-600 animate-pulse'
+            :class="!getStatus(site) ? 'bg-stone-300 animate-pulse'
               : getStatus(site)!.up ? 'bg-emerald-500' : 'bg-red-500'"
           />
           <div class="min-w-0">
@@ -94,7 +94,7 @@ onMounted(async () => {
         <div v-if="getStatus(site)" class="text-right shrink-0 ml-3">
           <p
             class="text-xs font-medium"
-            :class="getStatus(site)!.up ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'"
+            :class="getStatus(site)!.up ? 'text-emerald-600' : 'text-red-600'"
           >
             {{ getStatus(site)!.up ? 'En ligne' : 'Hors ligne' }}
           </p>

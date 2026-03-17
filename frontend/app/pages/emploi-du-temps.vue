@@ -55,12 +55,12 @@ const activeAction = ref('travail')
 const currentAction = computed(() => quickActions.value.find(a => a.key === activeAction.value)!)
 
 const ACTION_PILL_COLORS: Record<string, string> = {
-  travail:       'bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 dark:border-emerald-600 text-emerald-800 dark:text-emerald-200',
-  teletravail:   'bg-indigo-100 dark:bg-indigo-900/40 border-indigo-400 dark:border-indigo-600 text-indigo-800 dark:text-indigo-200',
-  conge_paye:    'bg-orange-100 dark:bg-orange-900/40 border-orange-400 dark:border-orange-600 text-orange-800 dark:text-orange-200',
-  arret_maladie: 'bg-red-100 dark:bg-red-900/40 border-red-400 dark:border-red-600 text-red-800 dark:text-red-200',
-  ecole:         'bg-sky-100 dark:bg-sky-900/40 border-sky-400 dark:border-sky-600 text-sky-800 dark:text-sky-200',
-  autre:         'bg-stone-200 dark:bg-stone-700 border-stone-400 dark:border-stone-500 text-stone-700 dark:text-stone-200',
+  travail:       'bg-emerald-100 border-emerald-400 text-emerald-800',
+  teletravail:   'bg-indigo-100 border-indigo-400 text-indigo-800',
+  conge_paye:    'bg-orange-100 border-orange-400 text-orange-800',
+  arret_maladie: 'bg-red-100 border-red-400 text-red-800',
+  ecole:         'bg-sky-100 border-sky-400 text-sky-800',
+  autre:         'bg-stone-200 border-stone-400 text-stone-700',
 }
 
 // --- Motif modal ---
@@ -318,7 +318,7 @@ onMounted(() => {
             <UButton label="Aujourd'hui" color="neutral" variant="soft" size="xs" @click="timetableRef?.goToToday()" />
             <UButton icon="i-lucide-chevron-right" color="neutral" variant="ghost" size="xs" @click="timetableRef?.nextWeek()" />
           </div>
-          <span class="text-sm font-medium text-stone-500 dark:text-stone-400">
+          <span class="text-sm font-medium text-stone-500">
             S{{ weekNumber }}
           </span>
           <UTooltip text="Copier la semaine precedente">
@@ -361,7 +361,7 @@ onMounted(() => {
               class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-colors cursor-pointer"
               :class="activeAction === action.key
                 ? (ACTION_PILL_COLORS[action.key] || 'bg-primary/10 border-primary/40 text-primary')
-                : 'bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'"
+                : 'bg-stone-100 border-stone-200 text-stone-600 hover:bg-stone-200'"
               @click="activeAction = action.key"
             >
               <UIcon :name="action.icon" class="size-4" />
@@ -379,7 +379,7 @@ onMounted(() => {
           class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors"
           :class="activeAction === action.key
             ? (ACTION_PILL_COLORS[action.key] || 'bg-primary/10 border-primary/40 text-primary')
-            : 'bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'"
+            : 'bg-stone-100 border-stone-200 text-stone-600 hover:bg-stone-200'"
           @click="activeAction = action.key"
         >
           <UIcon :name="action.icon" class="size-3.5" />
@@ -440,7 +440,7 @@ onMounted(() => {
     <UModal :open="showMotifModal" @update:open="showMotifModal = $event">
       <template #content>
         <div class="p-6">
-          <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-4">Motif</h3>
+          <h3 class="text-lg font-semibold text-stone-900 mb-4">Motif</h3>
           <form class="space-y-4" @submit.prevent="handleMotifSubmit">
             <UFormField label="Justification">
               <UTextarea v-model="motifInput" placeholder="Indiquez le motif..." required />
@@ -463,7 +463,7 @@ onMounted(() => {
     >
       <div
         v-if="modifSelections.size > 0"
-        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2.5 rounded-xl shadow-lg bg-white dark:bg-stone-900 border border-[rgba(175,143,60,0.2)]"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2.5 rounded-xl shadow-lg bg-white border border-[rgba(175,143,60,0.2)]"
       >
         <span class="text-xs text-stone-500">{{ modifSelections.size }} creneau(x) selectionne(s)</span>
         <UButton label="Demander modif." size="xs" @click="openModifModal" />
@@ -475,7 +475,7 @@ onMounted(() => {
     <UModal :open="showModifModal" @update:open="showModifModal = $event">
       <template #content>
         <div class="p-6">
-          <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-1">Demande de modification</h3>
+          <h3 class="text-lg font-semibold text-stone-900 mb-1">Demande de modification</h3>
           <p class="text-xs text-stone-400 mb-4">{{ sortedModifSlots.length }} creneau(x) concerne(s)</p>
           <form class="space-y-4" @submit.prevent="handleModifSubmit">
             <UFormField label="Motif de la demande">

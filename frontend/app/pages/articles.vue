@@ -66,16 +66,16 @@ function formatDay(date: string) {
       >
         <!-- Ornament -->
         <div class="flex items-center justify-center gap-3 mb-6 opacity-40">
-          <div class="w-10 h-px bg-stone-400 dark:bg-stone-600" />
-          <div class="size-1.5 rotate-45 bg-stone-400 dark:bg-stone-600" />
-          <div class="w-10 h-px bg-stone-400 dark:bg-stone-600" />
+          <div class="w-10 h-px bg-stone-400" />
+          <div class="size-1.5 rotate-45 bg-stone-400" />
+          <div class="w-10 h-px bg-stone-400" />
         </div>
 
         <h1 class="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
           Articles
         </h1>
         <div class="w-14 h-px bg-gradient-to-r from-transparent via-[var(--color-brand-gold)]/50 to-transparent mx-auto mt-5 mb-4" />
-        <p class="text-stone-500 dark:text-stone-400 text-base sm:text-lg leading-relaxed max-w-md mx-auto">
+        <p class="text-stone-500 text-base sm:text-lg leading-relaxed max-w-md mx-auto">
           Réflexions, actualités et coulisses du groupe Le Geai.
         </p>
       </div>
@@ -83,12 +83,12 @@ function formatDay(date: string) {
 
     <!-- Loading -->
     <div v-if="status === 'pending'" class="flex justify-center py-12">
-      <div class="size-6 border-2 border-stone-300 dark:border-stone-600 border-t-[var(--color-brand-gold)] rounded-full animate-spin" />
+      <div class="size-6 border-2 border-stone-300 border-t-[var(--color-brand-gold)] rounded-full animate-spin" />
     </div>
 
     <!-- Empty -->
     <div v-else-if="!articles?.length" class="text-center px-6 pb-20">
-      <p class="text-stone-400 dark:text-stone-500 text-sm">
+      <p class="text-stone-400 text-sm">
         Aucun article publié pour le moment. Revenez bientôt.
       </p>
     </div>
@@ -106,21 +106,21 @@ function formatDay(date: string) {
           <!-- Date line -->
           <div class="flex items-center gap-3 mb-4">
             <div class="w-8 h-px bg-gradient-to-r from-[var(--color-brand-gold)]/40 to-transparent" />
-            <span v-if="article.date_publication" class="text-xs text-stone-400 dark:text-stone-500 uppercase tracking-wider">
+            <span v-if="article.date_publication" class="text-xs text-stone-400 uppercase tracking-wider">
               {{ formatDay(article.date_publication) }} {{ formatDate(article.date_publication) }}
             </span>
           </div>
 
           <!-- Card -->
-          <div class="rounded-2xl border border-stone-200/60 dark:border-stone-800/60 p-6 sm:p-8">
+          <div class="rounded-2xl border border-stone-200/60 p-6 sm:p-8">
             <h2 class="font-heading text-lg sm:text-xl font-semibold mb-4">
               {{ article.titre }}
             </h2>
-            <div class="text-sm text-stone-600 dark:text-stone-400 leading-relaxed article-content" v-html="article.contenu" />
+            <div class="text-sm text-stone-600 leading-relaxed article-content" v-html="article.contenu" />
 
             <!-- Author -->
-            <div v-if="getAuteurNom(article)" class="mt-6 pt-4 border-t border-stone-200/40 dark:border-stone-800/40">
-              <span class="text-xs text-stone-400 dark:text-stone-500">
+            <div v-if="getAuteurNom(article)" class="mt-6 pt-4 border-t border-stone-200/40">
+              <span class="text-xs text-stone-400">
                 {{ getAuteurNom(article) }}
               </span>
             </div>
@@ -131,8 +131,8 @@ function formatDay(date: string) {
 
     <!-- Footer -->
     <footer class="px-6 pb-6 text-center">
-      <div class="max-w-4xl mx-auto pt-6 border-t border-stone-200/40 dark:border-stone-800/40">
-        <p class="text-[11px] text-stone-400 dark:text-stone-600">
+      <div class="max-w-4xl mx-auto pt-6 border-t border-stone-200/40">
+        <p class="text-[11px] text-stone-400">
           &copy; {{ new Date().getFullYear() }} Groupe Le Geai. Tous droits réservés
         </p>
       </div>

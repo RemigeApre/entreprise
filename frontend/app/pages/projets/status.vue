@@ -56,7 +56,7 @@ function getStatusLabel(status: SiteStatus | undefined): string {
 }
 
 function getStatusDotClass(status: SiteStatus | undefined): string {
-  if (!status) return 'bg-stone-300 dark:bg-stone-600 animate-pulse'
+  if (!status) return 'bg-stone-300 animate-pulse'
   return status.up ? 'bg-emerald-500' : 'bg-red-500'
 }
 
@@ -161,10 +161,10 @@ onUnmounted(() => {
       <!-- Header -->
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 class="text-lg font-semibold text-stone-900 dark:text-white">Etat des sites</h1>
-          <p v-if="lastChecked" class="text-xs text-stone-400 dark:text-stone-500 mt-0.5">
+          <h1 class="text-lg font-semibold text-stone-900">Etat des sites</h1>
+          <p v-if="lastChecked" class="text-xs text-stone-400 mt-0.5">
             Derniere verification : {{ formatLastChecked() }}
-            <span class="text-stone-300 dark:text-stone-600 mx-1">&middot;</span>
+            <span class="text-stone-300 mx-1">&middot;</span>
             Rafraichissement automatique toutes les 60s
           </p>
         </div>
@@ -181,13 +181,13 @@ onUnmounted(() => {
 
       <!-- No sites message -->
       <div v-if="sitesLoaded && !userSites.length" class="text-center py-16">
-        <div class="inline-flex items-center justify-center size-16 rounded-full bg-stone-100 dark:bg-stone-800 mb-4">
-          <UIcon name="i-lucide-globe" class="size-8 text-stone-400 dark:text-stone-500" />
+        <div class="inline-flex items-center justify-center size-16 rounded-full bg-stone-100 mb-4">
+          <UIcon name="i-lucide-globe" class="size-8 text-stone-400" />
         </div>
-        <h2 class="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-2">
+        <h2 class="text-lg font-semibold text-stone-900 mb-2">
           Aucun site assigne
         </h2>
-        <p class="text-sm text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
+        <p class="text-sm text-stone-500 max-w-sm mx-auto">
           Contactez un administrateur pour etre ajoute a la surveillance d'un site.
         </p>
       </div>
@@ -199,7 +199,7 @@ onUnmounted(() => {
             <!-- Site name + status dot -->
             <div class="flex items-start justify-between gap-2">
               <div class="min-w-0">
-                <h3 class="text-sm font-semibold text-stone-900 dark:text-white truncate">{{ site.nom }}</h3>
+                <h3 class="text-sm font-semibold text-stone-900 truncate">{{ site.nom }}</h3>
                 <a
                   :href="site.url"
                   target="_blank"
@@ -226,22 +226,22 @@ onUnmounted(() => {
               </UBadge>
               <span
                 v-if="getStatus(site) && getStatus(site)!.responseTime > 0"
-                class="text-xs text-stone-400 dark:text-stone-500"
+                class="text-xs text-stone-400"
               >
                 {{ formatResponseTime(getStatus(site)!.responseTime) }}
               </span>
             </div>
 
             <!-- Stats row -->
-            <div v-if="getStatus(site)" class="grid grid-cols-3 gap-3 pt-1 border-t border-stone-100 dark:border-stone-800">
+            <div v-if="getStatus(site)" class="grid grid-cols-3 gap-3 pt-1 border-t border-stone-100">
               <div class="text-center">
-                <p class="text-sm font-semibold text-stone-900 dark:text-white">
+                <p class="text-sm font-semibold text-stone-900">
                   {{ getStatus(site)!.statusCode || '\u2014' }}
                 </p>
                 <p class="text-[10px] text-stone-400 uppercase">Code HTTP</p>
               </div>
               <div class="text-center">
-                <p class="text-sm font-semibold text-stone-900 dark:text-white">
+                <p class="text-sm font-semibold text-stone-900">
                   {{ getStatus(site)!.responseTime > 0 ? formatResponseTime(getStatus(site)!.responseTime) : '\u2014' }}
                 </p>
                 <p class="text-[10px] text-stone-400 uppercase">Latence</p>
@@ -249,7 +249,7 @@ onUnmounted(() => {
               <div class="text-center">
                 <p
                   class="text-sm font-semibold"
-                  :class="getStatus(site)!.up ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'"
+                  :class="getStatus(site)!.up ? 'text-emerald-600' : 'text-red-600'"
                 >
                   {{ getStatus(site)!.up ? 'OK' : 'KO' }}
                 </p>
@@ -260,7 +260,7 @@ onUnmounted(() => {
             <!-- Admin: manage users button -->
             <button
               v-if="isDirecteur"
-              class="w-full flex items-center justify-center gap-1.5 pt-2 border-t border-stone-100 dark:border-stone-800 text-xs text-stone-400 hover:text-primary transition-colors cursor-pointer"
+              class="w-full flex items-center justify-center gap-1.5 pt-2 border-t border-stone-100 text-xs text-stone-400 hover:text-primary transition-colors cursor-pointer"
               @click="openUsersModal(site)"
             >
               <UIcon name="i-lucide-users" class="size-3.5" />
@@ -275,10 +275,10 @@ onUnmounted(() => {
     <UModal v-if="isDirecteur" :open="showUsersModal" @update:open="showUsersModal = $event">
       <template #content>
         <div class="p-6">
-          <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-1">
+          <h3 class="text-lg font-semibold text-stone-900 mb-1">
             Acces a {{ managingSite?.nom }}
           </h3>
-          <p class="text-sm text-stone-500 dark:text-stone-400 mb-4">
+          <p class="text-sm text-stone-500 mb-4">
             Les utilisateurs ci-dessous peuvent voir le statut de ce site.
           </p>
 
@@ -293,9 +293,9 @@ onUnmounted(() => {
               <div
                 v-for="entry in siteUsers"
                 :key="entry.id"
-                class="flex items-center justify-between p-2 rounded-lg bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)]"
+                class="flex items-center justify-between p-2 rounded-lg bg-[rgba(175,143,60,0.04)],143,60,0.03)]"
               >
-                <span class="text-sm text-stone-700 dark:text-stone-300">{{ getUserName(entry) }}</span>
+                <span class="text-sm text-stone-700">{{ getUserName(entry) }}</span>
                 <button
                   class="text-stone-400 hover:text-red-500 transition-colors"
                   @click="handleRemoveUser(entry)"

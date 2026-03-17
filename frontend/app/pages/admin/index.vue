@@ -125,8 +125,8 @@ onMounted(scanDuplicates)
                 <UIcon name="i-lucide-download" class="size-5 text-[#af8f3c]" />
               </div>
               <div>
-                <p class="text-sm font-semibold text-stone-900 dark:text-white">Extractions CSV</p>
-                <p class="text-xs text-stone-400 dark:text-stone-500">Presence, prospection</p>
+                <p class="text-sm font-semibold text-stone-900">Extractions CSV</p>
+                <p class="text-xs text-stone-400">Presence, prospection</p>
               </div>
             </div>
             <UButton label="Ouvrir" icon="i-lucide-arrow-right" variant="subtle" size="sm" to="/admin/extractions" />
@@ -141,8 +141,8 @@ onMounted(scanDuplicates)
                 <UIcon name="i-lucide-feather" class="size-5 text-[#af8f3c]" />
               </div>
               <div>
-                <p class="text-sm font-semibold text-stone-900 dark:text-white">Articles</p>
-                <p class="text-xs text-stone-400 dark:text-stone-500">Creer, programmer, publier</p>
+                <p class="text-sm font-semibold text-stone-900">Articles</p>
+                <p class="text-xs text-stone-400">Creer, programmer, publier</p>
               </div>
             </div>
             <UButton label="Gerer" icon="i-lucide-arrow-right" variant="subtle" size="sm" to="/admin/articles" />
@@ -154,8 +154,8 @@ onMounted(scanDuplicates)
           <template #header>
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <UIcon name="i-lucide-copy-minus" class="size-5 text-stone-500 dark:text-stone-400" />
-                <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Doublons</h3>
+                <UIcon name="i-lucide-copy-minus" class="size-5 text-stone-500" />
+                <h3 class="text-sm font-semibold text-stone-900">Doublons</h3>
               </div>
               <div class="flex items-center gap-2">
                 <UButton
@@ -181,25 +181,25 @@ onMounted(scanDuplicates)
 
           <div v-if="loading" class="flex items-center justify-center py-8">
             <UIcon name="i-lucide-loader-2" class="size-6 text-primary animate-spin" />
-            <span class="ml-2 text-sm text-stone-500 dark:text-stone-400">Analyse en cours...</span>
+            <span class="ml-2 text-sm text-stone-500">Analyse en cours...</span>
           </div>
 
           <div v-else-if="totalDuplicates === 0" class="flex flex-col items-center py-8 text-center">
             <UIcon name="i-lucide-check-circle" class="size-10 text-green-500 mb-2" />
-            <p class="text-sm font-medium text-stone-700 dark:text-stone-300">Aucun doublon detecte</p>
-            <p class="text-xs text-stone-400 dark:text-stone-500 mt-1">La base de donnees est propre.</p>
+            <p class="text-sm font-medium text-stone-700">Aucun doublon detecte</p>
+            <p class="text-xs text-stone-400 mt-1">La base de donnees est propre.</p>
           </div>
 
           <div v-else class="space-y-3">
             <!-- Wiki -->
-            <div class="flex items-center justify-between p-3 rounded-lg bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)]">
+            <div class="flex items-center justify-between p-3 rounded-lg bg-[rgba(175,143,60,0.04)],143,60,0.03)]">
               <div class="flex items-center gap-3">
-                <div class="size-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                  <UIcon name="i-lucide-book-open" class="size-4 text-blue-600 dark:text-blue-400" />
+                <div class="size-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <UIcon name="i-lucide-book-open" class="size-4 text-blue-600" />
                 </div>
                 <div>
-                  <p class="text-sm font-medium text-stone-800 dark:text-stone-200">Pages wiki</p>
-                  <p class="text-xs text-stone-400 dark:text-stone-500">Doublons par slug</p>
+                  <p class="text-sm font-medium text-stone-800">Pages wiki</p>
+                  <p class="text-xs text-stone-400">Doublons par slug</p>
                 </div>
               </div>
               <div class="flex items-center gap-2">
@@ -220,14 +220,14 @@ onMounted(scanDuplicates)
             </div>
 
             <!-- Categories -->
-            <div class="flex items-center justify-between p-3 rounded-lg bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)]">
+            <div class="flex items-center justify-between p-3 rounded-lg bg-[rgba(175,143,60,0.04)],143,60,0.03)]">
               <div class="flex items-center gap-3">
-                <div class="size-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                  <UIcon name="i-lucide-tags" class="size-4 text-purple-600 dark:text-purple-400" />
+                <div class="size-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                  <UIcon name="i-lucide-tags" class="size-4 text-purple-600" />
                 </div>
                 <div>
-                  <p class="text-sm font-medium text-stone-800 dark:text-stone-200">Categories / Poles</p>
-                  <p class="text-xs text-stone-400 dark:text-stone-500">Doublons par nom</p>
+                  <p class="text-sm font-medium text-stone-800">Categories / Poles</p>
+                  <p class="text-xs text-stone-400">Doublons par nom</p>
                 </div>
               </div>
               <div class="flex items-center gap-2">
@@ -248,14 +248,14 @@ onMounted(scanDuplicates)
             </div>
 
             <!-- Sites -->
-            <div class="flex items-center justify-between p-3 rounded-lg bg-[rgba(175,143,60,0.04)] dark:bg-[rgba(175,143,60,0.03)]">
+            <div class="flex items-center justify-between p-3 rounded-lg bg-[rgba(175,143,60,0.04)],143,60,0.03)]">
               <div class="flex items-center gap-3">
-                <div class="size-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                  <UIcon name="i-lucide-activity" class="size-4 text-amber-600 dark:text-amber-400" />
+                <div class="size-8 rounded-lg bg-amber-100 flex items-center justify-center">
+                  <UIcon name="i-lucide-activity" class="size-4 text-amber-600" />
                 </div>
                 <div>
-                  <p class="text-sm font-medium text-stone-800 dark:text-stone-200">Sites monitores</p>
-                  <p class="text-xs text-stone-400 dark:text-stone-500">Doublons par URL</p>
+                  <p class="text-sm font-medium text-stone-800">Sites monitores</p>
+                  <p class="text-xs text-stone-400">Doublons par URL</p>
                 </div>
               </div>
               <div class="flex items-center gap-2">

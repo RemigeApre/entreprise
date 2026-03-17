@@ -308,7 +308,7 @@ async function handleCopyPreviousWeek() {
     <UModal :open="showMotifModal" @update:open="showMotifModal = $event">
       <template #content>
         <div class="p-6">
-          <h3 class="text-lg font-semibold text-stone-900 dark:text-white mb-4">Justification requise</h3>
+          <h3 class="text-lg font-semibold text-stone-900 mb-4">Justification requise</h3>
           <form @submit.prevent="handleMotifSubmit" class="space-y-4">
             <UFormField label="Motif">
               <UTextarea v-model="motifInput" placeholder="Indiquez le motif..." required />

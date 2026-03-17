@@ -98,7 +98,7 @@ async function handleSubmit() {
       <div class="max-w-2xl mx-auto space-y-6">
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Informations generales</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Informations generales</h3>
           </template>
 
           <div class="space-y-4">
@@ -138,9 +138,9 @@ async function handleSubmit() {
         <UCard>
           <template #header>
             <div class="flex items-center justify-between">
-              <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Remuneration</h3>
+              <h3 class="text-sm font-semibold text-stone-900">Remuneration</h3>
               <div class="flex items-center gap-2">
-                <span class="text-xs text-stone-500 dark:text-stone-400">{{ showSalaire ? 'Affiche' : 'Non affiche' }}</span>
+                <span class="text-xs text-stone-500">{{ showSalaire ? 'Affiche' : 'Non affiche' }}</span>
                 <USwitch v-model="showSalaire" size="sm" />
               </div>
             </div>
@@ -159,14 +159,14 @@ async function handleSubmit() {
               </UFormField>
             </div>
           </div>
-          <p v-else class="text-sm text-stone-500 dark:text-stone-400">
+          <p v-else class="text-sm text-stone-500">
             Le salaire ne sera pas affiche sur l'offre.
           </p>
         </UCard>
 
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Details complementaires</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Details complementaires</h3>
           </template>
 
           <div class="space-y-4">
@@ -184,7 +184,7 @@ async function handleSubmit() {
 
         <div class="flex items-center gap-3">
           <USwitch v-model="form.publie" />
-          <span class="text-sm text-stone-700 dark:text-stone-300">
+          <span class="text-sm text-stone-700">
             Publier immediatement
           </span>
         </div>

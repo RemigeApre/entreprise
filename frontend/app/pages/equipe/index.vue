@@ -144,16 +144,16 @@ function getCategoryColor(u: UserProfile): string | null {
 }
 
 const CONTRACT_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  CDI: { bg: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-700 dark:text-emerald-400', border: 'border-emerald-200 dark:border-emerald-800/40' },
-  CDD: { bg: 'bg-sky-50 dark:bg-sky-900/20', text: 'text-sky-700 dark:text-sky-400', border: 'border-sky-200 dark:border-sky-800/40' },
-  Alternance: { bg: 'bg-violet-50 dark:bg-violet-900/20', text: 'text-violet-700 dark:text-violet-400', border: 'border-violet-200 dark:border-violet-800/40' },
-  Stage: { bg: 'bg-amber-50 dark:bg-amber-900/20', text: 'text-amber-700 dark:text-amber-400', border: 'border-amber-200 dark:border-amber-800/40' },
-  Freelance: { bg: 'bg-rose-50 dark:bg-rose-900/20', text: 'text-rose-700 dark:text-rose-400', border: 'border-rose-200 dark:border-rose-800/40' }
+  CDI: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+  CDD: { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
+  Alternance: { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200' },
+  Stage: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+  Freelance: { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' }
 }
 
 function getContractStyle(contrat: string | null) {
   if (!contrat) return CONTRACT_COLORS.CDI
-  return CONTRACT_COLORS[contrat] || { bg: 'bg-stone-50 dark:bg-stone-800/30', text: 'text-stone-600 dark:text-stone-400', border: 'border-stone-200 dark:border-stone-700' }
+  return CONTRACT_COLORS[contrat] || { bg: 'bg-stone-50', text: 'text-stone-600', border: 'border-stone-200' }
 }
 
 </script>
@@ -197,20 +197,20 @@ function getContractStyle(contrat: string | null) {
             <div class="flex items-center gap-3 p-3 rounded-lg border border-[rgba(175,143,60,0.15)] bg-[rgba(175,143,60,0.04)] hover:bg-[rgba(175,143,60,0.08)] transition-colors">
               <UAvatar :alt="getUserName(myCard)" size="md" />
               <div class="flex-1 min-w-0">
-                <p class="font-semibold text-stone-900 dark:text-white text-sm group-hover:text-primary transition-colors">
+                <p class="font-semibold text-stone-900 text-sm group-hover:text-primary transition-colors">
                   {{ getUserName(myCard) }}
-                  <span class="text-xs font-normal text-stone-400 dark:text-stone-500 ml-1">— c'est vous</span>
+                  <span class="text-xs font-normal text-stone-400 ml-1">— c'est vous</span>
                 </p>
                 <div class="flex items-center gap-1.5 mt-1">
                   <span
                     v-if="getCategoryName(myCard)"
                     class="text-xs font-medium"
                     :style="getCategoryColor(myCard) ? { color: getCategoryColor(myCard)! } : {}"
-                    :class="!getCategoryColor(myCard) ? 'text-stone-500 dark:text-stone-400' : ''"
+                    :class="!getCategoryColor(myCard) ? 'text-stone-500' : ''"
                   >
                     {{ getCategoryName(myCard) }}
                   </span>
-                  <span v-if="getCategoryName(myCard) && myCard.type_contrat" class="text-stone-300 dark:text-stone-600 text-xs">·</span>
+                  <span v-if="getCategoryName(myCard) && myCard.type_contrat" class="text-stone-300 text-xs">·</span>
                   <span
                     v-if="myCard.type_contrat"
                     class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border"
@@ -220,41 +220,41 @@ function getContractStyle(contrat: string | null) {
                   </span>
                 </div>
               </div>
-              <UIcon name="i-lucide-chevron-right" class="size-4 text-stone-300 dark:text-stone-600 group-hover:text-primary transition-colors shrink-0" />
+              <UIcon name="i-lucide-chevron-right" class="size-4 text-stone-300 group-hover:text-primary transition-colors shrink-0" />
             </div>
           </NuxtLink>
 
           <!-- Stats (directeur) -->
           <div v-if="isDirecteur" class="flex items-center gap-6 text-sm">
-            <span class="text-stone-500 dark:text-stone-400">
-              <strong class="text-stone-900 dark:text-stone-100">{{ stats.total }}</strong> membres
+            <span class="text-stone-500">
+              <strong class="text-stone-900">{{ stats.total }}</strong> membres
             </span>
-            <span class="text-stone-500 dark:text-stone-400">
-              <strong class="text-emerald-600 dark:text-emerald-400">{{ stats.actifs }}</strong> actifs
+            <span class="text-stone-500">
+              <strong class="text-emerald-600">{{ stats.actifs }}</strong> actifs
             </span>
-            <span v-if="stats.aVenir" class="text-stone-500 dark:text-stone-400">
+            <span v-if="stats.aVenir" class="text-stone-500">
               <strong class="text-blue-500">{{ stats.aVenir }}</strong> a venir
             </span>
-            <span v-if="stats.tests" class="text-stone-500 dark:text-stone-400">
+            <span v-if="stats.tests" class="text-stone-500">
               <strong class="text-orange-500">{{ stats.tests }}</strong> test
             </span>
-            <span v-if="stats.termines" class="text-stone-500 dark:text-stone-400">
+            <span v-if="stats.termines" class="text-stone-500">
               <strong class="text-stone-400">{{ stats.termines }}</strong> termines
             </span>
-            <span v-if="stats.inactifs" class="text-stone-500 dark:text-stone-400">
+            <span v-if="stats.inactifs" class="text-stone-500">
               <strong class="text-red-500">{{ stats.inactifs }}</strong> inactifs
             </span>
           </div>
 
           <!-- Toggle groupement -->
           <div class="flex items-center gap-2">
-            <span class="text-xs text-stone-400 dark:text-stone-500 uppercase tracking-wider font-semibold">Trier par</span>
+            <span class="text-xs text-stone-400 uppercase tracking-wider font-semibold">Trier par</span>
             <div class="flex rounded-lg border border-[rgba(175,143,60,0.12)] overflow-hidden">
               <button
                 class="px-3 py-1 text-xs font-medium transition-colors"
                 :class="groupBy === 'contrat'
                   ? 'bg-[#af8f3c] text-white'
-                  : 'text-[#2c2419]/50 dark:text-[#e8e0d0]/50 hover:bg-[rgba(175,143,60,0.06)]'"
+                  : 'text-[#2c2419]/50 hover:bg-[rgba(175,143,60,0.06)]'"
                 @click="groupBy = 'contrat'"
               >
                 Contrat
@@ -263,7 +263,7 @@ function getContractStyle(contrat: string | null) {
                 class="px-3 py-1 text-xs font-medium transition-colors"
                 :class="groupBy === 'pole'
                   ? 'bg-[#af8f3c] text-white'
-                  : 'text-[#2c2419]/50 dark:text-[#e8e0d0]/50 hover:bg-[rgba(175,143,60,0.06)]'"
+                  : 'text-[#2c2419]/50 hover:bg-[rgba(175,143,60,0.06)]'"
                 @click="groupBy = 'pole'"
               >
                 Pole
@@ -275,8 +275,8 @@ function getContractStyle(contrat: string | null) {
           <div v-if="currentGroups.length" class="space-y-6">
             <div v-for="group in currentGroups" :key="group.key">
               <div class="flex items-center gap-2 mb-3">
-                <h3 class="text-sm font-semibold text-stone-700 dark:text-stone-300">{{ group.label }}</h3>
-                <span class="text-xs text-stone-400 dark:text-stone-600">{{ group.users.length }}</span>
+                <h3 class="text-sm font-semibold text-stone-700">{{ group.label }}</h3>
+                <span class="text-xs text-stone-400">{{ group.users.length }}</span>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 <NuxtLink
@@ -285,10 +285,10 @@ function getContractStyle(contrat: string | null) {
                   :to="`/equipe/${member.id}`"
                   class="group"
                 >
-                  <div class="flex items-center gap-3 p-3 rounded-lg border border-[rgba(175,143,60,0.08)] hover:border-[rgba(175,143,60,0.2)] hover:bg-[rgba(175,143,60,0.04)] dark:hover:bg-[rgba(175,143,60,0.04)] transition-colors">
+                  <div class="flex items-center gap-3 p-3 rounded-lg border border-[rgba(175,143,60,0.08)] hover:border-[rgba(175,143,60,0.2)] hover:bg-[rgba(175,143,60,0.04)],143,60,0.04)] transition-colors">
                     <UAvatar :alt="getUserName(member)" size="md" />
                     <div class="min-w-0 flex-1">
-                      <p class="font-medium text-sm text-stone-900 dark:text-white truncate group-hover:text-primary transition-colors">
+                      <p class="font-medium text-sm text-stone-900 truncate group-hover:text-primary transition-colors">
                         {{ getUserName(member) }}
                       </p>
                       <div class="flex items-center gap-1.5 mt-1">
@@ -296,11 +296,11 @@ function getContractStyle(contrat: string | null) {
                           v-if="getCategoryName(member) && groupBy !== 'pole'"
                           class="text-xs font-medium"
                           :style="getCategoryColor(member) ? { color: getCategoryColor(member)! } : {}"
-                          :class="!getCategoryColor(member) ? 'text-stone-500 dark:text-stone-400' : ''"
+                          :class="!getCategoryColor(member) ? 'text-stone-500' : ''"
                         >
                           {{ getCategoryName(member) }}
                         </span>
-                        <span v-if="getCategoryName(member) && groupBy !== 'pole' && member.type_contrat && groupBy !== 'contrat'" class="text-stone-300 dark:text-stone-600 text-xs">·</span>
+                        <span v-if="getCategoryName(member) && groupBy !== 'pole' && member.type_contrat && groupBy !== 'contrat'" class="text-stone-300 text-xs">·</span>
                         <span
                           v-if="member.type_contrat && groupBy !== 'contrat'"
                           class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border"
@@ -318,14 +318,14 @@ function getContractStyle(contrat: string | null) {
 
           <!-- Aucun resultat -->
           <div v-else-if="search" class="text-center py-8">
-            <UIcon name="i-lucide-search-x" class="size-8 text-stone-300 dark:text-stone-700 mx-auto mb-3" />
-            <p class="text-stone-500 dark:text-stone-400 text-sm">Aucun membre ne correspond a "{{ search }}"</p>
+            <UIcon name="i-lucide-search-x" class="size-8 text-stone-300 mx-auto mb-3" />
+            <p class="text-stone-500 text-sm">Aucun membre ne correspond a "{{ search }}"</p>
           </div>
 
           <!-- Section A venir (directeur) -->
           <div v-if="isDirecteur && aVenirUsers.length" class="pt-2">
             <button
-              class="flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors mb-3"
+              class="flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors mb-3"
               @click="showAVenir = !showAVenir"
             >
               <UIcon
@@ -335,7 +335,7 @@ function getContractStyle(contrat: string | null) {
               />
               <UIcon name="i-lucide-clock" class="size-4" />
               A venir
-              <span class="text-xs text-blue-400 dark:text-blue-600">({{ aVenirUsers.length }})</span>
+              <span class="text-xs text-blue-400">({{ aVenirUsers.length }})</span>
             </button>
 
             <div v-if="showAVenir" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -345,11 +345,11 @@ function getContractStyle(contrat: string | null) {
                 :to="`/equipe/${member.id}`"
                 class="group"
               >
-                <div class="flex items-center gap-3 p-3 rounded-lg border border-blue-200/40 dark:border-blue-800/30 bg-blue-50/30 dark:bg-blue-900/10 hover:bg-blue-50/60 dark:hover:bg-blue-900/20 transition-all">
+                <div class="flex items-center gap-3 p-3 rounded-lg border border-blue-200/40 bg-blue-50/30 hover:bg-blue-50/60 transition-all">
                   <UAvatar :alt="getUserName(member)" size="md" />
                   <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2">
-                      <p class="font-medium text-sm text-stone-900 dark:text-white truncate">
+                      <p class="font-medium text-sm text-stone-900 truncate">
                         {{ getUserName(member) }}
                       </p>
                       <UBadge color="blue" variant="subtle" size="xs">A venir</UBadge>
@@ -357,11 +357,11 @@ function getContractStyle(contrat: string | null) {
                     <div class="flex items-center gap-1.5 mt-1">
                       <span
                         v-if="getCategoryName(member)"
-                        class="text-xs font-medium text-stone-500 dark:text-stone-400"
+                        class="text-xs font-medium text-stone-500"
                       >
                         {{ getCategoryName(member) }}
                       </span>
-                      <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 dark:text-stone-600 text-xs">·</span>
+                      <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 text-xs">·</span>
                       <span
                         v-if="member.type_contrat"
                         class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border"
@@ -369,7 +369,7 @@ function getContractStyle(contrat: string | null) {
                       >
                         {{ member.type_contrat }}
                       </span>
-                      <span v-if="member.date_debut_contrat" class="text-[11px] text-blue-500 dark:text-blue-400">
+                      <span v-if="member.date_debut_contrat" class="text-[11px] text-blue-500">
                         debut {{ new Date(member.date_debut_contrat).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) }}
                       </span>
                     </div>
@@ -382,7 +382,7 @@ function getContractStyle(contrat: string | null) {
           <!-- Section Test (directeur) -->
           <div v-if="isDirecteur && testUsers.length" class="pt-2">
             <button
-              class="flex items-center gap-2 text-sm font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors mb-3"
+              class="flex items-center gap-2 text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors mb-3"
               @click="showTest = !showTest"
             >
               <UIcon
@@ -392,7 +392,7 @@ function getContractStyle(contrat: string | null) {
               />
               <UIcon name="i-lucide-flask-conical" class="size-4" />
               Test
-              <span class="text-xs text-orange-400 dark:text-orange-600">({{ testUsers.length }})</span>
+              <span class="text-xs text-orange-400">({{ testUsers.length }})</span>
             </button>
 
             <div v-if="showTest" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -402,11 +402,11 @@ function getContractStyle(contrat: string | null) {
                 :to="`/equipe/${member.id}`"
                 class="group"
               >
-                <div class="flex items-center gap-3 p-3 rounded-lg border border-orange-100 dark:border-orange-900/30 bg-orange-50/50 dark:bg-orange-900/10 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all">
+                <div class="flex items-center gap-3 p-3 rounded-lg border border-orange-100 bg-orange-50/50 hover:bg-orange-50 transition-all">
                   <UAvatar :alt="getUserName(member)" size="md" />
                   <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2">
-                      <p class="font-medium text-sm text-stone-900 dark:text-white truncate">
+                      <p class="font-medium text-sm text-stone-900 truncate">
                         {{ getUserName(member) }}
                       </p>
                       <UBadge color="orange" variant="subtle" size="xs">Test</UBadge>
@@ -414,11 +414,11 @@ function getContractStyle(contrat: string | null) {
                     <div class="flex items-center gap-1.5 mt-1">
                       <span
                         v-if="getCategoryName(member)"
-                        class="text-xs font-medium text-stone-500 dark:text-stone-400"
+                        class="text-xs font-medium text-stone-500"
                       >
                         {{ getCategoryName(member) }}
                       </span>
-                      <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 dark:text-stone-600 text-xs">·</span>
+                      <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 text-xs">·</span>
                       <span
                         v-if="member.type_contrat"
                         class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border"
@@ -436,7 +436,7 @@ function getContractStyle(contrat: string | null) {
           <!-- Section Termines (directeur) -->
           <div v-if="isDirecteur && termineUsers.length" class="pt-2">
             <button
-              class="flex items-center gap-2 text-sm font-semibold text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 transition-colors mb-3"
+              class="flex items-center gap-2 text-sm font-semibold text-stone-500 hover:text-stone-700 transition-colors mb-3"
               @click="showTermine = !showTermine"
             >
               <UIcon
@@ -446,7 +446,7 @@ function getContractStyle(contrat: string | null) {
               />
               <UIcon name="i-lucide-log-out" class="size-4" />
               Termines
-              <span class="text-xs text-stone-400 dark:text-stone-600">({{ termineUsers.length }})</span>
+              <span class="text-xs text-stone-400">({{ termineUsers.length }})</span>
             </button>
 
             <div v-if="showTermine" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -460,7 +460,7 @@ function getContractStyle(contrat: string | null) {
                   <UAvatar :alt="getUserName(member)" size="md" />
                   <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2">
-                      <p class="font-medium text-sm text-stone-900 dark:text-white truncate">
+                      <p class="font-medium text-sm text-stone-900 truncate">
                         {{ getUserName(member) }}
                       </p>
                       <UBadge color="neutral" variant="subtle" size="xs">Termine</UBadge>
@@ -468,11 +468,11 @@ function getContractStyle(contrat: string | null) {
                     <div class="flex items-center gap-1.5 mt-1">
                       <span
                         v-if="getCategoryName(member)"
-                        class="text-xs font-medium text-stone-500 dark:text-stone-400"
+                        class="text-xs font-medium text-stone-500"
                       >
                         {{ getCategoryName(member) }}
                       </span>
-                      <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 dark:text-stone-600 text-xs">·</span>
+                      <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 text-xs">·</span>
                       <span
                         v-if="member.type_contrat"
                         class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border"
@@ -490,7 +490,7 @@ function getContractStyle(contrat: string | null) {
           <!-- Section Inactifs (directeur) -->
           <div v-if="isDirecteur && inactiveUsers.length" class="pt-2">
             <button
-              class="flex items-center gap-2 text-sm font-semibold text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 transition-colors mb-3"
+              class="flex items-center gap-2 text-sm font-semibold text-stone-500 hover:text-stone-700 transition-colors mb-3"
               @click="showInactive = !showInactive"
             >
               <UIcon
@@ -499,7 +499,7 @@ function getContractStyle(contrat: string | null) {
                 :class="showInactive ? 'rotate-90' : ''"
               />
               Inactifs
-              <span class="text-xs text-stone-400 dark:text-stone-600">({{ inactiveUsers.length }})</span>
+              <span class="text-xs text-stone-400">({{ inactiveUsers.length }})</span>
             </button>
 
             <div v-if="showInactive" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -513,7 +513,7 @@ function getContractStyle(contrat: string | null) {
                   <UAvatar :alt="getUserName(member)" size="md" />
                   <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2">
-                      <p class="font-medium text-sm text-stone-900 dark:text-white truncate">
+                      <p class="font-medium text-sm text-stone-900 truncate">
                         {{ getUserName(member) }}
                       </p>
                       <UBadge color="error" variant="subtle" size="xs">Inactif</UBadge>
@@ -521,11 +521,11 @@ function getContractStyle(contrat: string | null) {
                     <div class="flex items-center gap-1.5 mt-1">
                       <span
                         v-if="getCategoryName(member)"
-                        class="text-xs font-medium text-stone-500 dark:text-stone-400"
+                        class="text-xs font-medium text-stone-500"
                       >
                         {{ getCategoryName(member) }}
                       </span>
-                      <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 dark:text-stone-600 text-xs">·</span>
+                      <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 text-xs">·</span>
                       <span
                         v-if="member.type_contrat"
                         class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border"

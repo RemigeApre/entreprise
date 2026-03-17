@@ -50,7 +50,7 @@ onMounted(async () => {
     </div>
 
     <div v-else-if="!myTickets.length" class="text-center py-4">
-      <p class="text-[11px] text-stone-400 dark:text-stone-500">Aucun ticket actif</p>
+      <p class="text-[11px] text-stone-400">Aucun ticket actif</p>
     </div>
 
     <div v-else class="space-y-2">
@@ -58,7 +58,7 @@ onMounted(async () => {
         v-for="ticket in myTickets"
         :key="ticket.id"
         to="/projets/tickets"
-        class="flex items-center gap-2.5 rounded-lg p-2 -mx-2 hover:bg-stone-50 dark:hover:bg-stone-800/40 transition-colors"
+        class="flex items-center gap-2.5 rounded-lg p-2 -mx-2 hover:bg-stone-50 transition-colors"
       >
         <UIcon
           :name="TICKET_PRIORITES[ticket.priorite]?.icon || 'i-lucide-minus'"
@@ -71,7 +71,7 @@ onMounted(async () => {
           }"
         />
         <div class="flex-1 min-w-0">
-          <p class="text-xs font-medium text-stone-700 dark:text-stone-300 truncate">{{ ticket.titre }}</p>
+          <p class="text-xs font-medium text-stone-700 truncate">{{ ticket.titre }}</p>
           <div class="flex items-center gap-1.5 mt-0.5">
             <UBadge :color="(TICKET_TYPES[ticket.type]?.color as any) || 'neutral'" variant="subtle" size="xs">
               {{ TICKET_TYPES[ticket.type]?.label }}

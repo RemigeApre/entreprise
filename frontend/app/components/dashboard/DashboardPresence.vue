@@ -79,7 +79,7 @@ async function load() {
 }
 
 function getDotClass(slot: { type: string; key: string } | null): string {
-  if (!slot) return 'bg-stone-300 dark:bg-stone-600'
+  if (!slot) return 'bg-stone-300'
   const c = PLANNING_COLORS[slot.key]
   return c?.dot || 'bg-stone-400'
 }
@@ -140,13 +140,13 @@ onMounted(load)
               <span class="size-1.5 rounded-full" :class="getDotClass(p.matin)" :title="'Matin : ' + getStatusLabel(p.matin)" />
               <span class="size-1.5 rounded-full" :class="getDotClass(p.apres_midi)" :title="'AM : ' + getStatusLabel(p.apres_midi)" />
             </div>
-            <span class="text-stone-700 dark:text-stone-300 truncate">{{ p.name }}</span>
+            <span class="text-stone-700 truncate">{{ p.name }}</span>
           </div>
         </div>
       </div>
 
       <!-- Prochain jour -->
-      <div v-if="presenceMode === 'todayNext'" class="mt-3 pt-3 border-t border-stone-100 dark:border-stone-800">
+      <div v-if="presenceMode === 'todayNext'" class="mt-3 pt-3 border-t border-stone-100">
         <p class="text-[11px] font-medium text-stone-500 mb-1.5">
           {{ getNextDayLabel() }}
           <span class="text-stone-400 font-normal ml-1">{{ countPresent(nextDayPresences) }} present{{ countPresent(nextDayPresences) > 1 ? 's' : '' }}</span>
@@ -158,7 +158,7 @@ onMounted(load)
               <span class="size-1.5 rounded-full" :class="getDotClass(p.matin)" :title="'Matin : ' + getStatusLabel(p.matin)" />
               <span class="size-1.5 rounded-full" :class="getDotClass(p.apres_midi)" :title="'AM : ' + getStatusLabel(p.apres_midi)" />
             </div>
-            <span class="text-stone-700 dark:text-stone-300 truncate">{{ p.name }}</span>
+            <span class="text-stone-700 truncate">{{ p.name }}</span>
           </div>
         </div>
       </div>

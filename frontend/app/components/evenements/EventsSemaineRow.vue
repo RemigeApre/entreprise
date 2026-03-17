@@ -62,7 +62,7 @@ defineExpose({ load })
         <thead>
           <tr>
             <th class="text-left pr-4 pb-2" style="min-width: 90px">
-              <span class="text-sm font-semibold text-stone-900 dark:text-stone-100">Evenements</span>
+              <span class="text-sm font-semibold text-stone-900">Evenements</span>
             </th>
             <th
               v-for="day in weekDays"
@@ -72,12 +72,12 @@ defineExpose({ load })
               <div class="flex items-center justify-between gap-1 min-w-[60px]">
                 <span
                   class="text-[11px] font-semibold"
-                  :class="isToday(day) ? 'text-amber-600 dark:text-amber-400' : 'text-stone-400 dark:text-stone-500'"
+                  :class="isToday(day) ? 'text-amber-600' : 'text-stone-400'"
                 >
                   {{ getDayLabel(day) }}
                 </span>
                 <button
-                  class="size-4 flex items-center justify-center rounded text-stone-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-colors"
+                  class="size-4 flex items-center justify-center rounded text-stone-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
                   :title="'Creer un evenement le ' + getDayLabel(day)"
                   @click="emit('create', formatDate(day))"
                 >
@@ -106,15 +106,15 @@ defineExpose({ load })
                   <button
                     v-for="e in getEventsForDay(day)"
                     :key="e.id"
-                    class="w-full flex items-center gap-1.5 px-1.5 py-1 rounded text-left hover:bg-stone-50 dark:hover:bg-stone-800/40 transition-colors"
+                    class="w-full flex items-center gap-1.5 px-1.5 py-1 rounded text-left hover:bg-stone-50 transition-colors"
                     @click="emit('click-event', e)"
                   >
                     <span
                       class="size-2 rounded-full shrink-0"
                       :style="{ background: e.couleur || '#AF8F3C' }"
                     />
-                    <span class="truncate text-stone-600 dark:text-stone-300 max-w-[80px]">{{ e.titre }}</span>
-                    <span v-if="!e.toute_journee" class="shrink-0 text-stone-400 dark:text-stone-500">{{ formatTime(e.date_debut) }}</span>
+                    <span class="truncate text-stone-600 max-w-[80px]">{{ e.titre }}</span>
+                    <span v-if="!e.toute_journee" class="shrink-0 text-stone-400">{{ formatTime(e.date_debut) }}</span>
                   </button>
                 </div>
               </td>
@@ -122,7 +122,7 @@ defineExpose({ load })
           </template>
 
           <tr v-else>
-            <td :colspan="6" class="py-1.5 text-center text-[11px] text-stone-400 dark:text-stone-500">
+            <td :colspan="6" class="py-1.5 text-center text-[11px] text-stone-400">
               Aucun evenement cette semaine ·
               <button
                 class="underline hover:text-amber-600 transition-colors"

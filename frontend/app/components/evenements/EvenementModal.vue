@@ -282,9 +282,9 @@ function formatEventDateRange(event: Evenement): string {
 }
 
 function participantStatusClass(statut: string): string {
-  if (statut === 'accepte') return 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
-  if (statut === 'refuse') return 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800'
-  return 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-700'
+  if (statut === 'accepte') return 'bg-emerald-50 text-emerald-700 border-emerald-200'
+  if (statut === 'refuse') return 'bg-red-50 text-red-600 border-red-200'
+  return 'bg-stone-100 text-stone-500 border-stone-200'
 }
 
 function participantStatusLabel(statut: string): string {
@@ -305,9 +305,9 @@ const typeLabel: Record<string, string> = {
   entreprise: 'Entreprise'
 }
 const typeColor: Record<string, string> = {
-  personnel: 'bg-stone-100 dark:bg-stone-800 text-stone-500',
-  equipe: 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400',
-  entreprise: 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400'
+  personnel: 'bg-stone-100 text-stone-500',
+  equipe: 'bg-indigo-50 text-indigo-600',
+  entreprise: 'bg-amber-50 text-amber-700'
 }
 </script>
 
@@ -325,7 +325,7 @@ const typeColor: Record<string, string> = {
               :style="{ background: event.couleur || '#AF8F3C' }"
             />
             <div class="flex-1 min-w-0">
-              <h3 class="text-base font-semibold text-stone-900 dark:text-stone-100 leading-tight">{{ event.titre }}</h3>
+              <h3 class="text-base font-semibold text-stone-900 leading-tight">{{ event.titre }}</h3>
               <span class="inline-block mt-1 text-[11px] px-2 py-0.5 rounded-full" :class="typeColor[event.type]">
                 {{ typeLabel[event.type] }}
               </span>
@@ -333,7 +333,7 @@ const typeColor: Record<string, string> = {
           </div>
 
           <!-- Date/lieu/desc -->
-          <div class="space-y-2 text-sm text-stone-600 dark:text-stone-400">
+          <div class="space-y-2 text-sm text-stone-600">
             <div class="flex items-center gap-2">
               <UIcon name="i-lucide-calendar" class="size-4 shrink-0 text-stone-400" />
               <span>{{ formatEventDateRange(event) }}</span>
@@ -354,7 +354,7 @@ const typeColor: Record<string, string> = {
 
           <!-- Participants -->
           <div v-if="event.participants?.length" class="mt-4">
-            <p class="text-xs font-medium text-stone-500 dark:text-stone-400 mb-2">
+            <p class="text-xs font-medium text-stone-500 mb-2">
               Participants ({{ event.participants.length }})
             </p>
             <div class="flex flex-wrap gap-1.5">
@@ -371,8 +371,8 @@ const typeColor: Record<string, string> = {
           </div>
 
           <!-- Respond (if invited) -->
-          <div v-if="myParticipation?.statut === 'invite'" class="mt-5 p-3 rounded-lg bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/40">
-            <p class="text-xs text-stone-500 dark:text-stone-400 mb-2">Vous avez ete invite a cet evenement</p>
+          <div v-if="myParticipation?.statut === 'invite'" class="mt-5 p-3 rounded-lg bg-amber-50/60 border border-amber-200/40">
+            <p class="text-xs text-stone-500 mb-2">Vous avez ete invite a cet evenement</p>
             <div class="flex gap-2">
               <UButton
                 label="Accepter"
@@ -432,7 +432,7 @@ const typeColor: Record<string, string> = {
 
         <!-- ══ FORM MODE (create / edit) ══ -->
         <template v-else>
-          <h3 class="text-base font-semibold text-stone-900 dark:text-stone-100 mb-5">
+          <h3 class="text-base font-semibold text-stone-900 mb-5">
             {{ mode === 'create' ? 'Nouvel evenement' : 'Modifier l\'evenement' }}
           </h3>
 
@@ -445,7 +445,7 @@ const typeColor: Record<string, string> = {
             <!-- Toute la journée -->
             <div class="flex items-center gap-3">
               <UToggle v-model="formTouteJournee" />
-              <span class="text-sm text-stone-600 dark:text-stone-400">Toute la journee</span>
+              <span class="text-sm text-stone-600">Toute la journee</span>
             </div>
 
             <!-- Dates / heures -->
@@ -454,26 +454,26 @@ const typeColor: Record<string, string> = {
                 <input
                   v-model="formDateDebut"
                   type="date"
-                  class="w-full h-8 px-3 text-sm rounded-md border border-[rgba(175,143,60,0.2)] bg-transparent text-stone-700 dark:text-stone-300 focus:outline-none focus:border-amber-400/60"
+                  class="w-full h-8 px-3 text-sm rounded-md border border-[rgba(175,143,60,0.2)] bg-transparent text-stone-700 focus:outline-none focus:border-amber-400/60"
                 />
                 <input
                   v-if="!formTouteJournee"
                   v-model="formTimeDebut"
                   type="time"
-                  class="w-full h-8 px-3 text-sm rounded-md border border-[rgba(175,143,60,0.2)] bg-transparent text-stone-700 dark:text-stone-300 focus:outline-none focus:border-amber-400/60 mt-1.5"
+                  class="w-full h-8 px-3 text-sm rounded-md border border-[rgba(175,143,60,0.2)] bg-transparent text-stone-700 focus:outline-none focus:border-amber-400/60 mt-1.5"
                 />
               </UFormField>
               <UFormField label="Fin">
                 <input
                   v-model="formDateFin"
                   type="date"
-                  class="w-full h-8 px-3 text-sm rounded-md border border-[rgba(175,143,60,0.2)] bg-transparent text-stone-700 dark:text-stone-300 focus:outline-none focus:border-amber-400/60"
+                  class="w-full h-8 px-3 text-sm rounded-md border border-[rgba(175,143,60,0.2)] bg-transparent text-stone-700 focus:outline-none focus:border-amber-400/60"
                 />
                 <input
                   v-if="!formTouteJournee"
                   v-model="formTimeFin"
                   type="time"
-                  class="w-full h-8 px-3 text-sm rounded-md border border-[rgba(175,143,60,0.2)] bg-transparent text-stone-700 dark:text-stone-300 focus:outline-none focus:border-amber-400/60 mt-1.5"
+                  class="w-full h-8 px-3 text-sm rounded-md border border-[rgba(175,143,60,0.2)] bg-transparent text-stone-700 focus:outline-none focus:border-amber-400/60 mt-1.5"
                 />
               </UFormField>
             </div>
@@ -490,7 +490,7 @@ const typeColor: Record<string, string> = {
 
             <!-- Couleur -->
             <div>
-              <p class="text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">Couleur</p>
+              <p class="text-sm font-medium text-stone-700 mb-2">Couleur</p>
               <div class="flex gap-2 flex-wrap">
                 <button
                   v-for="c in PALETTE"
@@ -498,7 +498,7 @@ const typeColor: Record<string, string> = {
                   type="button"
                   class="size-6 rounded-full transition-all"
                   :style="{ background: c }"
-                  :class="formCouleur === c ? 'ring-2 ring-offset-2 ring-stone-400 dark:ring-stone-600 scale-110' : 'opacity-70 hover:opacity-100'"
+                  :class="formCouleur === c ? 'ring-2 ring-offset-2 ring-stone-400 scale-110' : 'opacity-70 hover:opacity-100'"
                   @click="formCouleur = c"
                 />
               </div>
@@ -512,12 +512,12 @@ const typeColor: Record<string, string> = {
             <!-- Participants -->
             <div>
               <div class="flex items-center justify-between mb-2">
-                <p class="text-sm font-medium text-stone-700 dark:text-stone-300">Participants</p>
+                <p class="text-sm font-medium text-stone-700">Participants</p>
                 <span class="text-xs text-stone-400">{{ formParticipantIds.length }} selectionne(s)</span>
               </div>
 
               <!-- Tous actifs (admin + entreprise) -->
-              <div v-if="isAdmin && formType === 'entreprise'" class="flex items-center gap-2 p-2 rounded-lg bg-amber-50/60 dark:bg-amber-950/20 text-sm text-stone-600 dark:text-stone-400">
+              <div v-if="isAdmin && formType === 'entreprise'" class="flex items-center gap-2 p-2 rounded-lg bg-amber-50/60 text-sm text-stone-600">
                 <UIcon name="i-lucide-users" class="size-4 text-amber-500 shrink-0" />
                 <span>Tous les membres actifs seront invites</span>
               </div>
@@ -528,7 +528,7 @@ const typeColor: Record<string, string> = {
                   v-for="u in availableUsers"
                   v-else
                   :key="u.id"
-                  class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-stone-50 dark:hover:bg-stone-800/60 cursor-pointer transition-colors"
+                  class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-stone-50 cursor-pointer transition-colors"
                 >
                   <input
                     type="checkbox"
@@ -536,7 +536,7 @@ const typeColor: Record<string, string> = {
                     class="accent-amber-500"
                     @change="toggleParticipant(u.id)"
                   />
-                  <span class="text-sm text-stone-700 dark:text-stone-300">{{ getUserName(u) }}</span>
+                  <span class="text-sm text-stone-700">{{ getUserName(u) }}</span>
                 </label>
               </div>
             </div>

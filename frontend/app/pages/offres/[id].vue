@@ -174,7 +174,7 @@ function formatSalaire(o: OffreEmploi) {
         <UCard>
           <div class="space-y-3">
             <div class="flex flex-wrap items-center gap-2">
-              <h2 class="text-xl font-bold text-stone-900 dark:text-white">{{ offre.titre }}</h2>
+              <h2 class="text-xl font-bold text-stone-900">{{ offre.titre }}</h2>
               <UBadge :color="CONTRACT_COLORS[offre.type_contrat] || 'neutral'" variant="subtle">
                 {{ offre.type_contrat }}
               </UBadge>
@@ -191,7 +191,7 @@ function formatSalaire(o: OffreEmploi) {
                 {{ cat.nom }}
               </UBadge>
             </div>
-            <div class="flex flex-wrap items-center gap-4 text-sm text-stone-500 dark:text-stone-400">
+            <div class="flex flex-wrap items-center gap-4 text-sm text-stone-500">
               <span class="flex items-center gap-1.5">
                 <UIcon name="i-lucide-map-pin" class="size-3.5" />
                 {{ offre.localisation }}
@@ -205,7 +205,7 @@ function formatSalaire(o: OffreEmploi) {
                 {{ formatSalaire(offre) }}
               </span>
             </div>
-            <div class="flex flex-wrap items-center gap-4 text-xs text-stone-400 dark:text-stone-500">
+            <div class="flex flex-wrap items-center gap-4 text-xs text-stone-400">
               <span>Creee le {{ formatDateLong(offre.date_created) }}</span>
               <span v-if="offre.date_publication">Publiee le {{ formatDateLong(offre.date_publication) }}</span>
               <span v-if="offre.date_expiration">Expire le {{ formatDateLong(offre.date_expiration) }}</span>
@@ -216,24 +216,24 @@ function formatSalaire(o: OffreEmploi) {
         <!-- Description -->
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Description</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Description</h3>
           </template>
-          <p class="text-sm text-stone-700 dark:text-stone-300 whitespace-pre-line">{{ offre.description }}</p>
+          <p class="text-sm text-stone-700 whitespace-pre-line">{{ offre.description }}</p>
         </UCard>
 
         <!-- Competences & Avantages -->
         <UCard v-if="offre.competences_requises || offre.avantages">
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Details complementaires</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Details complementaires</h3>
           </template>
           <div class="space-y-4">
             <div v-if="offre.competences_requises">
-              <span class="text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">Competences requises</span>
-              <p class="mt-1 text-sm text-stone-700 dark:text-stone-300 whitespace-pre-line">{{ offre.competences_requises }}</p>
+              <span class="text-xs font-medium text-stone-500 uppercase tracking-wider">Competences requises</span>
+              <p class="mt-1 text-sm text-stone-700 whitespace-pre-line">{{ offre.competences_requises }}</p>
             </div>
             <div v-if="offre.avantages">
-              <span class="text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">Avantages</span>
-              <p class="mt-1 text-sm text-stone-700 dark:text-stone-300 whitespace-pre-line">{{ offre.avantages }}</p>
+              <span class="text-xs font-medium text-stone-500 uppercase tracking-wider">Avantages</span>
+              <p class="mt-1 text-sm text-stone-700 whitespace-pre-line">{{ offre.avantages }}</p>
             </div>
           </div>
         </UCard>
@@ -243,7 +243,7 @@ function formatSalaire(o: OffreEmploi) {
       <div v-else-if="offre && isEditing" class="max-w-2xl mx-auto space-y-6">
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Informations generales</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Informations generales</h3>
           </template>
           <div class="space-y-4">
             <UFormField label="Titre *">
@@ -280,9 +280,9 @@ function formatSalaire(o: OffreEmploi) {
         <UCard>
           <template #header>
             <div class="flex items-center justify-between">
-              <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Remuneration</h3>
+              <h3 class="text-sm font-semibold text-stone-900">Remuneration</h3>
               <div class="flex items-center gap-2">
-                <span class="text-xs text-stone-500 dark:text-stone-400">{{ showSalaire ? 'Affiche' : 'Non affiche' }}</span>
+                <span class="text-xs text-stone-500">{{ showSalaire ? 'Affiche' : 'Non affiche' }}</span>
                 <USwitch v-model="showSalaire" size="sm" />
               </div>
             </div>
@@ -300,14 +300,14 @@ function formatSalaire(o: OffreEmploi) {
               </UFormField>
             </div>
           </div>
-          <p v-else class="text-sm text-stone-500 dark:text-stone-400">
+          <p v-else class="text-sm text-stone-500">
             Le salaire ne sera pas affiche sur l'offre.
           </p>
         </UCard>
 
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900 dark:text-white">Details complementaires</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Details complementaires</h3>
           </template>
           <div class="space-y-4">
             <UFormField label="Competences requises">
@@ -324,7 +324,7 @@ function formatSalaire(o: OffreEmploi) {
 
         <div class="flex items-center gap-3">
           <USwitch v-model="form.publie" />
-          <span class="text-sm text-stone-700 dark:text-stone-300">
+          <span class="text-sm text-stone-700">
             {{ form.publie ? 'Publiee' : 'Brouillon' }}
           </span>
         </div>
@@ -332,8 +332,8 @@ function formatSalaire(o: OffreEmploi) {
 
       <!-- Not found -->
       <div v-else class="text-center py-12">
-        <UIcon name="i-lucide-file-x" class="size-10 text-stone-300 dark:text-stone-700 mx-auto mb-3" />
-        <p class="text-stone-500 dark:text-stone-400">Offre introuvable</p>
+        <UIcon name="i-lucide-file-x" class="size-10 text-stone-300 mx-auto mb-3" />
+        <p class="text-stone-500">Offre introuvable</p>
         <UButton label="Retour aux offres" icon="i-lucide-arrow-left" class="mt-4" variant="subtle" to="/offres" />
       </div>
     </div>
@@ -343,12 +343,12 @@ function formatSalaire(o: OffreEmploi) {
       <template #content>
         <div class="p-6 space-y-4">
           <div class="flex items-center gap-3">
-            <div class="rounded-full bg-red-100 dark:bg-red-900/30 p-2">
-              <UIcon name="i-lucide-alert-triangle" class="size-5 text-red-600 dark:text-red-400" />
+            <div class="rounded-full bg-red-100 p-2">
+              <UIcon name="i-lucide-alert-triangle" class="size-5 text-red-600" />
             </div>
-            <h3 class="text-lg font-semibold text-stone-900 dark:text-white">Supprimer cette offre</h3>
+            <h3 class="text-lg font-semibold text-stone-900">Supprimer cette offre</h3>
           </div>
-          <p class="text-sm text-stone-500 dark:text-stone-400">
+          <p class="text-sm text-stone-500">
             Etes-vous sur de vouloir supprimer l'offre <strong>{{ offre?.titre }}</strong> ?
             Cette action est irreversible.
           </p>

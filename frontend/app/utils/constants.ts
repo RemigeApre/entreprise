@@ -34,39 +34,39 @@ export const PLANNING_TYPES = {
 
 export const PLANNING_COLORS: Record<string, { bg: string, text: string, border: string, dot: string }> = {
   travail: {
-    bg: 'bg-emerald-100 dark:bg-emerald-900/40',
-    text: 'text-emerald-800 dark:text-emerald-200',
-    border: 'border-emerald-400 dark:border-emerald-600',
+    bg: 'bg-emerald-100',
+    text: 'text-emerald-800',
+    border: 'border-emerald-400',
     dot: 'bg-emerald-500'
   },
   teletravail: {
-    bg: 'bg-indigo-100 dark:bg-indigo-900/40',
-    text: 'text-indigo-800 dark:text-indigo-200',
-    border: 'border-indigo-400 dark:border-indigo-600',
+    bg: 'bg-indigo-100',
+    text: 'text-indigo-800',
+    border: 'border-indigo-400',
     dot: 'bg-indigo-500'
   },
   ecole: {
-    bg: 'bg-sky-100 dark:bg-sky-900/40',
-    text: 'text-sky-800 dark:text-sky-200',
-    border: 'border-sky-400 dark:border-sky-600',
+    bg: 'bg-sky-100',
+    text: 'text-sky-800',
+    border: 'border-sky-400',
     dot: 'bg-sky-500'
   },
   conge: {
-    bg: 'bg-orange-100 dark:bg-orange-900/40',
-    text: 'text-orange-800 dark:text-orange-200',
-    border: 'border-orange-400 dark:border-orange-600',
+    bg: 'bg-orange-100',
+    text: 'text-orange-800',
+    border: 'border-orange-400',
     dot: 'bg-orange-500'
   },
   absent: {
-    bg: 'bg-red-100 dark:bg-red-900/40',
-    text: 'text-red-800 dark:text-red-200',
-    border: 'border-red-400 dark:border-red-600',
+    bg: 'bg-red-100',
+    text: 'text-red-800',
+    border: 'border-red-400',
     dot: 'bg-red-500'
   },
   ferie: {
-    bg: 'bg-stone-200 dark:bg-stone-700/50',
-    text: 'text-stone-600 dark:text-stone-300',
-    border: 'border-stone-400 dark:border-stone-600',
+    bg: 'bg-stone-200',
+    text: 'text-stone-600',
+    border: 'border-stone-400',
     dot: 'bg-stone-500'
   }
 }
@@ -168,29 +168,29 @@ export const SCHEDULE_CATEGORIES = {
 
 export const SCHEDULE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
   reunion_client: {
-    bg: 'bg-emerald-100 dark:bg-emerald-900/40',
-    text: 'text-emerald-800 dark:text-emerald-200',
-    border: 'border-emerald-400 dark:border-emerald-600'
+    bg: 'bg-emerald-100',
+    text: 'text-emerald-800',
+    border: 'border-emerald-400'
   },
   reunion_interne: {
-    bg: 'bg-sky-100 dark:bg-sky-900/40',
-    text: 'text-sky-800 dark:text-sky-200',
-    border: 'border-sky-400 dark:border-sky-600'
+    bg: 'bg-sky-100',
+    text: 'text-sky-800',
+    border: 'border-sky-400'
   },
   reunion_financement: {
-    bg: 'bg-violet-100 dark:bg-violet-900/40',
-    text: 'text-violet-800 dark:text-violet-200',
-    border: 'border-violet-400 dark:border-violet-600'
+    bg: 'bg-violet-100',
+    text: 'text-violet-800',
+    border: 'border-violet-400'
   },
   indispo_perso: {
-    bg: 'bg-orange-100 dark:bg-orange-900/40',
-    text: 'text-orange-800 dark:text-orange-200',
-    border: 'border-orange-400 dark:border-orange-600'
+    bg: 'bg-orange-100',
+    text: 'text-orange-800',
+    border: 'border-orange-400'
   },
   autre: {
-    bg: 'bg-stone-100 dark:bg-stone-800/50',
-    text: 'text-stone-700 dark:text-stone-300',
-    border: 'border-stone-400 dark:border-stone-600'
+    bg: 'bg-stone-100',
+    text: 'text-stone-700',
+    border: 'border-stone-400'
   }
 }
 

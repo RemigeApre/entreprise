@@ -66,7 +66,7 @@ function getDisplayKey(entry: PlanningEntry | undefined): string | null {
 }
 
 function getSlotClasses(entry: PlanningEntry | undefined) {
-  if (!entry) return 'bg-[rgba(175,143,60,0.03)] text-stone-300 dark:text-stone-600'
+  if (!entry) return 'bg-[rgba(175,143,60,0.03)] text-stone-300'
   const key = getDisplayKey(entry)
   const c = key ? PLANNING_COLORS[key] : PLANNING_COLORS[entry.type]
   return c ? `${c.bg} ${c.text}` : ''

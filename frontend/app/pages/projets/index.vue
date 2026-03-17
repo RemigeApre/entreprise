@@ -152,7 +152,7 @@ function exportCsv() {
           v-for="opt in sortOptions"
           :key="opt.key"
           class="px-2 py-1 rounded transition-colors"
-          :class="sort.key === opt.key ? 'text-primary font-semibold bg-primary/10' : 'text-stone-400 hover:text-stone-600 dark:hover:text-stone-300'"
+          :class="sort.key === opt.key ? 'text-primary font-semibold bg-primary/10' : 'text-stone-400 hover:text-stone-600'"
           @click="toggleSort(opt.key)"
         >
           {{ opt.label }}
@@ -165,8 +165,8 @@ function exportCsv() {
       </div>
 
       <div v-else-if="!filteredProjects.length" class="text-center py-12">
-        <UIcon name="i-lucide-folder-kanban" class="size-10 text-stone-300 dark:text-stone-700 mx-auto mb-3" />
-        <p class="text-stone-500 dark:text-stone-400">Aucun projet trouve</p>
+        <UIcon name="i-lucide-folder-kanban" class="size-10 text-stone-300 mx-auto mb-3" />
+        <p class="text-stone-500">Aucun projet trouve</p>
       </div>
 
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -179,7 +179,7 @@ function exportCsv() {
           <div class="space-y-3">
             <!-- Header: nom + statut -->
             <div class="flex items-start justify-between gap-2">
-              <h3 class="font-semibold text-stone-900 dark:text-white truncate">
+              <h3 class="font-semibold text-stone-900 truncate">
                 {{ project.nom }}
               </h3>
               <UBadge
@@ -214,13 +214,13 @@ function exportCsv() {
             </div>
 
             <!-- Dates -->
-            <div v-if="formatDateRange(project)" class="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400">
+            <div v-if="formatDateRange(project)" class="flex items-center gap-1.5 text-xs text-stone-500">
               <UIcon name="i-lucide-calendar" class="size-3.5" />
               <span>{{ formatDateRange(project) }}</span>
             </div>
 
             <!-- Budget -->
-            <div v-if="formatBudget(project.budget)" class="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400">
+            <div v-if="formatBudget(project.budget)" class="flex items-center gap-1.5 text-xs text-stone-500">
               <UIcon name="i-lucide-euro" class="size-3.5" />
               <span>{{ formatBudget(project.budget) }}</span>
             </div>
@@ -235,17 +235,17 @@ function exportCsv() {
                   :key="member.id"
                   :alt="getMemberName(member)"
                   size="xs"
-                  class="ring-2 ring-[#f7f0de] dark:ring-[#1a2520]"
+                  class="ring-2 ring-[#f7f0de]"
                 />
                 <span
                   v-if="getMembers(project).length > 3"
-                  class="inline-flex items-center justify-center size-6 rounded-full bg-stone-100 dark:bg-stone-800 text-xs font-medium text-stone-600 dark:text-stone-300 ring-2 ring-[#f7f0de] dark:ring-[#1a2520]"
+                  class="inline-flex items-center justify-center size-6 rounded-full bg-stone-100 text-xs font-medium text-stone-600 ring-2 ring-[#f7f0de]"
                 >
                   +{{ getMembers(project).length - 3 }}
                 </span>
                 <span
                   v-if="!getMembers(project).length"
-                  class="text-xs text-stone-400 dark:text-stone-500"
+                  class="text-xs text-stone-400"
                 >
                   Aucun membre
                 </span>
@@ -259,7 +259,7 @@ function exportCsv() {
       <!-- Pagination -->
       <div v-if="showPagination" class="flex items-center justify-center gap-2 pt-4">
         <UButton icon="i-lucide-chevron-left" size="xs" color="neutral" variant="ghost" :disabled="page <= 1" @click="prev" />
-        <span class="text-xs text-stone-500 dark:text-stone-400 tabular-nums">{{ page }} / {{ totalPages }}</span>
+        <span class="text-xs text-stone-500 tabular-nums">{{ page }} / {{ totalPages }}</span>
         <UButton icon="i-lucide-chevron-right" size="xs" color="neutral" variant="ghost" :disabled="page >= totalPages" @click="next" />
       </div>
     </div>

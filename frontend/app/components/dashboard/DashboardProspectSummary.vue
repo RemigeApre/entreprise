@@ -55,7 +55,7 @@ onMounted(load)
         <UBadge :color="config.color" variant="subtle" size="xs">{{ config.label }}</UBadge>
         <span class="text-[12px] font-semibold tabular-nums">{{ statusCounts[key as string] || 0 }}</span>
       </div>
-      <div class="border-t border-stone-100 dark:border-stone-800 pt-1.5 mt-1.5 flex items-center justify-between text-[12px]">
+      <div class="border-t border-stone-100 pt-1.5 mt-1.5 flex items-center justify-between text-[12px]">
         <span class="font-medium">Total</span>
         <span class="font-bold tabular-nums">{{ myProspects.length }}</span>
       </div>
