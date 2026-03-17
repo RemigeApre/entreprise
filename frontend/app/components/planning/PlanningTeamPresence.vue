@@ -164,7 +164,7 @@ onMounted(load)
                 placeholder="Rechercher..."
                 icon="i-lucide-search"
                 size="xs"
-                class="w-36 mt-1.5"
+                class="w-36 mt-3"
               />
             </th>
             <!-- Day columns -->

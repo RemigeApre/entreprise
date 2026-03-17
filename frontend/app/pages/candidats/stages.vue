@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import type { UserProfile } from '~/utils/types'
+import type { UserProfile, Candidat, OffreEmploi } from '~/utils/types'
+import { CANDIDAT_STATUTS } from '~/utils/constants'
 
 definePageMeta({ middleware: ['directeur'] })
 
 const { getAllUsers } = useUsers()
-const route = useRoute()
+const { getAll: getAllCandidats } = useCandidats()
 
 const MAX_STAGIAIRES = 3
 
@@ -18,6 +19,7 @@ interface Stagiaire {
 }
 
 const stagiaires = ref<Stagiaire[]>([])
+const candidatsStage = ref<Candidat[]>([])
 const loading = ref(true)
 
 function getUserName(u: UserProfile) {
@@ -27,7 +29,7 @@ function getUserName(u: UserProfile) {
 async function load() {
   loading.value = true
   try {
-    const users = await getAllUsers()
+    const [users, allCandidats] = await Promise.all([getAllUsers(), getAllCandidats()])
     stagiaires.value = users
       .filter(u => u.type_contrat === 'Stage' && u.date_debut_contrat && u.date_fin_contrat && u.statut_emploi !== 'test')
       .map(u => ({
@@ -39,11 +41,28 @@ async function load() {
         statut: (u.statut_emploi || 'actif') as Stagiaire['statut']
       }))
       .sort((a, b) => a.start.localeCompare(b.start))
+    candidatsStage.value = allCandidats.filter(c => {
+      if (!c.offre || typeof c.offre === 'string') return false
+      return (c.offre as OffreEmploi).type_contrat === 'Stage'
+    })
   } catch {
     // silent
   } finally {
     loading.value = false
   }
+}
+
+function getCandidatStatutConfig(statut: string) {
+  return (CANDIDAT_STATUTS as any)[statut] || { label: statut, color: 'neutral', icon: 'i-lucide-user' }
+}
+
+function getOffreTitre(c: Candidat): string {
+  if (!c.offre || typeof c.offre === 'string') return ''
+  return (c.offre as OffreEmploi).titre
+}
+
+function formatCandidatDate(d: string): string {
+  return new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
 }
 
 onMounted(load)
@@ -139,24 +158,14 @@ onMounted(() => {
 
         <!-- Sub-nav -->
         <div class="flex items-center gap-1">
-          <NuxtLink
-            to="/candidats"
-            class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors text-stone-500 hover:text-stone-700 hover:bg-stone-100"
-          >
-            Candidats
-          </NuxtLink>
-          <NuxtLink
-            to="/candidats/stages"
-            class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors"
-            :class="route.path.startsWith('/candidats/stages') ? 'bg-[rgba(175,143,60,0.12)] text-[#af8f3c]' : 'text-stone-500 hover:text-stone-700 hover:bg-stone-100'"
-          >
+          <span class="px-3 py-1.5 text-xs font-medium rounded-md bg-[rgba(175,143,60,0.12)] text-[#af8f3c]">
             Stages
-          </NuxtLink>
+          </span>
           <span class="px-3 py-1.5 text-xs font-medium rounded-md text-stone-300 cursor-not-allowed select-none">
             Alternants
           </span>
           <span class="px-3 py-1.5 text-xs font-medium rounded-md text-stone-300 cursor-not-allowed select-none">
-            Employes
+            CDI
           </span>
         </div>
 
@@ -259,6 +268,41 @@ onMounted(() => {
                   </span>
                 </div>
               </div>
+            </div>
+          </div>
+          <!-- Candidats Stage -->
+          <div v-if="candidatsStage.length" class="pt-2 space-y-3">
+            <h3 class="text-sm font-semibold text-stone-700 flex items-center gap-2">
+              <UIcon name="i-lucide-user-search" class="size-4 text-stone-400" />
+              Candidats stage
+              <span class="text-xs font-normal text-stone-400">({{ candidatsStage.length }})</span>
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <NuxtLink
+                v-for="c in candidatsStage"
+                :key="c.id"
+                :to="`/candidats/${c.id}`"
+                class="block"
+              >
+                <UCard class="hover:ring-2 hover:ring-primary/30 transition-all cursor-pointer h-full">
+                  <div class="space-y-2">
+                    <div class="flex items-start justify-between gap-2">
+                      <h4 class="text-sm font-semibold text-stone-900 truncate">{{ c.prenom }} {{ c.nom }}</h4>
+                      <UBadge :color="getCandidatStatutConfig(c.statut).color" variant="subtle" size="xs">
+                        {{ getCandidatStatutConfig(c.statut).label }}
+                      </UBadge>
+                    </div>
+                    <p v-if="getOffreTitre(c)" class="text-xs text-stone-500 truncate flex items-center gap-1">
+                      <UIcon name="i-lucide-megaphone" class="size-3 text-stone-400 shrink-0" />
+                      {{ getOffreTitre(c) }}
+                    </p>
+                    <div class="flex items-center justify-between text-xs text-stone-400">
+                      <span v-if="c.source">{{ c.source }}</span>
+                      <span>{{ formatCandidatDate(c.date_created) }}</span>
+                    </div>
+                  </div>
+                </UCard>
+              </NuxtLink>
             </div>
           </div>
         </template>

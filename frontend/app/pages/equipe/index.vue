@@ -11,6 +11,7 @@ const { data: users, status } = useAsyncData('team', () =>
 
 const search = ref('')
 const groupBy = ref<'contrat' | 'pole'>('contrat')
+const adminView = ref(false)
 const showAVenir = ref(false)
 const showTest = ref(false)
 const showBloque = ref(false)
@@ -190,11 +191,21 @@ function getContractStyle(contrat: string | null) {
     <PageHeader title="Equipe">
       <template #right>
         <UInput
+          v-if="!adminView"
           v-model="search"
           icon="i-lucide-search"
           placeholder="Rechercher..."
           size="sm"
           class="w-full sm:w-40"
+        />
+        <UButton
+          v-if="isDirecteur"
+          :label="adminView ? 'Vue normale' : 'Vue admin'"
+          :icon="adminView ? 'i-lucide-users' : 'i-lucide-shield'"
+          color="neutral"
+          :variant="adminView ? 'solid' : 'ghost'"
+          size="sm"
+          @click="adminView = !adminView"
         />
         <UButton
           v-if="isDirecteur"
@@ -215,6 +226,188 @@ function getContractStyle(contrat: string | null) {
         </div>
 
         <template v-else-if="users">
+
+          <!-- ═══ VUE ADMIN (directeur) ═══ -->
+          <template v-if="adminView && isDirecteur">
+            <p class="text-xs text-stone-400">Comptes hors service actif — à venir, en test, bloqués, terminés, inactifs.</p>
+
+            <!-- Section A venir -->
+            <div v-if="aVenirUsers.length" class="pt-2">
+              <button
+                class="flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors mb-3"
+                @click="showAVenir = !showAVenir"
+              >
+                <UIcon name="i-lucide-chevron-right" class="size-4 transition-transform" :class="showAVenir ? 'rotate-90' : ''" />
+                <UIcon name="i-lucide-clock" class="size-4" />
+                A venir
+                <span class="text-xs text-blue-400">({{ aVenirUsers.length }})</span>
+              </button>
+              <div v-if="showAVenir" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <NuxtLink v-for="member in aVenirUsers" :key="member.id" :to="`/equipe/${member.id}`" class="group">
+                  <div class="flex rounded-lg border border-blue-200/40 bg-blue-50/30 hover:bg-blue-50/60 overflow-hidden transition-all">
+                    <div class="w-[3px] shrink-0" :style="{ background: getContractBand(member) }" />
+                    <div class="flex items-center gap-3 p-3 flex-1">
+                      <UAvatar :alt="getUserName(member)" size="md" />
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2">
+                          <p class="font-medium text-sm text-stone-900 truncate">{{ getUserName(member) }}</p>
+                          <UBadge color="blue" variant="subtle" size="xs">A venir</UBadge>
+                        </div>
+                        <div class="flex items-center gap-1.5 mt-1">
+                          <span v-if="getCategoryName(member)" class="text-xs font-medium text-stone-500">{{ getCategoryName(member) }}</span>
+                          <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 text-xs">·</span>
+                          <span v-if="member.type_contrat" class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border" :class="[getContractStyle(member.type_contrat).bg, getContractStyle(member.type_contrat).text, getContractStyle(member.type_contrat).border]">{{ member.type_contrat }}</span>
+                          <span v-if="member.date_debut_contrat" class="text-[11px] text-blue-500">debut {{ new Date(member.date_debut_contrat).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </NuxtLink>
+              </div>
+            </div>
+
+            <!-- Section Test -->
+            <div v-if="testUsers.length" class="pt-2">
+              <button
+                class="flex items-center gap-2 text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors mb-3"
+                @click="showTest = !showTest"
+              >
+                <UIcon name="i-lucide-chevron-right" class="size-4 transition-transform" :class="showTest ? 'rotate-90' : ''" />
+                <UIcon name="i-lucide-flask-conical" class="size-4" />
+                Test
+                <span class="text-xs text-orange-400">({{ testUsers.length }})</span>
+              </button>
+              <div v-if="showTest" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <NuxtLink v-for="member in testUsers" :key="member.id" :to="`/equipe/${member.id}`" class="group">
+                  <div class="flex rounded-lg border border-orange-100 bg-orange-50/50 hover:bg-orange-50 overflow-hidden transition-all">
+                    <div class="w-[3px] shrink-0" :style="{ background: getContractBand(member) }" />
+                    <div class="flex items-center gap-3 p-3 flex-1">
+                      <UAvatar :alt="getUserName(member)" size="md" />
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2">
+                          <p class="font-medium text-sm text-stone-900 truncate">{{ getUserName(member) }}</p>
+                          <UBadge color="orange" variant="subtle" size="xs">Test</UBadge>
+                        </div>
+                        <div class="flex items-center gap-1.5 mt-1">
+                          <span v-if="getCategoryName(member)" class="text-xs font-medium text-stone-500">{{ getCategoryName(member) }}</span>
+                          <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 text-xs">·</span>
+                          <span v-if="member.type_contrat" class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border" :class="[getContractStyle(member.type_contrat).bg, getContractStyle(member.type_contrat).text, getContractStyle(member.type_contrat).border]">{{ member.type_contrat }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </NuxtLink>
+              </div>
+            </div>
+
+            <!-- Section Bloques -->
+            <div v-if="bloqueUsers.length" class="pt-2">
+              <button
+                class="flex items-center gap-2 text-sm font-semibold text-red-600 hover:text-red-700 transition-colors mb-3"
+                @click="showBloque = !showBloque"
+              >
+                <UIcon name="i-lucide-chevron-right" class="size-4 transition-transform" :class="showBloque ? 'rotate-90' : ''" />
+                <UIcon name="i-lucide-lock" class="size-4" />
+                Bloques
+                <span class="text-xs text-red-400">({{ bloqueUsers.length }})</span>
+              </button>
+              <div v-if="showBloque" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <NuxtLink v-for="member in bloqueUsers" :key="member.id" :to="`/equipe/${member.id}`" class="group">
+                  <div class="flex rounded-lg border border-red-200/60 bg-red-50/30 hover:bg-red-50/60 overflow-hidden transition-all">
+                    <div class="w-[3px] shrink-0" :style="{ background: getContractBand(member) }" />
+                    <div class="flex items-center gap-3 p-3 flex-1">
+                      <UAvatar :alt="getUserName(member)" size="md" />
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2">
+                          <p class="font-medium text-sm text-stone-900 truncate">{{ getUserName(member) }}</p>
+                          <UBadge color="error" variant="subtle" size="xs">Bloque</UBadge>
+                        </div>
+                        <div class="flex items-center gap-1.5 mt-1">
+                          <span v-if="getCategoryName(member)" class="text-xs font-medium text-stone-500">{{ getCategoryName(member) }}</span>
+                          <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 text-xs">·</span>
+                          <span v-if="member.type_contrat" class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border" :class="[getContractStyle(member.type_contrat).bg, getContractStyle(member.type_contrat).text, getContractStyle(member.type_contrat).border]">{{ member.type_contrat }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </NuxtLink>
+              </div>
+            </div>
+
+            <!-- Section Termines -->
+            <div v-if="termineUsers.length" class="pt-2">
+              <button
+                class="flex items-center gap-2 text-sm font-semibold text-stone-500 hover:text-stone-700 transition-colors mb-3"
+                @click="showTermine = !showTermine"
+              >
+                <UIcon name="i-lucide-chevron-right" class="size-4 transition-transform" :class="showTermine ? 'rotate-90' : ''" />
+                <UIcon name="i-lucide-log-out" class="size-4" />
+                Termines
+                <span class="text-xs text-stone-400">({{ termineUsers.length }})</span>
+              </button>
+              <div v-if="showTermine" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <NuxtLink v-for="member in termineUsers" :key="member.id" :to="`/equipe/${member.id}`" class="group">
+                  <div class="flex rounded-lg border border-[rgba(175,143,60,0.06)] opacity-60 hover:opacity-80 overflow-hidden transition-all">
+                    <div class="w-[3px] shrink-0" :style="{ background: getContractBand(member) }" />
+                    <div class="flex items-center gap-3 p-3 flex-1">
+                      <UAvatar :alt="getUserName(member)" size="md" />
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2">
+                          <p class="font-medium text-sm text-stone-900 truncate">{{ getUserName(member) }}</p>
+                          <UBadge color="neutral" variant="subtle" size="xs">Termine</UBadge>
+                        </div>
+                        <div class="flex items-center gap-1.5 mt-1">
+                          <span v-if="getCategoryName(member)" class="text-xs font-medium text-stone-500">{{ getCategoryName(member) }}</span>
+                          <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 text-xs">·</span>
+                          <span v-if="member.type_contrat" class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border" :class="[getContractStyle(member.type_contrat).bg, getContractStyle(member.type_contrat).text, getContractStyle(member.type_contrat).border]">{{ member.type_contrat }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </NuxtLink>
+              </div>
+            </div>
+
+            <!-- Section Inactifs -->
+            <div v-if="inactiveUsers.length" class="pt-2">
+              <button
+                class="flex items-center gap-2 text-sm font-semibold text-stone-500 hover:text-stone-700 transition-colors mb-3"
+                @click="showInactive = !showInactive"
+              >
+                <UIcon name="i-lucide-chevron-right" class="size-4 transition-transform" :class="showInactive ? 'rotate-90' : ''" />
+                Inactifs
+                <span class="text-xs text-stone-400">({{ inactiveUsers.length }})</span>
+              </button>
+              <div v-if="showInactive" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <NuxtLink v-for="member in inactiveUsers" :key="member.id" :to="`/equipe/${member.id}`" class="group">
+                  <div class="flex rounded-lg border border-[rgba(175,143,60,0.06)] opacity-50 hover:opacity-80 overflow-hidden transition-all">
+                    <div class="w-[3px] shrink-0" :style="{ background: getContractBand(member) }" />
+                    <div class="flex items-center gap-3 p-3 flex-1">
+                      <UAvatar :alt="getUserName(member)" size="md" />
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2">
+                          <p class="font-medium text-sm text-stone-900 truncate">{{ getUserName(member) }}</p>
+                          <UBadge color="error" variant="subtle" size="xs">Inactif</UBadge>
+                        </div>
+                        <div class="flex items-center gap-1.5 mt-1">
+                          <span v-if="getCategoryName(member)" class="text-xs font-medium text-stone-500">{{ getCategoryName(member) }}</span>
+                          <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 text-xs">·</span>
+                          <span v-if="member.type_contrat" class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border" :class="[getContractStyle(member.type_contrat).bg, getContractStyle(member.type_contrat).text, getContractStyle(member.type_contrat).border]">{{ member.type_contrat }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </NuxtLink>
+              </div>
+            </div>
+
+            <div v-if="!aVenirUsers.length && !testUsers.length && !bloqueUsers.length && !termineUsers.length && !inactiveUsers.length" class="text-center py-8">
+              <p class="text-sm text-stone-400">Aucun compte dans ces categories</p>
+            </div>
+          </template>
+
+          <!-- ═══ VUE NORMALE ═══ -->
+          <template v-else>
           <!-- Ma carte -->
           <NuxtLink
             v-if="myCard"
@@ -357,293 +550,8 @@ function getContractStyle(contrat: string | null) {
             <UIcon name="i-lucide-search-x" class="size-8 text-stone-300 mx-auto mb-3" />
             <p class="text-stone-500 text-sm">Aucun membre ne correspond a "{{ search }}"</p>
           </div>
+          </template><!-- fin vue normale -->
 
-          <!-- Section A venir (directeur) -->
-          <div v-if="isDirecteur && aVenirUsers.length" class="pt-2">
-            <button
-              class="flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors mb-3"
-              @click="showAVenir = !showAVenir"
-            >
-              <UIcon
-                name="i-lucide-chevron-right"
-                class="size-4 transition-transform"
-                :class="showAVenir ? 'rotate-90' : ''"
-              />
-              <UIcon name="i-lucide-clock" class="size-4" />
-              A venir
-              <span class="text-xs text-blue-400">({{ aVenirUsers.length }})</span>
-            </button>
-
-            <div v-if="showAVenir" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              <NuxtLink
-                v-for="member in aVenirUsers"
-                :key="member.id"
-                :to="`/equipe/${member.id}`"
-                class="group"
-              >
-                <div class="flex rounded-lg border border-blue-200/40 bg-blue-50/30 hover:bg-blue-50/60 overflow-hidden transition-all">
-                  <div class="w-[3px] shrink-0" :style="{ background: getContractBand(member) }" />
-                  <div class="flex items-center gap-3 p-3 flex-1">
-                    <UAvatar :alt="getUserName(member)" size="md" />
-                    <div class="min-w-0 flex-1">
-                      <div class="flex items-center gap-2">
-                        <p class="font-medium text-sm text-stone-900 truncate">
-                          {{ getUserName(member) }}
-                        </p>
-                        <UBadge color="blue" variant="subtle" size="xs">A venir</UBadge>
-                      </div>
-                      <div class="flex items-center gap-1.5 mt-1">
-                        <span
-                          v-if="getCategoryName(member)"
-                          class="text-xs font-medium text-stone-500"
-                        >
-                          {{ getCategoryName(member) }}
-                        </span>
-                        <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 text-xs">·</span>
-                        <span
-                          v-if="member.type_contrat"
-                          class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border"
-                          :class="[getContractStyle(member.type_contrat).bg, getContractStyle(member.type_contrat).text, getContractStyle(member.type_contrat).border]"
-                        >
-                          {{ member.type_contrat }}
-                        </span>
-                        <span v-if="member.date_debut_contrat" class="text-[11px] text-blue-500">
-                          debut {{ new Date(member.date_debut_contrat).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </NuxtLink>
-            </div>
-          </div>
-
-          <!-- Section Test (directeur) -->
-          <div v-if="isDirecteur && testUsers.length" class="pt-2">
-            <button
-              class="flex items-center gap-2 text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors mb-3"
-              @click="showTest = !showTest"
-            >
-              <UIcon
-                name="i-lucide-chevron-right"
-                class="size-4 transition-transform"
-                :class="showTest ? 'rotate-90' : ''"
-              />
-              <UIcon name="i-lucide-flask-conical" class="size-4" />
-              Test
-              <span class="text-xs text-orange-400">({{ testUsers.length }})</span>
-            </button>
-
-            <div v-if="showTest" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              <NuxtLink
-                v-for="member in testUsers"
-                :key="member.id"
-                :to="`/equipe/${member.id}`"
-                class="group"
-              >
-                <div class="flex rounded-lg border border-orange-100 bg-orange-50/50 hover:bg-orange-50 overflow-hidden transition-all">
-                  <div class="w-[3px] shrink-0" :style="{ background: getContractBand(member) }" />
-                  <div class="flex items-center gap-3 p-3 flex-1">
-                    <UAvatar :alt="getUserName(member)" size="md" />
-                    <div class="min-w-0 flex-1">
-                      <div class="flex items-center gap-2">
-                        <p class="font-medium text-sm text-stone-900 truncate">
-                          {{ getUserName(member) }}
-                        </p>
-                        <UBadge color="orange" variant="subtle" size="xs">Test</UBadge>
-                      </div>
-                      <div class="flex items-center gap-1.5 mt-1">
-                        <span
-                          v-if="getCategoryName(member)"
-                          class="text-xs font-medium text-stone-500"
-                        >
-                          {{ getCategoryName(member) }}
-                        </span>
-                        <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 text-xs">·</span>
-                        <span
-                          v-if="member.type_contrat"
-                          class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border"
-                          :class="[getContractStyle(member.type_contrat).bg, getContractStyle(member.type_contrat).text, getContractStyle(member.type_contrat).border]"
-                        >
-                          {{ member.type_contrat }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </NuxtLink>
-            </div>
-          </div>
-
-          <!-- Section Bloques (directeur) -->
-          <div v-if="isDirecteur && bloqueUsers.length" class="pt-2">
-            <button
-              class="flex items-center gap-2 text-sm font-semibold text-red-600 hover:text-red-700 transition-colors mb-3"
-              @click="showBloque = !showBloque"
-            >
-              <UIcon
-                name="i-lucide-chevron-right"
-                class="size-4 transition-transform"
-                :class="showBloque ? 'rotate-90' : ''"
-              />
-              <UIcon name="i-lucide-lock" class="size-4" />
-              Bloques
-              <span class="text-xs text-red-400">({{ bloqueUsers.length }})</span>
-            </button>
-
-            <div v-if="showBloque" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              <NuxtLink
-                v-for="member in bloqueUsers"
-                :key="member.id"
-                :to="`/equipe/${member.id}`"
-                class="group"
-              >
-                <div class="flex rounded-lg border border-red-200/60 bg-red-50/30 hover:bg-red-50/60 overflow-hidden transition-all">
-                  <div class="w-[3px] shrink-0" :style="{ background: getContractBand(member) }" />
-                  <div class="flex items-center gap-3 p-3 flex-1">
-                    <UAvatar :alt="getUserName(member)" size="md" />
-                    <div class="min-w-0 flex-1">
-                      <div class="flex items-center gap-2">
-                        <p class="font-medium text-sm text-stone-900 truncate">
-                          {{ getUserName(member) }}
-                        </p>
-                        <UBadge color="error" variant="subtle" size="xs">Bloque</UBadge>
-                      </div>
-                      <div class="flex items-center gap-1.5 mt-1">
-                        <span
-                          v-if="getCategoryName(member)"
-                          class="text-xs font-medium text-stone-500"
-                        >
-                          {{ getCategoryName(member) }}
-                        </span>
-                        <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 text-xs">·</span>
-                        <span
-                          v-if="member.type_contrat"
-                          class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border"
-                          :class="[getContractStyle(member.type_contrat).bg, getContractStyle(member.type_contrat).text, getContractStyle(member.type_contrat).border]"
-                        >
-                          {{ member.type_contrat }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </NuxtLink>
-            </div>
-          </div>
-
-          <!-- Section Termines (directeur) -->
-          <div v-if="isDirecteur && termineUsers.length" class="pt-2">
-            <button
-              class="flex items-center gap-2 text-sm font-semibold text-stone-500 hover:text-stone-700 transition-colors mb-3"
-              @click="showTermine = !showTermine"
-            >
-              <UIcon
-                name="i-lucide-chevron-right"
-                class="size-4 transition-transform"
-                :class="showTermine ? 'rotate-90' : ''"
-              />
-              <UIcon name="i-lucide-log-out" class="size-4" />
-              Termines
-              <span class="text-xs text-stone-400">({{ termineUsers.length }})</span>
-            </button>
-
-            <div v-if="showTermine" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              <NuxtLink
-                v-for="member in termineUsers"
-                :key="member.id"
-                :to="`/equipe/${member.id}`"
-                class="group"
-              >
-                <div class="flex rounded-lg border border-[rgba(175,143,60,0.06)] opacity-60 hover:opacity-80 overflow-hidden transition-all">
-                  <div class="w-[3px] shrink-0" :style="{ background: getContractBand(member) }" />
-                  <div class="flex items-center gap-3 p-3 flex-1">
-                    <UAvatar :alt="getUserName(member)" size="md" />
-                    <div class="min-w-0 flex-1">
-                      <div class="flex items-center gap-2">
-                        <p class="font-medium text-sm text-stone-900 truncate">
-                          {{ getUserName(member) }}
-                        </p>
-                        <UBadge color="neutral" variant="subtle" size="xs">Termine</UBadge>
-                      </div>
-                      <div class="flex items-center gap-1.5 mt-1">
-                        <span
-                          v-if="getCategoryName(member)"
-                          class="text-xs font-medium text-stone-500"
-                        >
-                          {{ getCategoryName(member) }}
-                        </span>
-                        <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 text-xs">·</span>
-                        <span
-                          v-if="member.type_contrat"
-                          class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border"
-                          :class="[getContractStyle(member.type_contrat).bg, getContractStyle(member.type_contrat).text, getContractStyle(member.type_contrat).border]"
-                        >
-                          {{ member.type_contrat }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </NuxtLink>
-            </div>
-          </div>
-
-          <!-- Section Inactifs (directeur) -->
-          <div v-if="isDirecteur && inactiveUsers.length" class="pt-2">
-            <button
-              class="flex items-center gap-2 text-sm font-semibold text-stone-500 hover:text-stone-700 transition-colors mb-3"
-              @click="showInactive = !showInactive"
-            >
-              <UIcon
-                name="i-lucide-chevron-right"
-                class="size-4 transition-transform"
-                :class="showInactive ? 'rotate-90' : ''"
-              />
-              Inactifs
-              <span class="text-xs text-stone-400">({{ inactiveUsers.length }})</span>
-            </button>
-
-            <div v-if="showInactive" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              <NuxtLink
-                v-for="member in inactiveUsers"
-                :key="member.id"
-                :to="`/equipe/${member.id}`"
-                class="group"
-              >
-                <div class="flex rounded-lg border border-[rgba(175,143,60,0.06)] opacity-50 hover:opacity-80 overflow-hidden transition-all">
-                  <div class="w-[3px] shrink-0" :style="{ background: getContractBand(member) }" />
-                  <div class="flex items-center gap-3 p-3 flex-1">
-                    <UAvatar :alt="getUserName(member)" size="md" />
-                    <div class="min-w-0 flex-1">
-                      <div class="flex items-center gap-2">
-                        <p class="font-medium text-sm text-stone-900 truncate">
-                          {{ getUserName(member) }}
-                        </p>
-                        <UBadge color="error" variant="subtle" size="xs">Inactif</UBadge>
-                      </div>
-                      <div class="flex items-center gap-1.5 mt-1">
-                        <span
-                          v-if="getCategoryName(member)"
-                          class="text-xs font-medium text-stone-500"
-                        >
-                          {{ getCategoryName(member) }}
-                        </span>
-                        <span v-if="getCategoryName(member) && member.type_contrat" class="text-stone-300 text-xs">·</span>
-                        <span
-                          v-if="member.type_contrat"
-                          class="text-[11px] font-medium px-1.5 py-0.5 rounded-md border"
-                          :class="[getContractStyle(member.type_contrat).bg, getContractStyle(member.type_contrat).text, getContractStyle(member.type_contrat).border]"
-                        >
-                          {{ member.type_contrat }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </NuxtLink>
-            </div>
-          </div>
         </template>
 
       </div>
