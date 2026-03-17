@@ -5,6 +5,8 @@ import { downloadCsv } from '~/utils/csv'
 
 definePageMeta({ middleware: ['directeur'] })
 
+const route = useRoute()
+
 const { getAll } = useCandidats()
 const { getAll: getAllOffers } = useJobListings()
 
@@ -104,7 +106,7 @@ function exportCsv() {
 
 <template>
   <div class="flex flex-col h-full">
-    <PageHeader title="Candidats">
+    <PageHeader title="Recrutement">
       <template #right>
         <div class="flex items-center gap-2">
           <UButton
@@ -134,6 +136,29 @@ function exportCsv() {
 
     <div class="flex-1 overflow-y-auto p-4 sm:p-6">
       <div class="max-w-6xl mx-auto space-y-4">
+
+        <!-- Sub-nav -->
+        <div class="flex items-center gap-1">
+          <NuxtLink
+            to="/candidats"
+            class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors"
+            :class="route.path === '/candidats' ? 'bg-[rgba(175,143,60,0.12)] text-[#af8f3c]' : 'text-stone-500 hover:text-stone-700 hover:bg-stone-100'"
+          >
+            Candidats
+          </NuxtLink>
+          <NuxtLink
+            to="/candidats/stages"
+            class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors text-stone-500 hover:text-stone-700 hover:bg-stone-100"
+          >
+            Stages
+          </NuxtLink>
+          <span class="px-3 py-1.5 text-xs font-medium rounded-md text-stone-300 cursor-not-allowed select-none">
+            Alternants
+          </span>
+          <span class="px-3 py-1.5 text-xs font-medium rounded-md text-stone-300 cursor-not-allowed select-none">
+            Employes
+          </span>
+        </div>
 
         <!-- Stats -->
         <div class="flex items-center gap-4 text-sm">

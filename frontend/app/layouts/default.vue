@@ -62,15 +62,14 @@ const domains = computed<Domain[]>(() => {
       label: 'RH',
       icon: 'i-lucide-users',
       to: '/planning',
-      prefixes: ['/planning', '/emploi-du-temps', '/equipe', '/stages', '/offres', '/candidats'],
+      prefixes: ['/planning', '/emploi-du-temps', '/equipe', '/offres', '/candidats'],
       tabs: [
         { label: 'Presence', icon: 'i-lucide-calendar', to: '/planning' },
         { label: 'Calendrier', icon: 'i-lucide-clock', to: '/emploi-du-temps' },
         { label: 'Equipe', icon: 'i-lucide-users', to: '/equipe' },
         ...(isDirecteur.value ? [
-          { label: 'Stages', icon: 'i-lucide-graduation-cap', to: '/stages' },
           { label: 'Offres', icon: 'i-lucide-megaphone', to: '/offres' },
-          { label: 'Candidats', icon: 'i-lucide-user-search', to: '/candidats' }
+          { label: 'Recrutement', icon: 'i-lucide-user-search', to: '/candidats' }
         ] : [])
       ]
     },
