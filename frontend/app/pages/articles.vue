@@ -6,9 +6,11 @@ definePageMeta({ layout: 'public' })
 
 useSeoMeta({
   title: 'Articles - Le Geai',
-  description: 'Les publications du groupe Le Geai. Réflexions, actualités et coulisses.',
-  ogTitle: 'Articles - Le Geai',
-  ogDescription: 'Les micro-articles du groupe Le Geai, publiés chaque mardi et jeudi.'
+  description: 'Les publications du groupe Le Geai. Réflexions, actualités et coulisses de l\'édition, de l\'informatique et des médias.',
+  ogTitle: 'Articles - Groupe Le Geai',
+  ogDescription: 'Réflexions, actualités et coulisses du groupe Le Geai, publiées régulièrement.',
+  ogType: 'website',
+  twitterCard: 'summary'
 })
 
 const { $directus } = useNuxtApp()
@@ -81,9 +83,24 @@ function formatDay(date: string) {
       </div>
     </section>
 
-    <!-- Loading -->
-    <div v-if="status === 'pending'" class="flex justify-center py-12">
-      <div class="size-6 border-2 border-stone-300 border-t-[var(--color-brand-gold)] rounded-full animate-spin" />
+    <!-- Skeleton loading -->
+    <div v-if="status === 'pending'" class="px-6 pb-12">
+      <div class="max-w-2xl mx-auto space-y-10">
+        <div v-for="n in 3" :key="n" class="animate-pulse">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-8 h-px bg-stone-200" />
+            <div class="h-3 w-40 bg-stone-200 rounded" />
+          </div>
+          <div class="rounded-2xl border border-stone-200/60 p-6 sm:p-8 space-y-3">
+            <div class="h-5 w-3/4 bg-stone-200 rounded" />
+            <div class="space-y-2 pt-1">
+              <div class="h-3.5 bg-stone-100 rounded w-full" />
+              <div class="h-3.5 bg-stone-100 rounded w-5/6" />
+              <div class="h-3.5 bg-stone-100 rounded w-4/6" />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Empty -->

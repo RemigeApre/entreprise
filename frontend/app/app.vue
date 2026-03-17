@@ -4,14 +4,15 @@ useHead({
     { name: 'viewport', content: 'width=device-width, initial-scale=1' }
   ],
   link: [
-    { rel: 'icon', href: '/favicon.ico' },
-    { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-    { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-    { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap' }
+    { rel: 'icon', href: '/favicon.ico' }
   ],
   htmlAttrs: {
     lang: 'fr'
-  }
+  },
+  // Fond crème par défaut pour éviter le flash blanc au démarrage SPA
+  style: [
+    { children: 'html, body { background-color: #EDE5D0; }' }
+  ]
 })
 
 const title = 'LeGeai - Intranet'
@@ -27,6 +28,7 @@ useSeoMeta({
 
 <template>
   <UApp>
+    <NuxtLoadingIndicator color="#AF8F3C" :height="2" />
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>

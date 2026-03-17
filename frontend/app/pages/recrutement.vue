@@ -5,23 +5,26 @@ import { CONTRACT_HEX_COLORS } from '~/utils/constants'
 
 definePageMeta({ layout: 'landing' })
 
+const fontsUrl = 'https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IM+Fell+DW+Pica:ital@0;1&family=UnifrakturCook:wght@700&display=swap'
+
 useHead({
   htmlAttrs: { lang: 'fr' },
   link: [
     { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
     { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-    {
-      rel: 'stylesheet',
-      href: 'https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IM+Fell+DW+Pica:ital@0;1&family=UnifrakturCook:wght@700&display=swap'
-    }
+    { rel: 'preload', as: 'style', href: fontsUrl },
+    { rel: 'stylesheet', href: fontsUrl },
+    { rel: 'canonical', href: 'https://entreprise.legeai-editions.com/recrutement' }
   ]
 })
 
 useSeoMeta({
   title: 'Recrutement - Le Geai',
-  description: 'Découvrez les offres d\'emploi du groupe Le Geai.',
-  ogTitle: 'Recrutement - Le Geai',
-  ogDescription: 'Rejoignez-nous. Découvrez les opportunités au sein du groupe Le Geai.'
+  description: 'Rejoignez le groupe Le Geai à Lyon. Offres de stage, alternance et emploi en édition, informatique et médias.',
+  ogTitle: 'Recrutement - Groupe Le Geai',
+  ogDescription: 'Rejoignez-nous. Stages, alternances, emplois en édition, informatique et médias. Lyon, télétravail.',
+  ogType: 'website',
+  twitterCard: 'summary'
 })
 
 const { $directus } = useNuxtApp()
@@ -104,6 +107,55 @@ function toggleContrat(type: string) {
 function toggleCategorie(id: string) {
   filterCategorie.value = filterCategorie.value === id ? null : id
 }
+
+// Schema.org JobPosting — mis à jour quand les offres sont chargées
+watch(offres, (list) => {
+  if (!list?.length) return
+  useHead({
+    script: list.map(o => ({
+      type: 'application/ld+json',
+      key: `job-${o.id}`,
+      children: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'JobPosting',
+        title: o.titre,
+        description: o.description || '',
+        hiringOrganization: {
+          '@type': 'Organization',
+          name: 'Groupe Le Geai',
+          sameAs: 'https://entreprise.legeai-editions.com'
+        },
+        jobLocation: {
+          '@type': 'Place',
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: o.localisation || 'Lyon',
+            addressCountry: 'FR'
+          }
+        },
+        employmentType: o.type_contrat === 'Stage' ? 'INTERN'
+          : o.type_contrat === 'Alternance' ? 'PART_TIME'
+          : o.type_contrat === 'CDI' ? 'FULL_TIME'
+          : o.type_contrat === 'CDD' ? 'TEMPORARY'
+          : 'OTHER',
+        datePosted: o.date_publication ? o.date_publication.split('T')[0] : undefined,
+        validThrough: o.date_expiration || undefined,
+        ...(o.salaire_min || o.salaire_max ? {
+          baseSalary: {
+            '@type': 'MonetaryAmount',
+            currency: 'EUR',
+            value: {
+              '@type': 'QuantitativeValue',
+              minValue: o.salaire_min || undefined,
+              maxValue: o.salaire_max || undefined,
+              unitText: o.salaire_periode === 'annee' ? 'YEAR' : o.salaire_periode === 'heure' ? 'HOUR' : 'MONTH'
+            }
+          }
+        } : {})
+      })
+    }))
+  })
+}, { immediate: true })
 
 const selectedOffre = ref<OffreEmploi | null>(null)
 const isSlideoverOpen = ref(false)
@@ -192,7 +244,7 @@ async function copyLink(offre: OffreEmploi) {
 
     <!-- Watermark — identical to index.vue -->
     <div class="watermark" aria-hidden="true">
-      <img src="/logo.svg" alt="" class="watermark-img" />
+      <img src="/logo.svg" alt="" class="watermark-img" decoding="async" fetchpriority="low" />
     </div>
 
     <!-- Gold frame — identical to index.vue -->
@@ -430,6 +482,8 @@ async function copyLink(offre: OffreEmploi) {
   position: fixed; inset: 0;
   pointer-events: none; z-index: 1;
   opacity: 0.02; mix-blend-mode: overlay;
+  will-change: transform;
+  transform: translateZ(0);
 }
 :global(.dark) .noise-layer { opacity: 0.035; }
 
@@ -453,6 +507,7 @@ async function copyLink(offre: OffreEmploi) {
   height: clamp(500px, 100vmin, 920px);
   pointer-events: none; z-index: 0;
   transition: left var(--transition), opacity var(--transition);
+  will-change: left, opacity;
 }
 .watermark-img {
   width: 100%; height: 100%;

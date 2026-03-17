@@ -69,6 +69,7 @@ export default defineNuxtConfig({
     '/api/**': { proxy: 'http://directus:8055/**' },
     '/': { prerender: true },
     '/le-geai': { prerender: true },
+    '/le-geai/**': { prerender: true },
     '/soutenir': { prerender: true },
     '/recrutement': { prerender: false },
     '/articles': { prerender: false },

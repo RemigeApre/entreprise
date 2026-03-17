@@ -1,14 +1,14 @@
 <script setup lang="ts">
 const route = useRoute()
 
+const fontsUrl = 'https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IM+Fell+DW+Pica:ital@0;1&family=UnifrakturCook:wght@700&display=swap'
+
 useHead({
   link: [
     { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
     { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-    {
-      rel: 'stylesheet',
-      href: 'https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IM+Fell+DW+Pica:ital@0;1&family=UnifrakturCook:wght@700&display=swap'
-    }
+    { rel: 'preload', as: 'style', href: fontsUrl },
+    { rel: 'stylesheet', href: fontsUrl }
   ]
 })
 
@@ -49,7 +49,7 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
 
     <!-- Watermark -->
     <div class="pub-watermark" aria-hidden="true">
-      <img src="/logo.svg" alt="" class="pub-watermark-img" />
+      <img src="/logo.svg" alt="" class="pub-watermark-img" decoding="async" fetchpriority="low" />
     </div>
 
     <!-- Gold frame -->
@@ -115,6 +115,8 @@ onMounted(() => { requestAnimationFrame(() => { visible.value = true }) })
   position: fixed; inset: 0;
   pointer-events: none; z-index: 0;
   opacity: 0.02; mix-blend-mode: overlay;
+  will-change: transform;
+  transform: translateZ(0);
 }
 /* Vignette */
 .pub-vignette {

@@ -1,0 +1,29 @@
+User-agent: *
+
+# Pages publiques — indexation autorisée
+Allow: /$
+Allow: /le-geai$
+Allow: /le-geai/
+Allow: /soutenir$
+Allow: /recrutement$
+Allow: /articles$
+
+# Intranet — ne pas indexer
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /planning
+Disallow: /emploi-du-temps
+Disallow: /prospection
+Disallow: /projets
+Disallow: /equipe
+Disallow: /offres
+Disallow: /profil
+Disallow: /clients
+Disallow: /candidats
+Disallow: /wiki
+Disallow: /stages
+
+# API — ne pas crawler
+Disallow: /api/
+
+Sitemap: https://entreprise.legeai-editions.com/sitemap.xml

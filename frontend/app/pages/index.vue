@@ -16,11 +16,37 @@ useHead({
 
 useSeoMeta({
   title: 'Groupe Le Geai - Édition, Informatique, Médias',
-  description: 'Le Geai est un groupe culturel pluridisciplinaire. Édition, services informatiques et production médiatique. Obscuritas nutrit flammam.',
+  description: 'Le Geai est un groupe culturel pluridisciplinaire basé à Lyon. Édition de livres, services informatiques et production médiatique. Obscuritas nutrit flammam.',
   ogTitle: 'Groupe Le Geai',
-  ogDescription: 'Édition · Informatique · Médias. Obscuritas nutrit flammam.',
+  ogDescription: 'Édition · Informatique · Médias. Groupe culturel pluridisciplinaire basé à Lyon.',
   ogType: 'website',
-  ogSiteName: 'Le Geai'
+  ogSiteName: 'Le Geai',
+  twitterCard: 'summary'
+})
+
+useHead({
+  script: [{
+    type: 'application/ld+json',
+    children: JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'Groupe Le Geai',
+      url: 'https://entreprise.legeai-editions.com',
+      logo: 'https://entreprise.legeai-editions.com/logo.svg',
+      description: 'Groupe culturel pluridisciplinaire. Édition de livres, services informatiques et production médiatique.',
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: 'Lyon',
+        addressCountry: 'FR'
+      },
+      contactPoint: {
+        '@type': 'ContactPoint',
+        email: 'administration@legeai-editions.com',
+        contactType: 'customer service',
+        availableLanguage: 'French'
+      }
+    })
+  }]
 })
 
 const { login: doLogin, user } = useAuth()
@@ -125,7 +151,7 @@ async function handleLogin() {
 
     <!-- Watermark — massive, animates to left on login -->
     <div class="watermark" aria-hidden="true">
-      <img src="/logo.svg" alt="" class="watermark-img" />
+      <img src="/logo.svg" alt="" class="watermark-img" decoding="async" fetchpriority="low" />
     </div>
 
     <!-- Gold frame -->
@@ -285,6 +311,8 @@ async function handleLogin() {
   position: fixed; inset: 0;
   pointer-events: none; z-index: 1;
   opacity: 0.02; mix-blend-mode: overlay;
+  will-change: transform;
+  transform: translateZ(0);
 }
 :global(.dark) .noise-layer { opacity: 0.035; }
 
@@ -308,6 +336,7 @@ async function handleLogin() {
   height: clamp(500px, 100vmin, 920px);
   pointer-events: none; z-index: 0;
   transition: left var(--transition), opacity var(--transition);
+  will-change: left, opacity;
 }
 .watermark-img {
   width: 100%; height: 100%;
