@@ -1,4 +1,4 @@
-import { createDirectus, rest } from '@directus/sdk'
+import { createDirectus, rest, withToken } from '@directus/sdk'
 import type { DirectusSchema } from '~/utils/types'
 
 export default defineNuxtPlugin(() => {
@@ -13,23 +13,18 @@ export default defineNuxtPlugin(() => {
     url = pub.startsWith('http') ? pub : `${window.location.origin}${pub}`
   }
 
-  const authedFetch: typeof globalThis.fetch = async (input, init) => {
-    const token = await getValidToken()
-    if (token) {
-      const headers = new Headers((init?.headers) as HeadersInit | undefined)
-      if (!headers.has('Authorization')) {
-        headers.set('Authorization', `Bearer ${token}`)
-      }
-      init = { ...(init || {}), headers }
-    }
-    return globalThis.fetch(input, init)
-  }
+  const client = createDirectus<DirectusSchema>(url).with(rest())
 
-  const client = createDirectus<DirectusSchema>(url, { globals: { fetch: authedFetch } }).with(rest())
+  // Wrap request() to inject Bearer token on every call — no changes needed in composables
+  const _req = client.request.bind(client)
+  const authedRequest = async <T>(req: ReturnType<typeof withToken> | any): Promise<T> => {
+    const token = await getValidToken()
+    return token ? _req<T>(withToken(token, req)) : _req<T>(req)
+  }
 
   return {
     provide: {
-      directus: client
+      directus: { ...client, request: authedRequest }
     }
   }
 })
