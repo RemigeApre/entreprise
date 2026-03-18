@@ -319,6 +319,13 @@ export const CANDIDAT_PIPELINE_ORDER: (keyof typeof CANDIDAT_STATUTS)[] = [
   'premier_contact', 'entretien_prevu', 'entretien_passe', 'promesse', 'convention_signee'
 ]
 
+export const CANAL_ENTRETIEN_OPTIONS = [
+  { value: 'presentiel', label: 'Présentiel', icon: 'i-lucide-map-pin' },
+  { value: 'visio', label: 'Visio', icon: 'i-lucide-video' },
+  { value: 'telephone', label: 'Téléphone', icon: 'i-lucide-phone' },
+  { value: 'autre', label: 'Autre', icon: 'i-lucide-circle-help' }
+] as const
+
 export const CANDIDAT_SOURCES = [
   'Site web', 'LinkedIn', 'Indeed', 'Cooptation',
   'Candidature spontanee', 'Salon / Evenement', 'Ecole / Universite', 'Autre'

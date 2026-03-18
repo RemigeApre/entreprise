@@ -251,6 +251,7 @@ export interface MonitoredSiteUser {
 export type CandidatStatut = 'premier_contact' | 'entretien_prevu' | 'entretien_passe' | 'promesse' | 'convention_signee' | 'echec'
 export type ContactOrigin = 'sortant' | 'entrant'
 export type RetourAttenduDe = 'nous' | 'candidat'
+export type CanalEntretien = 'presentiel' | 'visio' | 'telephone' | 'autre'
 
 export interface Candidat {
   id: string
@@ -264,6 +265,9 @@ export interface Candidat {
   contact_origin: ContactOrigin | null
   date_contact: string | null
   retour_attendu_de: RetourAttenduDe | null
+  date_entretien: string | null
+  canal_entretien: CanalEntretien | null
+  second_entretien: boolean | null
   notes: string | null
   offre: OffreEmploi | string | null
   cv: string | null

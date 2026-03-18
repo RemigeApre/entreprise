@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Candidat, CandidatStatut, CandidatCommentaire, ContactOrigin, RetourAttenduDe } from '~/utils/types'
-import { CANDIDAT_STATUTS, CANDIDAT_PIPELINE_ORDER, CANDIDAT_SOURCES } from '~/utils/constants'
+import type { Candidat, CandidatStatut, CandidatCommentaire, ContactOrigin, RetourAttenduDe, CanalEntretien } from '~/utils/types'
+import { CANDIDAT_STATUTS, CANDIDAT_PIPELINE_ORDER, CANDIDAT_SOURCES, CANAL_ENTRETIEN_OPTIONS } from '~/utils/constants'
 
 definePageMeta({ middleware: ['directeur'] })
 
@@ -30,6 +30,9 @@ const editForm = reactive({
   contact_origin: 'sortant' as ContactOrigin,
   date_contact: '',
   retour_attendu_de: null as RetourAttenduDe | null,
+  date_entretien: '',
+  canal_entretien: null as CanalEntretien | null,
+  second_entretien: false,
   offre: null as string | null,
   notes: ''
 })
@@ -51,6 +54,9 @@ function startEditing() {
   editForm.contact_origin = c.contact_origin || 'sortant'
   editForm.date_contact = c.date_contact || ''
   editForm.retour_attendu_de = c.retour_attendu_de || null
+  editForm.date_entretien = c.date_entretien ? c.date_entretien.slice(0, 16) : ''
+  editForm.canal_entretien = c.canal_entretien || null
+  editForm.second_entretien = c.second_entretien || false
   editForm.offre = (typeof c.offre === 'object' && c.offre?.id) || null
   editForm.notes = c.notes || ''
   editing.value = true
@@ -70,6 +76,9 @@ async function saveChanges() {
       contact_origin: editForm.contact_origin,
       date_contact: editForm.date_contact || null,
       retour_attendu_de: editForm.retour_attendu_de || null,
+      date_entretien: editForm.date_entretien || null,
+      canal_entretien: editForm.canal_entretien || null,
+      second_entretien: editForm.second_entretien,
       offre: editForm.offre || null,
       notes: editForm.notes.trim() || null
     })
@@ -113,6 +122,32 @@ async function advanceTo(statut: CandidatStatut) {
   } catch {
     toast.add({ title: 'Erreur', color: 'error' })
   }
+}
+
+const savingEntretien = ref(false)
+
+async function saveEntretien(data: Partial<Candidat>) {
+  savingEntretien.value = true
+  try {
+    await update(candidatId, data)
+    await refresh()
+  } catch {
+    toast.add({ title: 'Erreur', color: 'error' })
+  } finally {
+    savingEntretien.value = false
+  }
+}
+
+async function marquerNonPresente() {
+  await update(candidatId, { statut: 'echec' as CandidatStatut })
+  toast.add({ title: 'Marqué en échec — ne s\'est pas présenté', color: 'error' })
+  await refresh()
+}
+
+async function marquerPresente() {
+  await update(candidatId, { statut: 'entretien_passe' as CandidatStatut })
+  toast.add({ title: 'Entretien passé — à vous de juger', color: 'success' })
+  await refresh()
 }
 
 async function setRetour(val: RetourAttenduDe | null) {
@@ -303,6 +338,72 @@ function formatDateShort(date: string | null) {
               <div v-else class="flex items-center gap-3 p-3 rounded-lg bg-red-50 border border-red-200/60 text-sm text-red-700">
                 <UIcon name="i-lucide-x-circle" class="size-5 shrink-0" />
                 <span>Procedure en echec. Le profil sera supprime automatiquement 2 mois apres la mise en echec.</span>
+              </div>
+
+              <!-- Bloc entretien (statut = entretien_prevu) -->
+              <div v-if="candidat.statut === 'entretien_prevu'" class="rounded-lg border border-violet-200 bg-violet-50/50 p-3 space-y-3">
+                <p class="text-xs font-semibold text-violet-700 flex items-center gap-1.5">
+                  <UIcon name="i-lucide-calendar-clock" class="size-3.5" />
+                  Entretien prévu
+                </p>
+
+                <!-- Date + canal inline -->
+                <div class="flex flex-wrap items-center gap-2">
+                  <div class="flex items-center gap-1.5">
+                    <UIcon name="i-lucide-calendar" class="size-3.5 text-stone-400 shrink-0" />
+                    <input
+                      type="datetime-local"
+                      class="text-xs border border-stone-200 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-violet-400"
+                      :value="candidat.date_entretien ? candidat.date_entretien.slice(0, 16) : ''"
+                      @change="saveEntretien({ date_entretien: ($event.target as HTMLInputElement).value || null })"
+                    />
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <button
+                      v-for="opt in CANAL_ENTRETIEN_OPTIONS"
+                      :key="opt.value"
+                      class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-colors"
+                      :class="candidat.canal_entretien === opt.value
+                        ? 'border-violet-300 bg-violet-100 text-violet-700 font-medium'
+                        : 'border-stone-200 text-stone-400 hover:border-stone-300'"
+                      @click="saveEntretien({ canal_entretien: candidat.canal_entretien === opt.value ? null : opt.value as CanalEntretien })"
+                    >
+                      <UIcon :name="opt.icon" class="size-3" />
+                      {{ opt.label }}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Second entretien -->
+                <label class="flex items-center gap-2 text-xs text-stone-600 cursor-pointer w-fit">
+                  <input
+                    type="checkbox"
+                    class="rounded border-stone-300 text-violet-600 focus:ring-violet-400"
+                    :checked="candidat.second_entretien ?? false"
+                    @change="saveEntretien({ second_entretien: ($event.target as HTMLInputElement).checked })"
+                  />
+                  Second entretien prévu
+                </label>
+
+                <!-- Actions présence -->
+                <div class="flex items-center gap-2 pt-1 border-t border-violet-100">
+                  <UButton
+                    label="Ne s'est pas présenté"
+                    icon="i-lucide-user-x"
+                    color="error"
+                    variant="subtle"
+                    size="xs"
+                    @click="marquerNonPresente"
+                  />
+                  <UButton
+                    label="S'est présenté →"
+                    icon="i-lucide-user-check"
+                    color="success"
+                    variant="subtle"
+                    size="xs"
+                    @click="marquerPresente"
+                  />
+                </div>
               </div>
 
               <!-- Retour attendu de -->

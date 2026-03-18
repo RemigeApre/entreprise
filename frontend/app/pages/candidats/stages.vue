@@ -434,6 +434,11 @@ onMounted(() => {
                         <h4 class="text-sm font-semibold text-stone-900 leading-tight truncate">{{ c.prenom }} {{ c.nom }}</h4>
                         <span class="text-xs text-stone-400 shrink-0">{{ formatCandidatDate(c.date_contact || c.date_created) }}</span>
                       </div>
+                      <!-- Date entretien -->
+                      <p v-if="c.statut === 'entretien_prevu' && c.date_entretien" class="text-xs text-violet-600 font-medium flex items-center gap-1 mb-1">
+                        <UIcon name="i-lucide-calendar-clock" class="size-3 shrink-0" />
+                        {{ new Date(c.date_entretien).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) }}
+                      </p>
                       <!-- Offre -->
                       <p v-if="getOffreTitre(c)" class="text-xs text-stone-500 truncate flex items-center gap-1 mb-2">
                         <UIcon name="i-lucide-megaphone" class="size-3 text-stone-400 shrink-0" />
