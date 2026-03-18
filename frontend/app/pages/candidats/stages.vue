@@ -162,14 +162,13 @@ function ganttTooltip(s: Stagiaire): string {
 const nextAvailableDate = computed(() => {
   if (currentCount.value < MAX_STAGIAIRES) return null
 
-  // Tous les jours suivant une fin de contrat (futur)
-  const endDates = stagiaires.value
-    .filter(s => s.statut !== 'test' && s.end >= todayStr)
-    .map(s => s.end)
-    .sort()
+  // Toutes les dates de fin futures (stagiaires + promesses) → triées, dédupliquées
+  const endDates = [...new Set([
+    ...stagiaires.value.filter(s => s.statut !== 'test' && s.end >= todayStr).map(s => s.end),
+    ...promesseBars.value.filter(p => p.end >= todayStr).map(p => p.end)
+  ])].sort()
 
   for (const endDate of endDates) {
-    // Le lendemain de la fin de contrat
     const d = new Date(endDate + 'T00:00:00')
     d.setDate(d.getDate() + 1)
     const afterStr = d.toISOString().split('T')[0]
@@ -837,40 +836,46 @@ onMounted(() => {
 
 /* ── Pipeline steps ── */
 .pipeline-step {
-  width: 10px;
-  height: 10px;
   border-radius: 50%;
   flex-shrink: 0;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 .pipeline-step-empty {
-  background: #e7e5e4;
+  width: 8px;
+  height: 8px;
+  background: #ddd9d4;
 }
+/* Done : dot coloré + anneau blanc + anneau coloré (effet cible) */
 .pipeline-step-done {
+  width: 8px;
+  height: 8px;
   background: currentColor;
-  opacity: 0.5;
+  box-shadow: 0 0 0 2px white, 0 0 0 3.5px currentColor;
 }
+/* Current : plus grand, halo doux */
 .pipeline-step-current {
-  background: currentColor;
   width: 13px;
   height: 13px;
-  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 20%, transparent);
+  background: currentColor;
+  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 22%, transparent);
 }
-.pipeline-step-blue    { color: var(--color-blue-500, #3b82f6); background: var(--color-blue-500, #3b82f6); }
-.pipeline-step-violet  { color: var(--color-violet-500, #8b5cf6); background: var(--color-violet-500, #8b5cf6); }
-.pipeline-step-sky     { color: var(--color-sky-500, #0ea5e9); background: var(--color-sky-500, #0ea5e9); }
-.pipeline-step-amber   { color: var(--color-amber-500, #f59e0b); background: var(--color-amber-500, #f59e0b); }
-.pipeline-step-green   { color: var(--color-green-500, #22c55e); background: var(--color-green-500, #22c55e); }
+/* Couleurs par étape — color seul suffit, background: currentColor est dans done/current */
+.pipeline-step-blue   { color: var(--color-blue-500, #3b82f6); }
+.pipeline-step-violet { color: var(--color-violet-500, #8b5cf6); }
+.pipeline-step-sky    { color: var(--color-sky-500, #0ea5e9); }
+.pipeline-step-amber  { color: var(--color-amber-500, #f59e0b); }
+.pipeline-step-green  { color: var(--color-green-500, #22c55e); }
 
 .pipeline-connector {
   flex: 1;
-  height: 2px;
-  background: #e7e5e4;
-  border-radius: 1px;
+  height: 3px;
+  border-radius: 2px;
+  background: #e2ddd8;
   min-width: 4px;
   transition: background 0.2s;
 }
+/* Connecteur "done" : ton chaud pour marquer la progression */
 .pipeline-connector-done {
-  background: var(--color-stone-300, #d6d3d1);
+  background: #c4ad88;
 }
 </style>
