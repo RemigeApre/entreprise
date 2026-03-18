@@ -123,6 +123,18 @@ function formatCandidatDate(d: string): string {
   return new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
 }
 
+function formatDateLong(d: string): string {
+  return new Date(d + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+function ganttTooltip(s: Stagiaire): string {
+  const lines = [s.name]
+  if (s.ecole) lines.push(s.ecole)
+  lines.push(`Du ${formatDateLong(s.start)}`)
+  lines.push(`au ${formatDateLong(s.end)}`)
+  return lines.join('\n')
+}
+
 onMounted(load)
 
 const today = new Date()
@@ -291,17 +303,19 @@ onMounted(() => {
                 class="gantt-row"
               >
                 <div class="gantt-row-bg" />
-                <NuxtLink
-                  :to="`/equipe/${s.id}`"
-                  class="gantt-bar"
-                  :class="[barColor(s), barBorder(s)]"
-                  :style="{
-                    left: daySpan(s.start, s.end).offset * 4 + 'px',
-                    width: Math.max(daySpan(s.start, s.end).width * 4, 60) + 'px'
-                  }"
-                >
-                  <span class="gantt-bar-label">{{ s.name }}</span>
-                </NuxtLink>
+                <UTooltip :text="ganttTooltip(s)" :delay-duration="200" :ui="{ content: 'whitespace-pre-line' }">
+                  <NuxtLink
+                    :to="`/equipe/${s.id}`"
+                    class="gantt-bar"
+                    :class="[barColor(s), barBorder(s)]"
+                    :style="{
+                      left: daySpan(s.start, s.end).offset * 4 + 'px',
+                      width: Math.max(daySpan(s.start, s.end).width * 4, 60) + 'px'
+                    }"
+                  >
+                    <span class="gantt-bar-label">{{ s.name }}</span>
+                  </NuxtLink>
+                </UTooltip>
               </div>
 
               <!-- Capacity count row -->
