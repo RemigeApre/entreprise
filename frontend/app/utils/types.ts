@@ -268,6 +268,8 @@ export interface Candidat {
   date_entretien: string | null
   canal_entretien: CanalEntretien | null
   second_entretien: boolean | null
+  date_debut_stage: string | null
+  date_fin_stage: string | null
   notes: string | null
   offre: OffreEmploi | string | null
   cv: string | null

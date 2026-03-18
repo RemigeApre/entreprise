@@ -163,6 +163,7 @@ export const SCHEDULE_CATEGORIES = {
   reunion_client: { label: 'Reunion client', icon: 'i-lucide-handshake', color: 'emerald' },
   reunion_interne: { label: 'Reunion interne', icon: 'i-lucide-users', color: 'sky' },
   reunion_financement: { label: 'Financement', icon: 'i-lucide-landmark', color: 'violet' },
+  entretien_rh: { label: 'Entretien RH', icon: 'i-lucide-user-search', color: 'purple' },
   indispo_perso: { label: 'Indisponibilite', icon: 'i-lucide-user-x', color: 'orange' },
   autre: { label: 'Autre', icon: 'i-lucide-calendar-clock', color: 'neutral' }
 } as const

@@ -8,6 +8,7 @@ const route = useRoute()
 const { user } = useAuth()
 const { getById, update, remove, addComment, removeComment, getCvUrl } = useCandidats()
 const { getAll: getAllOffers } = useJobListings()
+const { createEntry } = useSchedule()
 const toast = useToast()
 const config = useRuntimeConfig()
 
@@ -148,6 +149,36 @@ async function marquerPresente() {
   await update(candidatId, { statut: 'entretien_passe' as CandidatStatut })
   toast.add({ title: 'Entretien passé — à vous de juger', color: 'success' })
   await refresh()
+}
+
+// --- Agenda entretien ---
+const addingToAgenda = ref(false)
+
+async function addEntretienToAgenda() {
+  if (!candidat.value?.date_entretien || !user.value) return
+  addingToAgenda.value = true
+  try {
+    const dt = candidat.value.date_entretien
+    const dateStr = dt.slice(0, 10)
+    const timeStr = dt.slice(11, 16) // "HH:MM"
+    const [h, m] = timeStr.split(':').map(Number)
+    const heureFin = `${String(h + 1).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+    const canalLabel = CANAL_ENTRETIEN_OPTIONS.find(o => o.value === candidat.value!.canal_entretien)?.label
+    await createEntry({
+      utilisateur: user.value.id,
+      date: dateStr,
+      heure_debut: timeStr,
+      heure_fin: heureFin,
+      titre: `Entretien — ${candidat.value.prenom} ${candidat.value.nom}`,
+      categorie: 'entretien_rh',
+      description: canalLabel ? `Canal : ${canalLabel}` : undefined
+    })
+    toast.add({ title: 'Ajouté à l\'agenda', color: 'success' })
+  } catch {
+    toast.add({ title: 'Erreur', color: 'error' })
+  } finally {
+    addingToAgenda.value = false
+  }
 }
 
 async function setRetour(val: RetourAttenduDe | null) {
@@ -385,8 +416,8 @@ function formatDateShort(date: string | null) {
                   Second entretien prévu
                 </label>
 
-                <!-- Actions présence -->
-                <div class="flex items-center gap-2 pt-1 border-t border-violet-100">
+                <!-- Actions présence + agenda -->
+                <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-violet-100">
                   <UButton
                     label="Ne s'est pas présenté"
                     icon="i-lucide-user-x"
@@ -403,7 +434,50 @@ function formatDateShort(date: string | null) {
                     size="xs"
                     @click="marquerPresente"
                   />
+                  <UButton
+                    v-if="candidat.date_entretien"
+                    label="Ajouter à l'agenda"
+                    icon="i-lucide-calendar-plus"
+                    color="neutral"
+                    variant="ghost"
+                    size="xs"
+                    :loading="addingToAgenda"
+                    class="ml-auto"
+                    @click="addEntretienToAgenda"
+                  />
                 </div>
+              </div>
+
+              <!-- Bloc promesse (statut = promesse) -->
+              <div v-if="candidat.statut === 'promesse'" class="rounded-lg border border-amber-200 bg-amber-50/50 p-3 space-y-3">
+                <p class="text-xs font-semibold text-amber-700 flex items-center gap-1.5">
+                  <UIcon name="i-lucide-handshake" class="size-3.5" />
+                  Promesse de période
+                </p>
+                <div class="flex flex-wrap items-center gap-4">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-xs text-stone-500 shrink-0">Début</span>
+                    <input
+                      type="date"
+                      class="text-xs border border-stone-200 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                      :value="candidat.date_debut_stage || ''"
+                      @change="saveEntretien({ date_debut_stage: ($event.target as HTMLInputElement).value || null })"
+                    />
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-xs text-stone-500 shrink-0">Fin</span>
+                    <input
+                      type="date"
+                      class="text-xs border border-stone-200 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                      :value="candidat.date_fin_stage || ''"
+                      @change="saveEntretien({ date_fin_stage: ($event.target as HTMLInputElement).value || null })"
+                    />
+                  </div>
+                </div>
+                <p v-if="candidat.date_debut_stage && candidat.date_fin_stage" class="text-xs text-amber-600 flex items-center gap-1">
+                  <UIcon name="i-lucide-info" class="size-3 shrink-0" />
+                  Cette période apparaît dans le planning des stagiaires
+                </p>
               </div>
 
               <!-- Retour attendu de -->

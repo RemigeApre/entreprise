@@ -18,6 +18,13 @@ interface Stagiaire {
   statut: 'a_venir' | 'actif' | 'test' | 'termine'
 }
 
+interface PromesseBar {
+  id: string
+  name: string
+  start: string
+  end: string
+}
+
 const stagiaires = ref<Stagiaire[]>([])
 const allCandidats = ref<Candidat[]>([])
 const loading = ref(true)
@@ -94,6 +101,19 @@ const echecCandidats = computed(() =>
 
 // Keep for empty-state check
 const filteredCandidats = computed(() => [...activeCandidats.value, ...echecCandidats.value])
+
+// Promesses de période — candidats en stade promesse avec dates définies
+const promesseBars = computed<PromesseBar[]>(() =>
+  allCandidats.value
+    .filter(c => c.statut === 'promesse' && c.date_debut_stage && c.date_fin_stage)
+    .map(c => ({
+      id: c.id,
+      name: `${c.prenom} ${c.nom}`,
+      start: c.date_debut_stage!,
+      end: c.date_fin_stage!
+    }))
+    .sort((a, b) => a.start.localeCompare(b.start))
+)
 
 function pipelineStepDone(statut: string, stepKey: string): boolean {
   const order = CANDIDAT_STATUTS[statut as keyof typeof CANDIDAT_STATUTS]?.order ?? 0
@@ -199,7 +219,13 @@ function daySpan(startStr: string, endStr: string): { offset: number; width: num
 }
 
 function countStagiairesOnDate(dateStr: string): number {
-  return stagiaires.value.filter(s => s.statut !== 'test' && s.start <= dateStr && s.end >= dateStr).length
+  const actual = stagiaires.value.filter(s => s.statut !== 'test' && s.start <= dateStr && s.end >= dateStr).length
+  const promised = promesseBars.value.filter(p => p.start <= dateStr && p.end >= dateStr).length
+  return actual + promised
+}
+
+function promesseTooltip(p: PromesseBar): string {
+  return [`${p.name} (Promesse)`, `Du ${formatDateLong(p.start)}`, `au ${formatDateLong(p.end)}`].join('\n')
 }
 
 // Pour chaque mois : pic réel d'occupation (max sur tous les jours clés)
@@ -217,6 +243,16 @@ function monthStats(year: number, month: number, totalDaysInMonth: number) {
     if (s.end >= firstDay && s.end <= lastDay) {
       daysToCheck.add(s.end)
       const dayAfter = new Date(s.end + 'T00:00:00')
+      dayAfter.setDate(dayAfter.getDate() + 1)
+      const afterStr = dayAfter.toISOString().split('T')[0]
+      if (afterStr <= lastDay) daysToCheck.add(afterStr)
+    }
+  }
+  for (const p of promesseBars.value) {
+    if (p.start >= firstDay && p.start <= lastDay) daysToCheck.add(p.start)
+    if (p.end >= firstDay && p.end <= lastDay) {
+      daysToCheck.add(p.end)
+      const dayAfter = new Date(p.end + 'T00:00:00')
       dayAfter.setDate(dayAfter.getDate() + 1)
       const afterStr = dayAfter.toISOString().split('T')[0]
       if (afterStr <= lastDay) daysToCheck.add(afterStr)
@@ -380,6 +416,32 @@ onMounted(() => {
                   </NuxtLink>
                 </UTooltip>
               </div>
+
+              <!-- Promesse rows -->
+              <template v-if="promesseBars.length">
+                <div class="gantt-section-sep">
+                  <span>Promesses</span>
+                </div>
+                <div
+                  v-for="p in promesseBars"
+                  :key="'p-' + p.id"
+                  class="gantt-row"
+                >
+                  <div class="gantt-row-bg" />
+                  <UTooltip :text="promesseTooltip(p)" :delay-duration="200" :ui="{ content: 'whitespace-pre-line' }">
+                    <NuxtLink
+                      :to="`/candidats/${p.id}`"
+                      class="gantt-bar-promise"
+                      :style="{
+                        left: daySpan(p.start, p.end).offset * 4 + 'px',
+                        width: Math.max(daySpan(p.start, p.end).width * 4, 60) + 'px'
+                      }"
+                    >
+                      <span class="gantt-bar-promise-label">{{ p.name }}</span>
+                    </NuxtLink>
+                  </UTooltip>
+                </div>
+              </template>
 
               <!-- Capacity count row -->
               <div class="gantt-count-row">
@@ -699,6 +761,51 @@ onMounted(() => {
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 4px;
+}
+
+/* ── Gantt promise bars ── */
+.gantt-section-sep {
+  position: relative;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  background: rgba(139, 92, 246, 0.04);
+  border-top: 1px solid rgba(139, 92, 246, 0.12);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.12);
+}
+.gantt-section-sep span {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(109, 40, 217, 0.5);
+}
+
+.gantt-bar-promise {
+  position: absolute;
+  height: 24px;
+  border-radius: 6px;
+  border: 2px dashed #8b5cf6;
+  background: rgba(139, 92, 246, 0.12);
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  z-index: 2;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  text-decoration: none;
+}
+.gantt-bar-promise:hover {
+  opacity: 0.75;
+}
+.gantt-bar-promise-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #7c3aed;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── Candidat cards ── */
