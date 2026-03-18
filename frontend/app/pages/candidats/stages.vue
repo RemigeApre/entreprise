@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { UserProfile, Candidat, OffreEmploi } from '~/utils/types'
-import { CANDIDAT_STATUTS } from '~/utils/constants'
+import { CANDIDAT_STATUTS, CANDIDAT_PIPELINE_ORDER } from '~/utils/constants'
 
 definePageMeta({ middleware: ['directeur'] })
 
@@ -26,6 +26,7 @@ const loading = ref(true)
 const candidatSearch = ref('')
 const candidatSort = ref<'date' | 'nom' | 'statut'>('date')
 const candidatSortDir = ref<'asc' | 'desc'>('desc')
+const showEchec = ref(false)
 
 function getUserName(u: UserProfile) {
   return [u.first_name, u.last_name].filter(Boolean).join(' ') || u.email
@@ -58,24 +59,8 @@ const twoMonthsAgo = new Date()
 twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2)
 const twoMonthsAgoStr = twoMonthsAgo.toISOString()
 
-const filteredCandidats = computed(() => {
-  // Filter out echec candidates older than 2 months
-  let list = allCandidats.value.filter(c => {
-    if (c.statut === 'echec') {
-      const updated = c.date_updated || c.date_created
-      return updated > twoMonthsAgoStr
-    }
-    return true
-  })
-  if (candidatSearch.value.trim()) {
-    const q = candidatSearch.value.toLowerCase()
-    list = list.filter(c =>
-      `${c.prenom} ${c.nom}`.toLowerCase().includes(q)
-      || c.email?.toLowerCase().includes(q)
-      || c.telephone?.toLowerCase().includes(q)
-    )
-  }
-  list = [...list].sort((a, b) => {
+function sortList(list: typeof allCandidats.value) {
+  return [...list].sort((a, b) => {
     let va: string, vb: string
     if (candidatSort.value === 'nom') { va = `${a.nom} ${a.prenom}`; vb = `${b.nom} ${b.prenom}` }
     else if (candidatSort.value === 'statut') { va = a.statut; vb = b.statut }
@@ -83,8 +68,38 @@ const filteredCandidats = computed(() => {
     const cmp = va.localeCompare(vb)
     return candidatSortDir.value === 'asc' ? cmp : -cmp
   })
-  return list
-})
+}
+
+function matchSearch(c: typeof allCandidats.value[0]) {
+  if (!candidatSearch.value.trim()) return true
+  const q = candidatSearch.value.toLowerCase()
+  return `${c.prenom} ${c.nom}`.toLowerCase().includes(q)
+    || c.email?.toLowerCase().includes(q)
+    || c.telephone?.toLowerCase().includes(q)
+}
+
+const activeCandidats = computed(() =>
+  sortList(allCandidats.value.filter(c => c.statut !== 'echec' && matchSearch(c)))
+)
+
+const echecCandidats = computed(() =>
+  sortList(
+    allCandidats.value.filter(c => {
+      if (c.statut !== 'echec') return false
+      const updated = c.date_updated || c.date_created
+      return updated > twoMonthsAgoStr && matchSearch(c)
+    })
+  )
+)
+
+// Keep for empty-state check
+const filteredCandidats = computed(() => [...activeCandidats.value, ...echecCandidats.value])
+
+function pipelineStepDone(statut: string, stepKey: string): boolean {
+  const order = CANDIDAT_STATUTS[statut as keyof typeof CANDIDAT_STATUTS]?.order ?? 0
+  const stepOrder = CANDIDAT_STATUTS[stepKey as keyof typeof CANDIDAT_STATUTS]?.order ?? 0
+  return order >= stepOrder
+}
 
 function toggleSort(key: 'date' | 'nom' | 'statut') {
   if (candidatSort.value === key) {
@@ -318,7 +333,7 @@ onMounted(() => {
               <h3 class="text-sm font-semibold text-stone-700 flex items-center gap-2 mr-auto">
                 <UIcon name="i-lucide-user-search" class="size-4 text-stone-400" />
                 Candidats
-                <span class="text-xs font-normal text-stone-400">({{ filteredCandidats.length }})</span>
+                <span class="text-xs font-normal text-stone-400">({{ activeCandidats.length }})</span>
               </h3>
               <UInput
                 v-model="candidatSearch"
@@ -349,43 +364,99 @@ onMounted(() => {
               <UButton label="Ajouter un candidat" icon="i-lucide-plus" size="sm" class="mt-3" to="/candidats/nouveau" />
             </div>
             <div v-else-if="!filteredCandidats.length" class="text-center py-6">
-              <p class="text-sm text-stone-400">Aucun candidat ne correspond à "{{ candidatSearch }}"</p>
+              <p class="text-sm text-stone-400">Aucun résultat pour "{{ candidatSearch }}"</p>
             </div>
 
-            <!-- Grille -->
-            <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              <NuxtLink
-                v-for="c in filteredCandidats"
-                :key="c.id"
-                :to="`/candidats/${c.id}`"
-                class="block"
-              >
-                <UCard class="hover:ring-2 hover:ring-primary/30 transition-all cursor-pointer h-full">
-                  <div class="space-y-2">
-                    <div class="flex items-start justify-between gap-2">
-                      <h4 class="text-sm font-semibold text-stone-900 truncate">{{ c.prenom }} {{ c.nom }}</h4>
-                      <UBadge :color="getCandidatStatutConfig(c.statut).color" variant="subtle" size="xs">
-                        {{ getCandidatStatutConfig(c.statut).label }}
-                      </UBadge>
-                    </div>
-                    <p v-if="getOffreTitre(c)" class="text-xs text-stone-500 truncate flex items-center gap-1">
-                      <UIcon name="i-lucide-megaphone" class="size-3 text-stone-400 shrink-0" />
-                      {{ getOffreTitre(c) }}
-                    </p>
-                    <div class="flex items-center justify-between text-xs text-stone-400">
-                      <span class="flex items-center gap-1">
-                        <UIcon
-                          :name="c.contact_origin === 'entrant' ? 'i-lucide-phone-incoming' : 'i-lucide-phone-outgoing'"
-                          class="size-3"
-                        />
-                        {{ c.contact_origin === 'entrant' ? 'Entrant' : 'Sortant' }}
-                      </span>
-                      <span>{{ formatCandidatDate(c.date_contact || c.date_created) }}</span>
+            <template v-else>
+              <!-- Grille actifs -->
+              <div v-if="activeCandidats.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <NuxtLink
+                  v-for="c in activeCandidats"
+                  :key="c.id"
+                  :to="`/candidats/${c.id}`"
+                  class="block"
+                >
+                  <div class="candidat-card group">
+                    <!-- Bande couleur statut -->
+                    <div
+                      class="candidat-card-band"
+                      :style="{ background: `var(--color-${getCandidatStatutConfig(c.statut).color}-500, #6b7280)` }"
+                    />
+                    <div class="candidat-card-body">
+                      <!-- Nom + date -->
+                      <div class="flex items-start justify-between gap-2 mb-2">
+                        <h4 class="text-sm font-semibold text-stone-900 leading-tight truncate">{{ c.prenom }} {{ c.nom }}</h4>
+                        <span class="text-xs text-stone-400 shrink-0">{{ formatCandidatDate(c.date_contact || c.date_created) }}</span>
+                      </div>
+                      <!-- Offre -->
+                      <p v-if="getOffreTitre(c)" class="text-xs text-stone-500 truncate flex items-center gap-1 mb-2">
+                        <UIcon name="i-lucide-megaphone" class="size-3 text-stone-400 shrink-0" />
+                        {{ getOffreTitre(c) }}
+                      </p>
+                      <!-- Pipeline steps -->
+                      <div class="flex items-center gap-0.5 mb-2">
+                        <template v-for="(step, i) in CANDIDAT_PIPELINE_ORDER" :key="step">
+                          <div
+                            class="pipeline-step"
+                            :class="pipelineStepDone(c.statut, step)
+                              ? `pipeline-step-done pipeline-step-${getCandidatStatutConfig(step).color}`
+                              : 'pipeline-step-empty'"
+                            :title="getCandidatStatutConfig(step).label"
+                          />
+                          <div v-if="i < CANDIDAT_PIPELINE_ORDER.length - 1" class="pipeline-connector"
+                            :class="pipelineStepDone(c.statut, CANDIDAT_PIPELINE_ORDER[i + 1]) ? 'pipeline-connector-done' : ''"
+                          />
+                        </template>
+                      </div>
+                      <!-- Statut label + origin -->
+                      <div class="flex items-center justify-between">
+                        <span class="text-xs font-medium" :style="{ color: `var(--color-${getCandidatStatutConfig(c.statut).color}-600, #6b7280)` }">
+                          <UIcon :name="getCandidatStatutConfig(c.statut).icon" class="size-3 inline mr-0.5" />
+                          {{ getCandidatStatutConfig(c.statut).label }}
+                        </span>
+                        <span class="flex items-center gap-1 text-xs text-stone-400">
+                          <UIcon
+                            :name="c.contact_origin === 'entrant' ? 'i-lucide-phone-incoming' : 'i-lucide-phone-outgoing'"
+                            class="size-3"
+                          />
+                          {{ c.contact_origin === 'entrant' ? 'Entrant' : 'Sortant' }}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </UCard>
-              </NuxtLink>
-            </div>
+                </NuxtLink>
+              </div>
+
+              <!-- Section Échecs (réduite) -->
+              <div v-if="echecCandidats.length">
+                <button
+                  class="flex items-center gap-2 text-xs text-stone-400 hover:text-stone-600 transition-colors py-1 select-none"
+                  @click="showEchec = !showEchec"
+                >
+                  <UIcon
+                    name="i-lucide-chevron-right"
+                    class="size-3.5 transition-transform"
+                    :class="showEchec ? 'rotate-90' : ''"
+                  />
+                  <span>Échecs</span>
+                  <span class="px-1.5 py-0.5 rounded bg-stone-100 text-stone-500 font-medium">{{ echecCandidats.length }}</span>
+                </button>
+                <div v-if="showEchec" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
+                  <NuxtLink
+                    v-for="c in echecCandidats"
+                    :key="c.id"
+                    :to="`/candidats/${c.id}`"
+                    class="block"
+                  >
+                    <div class="flex items-center gap-2 px-3 py-2 rounded-lg border border-stone-200 bg-stone-50 hover:bg-stone-100 transition-colors cursor-pointer">
+                      <UIcon name="i-lucide-x-circle" class="size-3.5 text-red-400 shrink-0" />
+                      <span class="text-xs font-medium text-stone-500 truncate">{{ c.prenom }} {{ c.nom }}</span>
+                      <span class="ml-auto text-xs text-stone-400 shrink-0">{{ formatCandidatDate(c.date_contact || c.date_created) }}</span>
+                    </div>
+                  </NuxtLink>
+                </div>
+              </div>
+            </template>
           </div>
         </template>
       </div>
@@ -524,5 +595,64 @@ onMounted(() => {
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 4px;
+}
+
+/* ── Candidat cards ── */
+.candidat-card {
+  display: flex;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  background: white;
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.15s, border-color 0.15s;
+  height: 100%;
+}
+.candidat-card:hover {
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  border-color: rgba(175, 143, 60, 0.3);
+}
+
+.candidat-card-band {
+  width: 4px;
+  flex-shrink: 0;
+}
+
+.candidat-card-body {
+  flex: 1;
+  padding: 10px 12px;
+  min-width: 0;
+}
+
+/* ── Pipeline steps ── */
+.pipeline-step {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.pipeline-step-empty {
+  background: #e7e5e4;
+}
+.pipeline-step-done {
+  background: currentColor;
+}
+.pipeline-step-blue    { color: var(--color-blue-500, #3b82f6); background: var(--color-blue-500, #3b82f6); }
+.pipeline-step-violet  { color: var(--color-violet-500, #8b5cf6); background: var(--color-violet-500, #8b5cf6); }
+.pipeline-step-sky     { color: var(--color-sky-500, #0ea5e9); background: var(--color-sky-500, #0ea5e9); }
+.pipeline-step-amber   { color: var(--color-amber-500, #f59e0b); background: var(--color-amber-500, #f59e0b); }
+.pipeline-step-green   { color: var(--color-green-500, #22c55e); background: var(--color-green-500, #22c55e); }
+
+.pipeline-connector {
+  flex: 1;
+  height: 2px;
+  background: #e7e5e4;
+  border-radius: 1px;
+  min-width: 4px;
+  transition: background 0.2s;
+}
+.pipeline-connector-done {
+  background: var(--color-stone-300, #d6d3d1);
 }
 </style>
