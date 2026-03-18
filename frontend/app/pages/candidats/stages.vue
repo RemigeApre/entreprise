@@ -202,11 +202,42 @@ function countStagiairesOnDate(dateStr: string): number {
   return stagiaires.value.filter(s => s.statut !== 'test' && s.start <= dateStr && s.end >= dateStr).length
 }
 
+// Pour chaque mois : pic réel d'occupation (max sur tous les jours clés)
+// + indicateur si des jours libres existent malgré un pic élevé
+function monthStats(year: number, month: number, totalDaysInMonth: number) {
+  const firstDay = `${year}-${String(month + 1).padStart(2, '0')}-01`
+  const lastDay = `${year}-${String(month + 1).padStart(2, '0')}-${String(totalDaysInMonth).padStart(2, '0')}`
+
+  // Jours clés à vérifier : 1er du mois + chaque date de début/fin dans ce mois
+  // + lendemain de chaque fin (quand une place se libère)
+  const daysToCheck = new Set<string>([firstDay])
+  for (const s of stagiaires.value) {
+    if (s.statut === 'test') continue
+    if (s.start >= firstDay && s.start <= lastDay) daysToCheck.add(s.start)
+    if (s.end >= firstDay && s.end <= lastDay) {
+      daysToCheck.add(s.end)
+      const dayAfter = new Date(s.end + 'T00:00:00')
+      dayAfter.setDate(dayAfter.getDate() + 1)
+      const afterStr = dayAfter.toISOString().split('T')[0]
+      if (afterStr <= lastDay) daysToCheck.add(afterStr)
+    }
+  }
+
+  let peak = 0
+  let hasAvailable = false
+  for (const day of daysToCheck) {
+    const c = countStagiairesOnDate(day)
+    if (c > peak) peak = c
+    if (c < MAX_STAGIAIRES) hasAvailable = true
+  }
+
+  return { peak, hasAvailable }
+}
+
 const monthCapacity = computed(() =>
   months.value.map(m => {
-    const mid = `${m.key}-15`
-    const count = countStagiairesOnDate(mid)
-    return { ...m, count, full: count >= MAX_STAGIAIRES }
+    const { peak, hasAvailable } = monthStats(m.year, m.month, m.days)
+    return { ...m, count: peak, full: peak >= MAX_STAGIAIRES, hasAvailable }
   })
 )
 
@@ -358,16 +389,29 @@ onMounted(() => {
                   class="gantt-count-cell"
                   :style="{ width: m.days * 4 + 'px' }"
                 >
-                  <span
-                    class="gantt-count-badge"
-                    :class="m.full
-                      ? 'bg-red-100 text-red-700'
-                      : m.count > 0
-                        ? 'bg-amber-100 text-amber-700'
-                        : 'bg-stone-100 text-stone-400'"
+                  <UTooltip
+                    :text="m.full && m.hasAvailable
+                      ? `Pic : ${m.count}/${MAX_STAGIAIRES} — des places se libèrent ce mois`
+                      : m.full
+                        ? `Complet tout le mois (${m.count}/${MAX_STAGIAIRES})`
+                        : m.count > 0
+                          ? `Pic : ${m.count}/${MAX_STAGIAIRES}`
+                          : 'Aucun stagiaire'"
                   >
-                    {{ m.count }}/{{ MAX_STAGIAIRES }}
-                  </span>
+                    <span
+                      class="gantt-count-badge"
+                      :class="m.full && !m.hasAvailable
+                        ? 'bg-red-100 text-red-700'
+                        : m.full && m.hasAvailable
+                          ? 'bg-orange-100 text-orange-700'
+                          : m.count > 0
+                            ? 'bg-amber-100 text-amber-700'
+                            : 'bg-stone-100 text-stone-400'"
+                    >
+                      {{ m.count }}/{{ MAX_STAGIAIRES }}
+                      <span v-if="m.full && m.hasAvailable" class="ml-0.5 opacity-70">↓</span>
+                    </span>
+                  </UTooltip>
                 </div>
               </div>
             </div>
@@ -445,32 +489,35 @@ onMounted(() => {
                         {{ getOffreTitre(c) }}
                       </p>
                       <!-- Pipeline steps -->
-                      <div class="flex items-center gap-0.5 mb-2">
+                      <div class="flex items-center gap-0.5 mb-2.5">
                         <template v-for="(step, i) in CANDIDAT_PIPELINE_ORDER" :key="step">
-                          <div
-                            class="pipeline-step"
-                            :class="pipelineStepDone(c.statut, step)
-                              ? `pipeline-step-done pipeline-step-${getCandidatStatutConfig(step).color}`
-                              : 'pipeline-step-empty'"
-                            :title="getCandidatStatutConfig(step).label"
-                          />
+                          <UTooltip :text="getCandidatStatutConfig(step).label">
+                            <div
+                              class="pipeline-step transition-all"
+                              :class="c.statut === step
+                                ? `pipeline-step-current pipeline-step-${getCandidatStatutConfig(step).color}`
+                                : pipelineStepDone(c.statut, step)
+                                  ? `pipeline-step-done pipeline-step-${getCandidatStatutConfig(step).color}`
+                                  : 'pipeline-step-empty'"
+                            />
+                          </UTooltip>
                           <div v-if="i < CANDIDAT_PIPELINE_ORDER.length - 1" class="pipeline-connector"
                             :class="pipelineStepDone(c.statut, CANDIDAT_PIPELINE_ORDER[i + 1]) ? 'pipeline-connector-done' : ''"
                           />
                         </template>
                       </div>
-                      <!-- Statut label + retour attendu -->
+                      <!-- Statut + retour attendu -->
                       <div class="flex items-center justify-between gap-2">
-                        <span class="text-xs font-medium" :style="{ color: `var(--color-${getCandidatStatutConfig(c.statut).color}-600, #6b7280)` }">
+                        <span class="text-xs font-semibold" :style="{ color: `var(--color-${getCandidatStatutConfig(c.statut).color}-600, #6b7280)` }">
                           <UIcon :name="getCandidatStatutConfig(c.statut).icon" class="size-3 inline mr-0.5" />
                           {{ getCandidatStatutConfig(c.statut).label }}
                         </span>
                         <span
                           v-if="c.retour_attendu_de"
-                          class="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0"
+                          class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded shrink-0"
                           :class="c.retour_attendu_de === 'nous'
-                            ? 'bg-orange-100 text-orange-700'
-                            : 'bg-sky-100 text-sky-700'"
+                            ? 'bg-orange-500 text-white'
+                            : 'bg-sky-500 text-white'"
                         >
                           <UIcon
                             :name="c.retour_attendu_de === 'nous' ? 'i-lucide-phone-outgoing' : 'i-lucide-clock'"
@@ -694,6 +741,13 @@ onMounted(() => {
 }
 .pipeline-step-done {
   background: currentColor;
+  opacity: 0.5;
+}
+.pipeline-step-current {
+  background: currentColor;
+  width: 13px;
+  height: 13px;
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 20%, transparent);
 }
 .pipeline-step-blue    { color: var(--color-blue-500, #3b82f6); background: var(--color-blue-500, #3b82f6); }
 .pipeline-step-violet  { color: var(--color-violet-500, #8b5cf6); background: var(--color-violet-500, #8b5cf6); }
