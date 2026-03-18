@@ -327,7 +327,7 @@ function formatDateShort(date: string | null) {
                     @click="setRetour(candidat.retour_attendu_de === 'candidat' ? null : 'candidat')"
                   >
                     <UIcon name="i-lucide-clock" class="size-3" />
-                    Leur retour
+                    Son retour
                   </button>
                 </div>
               </div>

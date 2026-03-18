@@ -471,7 +471,7 @@ onMounted(() => {
                             :name="c.retour_attendu_de === 'nous' ? 'i-lucide-phone-outgoing' : 'i-lucide-clock'"
                             class="size-2.5"
                           />
-                          {{ c.retour_attendu_de === 'nous' ? 'À nous' : 'Leur retour' }}
+                          {{ c.retour_attendu_de === 'nous' ? 'À nous' : 'Son retour' }}
                         </span>
                       </div>
                     </div>
