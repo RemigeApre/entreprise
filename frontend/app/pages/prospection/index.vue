@@ -240,7 +240,7 @@ if (import.meta.client) {
                 <span class="text-xs font-normal text-stone-400 ml-1">contacts</span>
               </span>
             </div>
-            <div class="h-2.5 bg-[rgba(175,143,60,0.06)],143,60,0.06)] rounded-full overflow-hidden">
+            <div class="h-2.5 bg-[rgba(175,143,60,0.06)] rounded-full overflow-hidden">
               <div
                 class="h-full rounded-full transition-all duration-500"
                 :class="progressSemaine >= 100 ? 'bg-emerald-500' : progressSemaine >= 60 ? 'bg-amber-500' : 'bg-primary'"

@@ -19,6 +19,15 @@ export function useProspects() {
     })) as Prospect[]
   }
 
+  async function getClients() {
+    return await $directus.request(readItems('prospects', {
+      filter: { statut: { _eq: 'client' } },
+      fields: prospectFields,
+      sort: ['-date_created'],
+      limit: -1
+    })) as Prospect[]
+  }
+
   async function getById(id: string) {
     return await $directus.request(readItem('prospects', id, {
       fields: [
@@ -57,6 +66,7 @@ export function useProspects() {
 
   return {
     getAll,
+    getClients,
     getById,
     create,
     update,
