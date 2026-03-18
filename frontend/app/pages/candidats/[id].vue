@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Candidat, CandidatStatut, CandidatCommentaire, ContactOrigin } from '~/utils/types'
+import type { Candidat, CandidatStatut, CandidatCommentaire, ContactOrigin, RetourAttenduDe } from '~/utils/types'
 import { CANDIDAT_STATUTS, CANDIDAT_PIPELINE_ORDER, CANDIDAT_SOURCES } from '~/utils/constants'
 
 definePageMeta({ middleware: ['directeur'] })
@@ -29,6 +29,7 @@ const editForm = reactive({
   source: null as string | null,
   contact_origin: 'sortant' as ContactOrigin,
   date_contact: '',
+  retour_attendu_de: null as RetourAttenduDe | null,
   offre: null as string | null,
   notes: ''
 })
@@ -49,6 +50,7 @@ function startEditing() {
   editForm.source = c.source || null
   editForm.contact_origin = c.contact_origin || 'sortant'
   editForm.date_contact = c.date_contact || ''
+  editForm.retour_attendu_de = c.retour_attendu_de || null
   editForm.offre = (typeof c.offre === 'object' && c.offre?.id) || null
   editForm.notes = c.notes || ''
   editing.value = true
@@ -67,6 +69,7 @@ async function saveChanges() {
       source: editForm.source || null,
       contact_origin: editForm.contact_origin,
       date_contact: editForm.date_contact || null,
+      retour_attendu_de: editForm.retour_attendu_de || null,
       offre: editForm.offre || null,
       notes: editForm.notes.trim() || null
     })
@@ -106,6 +109,15 @@ async function advanceTo(statut: CandidatStatut) {
   try {
     await update(candidatId, { statut })
     toast.add({ title: `Statut: ${CANDIDAT_STATUTS[statut].label}`, color: 'success' })
+    await refresh()
+  } catch {
+    toast.add({ title: 'Erreur', color: 'error' })
+  }
+}
+
+async function setRetour(val: RetourAttenduDe | null) {
+  try {
+    await update(candidatId, { retour_attendu_de: val })
     await refresh()
   } catch {
     toast.add({ title: 'Erreur', color: 'error' })
@@ -291,6 +303,33 @@ function formatDateShort(date: string | null) {
               <div v-else class="flex items-center gap-3 p-3 rounded-lg bg-red-50 border border-red-200/60 text-sm text-red-700">
                 <UIcon name="i-lucide-x-circle" class="size-5 shrink-0" />
                 <span>Procedure en echec. Le profil sera supprime automatiquement 2 mois apres la mise en echec.</span>
+              </div>
+
+              <!-- Retour attendu de -->
+              <div v-if="candidat.statut !== 'echec'" class="flex items-center gap-2">
+                <span class="text-xs text-stone-400 shrink-0">En attente de :</span>
+                <div class="flex items-center gap-1.5">
+                  <button
+                    class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border transition-colors"
+                    :class="candidat.retour_attendu_de === 'nous'
+                      ? 'border-orange-300 bg-orange-100 text-orange-700'
+                      : 'border-stone-200 text-stone-400 hover:border-stone-300 hover:text-stone-600'"
+                    @click="setRetour(candidat.retour_attendu_de === 'nous' ? null : 'nous')"
+                  >
+                    <UIcon name="i-lucide-phone-outgoing" class="size-3" />
+                    Notre retour
+                  </button>
+                  <button
+                    class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border transition-colors"
+                    :class="candidat.retour_attendu_de === 'candidat'
+                      ? 'border-sky-300 bg-sky-100 text-sky-700'
+                      : 'border-stone-200 text-stone-400 hover:border-stone-300 hover:text-stone-600'"
+                    @click="setRetour(candidat.retour_attendu_de === 'candidat' ? null : 'candidat')"
+                  >
+                    <UIcon name="i-lucide-clock" class="size-3" />
+                    Leur retour
+                  </button>
+                </div>
               </div>
 
               <!-- Echec button -->

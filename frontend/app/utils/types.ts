@@ -250,6 +250,7 @@ export interface MonitoredSiteUser {
 
 export type CandidatStatut = 'premier_contact' | 'entretien_prevu' | 'entretien_passe' | 'promesse' | 'convention_signee' | 'echec'
 export type ContactOrigin = 'sortant' | 'entrant'
+export type RetourAttenduDe = 'nous' | 'candidat'
 
 export interface Candidat {
   id: string
@@ -262,6 +263,7 @@ export interface Candidat {
   statut: CandidatStatut
   contact_origin: ContactOrigin | null
   date_contact: string | null
+  retour_attendu_de: RetourAttenduDe | null
   notes: string | null
   offre: OffreEmploi | string | null
   cv: string | null

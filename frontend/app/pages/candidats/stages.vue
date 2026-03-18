@@ -408,18 +408,24 @@ onMounted(() => {
                           />
                         </template>
                       </div>
-                      <!-- Statut label + origin -->
-                      <div class="flex items-center justify-between">
+                      <!-- Statut label + retour attendu -->
+                      <div class="flex items-center justify-between gap-2">
                         <span class="text-xs font-medium" :style="{ color: `var(--color-${getCandidatStatutConfig(c.statut).color}-600, #6b7280)` }">
                           <UIcon :name="getCandidatStatutConfig(c.statut).icon" class="size-3 inline mr-0.5" />
                           {{ getCandidatStatutConfig(c.statut).label }}
                         </span>
-                        <span class="flex items-center gap-1 text-xs text-stone-400">
+                        <span
+                          v-if="c.retour_attendu_de"
+                          class="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0"
+                          :class="c.retour_attendu_de === 'nous'
+                            ? 'bg-orange-100 text-orange-700'
+                            : 'bg-sky-100 text-sky-700'"
+                        >
                           <UIcon
-                            :name="c.contact_origin === 'entrant' ? 'i-lucide-phone-incoming' : 'i-lucide-phone-outgoing'"
-                            class="size-3"
+                            :name="c.retour_attendu_de === 'nous' ? 'i-lucide-phone-outgoing' : 'i-lucide-clock'"
+                            class="size-2.5"
                           />
-                          {{ c.contact_origin === 'entrant' ? 'Entrant' : 'Sortant' }}
+                          {{ c.retour_attendu_de === 'nous' ? 'À nous' : 'Leur retour' }}
                         </span>
                       </div>
                     </div>
