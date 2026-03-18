@@ -11,6 +11,7 @@ const { getById, update, remove, addComment, removeComment, getCvUrl } = useCand
 const { getAll: getAllOffers } = useJobListings()
 const { createEntry } = useSchedule()
 const { createNewUser } = useUsers()
+const { getActiveToken, createToken } = useBookingTokens()
 const toast = useToast()
 const config = useRuntimeConfig()
 
@@ -353,6 +354,53 @@ async function handleDeleteComment(commentId: string) {
   }
 }
 
+// --- Lien RDV ---
+const rdvToken = ref<import('~/utils/types').CandidatBookingToken | null>(null)
+const rdvLoading = ref(false)
+const rdvCopied = ref(false)
+const rdvExpanded = ref(false)
+
+async function loadRdvToken() {
+  rdvLoading.value = true
+  try { rdvToken.value = await getActiveToken(candidatId) }
+  catch { /* silent */ }
+  finally { rdvLoading.value = false }
+}
+
+async function generateRdvToken() {
+  rdvLoading.value = true
+  try {
+    rdvToken.value = await createToken(candidatId, 7)
+    toast.add({ title: 'Lien généré (valable 7 jours)', color: 'success' })
+  } catch {
+    toast.add({ title: 'Erreur lors de la génération', color: 'error' })
+  } finally {
+    rdvLoading.value = false
+  }
+}
+
+async function copyRdvLink() {
+  if (!rdvToken.value) return
+  const link = `${window.location.origin}/rdv/${rdvToken.value.token}`
+  await navigator.clipboard.writeText(link)
+  rdvCopied.value = true
+  setTimeout(() => { rdvCopied.value = false }, 2000)
+}
+
+function getRdvLink(): string {
+  if (!rdvToken.value) return ''
+  return `${window.location.origin}/rdv/${rdvToken.value.token}`
+}
+
+function formatRdvExpiry(expires_at: string): string {
+  return new Date(expires_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
+}
+
+onMounted(() => { if (candidat.value?.statut !== 'echec' && candidat.value?.statut !== 'convention_signee') loadRdvToken() })
+watch(() => candidat.value?.statut, (s) => {
+  if (s && s !== 'echec' && s !== 'convention_signee') loadRdvToken()
+})
+
 // --- Helpers ---
 function getOffreTitre(c: Candidat): string {
   if (!c.offre || typeof c.offre === 'string') return ''
@@ -605,6 +653,61 @@ function formatDateShort(date: string | null) {
                   size="xs"
                   @click="advanceTo('premier_contact')"
                 />
+              </div>
+
+              <!-- Lien RDV (hors échec et convention) -->
+              <div v-if="candidat.statut !== 'echec' && candidat.statut !== 'convention_signee'" class="pt-3 border-t border-stone-100">
+                <button
+                  class="flex items-center gap-1.5 text-xs text-stone-400 hover:text-stone-600 transition-colors select-none"
+                  @click="rdvExpanded = !rdvExpanded"
+                >
+                  <UIcon name="i-lucide-link" class="size-3.5" />
+                  Lien de prise de RDV
+                  <UIcon name="i-lucide-chevron-down" class="size-3.5 transition-transform" :class="rdvExpanded ? 'rotate-180' : ''" />
+                </button>
+
+                <div v-if="rdvExpanded" class="mt-2 space-y-2">
+                  <div v-if="rdvLoading" class="flex items-center gap-2 text-xs text-stone-400">
+                    <UIcon name="i-lucide-loader-2" class="size-3.5 animate-spin" />
+                    Chargement...
+                  </div>
+
+                  <template v-else-if="rdvToken">
+                    <div class="flex items-center gap-2">
+                      <input
+                        type="text"
+                        readonly
+                        :value="getRdvLink()"
+                        class="flex-1 h-7 px-2 text-xs rounded-md border border-stone-200 bg-stone-50 text-stone-600 focus:outline-none truncate"
+                      />
+                      <button
+                        class="flex items-center gap-1 text-xs px-2 py-1 rounded-md border transition-colors"
+                        :class="rdvCopied ? 'border-green-300 bg-green-50 text-green-700' : 'border-stone-200 text-stone-500 hover:border-amber-300 hover:text-amber-700'"
+                        @click="copyRdvLink"
+                      >
+                        <UIcon :name="rdvCopied ? 'i-lucide-check' : 'i-lucide-copy'" class="size-3" />
+                        {{ rdvCopied ? 'Copié' : 'Copier' }}
+                      </button>
+                    </div>
+                    <p class="text-[10px] text-stone-400">
+                      Expire le {{ formatRdvExpiry(rdvToken.expires_at) }}
+                      ·
+                      <button class="underline hover:text-amber-600 transition-colors" @click="generateRdvToken">Régénérer</button>
+                    </p>
+                  </template>
+
+                  <template v-else>
+                    <p class="text-xs text-stone-500">Aucun lien actif. Générez un lien à envoyer au candidat pour qu'il choisisse son créneau.</p>
+                    <UButton
+                      label="Générer un lien"
+                      icon="i-lucide-link"
+                      size="xs"
+                      variant="subtle"
+                      :loading="rdvLoading"
+                      @click="generateRdvToken"
+                    />
+                  </template>
+                </div>
               </div>
             </div>
           </UCard>

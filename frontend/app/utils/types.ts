@@ -268,6 +268,7 @@ export interface Candidat {
   date_entretien: string | null
   canal_entretien: CanalEntretien | null
   second_entretien: boolean | null
+  discord_id: string | null
   date_debut_stage: string | null
   date_fin_stage: string | null
   notes: string | null
@@ -361,6 +362,26 @@ export interface Evenement {
   user_created: string
 }
 
+export type CanalRdv = 'visio' | 'telephone' | 'physique'
+
+export interface RecruteurDisponibilite {
+  id: string
+  jour_semaine: number // 1=Lun..5=Ven
+  heure_debut: string  // "09:00"
+  heure_fin: string    // "12:00"
+  canaux: CanalRdv[]
+  note: string | null
+  actif: boolean
+}
+
+export interface CandidatBookingToken {
+  id: string
+  token: string
+  candidat: string
+  expires_at: string
+  utilise: boolean
+}
+
 // Directus schema type for SDK
 export interface DirectusSchema {
   categories: Category[]
@@ -386,4 +407,6 @@ export interface DirectusSchema {
   evenements: Evenement[]
   evenements_participants: EvenementParticipant[]
   directus_users: UserProfile[]
+  recruteur_disponibilites: RecruteurDisponibilite[]
+  candidat_booking_tokens: CandidatBookingToken[]
 }

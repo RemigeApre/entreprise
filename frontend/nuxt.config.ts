@@ -85,6 +85,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     directusUrl: process.env.NUXT_DIRECTUS_URL || 'http://localhost:8055',
+    directusAdminEmail: process.env.ADMIN_EMAIL || '',
+    directusAdminPassword: process.env.ADMIN_PASSWORD || '',
     public: {
       directusUrl: process.env.NUXT_PUBLIC_DIRECTUS_URL || '/api',
       cmsUrl: process.env.NUXT_PUBLIC_CMS_URL || ''
@@ -100,6 +102,7 @@ export default defineNuxtConfig({
     '/recrutement': { prerender: false, headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60' } },
     '/articles': { prerender: false, headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60' } },
     '/articles/**': { prerender: false, headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60' } },
+    '/rdv/**': { ssr: true },
     // Intranet routes — SPA only (no SSR, auth is client-side)
     '/admin': { ssr: false },
     '/admin/**': { ssr: false },

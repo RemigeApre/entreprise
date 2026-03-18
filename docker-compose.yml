@@ -74,6 +74,8 @@ services:
       NUXT_DIRECTUS_URL: http://directus:8055
       NUXT_PUBLIC_CMS_URL: ${DIRECTUS_PUBLIC_URL}/admin
       NODE_ENV: production
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
     depends_on:
       directus:
         condition: service_healthy
