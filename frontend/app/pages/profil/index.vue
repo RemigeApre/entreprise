@@ -4,6 +4,7 @@ import type { UserProfile } from '~/utils/types'
 
 const { $directus } = useNuxtApp()
 const { user, logout, roleName } = useAuth()
+const { login: authLogin } = useDirectusAuth()
 const toast = useToast()
 
 function getUserName(u: UserProfile) {
@@ -106,9 +107,9 @@ async function handlePasswordChange() {
   }
   passwordSaving.value = true
   try {
-    await $directus.login({ email: user.value.email, password: currentPassword.value })
+    await authLogin(user.value.email, currentPassword.value)
     await $directus.request(updateMe({ password: newPassword.value }))
-    await $directus.login({ email: user.value.email, password: newPassword.value })
+    await authLogin(user.value.email, newPassword.value)
     toast.add({ title: 'Mot de passe mis a jour avec succes', color: 'success' })
     currentPassword.value = ''
     newPassword.value = ''

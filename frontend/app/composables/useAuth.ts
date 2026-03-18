@@ -4,12 +4,13 @@ import type { UserProfile } from '~/utils/types'
 export function useAuth() {
   const { $directus } = useNuxtApp()
   const user = useCurrentUser()
+  const { getValidToken, login: authLogin, logout: authLogout } = useDirectusAuth()
 
   const fetchCurrentUser = async () => {
     try {
-      const me = await $directus.request(readMe({
-        fields: ['*', 'role.*', 'categorie.*'] as any
-      }))
+      const token = await getValidToken()
+      if (!token) { user.value = null; return null }
+      const me = await $directus.request(readMe({ fields: ['*', 'role.*', 'categorie.*'] as any }))
       user.value = me as unknown as UserProfile
       return user.value
     } catch {
@@ -19,12 +20,12 @@ export function useAuth() {
   }
 
   const login = async (email: string, password: string) => {
-    await $directus.login({ email, password })
+    await authLogin(email, password)
     await fetchCurrentUser()
   }
 
-  const logout = () => {
-    $directus.logout().catch(() => {})
+  const logout = async () => {
+    await authLogout()
     user.value = null
     if (import.meta.client) {
       window.location.replace('/')
@@ -35,8 +36,7 @@ export function useAuth() {
 
   const refresh = async () => {
     try {
-      await $directus.refresh()
-      return true
+      return !!(await getValidToken())
     } catch {
       return false
     }
