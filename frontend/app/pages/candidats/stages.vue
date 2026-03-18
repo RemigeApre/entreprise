@@ -132,8 +132,33 @@ function ganttTooltip(s: Stagiaire): string {
   if (s.ecole) lines.push(s.ecole)
   lines.push(`Du ${formatDateLong(s.start)}`)
   lines.push(`au ${formatDateLong(s.end)}`)
+  if (s.end >= todayStr) {
+    lines.push(`↳ Libère une place le ${formatDateLong(s.end)}`)
+  }
   return lines.join('\n')
 }
+
+// Prochaine date où count < MAX_STAGIAIRES
+const nextAvailableDate = computed(() => {
+  if (currentCount.value < MAX_STAGIAIRES) return null
+
+  // Tous les jours suivant une fin de contrat (futur)
+  const endDates = stagiaires.value
+    .filter(s => s.statut !== 'test' && s.end >= todayStr)
+    .map(s => s.end)
+    .sort()
+
+  for (const endDate of endDates) {
+    // Le lendemain de la fin de contrat
+    const d = new Date(endDate + 'T00:00:00')
+    d.setDate(d.getDate() + 1)
+    const afterStr = d.toISOString().split('T')[0]
+    if (countStagiairesOnDate(afterStr) < MAX_STAGIAIRES) {
+      return endDate
+    }
+  }
+  return null
+})
 
 onMounted(load)
 
@@ -244,7 +269,7 @@ onMounted(() => {
 
         <template v-else>
           <!-- Capacité (compact) -->
-          <div class="flex items-center gap-3 text-sm">
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
             <div class="flex items-center gap-1.5">
               <div
                 class="size-2 rounded-full"
@@ -257,9 +282,16 @@ onMounted(() => {
             <span class="text-xs text-stone-400">
               {{ canRecruit
                 ? `${MAX_STAGIAIRES - currentCount} place${MAX_STAGIAIRES - currentCount > 1 ? 's' : ''} disponible${MAX_STAGIAIRES - currentCount > 1 ? 's' : ''}`
-                : 'Capacite maximale atteinte'
+                : 'Capacité maximale atteinte'
               }}
             </span>
+            <template v-if="nextAvailableDate">
+              <span class="text-stone-300">·</span>
+              <span class="text-xs text-amber-600 font-medium flex items-center gap-1">
+                <UIcon name="i-lucide-calendar-plus" class="size-3.5" />
+                Prochain créneau : {{ formatDateLong(nextAvailableDate) }}
+              </span>
+            </template>
           </div>
 
           <!-- Timeline Gantt -->
