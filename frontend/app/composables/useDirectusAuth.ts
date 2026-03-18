@@ -1,11 +1,31 @@
-// Module-level dedup for refresh — safe since all intranet routes are ssr:false (CSR only)
+// Module-level refresh dedup — safe since intranet routes are all ssr:false (CSR only)
 let _refreshing: Promise<string | null> | null = null
+
+const STORAGE_KEY = '_da'
+
+function readStorage(): { at: string; rt: string; exp: number } | null {
+  if (!import.meta.client) return null
+  try {
+    const v = localStorage.getItem(STORAGE_KEY)
+    return v ? JSON.parse(v) : null
+  } catch { return null }
+}
+
+function writeStorage(data: { at: string; rt: string; exp: number } | null) {
+  if (!import.meta.client) return
+  try {
+    if (data) localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    else localStorage.removeItem(STORAGE_KEY)
+  } catch {}
+}
 
 export function useDirectusAuth() {
   const config = useRuntimeConfig()
-  const at = useCookie<string | null>('da_at', { maxAge: 3600, sameSite: 'lax', path: '/' })
-  const rt = useCookie<string | null>('da_rt', { maxAge: 60 * 60 * 24 * 30, sameSite: 'lax', path: '/' })
-  const exp = useCookie<number | null>('da_exp', { maxAge: 60 * 60 * 24 * 30, sameSite: 'lax', path: '/' })
+
+  // useState is definitively cached by key — same ref everywhere in the app
+  const at = useState<string | null>('_da_at', () => readStorage()?.at ?? null)
+  const rt = useState<string | null>('_da_rt', () => readStorage()?.rt ?? null)
+  const exp = useState<number | null>('_da_exp', () => readStorage()?.exp ?? null)
 
   function _apiUrl(): string {
     if (import.meta.server) return config.directusUrl as string
@@ -17,12 +37,14 @@ export function useDirectusAuth() {
     at.value = data.access_token
     rt.value = data.refresh_token
     exp.value = Date.now() + data.expires
+    writeStorage({ at: at.value, rt: rt.value!, exp: exp.value! })
   }
 
   function clearTokens() {
     at.value = null
     rt.value = null
     exp.value = null
+    writeStorage(null)
   }
 
   async function _doRefresh(): Promise<string | null> {
@@ -86,11 +108,24 @@ export function useDirectusAuth() {
     }).catch(() => {})
   }
 
+  // Called once on client by auth.client.ts to bootstrap state from localStorage
+  // when SSR hydration has set the state to null (e.g. landing page first load)
+  function init() {
+    if (!import.meta.client || at.value) return
+    const stored = readStorage()
+    if (stored) {
+      at.value = stored.at
+      rt.value = stored.rt
+      exp.value = stored.exp
+    }
+  }
+
   return {
     getValidToken,
     login,
     logout,
     clearTokens,
+    init,
     hasToken: computed(() => !!at.value)
   }
 }
