@@ -38,7 +38,6 @@ async function handleSubmit() {
       emails_secondaires: form.emails_secondaires.trim() || null,
       notes: form.notes.trim() || null,
       statut: 'a_contacter',
-      nb_contacts: 0,
       prospecteur: user.value.id
     })
     toast.add({ title: 'Prospect créé', color: 'success' })
