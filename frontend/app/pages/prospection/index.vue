@@ -52,18 +52,18 @@ async function handleOptIn() {
 const { data: prospects, status } = useAsyncData('prospects', getAll)
 
 const search = ref('')
-const filterStatut = ref<ProspectStatut | ''>('')
-const filterVille = ref('')
+const filterStatut = ref<ProspectStatut | 'all'>('all')
+const filterVille = ref('all')
 
 const statutOptions = [
-  { label: 'Tous les statuts', value: '' },
+  { label: 'Tous les statuts', value: 'all' },
   ...Object.entries(PROSPECT_STATUTS).map(([value, config]) => ({ label: config.label, value }))
 ]
 
 const villeOptions = computed(() => {
-  if (!prospects.value) return [{ label: 'Toutes les villes', value: '' }]
+  if (!prospects.value) return [{ label: 'Toutes les villes', value: 'all' }]
   const villes = [...new Set(prospects.value.map((p: Prospect) => p.ville).filter(Boolean))].sort()
-  return [{ label: 'Toutes les villes', value: '' }, ...villes.map(v => ({ label: v, value: v }))]
+  return [{ label: 'Toutes les villes', value: 'all' }, ...villes.map(v => ({ label: v, value: v }))]
 })
 
 // Sort
@@ -89,8 +89,8 @@ const filteredProspects = computed(() => {
       p.nom_entreprise, p.secteur, p.ville, p.contact_nom, p.email, p.telephone,
       getProspecteurName(p)
     ].some(field => field?.toLowerCase().includes(q))
-    const matchesStatus = !filterStatut.value || p.statut === filterStatut.value
-    const matchesVille = !filterVille.value || p.ville === filterVille.value
+    const matchesStatus = filterStatut.value === 'all' || p.statut === filterStatut.value
+    const matchesVille = filterVille.value === 'all' || p.ville === filterVille.value
     return matchesSearch && matchesStatus && matchesVille
   })
   return sortItems(filtered, prospectAccessor)
@@ -98,12 +98,12 @@ const filteredProspects = computed(() => {
 
 const { paginatedItems: pagedProspects, page, totalPages, showPagination, next, prev } = usePagination(filteredProspects, 24)
 
-const hasFilters = computed(() => !!search.value || !!filterStatut.value || !!filterVille.value)
+const hasFilters = computed(() => !!search.value || filterStatut.value !== 'all' || filterVille.value !== 'all')
 
 function clearFilters() {
   search.value = ''
-  filterStatut.value = ''
-  filterVille.value = ''
+  filterStatut.value = 'all'
+  filterVille.value = 'all'
 }
 
 const stats = computed(() => {
