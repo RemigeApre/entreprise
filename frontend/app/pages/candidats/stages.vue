@@ -280,6 +280,23 @@ const currentCount = computed(() => countStagiairesOnDate(todayStr))
 const canRecruit = computed(() => currentCount.value < MAX_STAGIAIRES)
 const todayOffset = computed(() => dayOffset(todayStr))
 
+// Répartit les stagiaires en MAX_STAGIAIRES slots (lignes Gantt), sans chevauchement
+const ganttSlots = computed(() => {
+  const slots: Stagiaire[][] = Array.from({ length: MAX_STAGIAIRES }, () => [])
+  const slotEnds: string[] = Array(MAX_STAGIAIRES).fill('')
+
+  const sorted = [...stagiaires.value].sort((a, b) => a.start.localeCompare(b.start))
+  for (const s of sorted) {
+    let assigned = -1
+    for (let i = 0; i < slots.length; i++) {
+      if (!slotEnds[i] || slotEnds[i] < s.start) { assigned = i; break }
+    }
+    if (assigned === -1) { slots.push([s]); slotEnds.push(s.end) }
+    else { slots[assigned].push(s); slotEnds[assigned] = s.end }
+  }
+  return slots
+})
+
 function barColor(s: Stagiaire): string {
   if (s.statut === 'termine') return 'bg-stone-300'
   if (s.statut === 'a_venir') return 'bg-blue-400/80'
@@ -297,8 +314,7 @@ const timelineRef = ref<HTMLElement | null>(null)
 onMounted(() => {
   nextTick(() => {
     if (timelineRef.value) {
-      const scrollTarget = (todayOffset.value / totalDays.value) * timelineRef.value.scrollWidth - timelineRef.value.clientWidth / 3
-      timelineRef.value.scrollLeft = Math.max(0, scrollTarget)
+      timelineRef.value.scrollLeft = Math.max(0, todayOffset.value * 4 - 24)
     }
   })
 })
@@ -306,7 +322,7 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col h-full">
-    <PageHeader title="Recrutement">
+    <PageHeader>
       <template #right>
         <UButton label="Nouveau candidat" icon="i-lucide-plus" size="sm" to="/candidats/nouveau" />
       </template>
@@ -351,13 +367,6 @@ onMounted(() => {
                 : 'Capacité maximale atteinte'
               }}
             </span>
-            <template v-if="nextAvailableDate">
-              <span class="text-stone-300">·</span>
-              <span class="text-xs text-amber-600 font-medium flex items-center gap-1">
-                <UIcon name="i-lucide-calendar-plus" class="size-3.5" />
-                Prochain créneau : {{ formatDateLong(nextAvailableDate) }}
-              </span>
-            </template>
           </div>
 
           <!-- Timeline Gantt -->
@@ -394,26 +403,28 @@ onMounted(() => {
                 />
               </div>
 
-              <!-- Stagiaire rows -->
+              <!-- Stagiaire rows (toujours MAX_STAGIAIRES lignes) -->
               <div
-                v-for="s in stagiaires"
-                :key="s.id"
+                v-for="(slot, slotIdx) in ganttSlots"
+                :key="'slot-' + slotIdx"
                 class="gantt-row"
               >
                 <div class="gantt-row-bg" />
-                <UTooltip :text="ganttTooltip(s)" :delay-duration="200" :ui="{ content: 'whitespace-pre-line' }">
-                  <NuxtLink
-                    :to="`/equipe/${s.id}`"
-                    class="gantt-bar"
-                    :class="[barColor(s), barBorder(s)]"
-                    :style="{
-                      left: daySpan(s.start, s.end).offset * 4 + 'px',
-                      width: Math.max(daySpan(s.start, s.end).width * 4, 60) + 'px'
-                    }"
-                  >
-                    <span class="gantt-bar-label">{{ s.name }}</span>
-                  </NuxtLink>
-                </UTooltip>
+                <template v-for="s in slot" :key="s.id">
+                  <UTooltip :text="ganttTooltip(s)" :delay-duration="200" :ui="{ content: 'whitespace-pre-line' }">
+                    <NuxtLink
+                      :to="`/equipe/${s.id}`"
+                      class="gantt-bar"
+                      :class="[barColor(s), barBorder(s)]"
+                      :style="{
+                        left: daySpan(s.start, s.end).offset * 4 + 'px',
+                        width: Math.max(daySpan(s.start, s.end).width * 4, 60) + 'px'
+                      }"
+                    >
+                      <span class="gantt-bar-label">{{ s.name }}</span>
+                    </NuxtLink>
+                  </UTooltip>
+                </template>
               </div>
 
               <!-- Promesse rows -->
@@ -668,24 +679,23 @@ onMounted(() => {
 
 .gantt-today-line {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: #b74d34;
+  top: 36px;
+  bottom: 32px;
+  width: 1.5px;
+  background: linear-gradient(180deg, #b74d34 0%, rgba(183, 77, 52, 0.3) 100%);
   z-index: 10;
   pointer-events: none;
 }
 .gantt-today-line::before {
-  content: "Aujourd'hui";
+  content: '';
   position: absolute;
-  top: 2px;
-  left: 6px;
-  font-size: 9px;
-  font-weight: 600;
-  color: #b74d34;
-  white-space: nowrap;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  top: -3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #b74d34;
 }
 
 .gantt-capacity-bg {

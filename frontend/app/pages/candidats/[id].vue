@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { readRoles } from '@directus/sdk'
 import type { Candidat, CandidatStatut, CandidatCommentaire, ContactOrigin, RetourAttenduDe, CanalEntretien } from '~/utils/types'
 import { CANDIDAT_STATUTS, CANDIDAT_PIPELINE_ORDER, CANDIDAT_SOURCES, CANAL_ENTRETIEN_OPTIONS } from '~/utils/constants'
 
@@ -9,6 +10,7 @@ const { user } = useAuth()
 const { getById, update, remove, addComment, removeComment, getCvUrl } = useCandidats()
 const { getAll: getAllOffers } = useJobListings()
 const { createEntry } = useSchedule()
+const { createNewUser } = useUsers()
 const toast = useToast()
 const config = useRuntimeConfig()
 
@@ -116,6 +118,10 @@ function getPipelineIndex(statut: CandidatStatut): number {
 }
 
 async function advanceTo(statut: CandidatStatut) {
+  if (statut === 'convention_signee') {
+    openConventionModal()
+    return
+  }
   try {
     await update(candidatId, { statut })
     toast.add({ title: `Statut: ${CANDIDAT_STATUTS[statut].label}`, color: 'success' })
@@ -149,6 +155,79 @@ async function marquerPresente() {
   await update(candidatId, { statut: 'entretien_passe' as CandidatStatut })
   toast.add({ title: 'Entretien passé — à vous de juger', color: 'success' })
   await refresh()
+}
+
+// --- Convention signée — création de compte utilisateur ---
+const showConventionModal = ref(false)
+const conventionCreated = ref(false)
+const creatingUser = ref(false)
+const tempPassword = ref('')
+const conventionForm = reactive({
+  email: '',
+  prenom: '',
+  nom: '',
+  ecole: '',
+  date_debut: '',
+  date_fin: ''
+})
+
+function openConventionModal() {
+  if (!candidat.value) return
+  conventionForm.email = candidat.value.email || ''
+  conventionForm.prenom = candidat.value.prenom
+  conventionForm.nom = candidat.value.nom
+  conventionForm.ecole = ''
+  conventionForm.date_debut = candidat.value.date_debut_stage || ''
+  conventionForm.date_fin = candidat.value.date_fin_stage || ''
+  tempPassword.value = ''
+  conventionCreated.value = false
+  showConventionModal.value = true
+}
+
+async function handleCreateUserAndSign() {
+  if (!conventionForm.email || !conventionForm.prenom || !conventionForm.nom) return
+  creatingUser.value = true
+  try {
+    const { $directus } = useNuxtApp()
+    const roles = await $directus.request(readRoles({
+      filter: { name: { _eq: 'Stagiaire' } },
+      fields: ['id'],
+      limit: 1
+    })) as { id: string }[]
+    const roleId = roles[0]?.id
+    if (!roleId) throw new Error('Role Stagiaire introuvable')
+
+    const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
+    const pwd = Array.from({ length: 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+    tempPassword.value = pwd
+
+    await createNewUser({
+      email: conventionForm.email,
+      password: pwd,
+      first_name: conventionForm.prenom,
+      last_name: conventionForm.nom,
+      role: roleId,
+      type_contrat: 'Stage',
+      ecole: conventionForm.ecole || undefined,
+      date_debut_contrat: conventionForm.date_debut || null,
+      date_fin_contrat: conventionForm.date_fin || null,
+      actif: true,
+      statut_emploi: 'a_venir'
+    } as any)
+
+    await update(candidatId, { statut: 'convention_signee' as CandidatStatut })
+    await refresh()
+    conventionCreated.value = true
+  } catch (err: any) {
+    toast.add({ title: err?.message || 'Erreur lors de la création du compte', color: 'error' })
+  } finally {
+    creatingUser.value = false
+  }
+}
+
+async function copyTempPassword() {
+  await navigator.clipboard.writeText(tempPassword.value)
+  toast.add({ title: 'Mot de passe copié', color: 'success' })
 }
 
 // --- Agenda entretien ---
@@ -751,6 +830,80 @@ function formatDateShort(date: string | null) {
         </template>
       </div>
     </div>
+
+    <!-- Convention signée — création compte utilisateur -->
+    <UModal v-model:open="showConventionModal" :ui="{ width: 'sm:max-w-lg' }">
+      <template #content>
+        <div class="p-6 space-y-4">
+          <template v-if="!conventionCreated">
+            <div class="flex items-center gap-2 mb-1">
+              <UIcon name="i-lucide-file-check" class="size-5 text-green-600" />
+              <h3 class="text-base font-semibold text-stone-900">Créer le compte stagiaire</h3>
+            </div>
+            <p class="text-xs text-stone-500">Un compte intranet sera créé avec les informations ci-dessous. Le mot de passe temporaire sera affiché une seule fois.</p>
+
+            <div class="grid grid-cols-2 gap-3">
+              <UFormField label="Prénom *">
+                <UInput v-model="conventionForm.prenom" class="w-full" />
+              </UFormField>
+              <UFormField label="Nom *">
+                <UInput v-model="conventionForm.nom" class="w-full" />
+              </UFormField>
+            </div>
+            <UFormField label="Email *">
+              <UInput v-model="conventionForm.email" type="email" icon="i-lucide-mail" class="w-full" />
+            </UFormField>
+            <UFormField label="École / Établissement">
+              <UInput v-model="conventionForm.ecole" icon="i-lucide-graduation-cap" class="w-full" />
+            </UFormField>
+            <div class="grid grid-cols-2 gap-3">
+              <UFormField label="Début de stage">
+                <UInput v-model="conventionForm.date_debut" type="date" class="w-full" />
+              </UFormField>
+              <UFormField label="Fin de stage">
+                <UInput v-model="conventionForm.date_fin" type="date" class="w-full" />
+              </UFormField>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+              <UButton label="Annuler" color="neutral" variant="ghost" @click="showConventionModal = false" />
+              <UButton
+                label="Créer le compte"
+                icon="i-lucide-user-plus"
+                color="success"
+                :loading="creatingUser"
+                :disabled="!conventionForm.email || !conventionForm.prenom || !conventionForm.nom"
+                @click="handleCreateUserAndSign"
+              />
+            </div>
+          </template>
+
+          <template v-else>
+            <div class="flex items-center gap-2 mb-1">
+              <UIcon name="i-lucide-check-circle" class="size-5 text-green-600" />
+              <h3 class="text-base font-semibold text-stone-900">Compte créé</h3>
+            </div>
+            <p class="text-sm text-stone-600">
+              Le compte de <strong>{{ conventionForm.prenom }} {{ conventionForm.nom }}</strong> a été créé avec succès.
+            </p>
+            <div class="rounded-lg bg-amber-50 border border-amber-200 p-3 space-y-2">
+              <p class="text-xs font-semibold text-amber-700 flex items-center gap-1.5">
+                <UIcon name="i-lucide-key" class="size-3.5" />
+                Mot de passe temporaire (affiché une seule fois)
+              </p>
+              <div class="flex items-center gap-2">
+                <code class="flex-1 text-sm font-mono bg-white rounded px-3 py-1.5 border border-amber-200 text-stone-900">{{ tempPassword }}</code>
+                <UButton icon="i-lucide-copy" size="xs" color="neutral" variant="ghost" @click="copyTempPassword" />
+              </div>
+              <p class="text-xs text-amber-600">Transmettez ce mot de passe au stagiaire. Il pourra le changer à la première connexion.</p>
+            </div>
+            <div class="flex justify-end">
+              <UButton label="Fermer" color="neutral" variant="ghost" @click="showConventionModal = false" />
+            </div>
+          </template>
+        </div>
+      </template>
+    </UModal>
 
     <!-- Delete modal -->
     <UModal v-model:open="showDeleteModal">
