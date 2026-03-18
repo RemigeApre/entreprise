@@ -10,16 +10,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const { user, fetchCurrentUser, refresh, logout } = useAuth()
 
   if (!user.value) {
-    // Tenter le refresh du token (cookie httpOnly)
-    const refreshed = await refresh()
-    if (refreshed) {
-      await fetchCurrentUser()
-    }
-
-    // Fallback : tenter un fetch direct si le SDK a un token en memoire
-    if (!user.value) {
-      await fetchCurrentUser()
-    }
+    // Le plugin auth.client.ts a deja tente refresh + fetchCurrentUser au demarrage.
+    // Ce fallback ne s'execute que si la session expire en cours de navigation.
+    await refresh().catch(() => {})
+    await fetchCurrentUser()
 
     if (!user.value) {
       return navigateTo('/')

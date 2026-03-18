@@ -184,6 +184,11 @@ export const SCHEDULE_COLORS: Record<string, { bg: string; text: string; border:
     text: 'text-violet-800',
     border: 'border-violet-400'
   },
+  entretien_rh: {
+    bg: 'bg-purple-100',
+    text: 'text-purple-800',
+    border: 'border-purple-400'
+  },
   indispo_perso: {
     bg: 'bg-orange-100',
     text: 'text-orange-800',

@@ -306,7 +306,7 @@ export interface Ticket {
   user_created: string
 }
 
-export type ScheduleCategorie = 'reunion_client' | 'reunion_interne' | 'reunion_financement' | 'indispo_perso' | 'autre'
+export type ScheduleCategorie = 'reunion_client' | 'reunion_interne' | 'reunion_financement' | 'entretien_rh' | 'indispo_perso' | 'autre'
 
 export interface ScheduleEntry {
   id: string
