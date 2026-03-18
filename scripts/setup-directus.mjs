@@ -1431,7 +1431,7 @@ async function fixExistingPermissions() {
 
   try {
     // Fetch all permissions
-    const perms = await api('GET', '/permissions?limit=-1')
+    const perms = await api('GET', '/permissions?fields=*&limit=-1')
 
     // Fix planning_entries delete/update: remove statut restriction
     for (const perm of perms) {
