@@ -615,6 +615,94 @@ async function createCollections() {
     ]
   }, 'Collection "wiki_pages"')
 
+  // ── transactions (finance) ──
+  await safeApi('POST', '/collections', {
+    collection: 'transactions',
+    schema: {},
+    meta: { icon: 'account_balance', note: 'Recettes et depenses', sort: 14 },
+    fields: [
+      uuidPK(),
+      { field: 'libelle', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, sort: 1 } },
+      { field: 'montant', type: 'float', schema: { is_nullable: false }, meta: { interface: 'input', required: true, width: 'half', sort: 2 } },
+      dropdown('type', [
+        { text: 'Recette', value: 'recette' },
+        { text: 'Depense', value: 'depense' }
+      ], { required: true, width: 'half' }),
+      dropdown('categorie', [
+        { text: 'Vente', value: 'vente' },
+        { text: 'Prestation', value: 'prestation' },
+        { text: 'Abonnement', value: 'abonnement' },
+        { text: 'Salaire', value: 'salaire' },
+        { text: 'Freelance', value: 'freelance' },
+        { text: 'Achat materiel', value: 'achat_materiel' },
+        { text: 'Logiciel / SaaS', value: 'logiciel' },
+        { text: 'Hebergement', value: 'hebergement' },
+        { text: 'Marketing', value: 'marketing' },
+        { text: 'Deplacement', value: 'deplacement' },
+        { text: 'Administratif', value: 'administratif' },
+        { text: 'Autre', value: 'autre' }
+      ], { required: true, width: 'half' }),
+      { field: 'date', type: 'date', schema: { is_nullable: false }, meta: { interface: 'datetime', required: true, width: 'half', sort: 5 } },
+      dropdown('recurrence', [
+        { text: 'Unique', value: 'unique' },
+        { text: 'Mensuel', value: 'mensuel' },
+        { text: 'Trimestriel', value: 'trimestriel' },
+        { text: 'Annuel', value: 'annuel' }
+      ], { required: true, default_value: 'unique', width: 'half' }),
+      { field: 'notes', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 7 } },
+      ...systemFields()
+    ]
+  }, 'Collection "transactions"')
+
+  // ── materiels ──
+  await safeApi('POST', '/collections', {
+    collection: 'materiels',
+    schema: {},
+    meta: { icon: 'devices', note: 'Inventaire materiel', sort: 15 },
+    fields: [
+      uuidPK(),
+      { field: 'nom', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, sort: 1 } },
+      { field: 'reference', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 2, note: 'Numero de serie, modele...' } },
+      { field: 'description', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 3 } },
+      dropdown('etat', [
+        { text: 'Neuf', value: 'neuf' },
+        { text: 'Bon etat', value: 'bon' },
+        { text: 'Use', value: 'use' },
+        { text: 'HS', value: 'hs' },
+        { text: 'Vendu', value: 'vendu' }
+      ], { required: true, default_value: 'bon', width: 'half' }),
+      { field: 'date_achat', type: 'date', schema: { is_nullable: true }, meta: { interface: 'datetime', width: 'half', sort: 5 } },
+      { field: 'prix_achat', type: 'float', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 6 } },
+      { field: 'notes', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 7 } },
+      ...systemFields()
+    ]
+  }, 'Collection "materiels"')
+
+  // ── achats_prevus ──
+  await safeApi('POST', '/collections', {
+    collection: 'achats_prevus',
+    schema: {},
+    meta: { icon: 'shopping_cart', note: 'Achats a prevoir', sort: 16 },
+    fields: [
+      uuidPK(),
+      { field: 'nom', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, sort: 1 } },
+      { field: 'prix_estime', type: 'float', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 2 } },
+      dropdown('type', [
+        { text: 'Ponctuel', value: 'ponctuel' },
+        { text: 'Recurrent', value: 'recurrent' }
+      ], { required: true, default_value: 'ponctuel', width: 'half' }),
+      dropdown('statut', [
+        { text: 'A acheter', value: 'a_acheter' },
+        { text: 'Commande', value: 'commande' },
+        { text: 'Recu', value: 'recu' }
+      ], { required: true, default_value: 'a_acheter', width: 'half' }),
+      { field: 'prochaine_date', type: 'date', schema: { is_nullable: true }, meta: { interface: 'datetime', width: 'half', sort: 5 } },
+      { field: 'recurrence_mois', type: 'integer', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 6, note: 'Tous les X mois (si recurrent)' } },
+      { field: 'notes', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 7 } },
+      ...systemFields()
+    ]
+  }, 'Collection "achats_prevus"')
+
   // ── schedule_entries ──
   await safeApi('POST', '/collections', {
     collection: 'schedule_entries',
@@ -826,6 +914,9 @@ async function createRelations() {
     // candidat_commentaires
     { coll: 'candidat_commentaires', field: 'candidat', related: 'candidats', template: '{{prenom}} {{nom}}', one_field: 'commentaires' },
     { coll: 'candidat_commentaires', field: 'auteur', related: 'directus_users', template: '{{first_name}} {{last_name}}' },
+
+    // materiels
+    { coll: 'materiels', field: 'affecte_a', related: 'directus_users', template: '{{first_name}} {{last_name}}' },
 
     // directus_users -> categories
     { coll: 'directus_users', field: 'categorie', related: 'categories', template: '{{nom}}', one_field: 'membres' }
@@ -1071,6 +1162,24 @@ async function setupPermissions(roleIds) {
 
       // Wiki pages: read active
       { collection: 'wiki_pages', action: 'read', fields: ['*'], permissions: { actif: { _eq: true } } },
+
+      // Transactions (finance): full CRUD
+      { collection: 'transactions', action: 'create', fields: ['*'], permissions: {} },
+      { collection: 'transactions', action: 'read', fields: ['*'], permissions: {} },
+      { collection: 'transactions', action: 'update', fields: ['*'], permissions: {} },
+      { collection: 'transactions', action: 'delete', permissions: { user_created: { _eq: '$CURRENT_USER' } } },
+
+      // Materiels: full CRUD
+      { collection: 'materiels', action: 'create', fields: ['*'], permissions: {} },
+      { collection: 'materiels', action: 'read', fields: ['*'], permissions: {} },
+      { collection: 'materiels', action: 'update', fields: ['*'], permissions: {} },
+      { collection: 'materiels', action: 'delete', permissions: { user_created: { _eq: '$CURRENT_USER' } } },
+
+      // Achats prevus: full CRUD
+      { collection: 'achats_prevus', action: 'create', fields: ['*'], permissions: {} },
+      { collection: 'achats_prevus', action: 'read', fields: ['*'], permissions: {} },
+      { collection: 'achats_prevus', action: 'update', fields: ['*'], permissions: {} },
+      { collection: 'achats_prevus', action: 'delete', permissions: { user_created: { _eq: '$CURRENT_USER' } } },
 
       // Schedule entries: create own, read all, update own, delete own
       { collection: 'schedule_entries', action: 'create', fields: ['*'], permissions: {}, validation: { utilisateur: { _eq: '$CURRENT_USER' } } },

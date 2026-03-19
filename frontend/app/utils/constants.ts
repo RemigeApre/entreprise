@@ -307,6 +307,56 @@ export const CONTRACT_HEX_COLORS: Record<string, string> = {
 
 // --- Emploi du temps : recurrence ---
 
+// --- Finance ---
+
+export const TRANSACTION_TYPES = {
+  recette: { label: 'Recette', color: 'green', icon: 'i-lucide-trending-up' },
+  depense: { label: 'Depense', color: 'red', icon: 'i-lucide-trending-down' }
+} as const
+
+export const TRANSACTION_CATEGORIES = {
+  vente: { label: 'Vente', icon: 'i-lucide-shopping-bag' },
+  prestation: { label: 'Prestation', icon: 'i-lucide-briefcase' },
+  abonnement: { label: 'Abonnement', icon: 'i-lucide-repeat' },
+  salaire: { label: 'Salaire', icon: 'i-lucide-wallet' },
+  freelance: { label: 'Freelance', icon: 'i-lucide-user' },
+  achat_materiel: { label: 'Achat materiel', icon: 'i-lucide-monitor' },
+  logiciel: { label: 'Logiciel / SaaS', icon: 'i-lucide-code' },
+  hebergement: { label: 'Hebergement', icon: 'i-lucide-server' },
+  marketing: { label: 'Marketing', icon: 'i-lucide-megaphone' },
+  deplacement: { label: 'Deplacement', icon: 'i-lucide-car' },
+  administratif: { label: 'Administratif', icon: 'i-lucide-file-text' },
+  autre: { label: 'Autre', icon: 'i-lucide-circle' }
+} as const
+
+export const TRANSACTION_RECURRENCES = {
+  unique: { label: 'Unique' },
+  mensuel: { label: 'Mensuel' },
+  trimestriel: { label: 'Trimestriel' },
+  annuel: { label: 'Annuel' }
+} as const
+
+// --- Materiel ---
+
+export const MATERIEL_ETATS = {
+  neuf: { label: 'Neuf', color: 'green' },
+  bon: { label: 'Bon etat', color: 'blue' },
+  use: { label: 'Use', color: 'yellow' },
+  hs: { label: 'HS', color: 'red' },
+  vendu: { label: 'Vendu', color: 'neutral' }
+} as const
+
+export const ACHAT_TYPES = {
+  ponctuel: { label: 'Ponctuel' },
+  recurrent: { label: 'Recurrent' }
+} as const
+
+export const ACHAT_STATUTS = {
+  a_acheter: { label: 'A acheter', color: 'yellow', icon: 'i-lucide-shopping-cart' },
+  commande: { label: 'Commande', color: 'blue', icon: 'i-lucide-package' },
+  recu: { label: 'Recu', color: 'green', icon: 'i-lucide-check-circle' }
+} as const
+
 export const RECURRENCE_OPTIONS = [
   { label: 'Aucune', value: 'aucune' },
   { label: 'Chaque jour ouvre (lun-ven)', value: 'chaque_jour_ouvre' },

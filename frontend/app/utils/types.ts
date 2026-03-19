@@ -396,6 +396,58 @@ export interface CandidatBookingToken {
   utilise: boolean
 }
 
+// --- Finance ---
+
+export type TransactionType = 'recette' | 'depense'
+export type TransactionCategorie = 'vente' | 'prestation' | 'abonnement' | 'salaire' | 'freelance' | 'achat_materiel' | 'logiciel' | 'hebergement' | 'marketing' | 'deplacement' | 'administratif' | 'autre'
+export type TransactionRecurrence = 'unique' | 'mensuel' | 'trimestriel' | 'annuel'
+
+export interface Transaction {
+  id: string
+  libelle: string
+  montant: number
+  type: TransactionType
+  categorie: TransactionCategorie
+  date: string
+  recurrence: TransactionRecurrence
+  notes: string | null
+  date_created: string
+  user_created: string
+}
+
+// --- Materiel ---
+
+export type MaterielEtat = 'neuf' | 'bon' | 'use' | 'hs' | 'vendu'
+export type AchatType = 'ponctuel' | 'recurrent'
+export type AchatStatut = 'a_acheter' | 'commande' | 'recu'
+
+export interface Materiel {
+  id: string
+  nom: string
+  reference: string | null
+  description: string | null
+  etat: MaterielEtat
+  affecte_a: UserProfile | string | null
+  date_achat: string | null
+  prix_achat: number | null
+  notes: string | null
+  date_created: string
+  user_created: string
+}
+
+export interface AchatPrevu {
+  id: string
+  nom: string
+  prix_estime: number | null
+  type: AchatType
+  statut: AchatStatut
+  prochaine_date: string | null
+  recurrence_mois: number | null
+  notes: string | null
+  date_created: string
+  user_created: string
+}
+
 // Directus schema type for SDK
 export interface DirectusSchema {
   categories: Category[]
@@ -421,6 +473,9 @@ export interface DirectusSchema {
   articles: Article[]
   evenements: Evenement[]
   evenements_participants: EvenementParticipant[]
+  transactions: Transaction[]
+  materiels: Materiel[]
+  achats_prevus: AchatPrevu[]
   directus_users: UserProfile[]
   recruteur_disponibilites: RecruteurDisponibilite[]
   candidat_booking_tokens: CandidatBookingToken[]
