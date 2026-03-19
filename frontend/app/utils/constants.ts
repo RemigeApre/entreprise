@@ -94,6 +94,13 @@ export const PROSPECT_STATUTS = {
   cloture: { label: 'Cloture', color: 'red', icon: 'i-lucide-x-circle' }
 } as const
 
+export const MOTIFS_CLOTURE = {
+  concurrent: { label: 'Deja chez un concurrent', icon: 'i-lucide-shield-x' },
+  ferme: { label: 'Entreprise fermee', icon: 'i-lucide-building-2' },
+  refus: { label: 'Refus', icon: 'i-lucide-thumbs-down' },
+  autre: { label: 'Autre', icon: 'i-lucide-help-circle' }
+} as const
+
 export const CONTACT_CANAUX = {
   email: { label: 'Email', icon: 'i-lucide-mail' },
   telephone: { label: 'Telephone', icon: 'i-lucide-phone' },

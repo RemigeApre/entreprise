@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Prospect, ProspectStatut, ContactCanal, ContactResultat, ContactHistory, OffreProspectStatut, ProspectOffre } from '~/utils/types'
-import { PROSPECT_STATUTS, CONTACT_CANAUX, CONTACT_RESULTATS, OFFRE_PROSPECT_STATUTS } from '~/utils/constants'
+import type { Prospect, ProspectStatut, ContactCanal, ContactResultat, ContactHistory, OffreProspectStatut, ProspectOffre, MotifCloture } from '~/utils/types'
+import { PROSPECT_STATUTS, CONTACT_CANAUX, CONTACT_RESULTATS, OFFRE_PROSPECT_STATUTS, MOTIFS_CLOTURE } from '~/utils/constants'
 
 const route = useRoute()
 const { user, isProspecteur } = useAuth()
@@ -308,9 +308,25 @@ async function handleRemoveOffre(id: string) {
 }
 
 // --- Pipeline ---
+const showClotureChoice = ref(false)
+
 async function setStatut(statut: ProspectStatut) {
+  if (statut === 'cloture') {
+    showClotureChoice.value = true
+    return
+  }
   try {
-    await update(prospectId, { statut })
+    await update(prospectId, { statut, motif_cloture: null })
+    await refresh()
+  } catch {
+    toast.add({ title: 'Erreur', color: 'error' })
+  }
+}
+
+async function clotureAvecMotif(motif: MotifCloture) {
+  try {
+    await update(prospectId, { statut: 'cloture', motif_cloture: motif })
+    showClotureChoice.value = false
     await refresh()
   } catch {
     toast.add({ title: 'Erreur', color: 'error' })
@@ -487,6 +503,27 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
               <UIcon :name="config.icon" class="size-3.5" />
               {{ config.label }}
             </button>
+          </div>
+
+          <!-- Cloture motif picker -->
+          <div v-if="showClotureChoice" class="flex items-center gap-2 mb-4 p-3 rounded-xl bg-red-50/60 border border-red-100">
+            <span class="text-xs text-red-600 font-medium shrink-0">Motif :</span>
+            <button
+              v-for="(config, key) in MOTIFS_CLOTURE"
+              :key="key"
+              class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white border border-red-100 text-red-600 hover:bg-red-100 transition-colors"
+              @click="clotureAvecMotif(key as MotifCloture)"
+            >
+              <UIcon :name="config.icon" class="size-3.5" />
+              {{ config.label }}
+            </button>
+            <button class="ml-auto text-xs text-stone-400 hover:text-stone-600" @click="showClotureChoice = false">Annuler</button>
+          </div>
+
+          <!-- Motif affiché si cloturé -->
+          <div v-if="prospect.statut === 'cloture' && prospect.motif_cloture" class="flex items-center gap-2 mb-4 px-3 py-2 rounded-xl bg-red-50/40 border border-red-100/60 text-xs text-red-500">
+            <UIcon :name="MOTIFS_CLOTURE[prospect.motif_cloture]?.icon || 'i-lucide-x-circle'" class="size-3.5" />
+            Cloture : {{ MOTIFS_CLOTURE[prospect.motif_cloture]?.label || prospect.motif_cloture }}
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">

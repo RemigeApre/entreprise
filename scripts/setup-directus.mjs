@@ -408,6 +408,12 @@ async function createCollections() {
         { text: 'Client', value: 'client' },
         { text: 'Cloture', value: 'cloture' }
       ], { required: true, default_value: 'a_contacter', width: 'half' }),
+      dropdown('motif_cloture', [
+        { text: 'Deja chez un concurrent', value: 'concurrent' },
+        { text: 'Entreprise fermee', value: 'ferme' },
+        { text: 'Refus', value: 'refus' },
+        { text: 'Autre', value: 'autre' }
+      ], { width: 'half' }),
       ...systemFields()
     ]
   }, 'Collection "prospects"')

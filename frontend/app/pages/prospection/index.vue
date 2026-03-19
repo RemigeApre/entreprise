@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { updateMe } from '@directus/sdk'
 import type { Prospect, ProspectStatut, ContactCanal, ContactResultat } from '~/utils/types'
-import { PROSPECT_STATUTS, CONTACT_CANAUX, CONTACT_RESULTATS } from '~/utils/constants'
+import { PROSPECT_STATUTS, CONTACT_CANAUX, CONTACT_RESULTATS, MOTIFS_CLOTURE } from '~/utils/constants'
 import { downloadCsv } from '~/utils/csv'
 
 const { user, isProspecteur, fetchCurrentUser } = useAuth()
@@ -335,6 +335,9 @@ if (import.meta.client) {
                       <span v-if="prospect.contact_nom" class="truncate">{{ prospect.contact_nom }}</span>
                       <span v-if="prospect.contact_nom && prospect.ville" class="text-stone-300">-</span>
                       <span class="text-stone-400 truncate">{{ prospect.ville }}</span>
+                      <span v-if="prospect.statut === 'cloture' && prospect.motif_cloture" class="text-red-400 shrink-0">
+                        {{ MOTIFS_CLOTURE[prospect.motif_cloture]?.label }}
+                      </span>
                     </div>
                   </div>
 

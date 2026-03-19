@@ -90,6 +90,7 @@ export interface CongeRequest {
 }
 
 export type ProspectStatut = 'a_contacter' | 'premier_contact' | 'en_discussion' | 'client' | 'cloture'
+export type MotifCloture = 'concurrent' | 'ferme' | 'refus' | 'autre'
 export type ContactCanal = 'email' | 'telephone' | 'linkedin' | 'en_personne' | 'site_web' | 'autre'
 export type ContactResultat = 'refus' | 'attente' | 'retenter' | 'ligne_coupee' | 'positif' | 'absent'
 export type OffreProspectStatut = 'a_proposer' | 'proposee' | 'negociation' | 'acceptee' | 'refusee'
@@ -109,6 +110,7 @@ export interface Prospect {
   notes: string | null
   prospecteur: UserProfile | string
   statut: ProspectStatut
+  motif_cloture: MotifCloture | null
   nb_contacts: number
   historique_contacts?: ContactHistory[]
   offres?: ProspectOffre[]
