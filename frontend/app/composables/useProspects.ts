@@ -5,7 +5,7 @@ export function useProspects() {
   const { $directus } = useNuxtApp()
 
   const prospectFields = [
-    'id', 'nom_entreprise', 'ville', 'secteur', 'adresse', 'telephone', 'telephones_secondaires',
+    'id', 'nom_entreprise', 'ville', 'secteur', 'adresse', 'telephone',
     'email', 'emails_secondaires', 'site_web', 'contact_nom', 'notes', 'statut', 'nb_contacts',
     'prospecteur.id', 'prospecteur.first_name', 'prospecteur.last_name',
     'date_created', 'date_updated'
@@ -32,6 +32,7 @@ export function useProspects() {
     return await $directus.request(readItem('prospects', id, {
       fields: [
         ...prospectFields,
+        'telephones_secondaires',
         'historique_contacts.id', 'historique_contacts.canal', 'historique_contacts.resultat',
         'historique_contacts.date_contact', 'historique_contacts.notes',
         'historique_contacts.contacte_par.id',
