@@ -5,20 +5,20 @@ export function useMateriel() {
   const { $directus } = useNuxtApp()
 
   const materielFields = [
-    'id', 'nom', 'reference', 'description', 'etat',
+    'id', 'nom', 'categorie', 'reference', 'description', 'quantite', 'etat',
     'affecte_a.id', 'affecte_a.first_name', 'affecte_a.last_name',
-    'date_achat', 'prix_achat', 'notes', 'date_created'
+    'date_achat', 'prix_achat', 'prix_unitaire', 'notes', 'date_created'
   ]
 
   const achatFields = [
-    'id', 'nom', 'prix_estime', 'type', 'statut',
+    'id', 'nom', 'categorie', 'prix_estime', 'quantite', 'type', 'statut',
     'prochaine_date', 'recurrence_mois', 'notes', 'date_created'
   ]
 
   async function getAllMateriels() {
     return await $directus.request(readItems('materiels', {
       fields: materielFields,
-      sort: ['nom'],
+      sort: ['categorie', 'nom'],
       limit: -1
     })) as Materiel[]
   }
@@ -38,7 +38,7 @@ export function useMateriel() {
   async function getAllAchats() {
     return await $directus.request(readItems('achats_prevus', {
       fields: achatFields,
-      sort: ['prochaine_date'],
+      sort: ['statut', 'prochaine_date'],
       limit: -1
     })) as AchatPrevu[]
   }

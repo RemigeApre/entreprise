@@ -662,18 +662,27 @@ async function createCollections() {
     fields: [
       uuidPK(),
       { field: 'nom', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, sort: 1 } },
-      { field: 'reference', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 2, note: 'Numero de serie, modele...' } },
-      { field: 'description', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 3 } },
+      dropdown('categorie', [
+        { text: 'Informatique', value: 'informatique' },
+        { text: 'Stock produits', value: 'stock_produit' },
+        { text: 'Commercial', value: 'commercial' },
+        { text: 'Bureau', value: 'bureau' },
+        { text: 'Admin', value: 'admin' }
+      ], { required: true, default_value: 'bureau', width: 'half' }),
+      { field: 'reference', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 3, note: 'Numero de serie, modele, ISBN...' } },
+      { field: 'description', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 4 } },
+      { field: 'quantite', type: 'integer', schema: { is_nullable: false, default_value: 1 }, meta: { interface: 'input', width: 'half', sort: 5 } },
       dropdown('etat', [
         { text: 'Neuf', value: 'neuf' },
         { text: 'Bon etat', value: 'bon' },
         { text: 'Use', value: 'use' },
         { text: 'HS', value: 'hs' },
-        { text: 'Vendu', value: 'vendu' }
+        { text: 'Vendu / Epuise', value: 'vendu' }
       ], { required: true, default_value: 'bon', width: 'half' }),
-      { field: 'date_achat', type: 'date', schema: { is_nullable: true }, meta: { interface: 'datetime', width: 'half', sort: 5 } },
-      { field: 'prix_achat', type: 'float', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 6 } },
-      { field: 'notes', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 7 } },
+      { field: 'date_achat', type: 'date', schema: { is_nullable: true }, meta: { interface: 'datetime', width: 'half', sort: 7 } },
+      { field: 'prix_achat', type: 'float', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 8, note: 'Prix total' } },
+      { field: 'prix_unitaire', type: 'float', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 9, note: 'Prix par unite (pour stock)' } },
+      { field: 'notes', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 10 } },
       ...systemFields()
     ]
   }, 'Collection "materiels"')
@@ -686,7 +695,15 @@ async function createCollections() {
     fields: [
       uuidPK(),
       { field: 'nom', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, sort: 1 } },
-      { field: 'prix_estime', type: 'float', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 2 } },
+      dropdown('categorie', [
+        { text: 'Informatique', value: 'informatique' },
+        { text: 'Stock produits', value: 'stock_produit' },
+        { text: 'Commercial', value: 'commercial' },
+        { text: 'Bureau', value: 'bureau' },
+        { text: 'Admin', value: 'admin' }
+      ], { required: true, default_value: 'bureau', width: 'half' }),
+      { field: 'prix_estime', type: 'float', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 3 } },
+      { field: 'quantite', type: 'integer', schema: { is_nullable: false, default_value: 1 }, meta: { interface: 'input', width: 'half', sort: 4 } },
       dropdown('type', [
         { text: 'Ponctuel', value: 'ponctuel' },
         { text: 'Recurrent', value: 'recurrent' }
@@ -696,9 +713,9 @@ async function createCollections() {
         { text: 'Commande', value: 'commande' },
         { text: 'Recu', value: 'recu' }
       ], { required: true, default_value: 'a_acheter', width: 'half' }),
-      { field: 'prochaine_date', type: 'date', schema: { is_nullable: true }, meta: { interface: 'datetime', width: 'half', sort: 5 } },
-      { field: 'recurrence_mois', type: 'integer', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 6, note: 'Tous les X mois (si recurrent)' } },
-      { field: 'notes', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 7 } },
+      { field: 'prochaine_date', type: 'date', schema: { is_nullable: true }, meta: { interface: 'datetime', width: 'half', sort: 7 } },
+      { field: 'recurrence_mois', type: 'integer', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 8, note: 'Tous les X mois (si recurrent)' } },
+      { field: 'notes', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 9 } },
       ...systemFields()
     ]
   }, 'Collection "achats_prevus"')

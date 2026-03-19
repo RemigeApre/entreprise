@@ -418,18 +418,22 @@ export interface Transaction {
 // --- Materiel ---
 
 export type MaterielEtat = 'neuf' | 'bon' | 'use' | 'hs' | 'vendu'
+export type MaterielCategorie = 'informatique' | 'stock_produit' | 'commercial' | 'bureau' | 'admin'
 export type AchatType = 'ponctuel' | 'recurrent'
 export type AchatStatut = 'a_acheter' | 'commande' | 'recu'
 
 export interface Materiel {
   id: string
   nom: string
+  categorie: MaterielCategorie
   reference: string | null
   description: string | null
+  quantite: number
   etat: MaterielEtat
   affecte_a: UserProfile | string | null
   date_achat: string | null
   prix_achat: number | null
+  prix_unitaire: number | null
   notes: string | null
   date_created: string
   user_created: string
@@ -438,7 +442,9 @@ export interface Materiel {
 export interface AchatPrevu {
   id: string
   nom: string
+  categorie: MaterielCategorie
   prix_estime: number | null
+  quantite: number
   type: AchatType
   statut: AchatStatut
   prochaine_date: string | null

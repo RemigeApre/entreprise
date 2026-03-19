@@ -338,12 +338,20 @@ export const TRANSACTION_RECURRENCES = {
 
 // --- Materiel ---
 
+export const MATERIEL_CATEGORIES = {
+  informatique: { label: 'Informatique', icon: 'i-lucide-monitor', desc: 'PC, souris, claviers, cables...' },
+  stock_produit: { label: 'Stock produits', icon: 'i-lucide-book-open', desc: 'Livres, produits a vendre' },
+  commercial: { label: 'Commercial', icon: 'i-lucide-store', desc: 'Tables, chaises, presentoirs, PLV' },
+  bureau: { label: 'Bureau', icon: 'i-lucide-lamp-desk', desc: 'Fournitures, mobilier fixe' },
+  admin: { label: 'Admin', icon: 'i-lucide-folder', desc: 'Tampons, classeurs, divers' }
+} as const
+
 export const MATERIEL_ETATS = {
   neuf: { label: 'Neuf', color: 'green' },
   bon: { label: 'Bon etat', color: 'blue' },
   use: { label: 'Use', color: 'yellow' },
   hs: { label: 'HS', color: 'red' },
-  vendu: { label: 'Vendu', color: 'neutral' }
+  vendu: { label: 'Vendu/Epuise', color: 'neutral' }
 } as const
 
 export const ACHAT_TYPES = {
