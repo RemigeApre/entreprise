@@ -8,7 +8,7 @@ const { user, isProspecteur, fetchCurrentUser } = useAuth()
 const { $directus } = useNuxtApp()
 const { getAll } = useProspects()
 const toast = useToast()
-const { hasQuota, objectifJour, objectifSemaine, weekContacts, todayContacts, progressSemaine, progressJour, loading: quotaLoading, loadWeekContacts, setObjectif } = useProspectQuota()
+const { hasQuota, objectifJour, objectifSemaine, weekContacts, todayContacts, loading: quotaLoading, loadWeekContacts, setObjectif } = useProspectQuota()
 
 const optingIn = ref(false)
 const showQuotaModal = ref(false)
@@ -54,11 +54,6 @@ const { data: prospects, status } = useAsyncData('prospects', getAll)
 const search = ref('')
 const filterStatut = ref<ProspectStatut | 'all'>('all')
 const filterVille = ref('all')
-
-const statutOptions = [
-  { label: 'Tous les statuts', value: 'all' },
-  ...Object.entries(PROSPECT_STATUTS).map(([value, config]) => ({ label: config.label, value }))
-]
 
 const villeOptions = computed(() => {
   if (!prospects.value) return [{ label: 'Toutes les villes', value: 'all' }]
@@ -107,14 +102,8 @@ function clearFilters() {
 }
 
 const stats = computed(() => {
-  if (!prospects.value) return { total: 0, a_contacter: 0, en_discussion: 0, clients: 0 }
-  const all = prospects.value
-  return {
-    total: all.length,
-    a_contacter: all.filter((p: Prospect) => p.statut === 'a_contacter').length,
-    en_discussion: all.filter((p: Prospect) => p.statut === 'premier_contact' || p.statut === 'en_discussion').length,
-    clients: all.filter((p: Prospect) => p.statut === 'client').length
-  }
+  if (!prospects.value) return { total: 0 }
+  return { total: prospects.value.length }
 })
 
 function getProspecteurName(p: Prospect): string {
@@ -126,10 +115,6 @@ function getProspecteurName(p: Prospect): string {
 function formatDateFr(date: string | null) {
   if (!date) return ''
   return new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-}
-
-function getStatutConfig(statut: ProspectStatut) {
-  return PROSPECT_STATUTS[statut] || PROSPECT_STATUTS.a_contacter
 }
 
 function exportCsv() {
@@ -194,16 +179,35 @@ if (import.meta.client) {
 
     <!-- Normal prospection view -->
     <template v-else>
-      <PageHeader title="Prospection">
-        <template #right>
+      <PageHeader>
+        <template #left>
+          <!-- Quota compact -->
+          <button
+            v-if="hasQuota && !quotaLoading"
+            class="flex items-center gap-2 text-xs tabular-nums cursor-pointer hover:opacity-80 transition-opacity"
+            @click="openQuotaModal"
+          >
+            <span class="font-semibold" :class="todayContacts >= objectifJour! ? 'text-emerald-600' : 'text-stone-700'">
+              {{ todayContacts }}/{{ objectifJour }}
+            </span>
+            <span class="text-stone-400">aujourd'hui</span>
+            <span class="text-stone-300">|</span>
+            <span class="font-semibold" :class="weekContacts >= objectifSemaine! ? 'text-emerald-600' : 'text-stone-700'">
+              {{ weekContacts }}/{{ objectifSemaine }}
+            </span>
+            <span class="text-stone-400">semaine</span>
+          </button>
           <UButton
-            :label="hasQuota ? `${objectifJour}/j` : 'Objectif'"
-            :icon="hasQuota ? 'i-lucide-target' : 'i-lucide-settings'"
-            size="sm"
-            :variant="hasQuota ? 'subtle' : 'ghost'"
+            v-else-if="!hasQuota"
+            label="Objectif"
+            icon="i-lucide-target"
+            size="xs"
+            variant="ghost"
             color="neutral"
             @click="openQuotaModal"
           />
+        </template>
+        <template #right>
           <UButton
             icon="i-lucide-download"
             color="neutral"
@@ -228,58 +232,33 @@ if (import.meta.client) {
         </div>
 
         <template v-else>
-          <!-- Quota progress -->
-          <div v-if="hasQuota && !quotaLoading" class="rounded-xl border border-stone-200 p-4 space-y-3">
-            <div class="flex items-center justify-between">
-              <span class="text-sm font-semibold text-stone-900 flex items-center gap-2">
-                <UIcon name="i-lucide-target" class="size-4 text-primary" />
-                Objectif de la semaine
-              </span>
-              <span class="text-sm font-bold tabular-nums" :class="weekContacts >= objectifSemaine! ? 'text-emerald-600' : 'text-stone-700'">
-                {{ weekContacts }} / {{ objectifSemaine }}
-                <span class="text-xs font-normal text-stone-400 ml-1">contacts</span>
-              </span>
-            </div>
-            <div class="h-2.5 bg-[rgba(175,143,60,0.06)] rounded-full overflow-hidden">
-              <div
-                class="h-full rounded-full transition-all duration-500"
-                :class="progressSemaine >= 100 ? 'bg-emerald-500' : progressSemaine >= 60 ? 'bg-amber-500' : 'bg-primary'"
-                :style="{ width: progressSemaine + '%' }"
-              />
-            </div>
-            <div class="flex items-center justify-between text-xs text-stone-500">
-              <span>
-                Aujourd'hui : <strong class="text-stone-700">{{ todayContacts }} / {{ objectifJour }}</strong>
-              </span>
-              <span v-if="progressSemaine >= 100" class="text-emerald-600 font-medium">
-                Objectif atteint !
-              </span>
-              <span v-else>
-                Reste {{ objectifSemaine! - weekContacts }} cette semaine
-              </span>
-            </div>
+          <!-- Status filter pills -->
+          <div v-if="prospects && prospects.length" class="flex flex-wrap items-center gap-1.5">
+            <button
+              class="px-2.5 py-1 rounded-full text-xs font-medium transition-all"
+              :class="filterStatut === 'all'
+                ? 'bg-stone-800 text-white'
+                : 'text-stone-500 hover:bg-stone-200/60'"
+              @click="filterStatut = 'all'"
+            >
+              Tous
+              <span class="ml-0.5 opacity-60">{{ stats.total }}</span>
+            </button>
+            <button
+              v-for="(config, key) in PROSPECT_STATUTS"
+              :key="key"
+              class="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all"
+              :class="filterStatut === key
+                ? 'bg-stone-800 text-white'
+                : 'text-stone-500 hover:bg-stone-200/60'"
+              @click="filterStatut = filterStatut === key ? 'all' : (key as ProspectStatut)"
+            >
+              <UIcon :name="config.icon" class="size-3" />
+              {{ config.label }}
+            </button>
           </div>
 
-          <!-- Stats -->
-          <div v-if="prospects && prospects.length" class="flex flex-wrap items-center gap-4 text-xs">
-            <span class="text-[#2c2419]/60">
-              <strong class="text-[#2c2419]">{{ stats.total }}</strong> prospect{{ stats.total > 1 ? 's' : '' }}
-            </span>
-            <span class="flex items-center gap-1 text-stone-500">
-              <span class="size-1.5 rounded-full bg-stone-400" />
-              {{ stats.a_contacter }} a contacter
-            </span>
-            <span class="flex items-center gap-1 text-amber-600">
-              <span class="size-1.5 rounded-full bg-amber-500" />
-              {{ stats.en_discussion }} en discussion
-            </span>
-            <span class="flex items-center gap-1 text-emerald-600">
-              <span class="size-1.5 rounded-full bg-emerald-500" />
-              {{ stats.clients }} client{{ stats.clients > 1 ? 's' : '' }}
-            </span>
-          </div>
-
-          <!-- Filters -->
+          <!-- Search + ville filter -->
           <div class="flex flex-wrap items-center gap-2">
             <UInput
               v-model="search"
@@ -289,7 +268,6 @@ if (import.meta.client) {
               class="w-full sm:w-52"
             />
             <USelect v-model="filterVille" :items="villeOptions" value-key="value" size="sm" class="w-[calc(50%-4px)] sm:w-44" />
-            <USelect v-model="filterStatut" :items="statutOptions" value-key="value" size="sm" class="w-[calc(50%-4px)] sm:w-40" />
             <UButton
               v-if="hasFilters"
               label="Effacer"
@@ -299,7 +277,7 @@ if (import.meta.client) {
               size="xs"
               @click="clearFilters"
             />
-            <span v-if="hasFilters" class="text-xs text-stone-400 ml-1">
+            <span v-if="hasFilters" class="text-xs text-stone-500 ml-1">
               {{ filteredProspects.length }} resultat{{ filteredProspects.length > 1 ? 's' : '' }}
             </span>
           </div>
@@ -343,7 +321,7 @@ if (import.meta.client) {
           </div>
 
           <!-- Cards -->
-          <div v-else class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+          <div v-else class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-2.5">
             <NuxtLink
               v-for="prospect in pagedProspects"
               :key="prospect.id"
@@ -351,60 +329,45 @@ if (import.meta.client) {
               class="block group"
             >
               <div
-                class="relative flex flex-col gap-2.5 rounded-xl border p-4 transition-all h-full hover:border-[#af8f3c]/30 hover:bg-[#af8f3c]/[0.03]"
-                :class="prospect.statut === 'client'
-                  ? 'border-emerald-200/60'
-                  : prospect.statut === 'cloture'
-                    ? 'border-stone-200/60 opacity-60'
-                    : 'border-stone-200'"
+                class="relative flex items-center gap-3 rounded-lg border px-3.5 py-3 transition-all hover:border-[#af8f3c]/30 hover:bg-[#af8f3c]/[0.03]"
+                :class="prospect.statut === 'cloture'
+                  ? 'border-stone-200/60 opacity-50'
+                  : 'border-stone-200'"
               >
-                <!-- Header -->
-                <div class="flex items-start justify-between gap-2">
-                  <div class="flex-1 min-w-0">
+                <!-- Left: status indicator -->
+                <div
+                  class="shrink-0 size-2 rounded-full"
+                  :class="{
+                    'bg-stone-300': prospect.statut === 'a_contacter',
+                    'bg-blue-400': prospect.statut === 'premier_contact',
+                    'bg-amber-400': prospect.statut === 'en_discussion',
+                    'bg-emerald-500': prospect.statut === 'client',
+                    'bg-stone-300/60': prospect.statut === 'cloture'
+                  }"
+                />
+
+                <!-- Center: info -->
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
                     <h3 class="text-sm font-semibold text-[#2c2419] truncate group-hover:text-[#af8f3c] transition-colors">
                       {{ prospect.nom_entreprise }}
                     </h3>
-                    <p v-if="prospect.contact_nom" class="text-[11px] text-stone-500 truncate">
-                      {{ prospect.contact_nom }}
-                    </p>
+                    <span class="text-[11px] text-stone-400 shrink-0">{{ prospect.ville }}</span>
                   </div>
-                  <UBadge
-                    :color="(getStatutConfig(prospect.statut).color as any)"
-                    variant="subtle"
-                    size="xs"
-                  >
-                    {{ getStatutConfig(prospect.statut).label }}
-                  </UBadge>
-                </div>
-
-                <!-- Info -->
-                <div class="flex flex-wrap items-center gap-2 text-[11px] text-stone-500">
-                  <span class="flex items-center gap-1">
-                    <UIcon name="i-lucide-map-pin" class="size-3" />
-                    {{ prospect.ville }}
-                  </span>
-                  <span v-if="prospect.secteur" class="flex items-center gap-1">
-                    <UIcon name="i-lucide-briefcase" class="size-3" />
-                    {{ prospect.secteur }}
-                  </span>
-                  <span v-if="prospect.telephone" class="flex items-center gap-1">
-                    <UIcon name="i-lucide-phone" class="size-3" />
-                    {{ prospect.telephone }}
-                  </span>
-                </div>
-
-                <!-- Footer -->
-                <div class="flex items-center justify-between text-[11px] text-stone-400 mt-auto pt-2 border-t border-stone-100">
-                  <span v-if="prospect.nb_contacts" class="flex items-center gap-1">
-                    <UIcon name="i-lucide-message-circle" class="size-3" />
-                    {{ prospect.nb_contacts }} contact{{ prospect.nb_contacts > 1 ? 's' : '' }}
-                  </span>
-                  <span v-else>Aucun contact</span>
-                  <div class="flex items-center gap-2">
-                    <span v-if="getProspecteurName(prospect)">{{ getProspecteurName(prospect) }}</span>
-                    <span>{{ formatDateFr(prospect.date_created) }}</span>
+                  <div class="flex items-center gap-2 mt-0.5 text-[11px] text-stone-500">
+                    <span v-if="prospect.contact_nom" class="truncate">{{ prospect.contact_nom }}</span>
+                    <span v-if="prospect.telephone" class="flex items-center gap-0.5 shrink-0 font-medium tabular-nums">
+                      <UIcon name="i-lucide-phone" class="size-2.5" />
+                      {{ prospect.telephone }}
+                    </span>
+                    <span v-if="prospect.nb_contacts" class="shrink-0 text-stone-400">
+                      {{ prospect.nb_contacts }} contact{{ prospect.nb_contacts > 1 ? 's' : '' }}
+                    </span>
                   </div>
                 </div>
+
+                <!-- Right: date -->
+                <span class="text-[10px] text-stone-400 shrink-0">{{ formatDateFr(prospect.date_created) }}</span>
               </div>
             </NuxtLink>
           </div>
