@@ -50,6 +50,6 @@ defineProps<{
   font-weight: 400;
   letter-spacing: 0.08em;
   color: #2c2419;
-  opacity: 0.45;
+  opacity: 0.6;
 }
 </style>

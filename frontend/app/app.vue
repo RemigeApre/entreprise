@@ -11,7 +11,7 @@ useHead({
   },
   // Fond crème par défaut pour éviter le flash blanc au démarrage SPA
   style: [
-    { children: 'html, body { background-color: #EDE5D0; }' }
+    { children: 'html, body { background-color: #E6E2DA; }' }
   ]
 })
 

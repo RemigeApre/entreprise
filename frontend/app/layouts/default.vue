@@ -475,15 +475,15 @@ const userMenuItems = computed(() => [
   --gold: #AF8F3C;
   --gold-dim: rgba(175, 143, 60, 0.25);
   --gold-faint: rgba(175, 143, 60, 0.08);
-  --cream: #F7F0DE;
-  --parchment: #f5efe0;
+  --cream: #EFEBE2;
+  --parchment: #EAE6DE;
   --ink: #2c2419;
   --sidebar-w: 56px;
 
   display: flex;
   height: 100dvh;
   overflow: hidden;
-  background-color: var(--cream);
+  background-color: #E6E2DA;
   color: var(--ink);
   font-family: 'Crimson Pro', Georgia, serif;
 }
@@ -499,7 +499,7 @@ const userMenuItems = computed(() => [
   flex-shrink: 0;
   padding: 10px 0 12px;
   border-right: 1px solid rgba(175, 143, 60, 0.15);
-  background: linear-gradient(180deg, #ede5d0 0%, #e8dfc8 100%);
+  background: linear-gradient(180deg, #e4e0d8 0%, #ddd9d1 100%);
   position: relative;
   z-index: 10;
 }
@@ -631,7 +631,7 @@ const userMenuItems = computed(() => [
 .tab-bar {
   display: block;
   border-bottom: 1px solid rgba(175, 143, 60, 0.12);
-  background: #f0e8d4;
+  background: #E4E0D8;
   flex-shrink: 0;
   position: relative;
   z-index: 10;
@@ -737,15 +737,15 @@ const userMenuItems = computed(() => [
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: #ede5d0;
-  border: 1px solid #d4c9a8;
+  background: #e4e0d8;
+  border: 1px solid #ccc8be;
   color: var(--ink);
   box-shadow: 0 2px 8px rgba(44, 36, 25, 0.15);
   transition: transform 0.1s;
 }
 .mobile-menu-trigger:active {
   transform: scale(0.93);
-  background: #e6dcc4;
+  background: #ddd9d1;
 }
 
 /* ============================
@@ -758,7 +758,7 @@ const userMenuItems = computed(() => [
   position: fixed;
   inset: 0;
   z-index: 61;
-  background: #ede5d0;
+  background: #e4e0d8;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -774,9 +774,9 @@ const userMenuItems = computed(() => [
   align-items: center;
   justify-content: space-between;
   padding: 18px 20px;
-  border-bottom: 1px solid #d4c9a8;
+  border-bottom: 1px solid #ccc8be;
   flex-shrink: 0;
-  background: #e6dcc4;
+  background: #ddd9d1;
 }
 .drawer-logo {
   display: flex;
@@ -827,7 +827,7 @@ const userMenuItems = computed(() => [
 }
 .drawer-close:active {
   opacity: 1;
-  background: #d9cfb3;
+  background: #d4d0c8;
 }
 
 /* ── Navigation ── */
@@ -841,13 +841,13 @@ const userMenuItems = computed(() => [
 
 /* Dashboard link */
 .drawer-link--dashboard {
-  background: #e6dcc4;
+  background: #ddd9d1;
   border-left: 3px solid var(--gold);
   border-radius: 0 10px 10px 0;
   margin-bottom: 4px;
 }
 .drawer-link--dashboard.is-active {
-  background: #ddd2b4;
+  background: #d4d0c8;
 }
 
 /* Domain groups */
@@ -855,7 +855,7 @@ const userMenuItems = computed(() => [
   border-radius: 0;
 }
 .drawer-group + .drawer-group {
-  border-top: 1px solid #d4c9a8;
+  border-top: 1px solid #ccc8be;
 }
 
 /* Collapsible toggle */
@@ -873,7 +873,7 @@ const userMenuItems = computed(() => [
   transition: background 0.1s;
 }
 .drawer-group-toggle:active {
-  background: #d9cfb3;
+  background: #d4d0c8;
 }
 .drawer-group-toggle.is-active {
   color: var(--gold);
@@ -896,7 +896,7 @@ const userMenuItems = computed(() => [
   display: flex;
   flex-direction: column;
   padding: 0 4px 8px 20px;
-  border-left: 2px solid #d4c9a8;
+  border-left: 2px solid #ccc8be;
   margin-left: 28px;
   margin-bottom: 4px;
 }
@@ -916,11 +916,11 @@ const userMenuItems = computed(() => [
   transition: background 0.1s;
 }
 .drawer-link:active {
-  background: #d9cfb3;
+  background: #d4d0c8;
 }
 .drawer-link.is-active {
   color: var(--gold);
-  background: #e6dcc4;
+  background: #ddd9d1;
   font-weight: 600;
 }
 
@@ -939,12 +939,12 @@ const userMenuItems = computed(() => [
   transition: background 0.1s;
 }
 .drawer-tab:active {
-  background: #d9cfb3;
+  background: #d4d0c8;
 }
 .drawer-tab.is-active {
   opacity: 1;
   color: var(--gold);
-  background: #e6dcc4;
+  background: #ddd9d1;
   font-weight: 600;
   border-left: 3px solid var(--gold);
   border-radius: 0 8px 8px 0;
@@ -957,13 +957,13 @@ const userMenuItems = computed(() => [
 
 /* ── Footer ── */
 .drawer-footer {
-  border-top: 1px solid #d4c9a8;
+  border-top: 1px solid #ccc8be;
   padding: 10px 12px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  background: #e6dcc4;
+  background: #ddd9d1;
 }
 .drawer-action {
   display: flex;
@@ -980,14 +980,14 @@ const userMenuItems = computed(() => [
   transition: background 0.1s;
 }
 .drawer-action:active {
-  background: #d9cfb3;
+  background: #d4d0c8;
 }
 .drawer-action--logout {
   color: #B74D34;
   font-weight: 600;
 }
 .drawer-action--logout:active {
-  background: #e0cdb5;
+  background: #d8d4cc;
 }
 
 /* ============================
@@ -1068,6 +1068,6 @@ const userMenuItems = computed(() => [
 <style>
 /* Global styles for intranet root background */
 html:has(.intranet-root) {
-  background-color: #F7F0DE;
+  background-color: #E6E2DA;
 }
 </style>

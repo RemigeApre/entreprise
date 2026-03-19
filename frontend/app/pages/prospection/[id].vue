@@ -312,52 +312,52 @@ function getResultatIcon(resultat: ContactResultat): string {
                   <!-- Info grid -->
                   <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm border-t border-stone-100 pt-4">
                     <div>
-                      <p class="text-xs text-stone-400 mb-0.5">Ville</p>
+                      <p class="text-xs text-stone-500 mb-0.5">Ville</p>
                       <p class="font-medium text-stone-800">{{ prospect.ville }}</p>
                     </div>
                     <div>
-                      <p class="text-xs text-stone-400 mb-0.5">Secteur</p>
+                      <p class="text-xs text-stone-500 mb-0.5">Secteur</p>
                       <p class="font-medium text-stone-800">{{ prospect.secteur || '—' }}</p>
                     </div>
                     <div v-if="prospect.contact_nom" class="col-span-2">
-                      <p class="text-xs text-stone-400 mb-0.5">Contact</p>
+                      <p class="text-xs text-stone-500 mb-0.5">Contact</p>
                       <p class="font-medium text-stone-800">{{ prospect.contact_nom }}</p>
                     </div>
                     <div v-if="prospect.telephone">
-                      <p class="text-xs text-stone-400 mb-0.5">Téléphone</p>
+                      <p class="text-xs text-stone-500 mb-0.5">Téléphone</p>
                       <a :href="`tel:${prospect.telephone}`" class="font-medium text-primary hover:underline text-sm">{{ prospect.telephone }}</a>
                     </div>
                     <div v-if="prospect.email">
-                      <p class="text-xs text-stone-400 mb-0.5">Email</p>
+                      <p class="text-xs text-stone-500 mb-0.5">Email</p>
                       <a :href="`mailto:${prospect.email}`" class="font-medium text-primary hover:underline truncate block text-sm">{{ prospect.email }}</a>
                     </div>
                     <div v-if="prospect.site_web" class="col-span-2">
-                      <p class="text-xs text-stone-400 mb-0.5">Site web</p>
+                      <p class="text-xs text-stone-500 mb-0.5">Site web</p>
                       <a :href="prospect.site_web" target="_blank" rel="noopener" class="font-medium text-primary hover:underline truncate block text-sm">{{ prospect.site_web }}</a>
                     </div>
                     <div v-if="prospect.adresse" class="col-span-2">
-                      <p class="text-xs text-stone-400 mb-0.5">Adresse</p>
+                      <p class="text-xs text-stone-500 mb-0.5">Adresse</p>
                       <p class="font-medium text-stone-800 text-sm">{{ prospect.adresse }}</p>
                     </div>
                     <div>
-                      <p class="text-xs text-stone-400 mb-0.5">Prospecteur</p>
+                      <p class="text-xs text-stone-500 mb-0.5">Prospecteur</p>
                       <p class="font-medium text-stone-800 text-sm">{{ getProspecteurName(prospect) }}</p>
                     </div>
                     <div>
-                      <p class="text-xs text-stone-400 mb-0.5">Créé le</p>
+                      <p class="text-xs text-stone-500 mb-0.5">Créé le</p>
                       <p class="font-medium text-stone-800 text-sm">{{ formatDateFr(prospect.date_created) }}</p>
                     </div>
                   </div>
 
                   <!-- Notes -->
                   <div v-if="prospect.notes" class="border-t border-stone-100 pt-3">
-                    <p class="text-xs text-stone-400 mb-1.5">Notes</p>
+                    <p class="text-xs text-stone-500 mb-1.5">Notes</p>
                     <p class="text-sm text-stone-700 whitespace-pre-line">{{ prospect.notes }}</p>
                   </div>
 
                   <!-- Emails secondaires -->
                   <div v-if="prospect.emails_secondaires" class="border-t border-stone-100 pt-3">
-                    <p class="text-xs text-stone-400 mb-1.5">Emails secondaires</p>
+                    <p class="text-xs text-stone-500 mb-1.5">Emails secondaires</p>
                     <p class="text-xs text-stone-600 whitespace-pre-line">{{ prospect.emails_secondaires }}</p>
                   </div>
                 </div>
@@ -371,7 +371,7 @@ function getResultatIcon(resultat: ContactResultat): string {
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                       <span class="text-sm font-semibold text-stone-900">Contacts</span>
-                      <span v-if="sortedContacts.length" class="text-xs text-stone-400 tabular-nums">{{ sortedContacts.length }}</span>
+                      <span v-if="sortedContacts.length" class="text-xs text-stone-500 tabular-nums">{{ sortedContacts.length }}</span>
                     </div>
                     <UButton label="Ajouter" icon="i-lucide-plus" size="xs" @click="showContactModal = true" />
                   </div>
@@ -417,10 +417,10 @@ function getResultatIcon(resultat: ContactResultat): string {
                         >
                           {{ CONTACT_RESULTATS[contact.resultat]?.label || contact.resultat }}
                         </UBadge>
-                        <span class="text-[11px] text-stone-400 ml-auto">{{ formatDateShort(contact.date_contact) }}</span>
+                        <span class="text-[11px] text-stone-500 ml-auto">{{ formatDateShort(contact.date_contact) }}</span>
                       </div>
                       <p v-if="contact.notes" class="text-sm text-stone-700 whitespace-pre-line">{{ contact.notes }}</p>
-                      <p class="text-[11px] text-stone-400 mt-0.5">{{ getContactUserName(contact) }}</p>
+                      <p class="text-[11px] text-stone-500 mt-0.5">{{ getContactUserName(contact) }}</p>
                     </div>
                   </div>
                 </div>
