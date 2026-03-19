@@ -339,11 +339,36 @@ export const TRANSACTION_RECURRENCES = {
 // --- Materiel ---
 
 export const MATERIEL_CATEGORIES = {
-  informatique: { label: 'Informatique', icon: 'i-lucide-monitor', desc: 'PC, souris, claviers, cables...' },
-  stock_produit: { label: 'Stock produits', icon: 'i-lucide-book-open', desc: 'Livres, produits a vendre' },
-  commercial: { label: 'Commercial', icon: 'i-lucide-store', desc: 'Tables, chaises, presentoirs, PLV' },
-  bureau: { label: 'Bureau', icon: 'i-lucide-lamp-desk', desc: 'Fournitures, mobilier fixe' },
-  admin: { label: 'Admin', icon: 'i-lucide-folder', desc: 'Tampons, classeurs, divers' }
+  informatique: { label: 'Informatique', icon: 'i-lucide-monitor' },
+  commercial: { label: 'Commercial', icon: 'i-lucide-store' },
+  bureau: { label: 'Bureau', icon: 'i-lucide-lamp-desk' },
+  admin: { label: 'Admin', icon: 'i-lucide-folder' }
+} as const
+
+export const MATERIEL_TYPES: Record<string, { label: string, prefix: string, categorie: string }> = {
+  // Informatique
+  ordinateur_portable: { label: 'Ordinateur portable', prefix: 'OP', categorie: 'informatique' },
+  ordinateur_fixe: { label: 'Ordinateur fixe', prefix: 'OF', categorie: 'informatique' },
+  ecran: { label: 'Ecran', prefix: 'EC', categorie: 'informatique' },
+  souris: { label: 'Souris', prefix: 'SO', categorie: 'informatique' },
+  clavier: { label: 'Clavier', prefix: 'CL', categorie: 'informatique' },
+  cable: { label: 'Cable', prefix: 'CA', categorie: 'informatique' },
+  autre_it: { label: 'Autre IT', prefix: 'IT', categorie: 'informatique' },
+  // Commercial
+  table_pliante: { label: 'Table pliante', prefix: 'TP', categorie: 'commercial' },
+  chaise_pliante: { label: 'Chaise pliante', prefix: 'CP', categorie: 'commercial' },
+  presentoir_livres: { label: 'Presentoir livres', prefix: 'PL', categorie: 'commercial' },
+  presentoir_prospectus: { label: 'Presentoir prospectus', prefix: 'PP', categorie: 'commercial' },
+  plv: { label: 'PLV / Signalisation', prefix: 'PV', categorie: 'commercial' },
+  autre_commercial: { label: 'Autre commercial', prefix: 'CM', categorie: 'commercial' },
+  // Bureau
+  mobilier: { label: 'Mobilier', prefix: 'MB', categorie: 'bureau' },
+  fourniture: { label: 'Fourniture', prefix: 'FO', categorie: 'bureau' },
+  autre_bureau: { label: 'Autre bureau', prefix: 'BU', categorie: 'bureau' },
+  // Admin
+  tampon: { label: 'Tampon / Cachet', prefix: 'TA', categorie: 'admin' },
+  classeur: { label: 'Classeur / Archivage', prefix: 'AR', categorie: 'admin' },
+  autre_admin: { label: 'Autre admin', prefix: 'AD', categorie: 'admin' }
 } as const
 
 export const MATERIEL_ETATS = {
@@ -351,7 +376,15 @@ export const MATERIEL_ETATS = {
   bon: { label: 'Bon etat', color: 'blue' },
   use: { label: 'Use', color: 'yellow' },
   hs: { label: 'HS', color: 'red' },
-  vendu: { label: 'Vendu/Epuise', color: 'neutral' }
+  a_acquerir: { label: 'A acquerir', color: 'orange' },
+  vendu: { label: 'Cede / Perdu', color: 'neutral' }
+} as const
+
+export const PRODUIT_TYPES = {
+  livre: { label: 'Livre', prefix: 'LV', icon: 'i-lucide-book-open' },
+  derive: { label: 'Produit derive', prefix: 'PD', icon: 'i-lucide-package' },
+  service: { label: 'Service', prefix: 'SV', icon: 'i-lucide-briefcase' },
+  autre: { label: 'Autre', prefix: 'PR', icon: 'i-lucide-tag' }
 } as const
 
 export const ACHAT_TYPES = {

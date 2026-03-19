@@ -658,34 +658,77 @@ async function createCollections() {
   await safeApi('POST', '/collections', {
     collection: 'materiels',
     schema: {},
-    meta: { icon: 'devices', note: 'Inventaire materiel', sort: 15 },
+    meta: { icon: 'devices', note: 'Inventaire materiel interne', sort: 15 },
     fields: [
       uuidPK(),
-      { field: 'nom', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, sort: 1 } },
+      { field: 'code', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, width: 'half', sort: 1, note: 'Code auto (ex: OP-0001)' } },
+      { field: 'nom', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, sort: 2 } },
+      dropdown('type_materiel', [
+        { text: 'Ordinateur portable', value: 'ordinateur_portable' },
+        { text: 'Ordinateur fixe', value: 'ordinateur_fixe' },
+        { text: 'Ecran', value: 'ecran' },
+        { text: 'Souris', value: 'souris' },
+        { text: 'Clavier', value: 'clavier' },
+        { text: 'Cable', value: 'cable' },
+        { text: 'Autre IT', value: 'autre_it' },
+        { text: 'Table pliante', value: 'table_pliante' },
+        { text: 'Chaise pliante', value: 'chaise_pliante' },
+        { text: 'Presentoir livres', value: 'presentoir_livres' },
+        { text: 'Presentoir prospectus', value: 'presentoir_prospectus' },
+        { text: 'PLV / Signalisation', value: 'plv' },
+        { text: 'Autre commercial', value: 'autre_commercial' },
+        { text: 'Mobilier', value: 'mobilier' },
+        { text: 'Fourniture', value: 'fourniture' },
+        { text: 'Autre bureau', value: 'autre_bureau' },
+        { text: 'Tampon / Cachet', value: 'tampon' },
+        { text: 'Classeur / Archivage', value: 'classeur' },
+        { text: 'Autre admin', value: 'autre_admin' }
+      ], { required: true, width: 'half' }),
       dropdown('categorie', [
         { text: 'Informatique', value: 'informatique' },
-        { text: 'Stock produits', value: 'stock_produit' },
         { text: 'Commercial', value: 'commercial' },
         { text: 'Bureau', value: 'bureau' },
         { text: 'Admin', value: 'admin' }
       ], { required: true, default_value: 'bureau', width: 'half' }),
-      { field: 'reference', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 3, note: 'Numero de serie, modele, ISBN...' } },
-      { field: 'description', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 4 } },
-      { field: 'quantite', type: 'integer', schema: { is_nullable: false, default_value: 1 }, meta: { interface: 'input', width: 'half', sort: 5 } },
+      { field: 'description', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 5 } },
+      { field: 'quantite', type: 'integer', schema: { is_nullable: false, default_value: 1 }, meta: { interface: 'input', width: 'half', sort: 6 } },
       dropdown('etat', [
         { text: 'Neuf', value: 'neuf' },
         { text: 'Bon etat', value: 'bon' },
         { text: 'Use', value: 'use' },
         { text: 'HS', value: 'hs' },
-        { text: 'Vendu / Epuise', value: 'vendu' }
+        { text: 'A acquerir', value: 'a_acquerir' },
+        { text: 'Cede / Perdu', value: 'vendu' }
       ], { required: true, default_value: 'bon', width: 'half' }),
-      { field: 'date_achat', type: 'date', schema: { is_nullable: true }, meta: { interface: 'datetime', width: 'half', sort: 7 } },
-      { field: 'prix_achat', type: 'float', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 8, note: 'Prix total' } },
-      { field: 'prix_unitaire', type: 'float', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 9, note: 'Prix par unite (pour stock)' } },
-      { field: 'notes', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 10 } },
+      { field: 'cout', type: 'float', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 8, note: 'Cout d acquisition (optionnel)' } },
+      { field: 'notes', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 9 } },
       ...systemFields()
     ]
   }, 'Collection "materiels"')
+
+  // ── produits (a vendre) ──
+  await safeApi('POST', '/collections', {
+    collection: 'produits',
+    schema: {},
+    meta: { icon: 'storefront', note: 'Produits a la vente', sort: 15.5 },
+    fields: [
+      uuidPK(),
+      { field: 'code', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, width: 'half', sort: 1 } },
+      { field: 'nom', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, sort: 2 } },
+      dropdown('type_produit', [
+        { text: 'Livre', value: 'livre' },
+        { text: 'Produit derive', value: 'derive' },
+        { text: 'Service', value: 'service' },
+        { text: 'Autre', value: 'autre' }
+      ], { required: true, default_value: 'livre', width: 'half' }),
+      { field: 'prix_vente', type: 'float', schema: { is_nullable: false }, meta: { interface: 'input', required: true, width: 'half', sort: 4 } },
+      { field: 'prix_revient', type: 'float', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 5, note: 'Cout de fabrication/achat' } },
+      { field: 'stock', type: 'integer', schema: { is_nullable: false, default_value: 0 }, meta: { interface: 'input', width: 'half', sort: 6 } },
+      { field: 'description', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 7 } },
+      { field: 'notes', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 8 } },
+      ...systemFields()
+    ]
+  }, 'Collection "produits"')
 
   // ── achats_prevus ──
   await safeApi('POST', '/collections', {
@@ -697,7 +740,6 @@ async function createCollections() {
       { field: 'nom', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, sort: 1 } },
       dropdown('categorie', [
         { text: 'Informatique', value: 'informatique' },
-        { text: 'Stock produits', value: 'stock_produit' },
         { text: 'Commercial', value: 'commercial' },
         { text: 'Bureau', value: 'bureau' },
         { text: 'Admin', value: 'admin' }
@@ -1185,6 +1227,12 @@ async function setupPermissions(roleIds) {
       { collection: 'transactions', action: 'read', fields: ['*'], permissions: {} },
       { collection: 'transactions', action: 'update', fields: ['*'], permissions: {} },
       { collection: 'transactions', action: 'delete', permissions: { user_created: { _eq: '$CURRENT_USER' } } },
+
+      // Produits: full CRUD
+      { collection: 'produits', action: 'create', fields: ['*'], permissions: {} },
+      { collection: 'produits', action: 'read', fields: ['*'], permissions: {} },
+      { collection: 'produits', action: 'update', fields: ['*'], permissions: {} },
+      { collection: 'produits', action: 'delete', permissions: { user_created: { _eq: '$CURRENT_USER' } } },
 
       // Materiels: full CRUD
       { collection: 'materiels', action: 'create', fields: ['*'], permissions: {} },

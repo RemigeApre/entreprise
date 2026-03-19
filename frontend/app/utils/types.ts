@@ -417,23 +417,37 @@ export interface Transaction {
 
 // --- Materiel ---
 
-export type MaterielEtat = 'neuf' | 'bon' | 'use' | 'hs' | 'vendu'
-export type MaterielCategorie = 'informatique' | 'stock_produit' | 'commercial' | 'bureau' | 'admin'
+export type MaterielEtat = 'neuf' | 'bon' | 'use' | 'hs' | 'a_acquerir' | 'vendu'
+export type MaterielCategorie = 'informatique' | 'commercial' | 'bureau' | 'admin'
 export type AchatType = 'ponctuel' | 'recurrent'
 export type AchatStatut = 'a_acheter' | 'commande' | 'recu'
+export type ProduitType = 'livre' | 'derive' | 'service' | 'autre'
 
 export interface Materiel {
   id: string
+  code: string
   nom: string
+  type_materiel: string
   categorie: MaterielCategorie
-  reference: string | null
   description: string | null
   quantite: number
   etat: MaterielEtat
   affecte_a: UserProfile | string | null
-  date_achat: string | null
-  prix_achat: number | null
-  prix_unitaire: number | null
+  cout: number | null
+  notes: string | null
+  date_created: string
+  user_created: string
+}
+
+export interface Produit {
+  id: string
+  code: string
+  nom: string
+  type_produit: ProduitType
+  prix_vente: number
+  prix_revient: number | null
+  stock: number
+  description: string | null
   notes: string | null
   date_created: string
   user_created: string
@@ -481,6 +495,7 @@ export interface DirectusSchema {
   evenements_participants: EvenementParticipant[]
   transactions: Transaction[]
   materiels: Materiel[]
+  produits: Produit[]
   achats_prevus: AchatPrevu[]
   directus_users: UserProfile[]
   recruteur_disponibilites: RecruteurDisponibilite[]

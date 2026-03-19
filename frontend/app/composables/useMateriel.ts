@@ -1,13 +1,19 @@
 import { readItems, createItem, updateItem, deleteItem } from '@directus/sdk'
-import type { Materiel, AchatPrevu } from '~/utils/types'
+import type { Materiel, Produit, AchatPrevu } from '~/utils/types'
+import { MATERIEL_TYPES } from '~/utils/constants'
 
 export function useMateriel() {
   const { $directus } = useNuxtApp()
 
   const materielFields = [
-    'id', 'nom', 'categorie', 'reference', 'description', 'quantite', 'etat',
+    'id', 'code', 'nom', 'type_materiel', 'categorie', 'description', 'quantite', 'etat',
     'affecte_a.id', 'affecte_a.first_name', 'affecte_a.last_name',
-    'date_achat', 'prix_achat', 'prix_unitaire', 'notes', 'date_created'
+    'cout', 'notes', 'date_created'
+  ]
+
+  const produitFields = [
+    'id', 'code', 'nom', 'type_produit', 'prix_vente', 'prix_revient',
+    'stock', 'description', 'notes', 'date_created'
   ]
 
   const achatFields = [
@@ -15,15 +21,52 @@ export function useMateriel() {
     'prochaine_date', 'recurrence_mois', 'notes', 'date_created'
   ]
 
+  // --- Generate code ---
+  async function generateCode(typeMateriel: string): Promise<string> {
+    const config = MATERIEL_TYPES[typeMateriel]
+    const prefix = config?.prefix || 'XX'
+    const existing = await $directus.request(readItems('materiels', {
+      filter: { type_materiel: { _eq: typeMateriel } },
+      fields: ['code'],
+      sort: ['-code'],
+      limit: 1
+    })) as { code: string }[]
+    let num = 1
+    if (existing.length && existing[0].code) {
+      const match = existing[0].code.match(/(\d+)$/)
+      if (match) num = parseInt(match[1]) + 1
+    }
+    return `${prefix}-${String(num).padStart(4, '0')}`
+  }
+
+  async function generateProduitCode(typeProduit: string): Promise<string> {
+    const prefixMap: Record<string, string> = { livre: 'LV', derive: 'PD', service: 'SV', autre: 'PR' }
+    const prefix = prefixMap[typeProduit] || 'PR'
+    const existing = await $directus.request(readItems('produits', {
+      filter: { type_produit: { _eq: typeProduit } },
+      fields: ['code'],
+      sort: ['-code'],
+      limit: 1
+    })) as { code: string }[]
+    let num = 1
+    if (existing.length && existing[0].code) {
+      const match = existing[0].code.match(/(\d+)$/)
+      if (match) num = parseInt(match[1]) + 1
+    }
+    return `${prefix}-${String(num).padStart(4, '0')}`
+  }
+
+  // --- Materiels ---
   async function getAllMateriels() {
     return await $directus.request(readItems('materiels', {
-      fields: materielFields,
-      sort: ['categorie', 'nom'],
-      limit: -1
+      fields: materielFields, sort: ['categorie', 'type_materiel', 'code'], limit: -1
     })) as Materiel[]
   }
 
   async function createMateriel(data: Partial<Materiel>) {
+    if (!data.code && data.type_materiel) {
+      data.code = await generateCode(data.type_materiel)
+    }
     return await $directus.request(createItem('materiels', data)) as Materiel
   }
 
@@ -35,11 +78,32 @@ export function useMateriel() {
     await $directus.request(deleteItem('materiels', id))
   }
 
+  // --- Produits ---
+  async function getAllProduits() {
+    return await $directus.request(readItems('produits', {
+      fields: produitFields, sort: ['type_produit', 'nom'], limit: -1
+    })) as Produit[]
+  }
+
+  async function createProduit(data: Partial<Produit>) {
+    if (!data.code && data.type_produit) {
+      data.code = await generateProduitCode(data.type_produit)
+    }
+    return await $directus.request(createItem('produits', data)) as Produit
+  }
+
+  async function updateProduit(id: string, data: Partial<Produit>) {
+    return await $directus.request(updateItem('produits', id, data)) as Produit
+  }
+
+  async function removeProduit(id: string) {
+    await $directus.request(deleteItem('produits', id))
+  }
+
+  // --- Achats ---
   async function getAllAchats() {
     return await $directus.request(readItems('achats_prevus', {
-      fields: achatFields,
-      sort: ['statut', 'prochaine_date'],
-      limit: -1
+      fields: achatFields, sort: ['statut', 'prochaine_date'], limit: -1
     })) as AchatPrevu[]
   }
 
@@ -56,7 +120,9 @@ export function useMateriel() {
   }
 
   return {
+    generateCode, generateProduitCode,
     getAllMateriels, createMateriel, updateMateriel, removeMateriel,
+    getAllProduits, createProduit, updateProduit, removeProduit,
     getAllAchats, createAchat, updateAchat, removeAchat
   }
 }
