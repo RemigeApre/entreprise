@@ -101,6 +101,7 @@ export interface Prospect {
   secteur: string | null
   adresse: string | null
   telephone: string | null
+  telephones_secondaires: string | null
   email: string | null
   emails_secondaires: string | null
   site_web: string | null

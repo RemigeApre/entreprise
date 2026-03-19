@@ -13,6 +13,19 @@ const toast = useToast()
 const prospectId = route.params.id as string
 const { data: prospect, status, refresh } = useAsyncData(`prospect-${prospectId}`, () => getById(prospectId))
 
+// --- All phone numbers (primary + secondaires) ---
+const allPhones = computed(() => {
+  if (!prospect.value) return []
+  const phones: string[] = []
+  if (prospect.value.telephone) phones.push(prospect.value.telephone)
+  if (prospect.value.telephones_secondaires) {
+    prospect.value.telephones_secondaires.split('\n').map(t => t.trim()).filter(Boolean).forEach(t => {
+      if (!phones.includes(t)) phones.push(t)
+    })
+  }
+  return phones
+})
+
 // --- Edit ---
 const editing = ref(false)
 const saving = ref(false)
@@ -23,6 +36,7 @@ const editForm = reactive({
   secteur: '',
   adresse: '',
   telephone: '',
+  telephones_secondaires: '',
   email: '',
   emails_secondaires: '',
   site_web: '',
@@ -42,6 +56,7 @@ function startEditing() {
     secteur: p.secteur || '',
     adresse: p.adresse || '',
     telephone: p.telephone || '',
+    telephones_secondaires: p.telephones_secondaires || '',
     email: p.email || '',
     emails_secondaires: p.emails_secondaires || '',
     site_web: p.site_web || '',
@@ -62,6 +77,7 @@ async function saveChanges() {
       secteur: editForm.secteur.trim() || null,
       adresse: editForm.adresse.trim() || null,
       telephone: editForm.telephone.trim() || null,
+      telephones_secondaires: editForm.telephones_secondaires.trim() || null,
       email: editForm.email.trim() || null,
       emails_secondaires: editForm.emails_secondaires.trim() || null,
       site_web: editForm.site_web.trim() || null,
@@ -99,16 +115,30 @@ async function handleDelete() {
 // --- Contacts (inline) ---
 const showContactForm = ref(false)
 const addingContact = ref(false)
+const addingPhone = ref(false)
+const newPhone = ref('')
 
 const contactForm = reactive({
   canal: 'telephone' as ContactCanal,
   resultat: 'attente' as ContactResultat,
   date_contact: new Date().toISOString().split('T')[0],
-  notes: ''
+  notes: '',
+  selectedPhone: ''
 })
 
 const canalOptions = Object.entries(CONTACT_CANAUX).map(([value, config]) => ({ label: config.label, value }))
 const resultatOptions = Object.entries(CONTACT_RESULTATS).map(([value, config]) => ({ label: config.label, value }))
+
+const phoneSelectOptions = computed(() => {
+  return allPhones.value.map(p => ({ label: p, value: p }))
+})
+
+// Auto-select first phone when opening form
+watch(showContactForm, (open) => {
+  if (open && allPhones.value.length) {
+    contactForm.selectedPhone = allPhones.value[0]
+  }
+})
 
 const sortedContacts = computed(() => {
   if (!prospect.value?.historique_contacts) return []
@@ -122,18 +152,39 @@ function resetContactForm() {
   contactForm.resultat = 'attente'
   contactForm.date_contact = new Date().toISOString().split('T')[0]
   contactForm.notes = ''
+  contactForm.selectedPhone = allPhones.value[0] || ''
+}
+
+async function handleAddPhone() {
+  const phone = newPhone.value.trim()
+  if (!phone) return
+  addingPhone.value = true
+  try {
+    const current = prospect.value?.telephones_secondaires || ''
+    const updated = current ? current + '\n' + phone : phone
+    await update(prospectId, { telephones_secondaires: updated })
+    await refresh()
+    contactForm.selectedPhone = phone
+    newPhone.value = ''
+    toast.add({ title: 'Numero ajoute', color: 'success' })
+  } catch {
+    toast.add({ title: 'Erreur', color: 'error' })
+  } finally {
+    addingPhone.value = false
+  }
 }
 
 async function handleAddContact() {
   if (!user.value) return
   addingContact.value = true
   try {
+    const phoneNote = contactForm.selectedPhone ? `[${contactForm.selectedPhone}] ` : ''
     await addContact({
       prospect: prospectId,
       canal: contactForm.canal,
       resultat: contactForm.resultat,
       date_contact: contactForm.date_contact,
-      notes: contactForm.notes.trim(),
+      notes: (phoneNote + contactForm.notes).trim(),
       contacte_par: user.value.id
     })
 
@@ -241,12 +292,12 @@ async function setStatut(statut: ProspectStatut) {
 
 const pipelineSteps = Object.entries(PROSPECT_STATUTS) as [string, typeof PROSPECT_STATUTS[keyof typeof PROSPECT_STATUTS]][]
 
-const pipelineColors: Record<string, { active: string }> = {
-  a_contacter: { active: 'bg-stone-600 text-white' },
-  premier_contact: { active: 'bg-blue-600 text-white' },
-  en_discussion: { active: 'bg-amber-500 text-white' },
-  client: { active: 'bg-emerald-600 text-white' },
-  cloture: { active: 'bg-red-500 text-white' }
+const pipelineColors: Record<string, string> = {
+  a_contacter: 'bg-stone-600 text-white',
+  premier_contact: 'bg-blue-600 text-white',
+  en_discussion: 'bg-amber-500 text-white',
+  client: 'bg-emerald-600 text-white',
+  cloture: 'bg-red-500 text-white'
 }
 
 function isPipelineReached(key: string): boolean {
@@ -367,13 +418,16 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
               </UFormField>
             </div>
             <div class="grid grid-cols-2 gap-3">
-              <UFormField label="Telephone">
+              <UFormField label="Telephone principal">
                 <UInput v-model="editForm.telephone" icon="i-lucide-phone" type="tel" class="w-full" />
               </UFormField>
               <UFormField label="Email">
                 <UInput v-model="editForm.email" icon="i-lucide-mail" type="email" class="w-full" />
               </UFormField>
             </div>
+            <UFormField label="Telephones secondaires">
+              <UTextarea v-model="editForm.telephones_secondaires" placeholder="Un numero par ligne" :rows="2" class="w-full" />
+            </UFormField>
             <div class="grid grid-cols-2 gap-3">
               <UFormField label="Site web">
                 <UInput v-model="editForm.site_web" icon="i-lucide-globe" type="url" class="w-full" />
@@ -400,7 +454,7 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
               :key="key"
               class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
               :class="prospect.statut === key
-                ? pipelineColors[key].active
+                ? pipelineColors[key]
                 : isPipelineReached(key)
                   ? 'bg-stone-200 text-stone-700'
                   : 'text-stone-400 hover:bg-stone-100'"
@@ -412,224 +466,274 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 max-w-6xl">
-            <!-- Col 1: Fiche -->
+            <!-- Col 1: Fiche + Offres -->
             <div class="space-y-4">
-              <UCard>
-                <div class="space-y-3 text-sm">
-                  <div class="grid grid-cols-2 gap-x-4 gap-y-2.5">
-                    <div>
-                      <p class="text-xs text-stone-500 mb-0.5">Ville</p>
-                      <p class="font-medium text-stone-800">{{ prospect.ville }}</p>
-                    </div>
-                    <div>
-                      <p class="text-xs text-stone-500 mb-0.5">Secteur</p>
-                      <p class="font-medium text-stone-800">{{ prospect.secteur || '-' }}</p>
-                    </div>
-                    <div v-if="prospect.contact_nom" class="col-span-2">
-                      <p class="text-xs text-stone-500 mb-0.5">Contact</p>
-                      <p class="font-medium text-stone-800">{{ prospect.contact_nom }}</p>
-                    </div>
-                    <div v-if="prospect.telephone">
-                      <p class="text-xs text-stone-500 mb-0.5">Telephone</p>
-                      <a :href="`tel:${prospect.telephone}`" class="font-medium text-primary hover:underline">{{ prospect.telephone }}</a>
-                    </div>
-                    <div v-if="prospect.email">
-                      <p class="text-xs text-stone-500 mb-0.5">Email</p>
-                      <a :href="`mailto:${prospect.email}`" class="font-medium text-primary hover:underline truncate block">{{ prospect.email }}</a>
-                    </div>
-                    <div v-if="prospect.site_web" class="col-span-2">
-                      <p class="text-xs text-stone-500 mb-0.5">Site web</p>
-                      <a :href="prospect.site_web" target="_blank" rel="noopener" class="font-medium text-primary hover:underline truncate block">{{ prospect.site_web }}</a>
-                    </div>
-                    <div v-if="prospect.adresse" class="col-span-2">
-                      <p class="text-xs text-stone-500 mb-0.5">Adresse</p>
-                      <p class="font-medium text-stone-800">{{ prospect.adresse }}</p>
-                    </div>
+              <!-- Fiche infos -->
+              <div class="rounded-xl bg-white/60 shadow-sm border border-white/80 p-4 space-y-3 text-sm">
+                <div class="grid grid-cols-2 gap-x-4 gap-y-2.5">
+                  <div>
+                    <p class="text-[11px] text-stone-500 uppercase tracking-wide">Ville</p>
+                    <p class="font-medium text-stone-800">{{ prospect.ville }}</p>
                   </div>
-                  <div class="border-t border-stone-100 pt-2.5 grid grid-cols-2 gap-x-4 gap-y-2">
-                    <div>
-                      <p class="text-xs text-stone-500 mb-0.5">Prospecteur</p>
-                      <p class="font-medium text-stone-800">{{ getProspecteurName(prospect) }}</p>
-                    </div>
-                    <div>
-                      <p class="text-xs text-stone-500 mb-0.5">Cree le</p>
-                      <p class="font-medium text-stone-800">{{ formatDateFr(prospect.date_created) }}</p>
-                    </div>
+                  <div>
+                    <p class="text-[11px] text-stone-500 uppercase tracking-wide">Secteur</p>
+                    <p class="font-medium text-stone-800">{{ prospect.secteur || '-' }}</p>
                   </div>
-                  <div v-if="prospect.notes" class="border-t border-stone-100 pt-2.5">
-                    <p class="text-xs text-stone-500 mb-1">Notes</p>
-                    <p class="text-stone-700 whitespace-pre-line">{{ prospect.notes }}</p>
-                  </div>
-                  <div v-if="prospect.emails_secondaires" class="border-t border-stone-100 pt-2.5">
-                    <p class="text-xs text-stone-500 mb-1">Emails secondaires</p>
-                    <p class="text-xs text-stone-600 whitespace-pre-line">{{ prospect.emails_secondaires }}</p>
+                  <div v-if="prospect.contact_nom" class="col-span-2">
+                    <p class="text-[11px] text-stone-500 uppercase tracking-wide">Contact</p>
+                    <p class="font-medium text-stone-800">{{ prospect.contact_nom }}</p>
                   </div>
                 </div>
-              </UCard>
+
+                <!-- Telephones -->
+                <div v-if="allPhones.length" class="border-t border-stone-100 pt-2.5">
+                  <p class="text-[11px] text-stone-500 uppercase tracking-wide mb-1.5">Telephones</p>
+                  <div class="flex flex-wrap gap-1.5">
+                    <a
+                      v-for="phone in allPhones"
+                      :key="phone"
+                      :href="`tel:${phone}`"
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/8 text-primary hover:bg-primary/15 transition-colors tabular-nums"
+                    >
+                      <UIcon name="i-lucide-phone" class="size-3" />
+                      {{ phone }}
+                    </a>
+                  </div>
+                </div>
+
+                <!-- Email -->
+                <div v-if="prospect.email" class="border-t border-stone-100 pt-2.5">
+                  <p class="text-[11px] text-stone-500 uppercase tracking-wide mb-0.5">Email</p>
+                  <a :href="`mailto:${prospect.email}`" class="font-medium text-primary hover:underline truncate block">{{ prospect.email }}</a>
+                </div>
+
+                <div v-if="prospect.site_web" class="border-t border-stone-100 pt-2.5">
+                  <p class="text-[11px] text-stone-500 uppercase tracking-wide mb-0.5">Site web</p>
+                  <a :href="prospect.site_web" target="_blank" rel="noopener" class="font-medium text-primary hover:underline truncate block">{{ prospect.site_web }}</a>
+                </div>
+
+                <div v-if="prospect.adresse" class="border-t border-stone-100 pt-2.5">
+                  <p class="text-[11px] text-stone-500 uppercase tracking-wide mb-0.5">Adresse</p>
+                  <p class="font-medium text-stone-800">{{ prospect.adresse }}</p>
+                </div>
+
+                <div class="border-t border-stone-100 pt-2.5 grid grid-cols-2 gap-x-4">
+                  <div>
+                    <p class="text-[11px] text-stone-500 uppercase tracking-wide">Prospecteur</p>
+                    <p class="font-medium text-stone-800">{{ getProspecteurName(prospect) }}</p>
+                  </div>
+                  <div>
+                    <p class="text-[11px] text-stone-500 uppercase tracking-wide">Cree le</p>
+                    <p class="font-medium text-stone-800">{{ formatDateFr(prospect.date_created) }}</p>
+                  </div>
+                </div>
+
+                <div v-if="prospect.notes" class="border-t border-stone-100 pt-2.5">
+                  <p class="text-[11px] text-stone-500 uppercase tracking-wide mb-1">Notes</p>
+                  <p class="text-stone-700 whitespace-pre-line">{{ prospect.notes }}</p>
+                </div>
+              </div>
 
               <!-- Offres -->
-              <UCard>
-                <template #header>
-                  <div class="flex items-center justify-between">
-                    <span class="text-sm font-semibold text-stone-900">Offres</span>
-                    <UButton
-                      v-if="!showOffreForm"
-                      icon="i-lucide-plus"
-                      size="xs"
-                      variant="ghost"
-                      @click="showOffreForm = true"
-                    />
-                  </div>
-                </template>
-
-                <!-- Inline add form -->
-                <form v-if="showOffreForm" class="space-y-2.5 mb-3 pb-3 border-b border-stone-100" @submit.prevent="handleAddOffre">
-                  <UInput v-model="offreForm.titre" placeholder="Titre de l'offre..." size="sm" class="w-full" />
-                  <div class="flex gap-2">
-                    <UInput v-model.number="offreForm.montant" type="number" :min="0" placeholder="Montant" size="sm" class="flex-1" />
-                    <USelect v-model="offreForm.statut" :items="offreStatutOptions" value-key="value" size="sm" class="flex-1" />
-                  </div>
-                  <UInput v-model="offreForm.notes" placeholder="Notes..." size="sm" class="w-full" />
-                  <div class="flex justify-end gap-1.5">
-                    <UButton label="Annuler" size="xs" variant="ghost" color="neutral" @click="showOffreForm = false; resetOffreForm()" />
-                    <UButton type="submit" label="Ajouter" size="xs" icon="i-lucide-plus" :loading="addingOffre" />
-                  </div>
-                </form>
-
-                <div v-if="!prospect.offres?.length && !showOffreForm" class="text-center py-4">
-                  <p class="text-xs text-stone-400 mb-2">Aucune offre</p>
-                  <UButton label="Ajouter" icon="i-lucide-plus" size="xs" variant="subtle" @click="showOffreForm = true" />
+              <div class="rounded-xl bg-white/60 shadow-sm border border-white/80 overflow-hidden">
+                <div class="flex items-center justify-between px-4 py-2.5 border-b border-stone-100">
+                  <span class="text-sm font-semibold text-stone-900">Offres</span>
+                  <UButton
+                    v-if="!showOffreForm"
+                    icon="i-lucide-plus"
+                    size="xs"
+                    variant="ghost"
+                    @click="showOffreForm = true"
+                  />
                 </div>
 
-                <div v-if="prospect.offres?.length" class="space-y-1.5">
-                  <div
-                    v-for="offre in prospect.offres"
-                    :key="offre.id"
-                    class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 group hover:bg-stone-50 transition-colors"
-                  >
-                    <button
-                      class="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors"
-                      :class="getOffreStatutColor(offre.statut)"
-                      :title="`Cliquer pour changer le statut`"
-                      @click="cycleOffreStatut(offre)"
-                    >
-                      <UIcon :name="OFFRE_PROSPECT_STATUTS[offre.statut]?.icon || 'i-lucide-file-text'" class="size-3" />
-                      {{ OFFRE_PROSPECT_STATUTS[offre.statut]?.label }}
-                    </button>
-                    <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium text-stone-800 truncate">{{ offre.titre }}</p>
-                      <p class="text-[11px] text-stone-500 truncate">
-                        {{ getOffreUserName(offre) }}
-                        <span v-if="offre.notes" class="text-stone-400"> - {{ offre.notes }}</span>
-                      </p>
+                <div class="p-3">
+                  <!-- Inline add form -->
+                  <form v-if="showOffreForm" class="space-y-2 mb-3 pb-3 border-b border-stone-100" @submit.prevent="handleAddOffre">
+                    <UInput v-model="offreForm.titre" placeholder="Titre de l'offre..." size="sm" class="w-full" />
+                    <div class="flex gap-2">
+                      <UInput v-model.number="offreForm.montant" type="number" :min="0" placeholder="Montant" size="sm" class="flex-1" />
+                      <USelect v-model="offreForm.statut" :items="offreStatutOptions" value-key="value" size="sm" class="flex-1" />
                     </div>
-                    <span v-if="offre.montant" class="text-sm font-semibold text-stone-700 tabular-nums shrink-0">
-                      {{ offre.montant.toLocaleString('fr-FR') }}&nbsp;&euro;
-                    </span>
-                    <button
-                      class="shrink-0 opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
-                      @click="handleRemoveOffre(offre.id)"
+                    <UInput v-model="offreForm.notes" placeholder="Notes..." size="sm" class="w-full" />
+                    <div class="flex justify-end gap-1.5">
+                      <UButton label="Annuler" size="xs" variant="ghost" color="neutral" @click="showOffreForm = false; resetOffreForm()" />
+                      <UButton type="submit" label="Ajouter" size="xs" icon="i-lucide-plus" :loading="addingOffre" />
+                    </div>
+                  </form>
+
+                  <div v-if="!prospect.offres?.length && !showOffreForm" class="text-center py-4">
+                    <p class="text-xs text-stone-400 mb-2">Aucune offre</p>
+                    <UButton label="Ajouter" icon="i-lucide-plus" size="xs" variant="subtle" @click="showOffreForm = true" />
+                  </div>
+
+                  <div v-if="prospect.offres?.length" class="space-y-1">
+                    <div
+                      v-for="offre in prospect.offres"
+                      :key="offre.id"
+                      class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 group hover:bg-stone-50/80 transition-colors"
                     >
-                      <UIcon name="i-lucide-x" class="size-3.5 text-stone-400" />
-                    </button>
+                      <button
+                        class="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors"
+                        :class="getOffreStatutColor(offre.statut)"
+                        title="Cliquer pour changer le statut"
+                        @click="cycleOffreStatut(offre)"
+                      >
+                        <UIcon :name="OFFRE_PROSPECT_STATUTS[offre.statut]?.icon || 'i-lucide-file-text'" class="size-3" />
+                        {{ OFFRE_PROSPECT_STATUTS[offre.statut]?.label }}
+                      </button>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-stone-800 truncate">{{ offre.titre }}</p>
+                        <p class="text-[11px] text-stone-500 truncate">
+                          {{ getOffreUserName(offre) }}
+                          <span v-if="offre.notes" class="text-stone-400"> - {{ offre.notes }}</span>
+                        </p>
+                      </div>
+                      <span v-if="offre.montant" class="text-sm font-semibold text-stone-700 tabular-nums shrink-0">
+                        {{ offre.montant.toLocaleString('fr-FR') }}&nbsp;&euro;
+                      </span>
+                      <button
+                        class="shrink-0 opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
+                        @click="handleRemoveOffre(offre.id)"
+                      >
+                        <UIcon name="i-lucide-x" class="size-3.5 text-stone-400" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </UCard>
+              </div>
             </div>
 
-            <!-- Col 2-3: Contacts (spans 2 cols on lg) -->
+            <!-- Col 2-3: Contacts -->
             <div class="lg:col-span-2">
-              <UCard>
-                <template #header>
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                      <span class="text-sm font-semibold text-stone-900">Contacts</span>
-                      <span v-if="sortedContacts.length" class="text-xs text-stone-500 tabular-nums">{{ sortedContacts.length }}</span>
-                    </div>
-                    <UButton
-                      v-if="!showContactForm"
-                      label="Ajouter"
-                      icon="i-lucide-plus"
-                      size="xs"
-                      @click="showContactForm = true"
-                    />
+              <div class="rounded-xl bg-white/60 shadow-sm border border-white/80 overflow-hidden">
+                <div class="flex items-center justify-between px-4 py-2.5 border-b border-stone-100">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-semibold text-stone-900">Contacts</span>
+                    <span v-if="sortedContacts.length" class="text-xs text-stone-500 tabular-nums">{{ sortedContacts.length }}</span>
                   </div>
-                </template>
+                  <UButton
+                    v-if="!showContactForm"
+                    label="Ajouter"
+                    icon="i-lucide-plus"
+                    size="xs"
+                    @click="showContactForm = true"
+                  />
+                </div>
 
-                <!-- Inline add form -->
-                <div v-if="showContactForm" class="mb-4 pb-4 border-b border-stone-100">
-                  <form class="space-y-2.5" @submit.prevent="handleAddContact">
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      <USelect v-model="contactForm.canal" :items="canalOptions" value-key="value" size="sm" />
-                      <USelect v-model="contactForm.resultat" :items="resultatOptions" value-key="value" size="sm" />
-                      <UInput v-model="contactForm.date_contact" type="date" size="sm" />
-                      <div class="flex gap-1.5">
-                        <UButton type="submit" label="Ajouter" size="sm" icon="i-lucide-plus" :loading="addingContact" class="flex-1" />
+                <div class="p-4">
+                  <!-- Inline add form -->
+                  <div v-if="showContactForm" class="mb-4 pb-4 border-b border-stone-100">
+                    <form class="space-y-2.5" @submit.prevent="handleAddContact">
+                      <!-- Row 1: canal + resultat + date -->
+                      <div class="grid grid-cols-3 gap-2">
+                        <USelect v-model="contactForm.canal" :items="canalOptions" value-key="value" size="sm" />
+                        <USelect v-model="contactForm.resultat" :items="resultatOptions" value-key="value" size="sm" />
+                        <UInput v-model="contactForm.date_contact" type="date" size="sm" />
+                      </div>
+
+                      <!-- Row 2: phone selector (if canal = telephone) -->
+                      <div v-if="contactForm.canal === 'telephone'" class="flex items-center gap-2">
+                        <UIcon name="i-lucide-phone" class="size-4 text-stone-400 shrink-0" />
+                        <USelect
+                          v-if="phoneSelectOptions.length"
+                          v-model="contactForm.selectedPhone"
+                          :items="phoneSelectOptions"
+                          value-key="value"
+                          size="sm"
+                          placeholder="Numero..."
+                          class="flex-1"
+                        />
+                        <span v-else class="text-xs text-stone-400 flex-1">Aucun numero enregistre</span>
+                        <!-- Inline add phone -->
+                        <div class="flex items-center gap-1">
+                          <UInput
+                            v-model="newPhone"
+                            placeholder="Nouveau numero..."
+                            size="sm"
+                            type="tel"
+                            class="w-36"
+                            @keydown.enter.prevent="handleAddPhone"
+                          />
+                          <UButton
+                            icon="i-lucide-plus"
+                            size="xs"
+                            variant="soft"
+                            :loading="addingPhone"
+                            :disabled="!newPhone.trim()"
+                            @click="handleAddPhone"
+                          />
+                        </div>
+                      </div>
+
+                      <!-- Row 3: notes + actions -->
+                      <div class="flex gap-2">
+                        <UInput v-model="contactForm.notes" placeholder="Notes sur l'echange..." size="sm" class="flex-1" />
+                        <UButton type="submit" label="Ajouter" size="sm" icon="i-lucide-plus" :loading="addingContact" />
                         <UButton icon="i-lucide-x" size="sm" variant="ghost" color="neutral" @click="showContactForm = false; resetContactForm()" />
                       </div>
-                    </div>
-                    <UInput v-model="contactForm.notes" placeholder="Notes sur l'echange..." size="sm" class="w-full" />
-                  </form>
-                </div>
+                    </form>
+                  </div>
 
-                <div v-if="!sortedContacts.length && !showContactForm" class="text-center py-8">
-                  <UIcon name="i-lucide-phone-outgoing" class="size-8 text-stone-200 mx-auto mb-2" />
-                  <p class="text-sm text-stone-500 mb-3">Aucun contact enregistre</p>
-                  <UButton label="Premier contact" icon="i-lucide-phone" size="xs" variant="subtle" @click="showContactForm = true" />
-                </div>
+                  <div v-if="!sortedContacts.length && !showContactForm" class="text-center py-8">
+                    <UIcon name="i-lucide-phone-outgoing" class="size-8 text-stone-200 mx-auto mb-2" />
+                    <p class="text-sm text-stone-500 mb-3">Aucun contact enregistre</p>
+                    <UButton label="Premier contact" icon="i-lucide-phone" size="xs" variant="subtle" @click="showContactForm = true" />
+                  </div>
 
-                <div v-else class="space-y-0">
-                  <div
-                    v-for="(contact, index) in sortedContacts"
-                    :key="contact.id"
-                    class="relative flex gap-3"
-                  >
-                    <!-- Timeline -->
-                    <div class="flex flex-col items-center shrink-0">
-                      <div
-                        class="flex items-center justify-center size-8 rounded-full mt-0.5"
-                        :class="getResultatBg(contact.resultat)"
-                      >
-                        <UIcon
-                          :name="CONTACT_CANAUX[contact.canal]?.icon || 'i-lucide-message-circle'"
-                          class="size-4"
-                          :class="getResultatIcon(contact.resultat)"
-                        />
-                      </div>
-                      <div v-if="index < sortedContacts.length - 1" class="w-px flex-1 bg-stone-100 mt-1" />
-                    </div>
-
-                    <!-- Content -->
-                    <div class="flex-1 pb-4 min-w-0">
-                      <div class="flex items-center gap-2 mb-0.5 flex-wrap">
-                        <span class="text-xs font-medium text-stone-700">
-                          {{ CONTACT_CANAUX[contact.canal]?.label || contact.canal }}
-                        </span>
-                        <UBadge
-                          :color="(CONTACT_RESULTATS[contact.resultat]?.color as any) || 'neutral'"
-                          variant="subtle"
-                          size="xs"
+                  <div v-else class="space-y-0">
+                    <div
+                      v-for="(contact, index) in sortedContacts"
+                      :key="contact.id"
+                      class="relative flex gap-3"
+                    >
+                      <!-- Timeline -->
+                      <div class="flex flex-col items-center shrink-0">
+                        <div
+                          class="flex items-center justify-center size-8 rounded-full mt-0.5"
+                          :class="getResultatBg(contact.resultat)"
                         >
-                          {{ CONTACT_RESULTATS[contact.resultat]?.label || contact.resultat }}
-                        </UBadge>
-                        <span class="text-[11px] text-stone-500 ml-auto shrink-0">{{ formatDateShort(contact.date_contact) }}</span>
+                          <UIcon
+                            :name="CONTACT_CANAUX[contact.canal]?.icon || 'i-lucide-message-circle'"
+                            class="size-4"
+                            :class="getResultatIcon(contact.resultat)"
+                          />
+                        </div>
+                        <div v-if="index < sortedContacts.length - 1" class="w-px flex-1 bg-stone-100 mt-1" />
                       </div>
-                      <p v-if="contact.notes" class="text-sm text-stone-700 whitespace-pre-line">{{ contact.notes }}</p>
-                      <p class="text-[11px] text-stone-500 mt-0.5 flex items-center gap-1">
-                        <UIcon name="i-lucide-user" class="size-2.5" />
-                        {{ getContactUserName(contact) }}
-                      </p>
+
+                      <!-- Content -->
+                      <div class="flex-1 pb-4 min-w-0">
+                        <div class="flex items-center gap-2 mb-0.5 flex-wrap">
+                          <span class="text-xs font-medium text-stone-700">
+                            {{ CONTACT_CANAUX[contact.canal]?.label || contact.canal }}
+                          </span>
+                          <UBadge
+                            :color="(CONTACT_RESULTATS[contact.resultat]?.color as any) || 'neutral'"
+                            variant="subtle"
+                            size="xs"
+                          >
+                            {{ CONTACT_RESULTATS[contact.resultat]?.label || contact.resultat }}
+                          </UBadge>
+                          <span class="text-[11px] text-stone-500 ml-auto shrink-0">{{ formatDateShort(contact.date_contact) }}</span>
+                        </div>
+                        <p v-if="contact.notes" class="text-sm text-stone-700 whitespace-pre-line">{{ contact.notes }}</p>
+                        <p class="text-[11px] text-stone-500 mt-0.5 flex items-center gap-1">
+                          <UIcon name="i-lucide-user" class="size-2.5" />
+                          {{ getContactUserName(contact) }}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </UCard>
+              </div>
             </div>
           </div>
         </template>
       </div>
     </div>
 
-    <!-- Modal suppression (seule modal restante, justifie car action destructive) -->
+    <!-- Modal suppression -->
     <UModal v-model:open="showDeleteModal">
       <template #content>
         <div class="p-6 space-y-4">

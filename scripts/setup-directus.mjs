@@ -394,6 +394,7 @@ async function createCollections() {
       { field: 'secteur', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 3 } },
       { field: 'adresse', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 4 } },
       { field: 'telephone', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 5 } },
+      { field: 'telephones_secondaires', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 5.5, note: 'Un numero par ligne' } },
       { field: 'email', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 6 } },
       { field: 'emails_secondaires', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 7, note: 'Un email par ligne' } },
       { field: 'site_web', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', sort: 8 } },
