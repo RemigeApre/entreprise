@@ -32,15 +32,11 @@ export function useProspects() {
     return await $directus.request(readItem('prospects', id, {
       fields: [
         ...prospectFields,
-        'telephones_secondaires',
         'historique_contacts.id', 'historique_contacts.canal', 'historique_contacts.resultat',
         'historique_contacts.date_contact', 'historique_contacts.notes',
         'historique_contacts.contacte_par.id',
         'historique_contacts.contacte_par.first_name', 'historique_contacts.contacte_par.last_name',
-        'historique_contacts.date_created',
-        'offres.id', 'offres.titre', 'offres.montant', 'offres.statut', 'offres.notes',
-        'offres.ajoutee_par.id', 'offres.ajoutee_par.first_name', 'offres.ajoutee_par.last_name',
-        'offres.date_created'
+        'historique_contacts.date_created'
       ]
     })) as Prospect
   }
