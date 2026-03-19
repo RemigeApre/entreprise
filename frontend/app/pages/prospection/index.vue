@@ -74,8 +74,8 @@ const filteredProspects = computed(() => {
     prospects.value.filter((p: Prospect) => {
       const q = search.value.toLowerCase()
       const matchesSearch = !q || [p.nom_entreprise, p.contact_nom, p.telephone].some(f => f?.toLowerCase().includes(q))
-      const matchesStatus = filterStatut.value === 'all' || p.statut === filterStatut.value
-      return matchesSearch && matchesStatus
+      if (filterStatut.value === 'all') return matchesSearch && p.statut !== 'cloture'
+      return matchesSearch && p.statut === filterStatut.value
     }),
     prospectAccessor
   )
@@ -173,12 +173,12 @@ const statusPillColor: Record<string, string> = {
   cloture: 'bg-red-500 text-white'
 }
 
-const statusBorder: Record<string, string> = {
-  a_contacter: 'border-l-stone-400',
-  premier_contact: 'border-l-blue-500',
-  en_discussion: 'border-l-amber-500',
-  client: 'border-l-emerald-500',
-  cloture: 'border-l-stone-300'
+const statusBadge: Record<string, string> = {
+  a_contacter: 'bg-stone-100 text-stone-600',
+  premier_contact: 'bg-blue-50 text-blue-600',
+  en_discussion: 'bg-amber-50 text-amber-600',
+  client: 'bg-emerald-50 text-emerald-600',
+  cloture: 'bg-red-50 text-red-500'
 }
 
 function exportCsv() {
@@ -263,7 +263,7 @@ if (import.meta.client) {
                 :class="filterStatut === 'all' ? 'bg-stone-800 text-white' : 'text-stone-500 hover:bg-stone-200/60'"
                 @click="filterStatut = 'all'"
               >
-                Tous <span class="opacity-60 tabular-nums">{{ prospects?.length || 0 }}</span>
+                Actifs <span class="opacity-60 tabular-nums">{{ (prospects?.length || 0) - (statsByStatus['cloture'] || 0) }}</span>
               </button>
               <button
                 v-for="(config, key) in PROSPECT_STATUTS"
@@ -313,96 +313,96 @@ if (import.meta.client) {
             </div>
 
             <!-- Cards -->
-            <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2.5">
+            <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
               <div
                 v-for="prospect in pagedProspects"
                 :key="prospect.id"
-                class="rounded-xl bg-white/60 shadow-sm border border-white/70 overflow-hidden border-l-[3px] transition-all"
-                :class="[
-                  statusBorder[prospect.statut] || 'border-l-transparent',
-                  prospect.statut === 'cloture' ? 'opacity-40' : ''
-                ]"
+                class="rounded-xl bg-white/70 shadow-sm hover:shadow-md border border-white/80 overflow-hidden transition-all"
               >
-                <!-- Main row -->
-                <NuxtLink :to="`/prospection/${prospect.id}`" class="block px-3.5 pt-3 pb-2 group">
-                  <div class="flex items-start justify-between gap-2 mb-1.5">
-                    <div class="min-w-0">
-                      <h3 class="text-sm font-semibold text-stone-800 truncate group-hover:text-[#af8f3c] transition-colors">
+                <!-- Header : nom + statut + ville -->
+                <NuxtLink :to="`/prospection/${prospect.id}`" class="block group">
+                  <div class="px-4 pt-3.5 pb-2">
+                    <div class="flex items-start justify-between gap-2 mb-1">
+                      <h3 class="text-[15px] font-bold text-stone-800 truncate group-hover:text-[#af8f3c] transition-colors leading-tight">
                         {{ prospect.nom_entreprise }}
                       </h3>
-                      <p v-if="prospect.contact_nom" class="text-xs text-stone-500 truncate">{{ prospect.contact_nom }}</p>
+                      <span
+                        class="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider"
+                        :class="statusBadge[prospect.statut]"
+                      >{{ PROSPECT_STATUTS[prospect.statut]?.label }}</span>
                     </div>
-                    <UBadge
-                      :color="(PROSPECT_STATUTS[prospect.statut]?.color as any)"
-                      variant="subtle"
-                      size="xs"
-                      class="shrink-0"
-                    >
-                      {{ PROSPECT_STATUTS[prospect.statut]?.label }}
-                    </UBadge>
+                    <div class="flex items-center gap-2 text-xs text-stone-500">
+                      <span v-if="prospect.contact_nom" class="truncate">{{ prospect.contact_nom }}</span>
+                      <span v-if="prospect.contact_nom && prospect.ville" class="text-stone-300">-</span>
+                      <span class="text-stone-400 truncate">{{ prospect.ville }}</span>
+                    </div>
                   </div>
 
-                  <!-- Last contact -->
-                  <div class="flex items-center gap-1.5 text-[11px]" :class="getLastContact(prospect) ? 'text-stone-500' : 'text-stone-300'">
+                  <!-- Last contact banner -->
+                  <div class="mx-4 mb-2 px-2.5 py-1.5 rounded-lg text-[11px] flex items-center gap-1.5"
+                    :class="getLastContact(prospect) ? 'bg-stone-50' : 'bg-stone-50/50'"
+                  >
                     <template v-if="getLastContact(prospect)">
-                      <UIcon :name="CONTACT_CANAUX[getLastContact(prospect)!.canal]?.icon || 'i-lucide-phone'" class="size-3" />
-                      <span>{{ timeAgo(getLastContact(prospect)!.date_contact) }}</span>
-                      <span class="text-stone-300">-</span>
-                      <span :class="{
-                        'text-emerald-600': CONTACT_RESULTATS[getLastContact(prospect)!.resultat]?.color === 'green',
-                        'text-red-500': CONTACT_RESULTATS[getLastContact(prospect)!.resultat]?.color === 'red',
-                        'text-amber-600': CONTACT_RESULTATS[getLastContact(prospect)!.resultat]?.color === 'yellow' || CONTACT_RESULTATS[getLastContact(prospect)!.resultat]?.color === 'orange'
-                      }">
-                        {{ CONTACT_RESULTATS[getLastContact(prospect)!.resultat]?.label }}
-                      </span>
-                      <span v-if="prospect.nb_contacts > 1" class="text-stone-300 ml-auto tabular-nums">{{ prospect.nb_contacts }} au total</span>
+                      <UIcon :name="CONTACT_CANAUX[getLastContact(prospect)!.canal]?.icon || 'i-lucide-phone'" class="size-3 text-stone-400" />
+                      <span class="text-stone-600 font-medium">{{ timeAgo(getLastContact(prospect)!.date_contact) }}</span>
+                      <span
+                        class="font-semibold"
+                        :class="{
+                          'text-emerald-600': CONTACT_RESULTATS[getLastContact(prospect)!.resultat]?.color === 'green',
+                          'text-red-500': CONTACT_RESULTATS[getLastContact(prospect)!.resultat]?.color === 'red',
+                          'text-amber-600': CONTACT_RESULTATS[getLastContact(prospect)!.resultat]?.color === 'yellow' || CONTACT_RESULTATS[getLastContact(prospect)!.resultat]?.color === 'orange',
+                          'text-stone-500': !['green','red','yellow','orange'].includes(CONTACT_RESULTATS[getLastContact(prospect)!.resultat]?.color || '')
+                        }"
+                      >{{ CONTACT_RESULTATS[getLastContact(prospect)!.resultat]?.label }}</span>
+                      <span v-if="prospect.nb_contacts > 1" class="text-stone-300 ml-auto tabular-nums">{{ prospect.nb_contacts }}x</span>
                     </template>
                     <template v-else>
-                      <UIcon name="i-lucide-circle-dashed" class="size-3" />
-                      Jamais contacte
+                      <UIcon name="i-lucide-circle-dashed" class="size-3 text-stone-300" />
+                      <span class="text-stone-400">Jamais contacte</span>
                     </template>
                   </div>
                 </NuxtLink>
 
-                <!-- Action bar -->
-                <div class="flex items-center gap-1 px-2.5 pb-2.5 pt-1">
-                  <!-- Phone button -->
+                <!-- Actions -->
+                <div class="flex items-center gap-1.5 px-3 pb-3">
+                  <!-- Call button -->
                   <a
                     v-if="prospect.telephone"
                     :href="`tel:${prospect.telephone}`"
-                    class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-primary/8 text-primary hover:bg-primary/15 transition-colors tabular-nums"
+                    class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors tabular-nums flex-1 justify-center"
                     @click.stop
                   >
-                    <UIcon name="i-lucide-phone" class="size-3.5" />
+                    <UIcon name="i-lucide-phone" class="size-4" />
                     {{ prospect.telephone }}
                   </a>
-                  <span v-else class="text-[11px] text-stone-300 px-1">Pas de numero</span>
-
-                  <div class="flex-1" />
+                  <span v-else class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs text-stone-300 bg-stone-50 flex-1 justify-center">
+                    <UIcon name="i-lucide-phone-off" class="size-3.5" />
+                    Pas de numero
+                  </span>
 
                   <!-- Quick log -->
                   <button
-                    class="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                    class="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-semibold transition-colors"
                     :class="loggingId === prospect.id
                       ? 'bg-stone-800 text-white'
-                      : 'text-stone-500 hover:bg-stone-100 hover:text-stone-700'"
+                      : 'bg-stone-100 text-stone-600 hover:bg-stone-200'"
                     @click="openQuickLog(prospect.id)"
                   >
                     <UIcon name="i-lucide-plus" class="size-3.5" />
-                    Contact
+                    Log
                   </button>
 
-                  <!-- Detail link -->
+                  <!-- Detail -->
                   <NuxtLink
                     :to="`/prospection/${prospect.id}`"
-                    class="flex items-center px-1.5 py-1.5 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors"
+                    class="flex items-center px-2 py-2 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors"
                   >
-                    <UIcon name="i-lucide-chevron-right" class="size-4" />
+                    <UIcon name="i-lucide-arrow-right" class="size-4" />
                   </NuxtLink>
                 </div>
 
-                <!-- Quick log form (inline, expandable) -->
-                <div v-if="loggingId === prospect.id" class="border-t border-stone-100 px-3 py-2.5 bg-stone-50/50">
+                <!-- Quick log expanded -->
+                <div v-if="loggingId === prospect.id" class="border-t border-stone-100 px-3 py-2.5 bg-stone-50/60">
                   <div class="flex items-center gap-2">
                     <USelect v-model="quickLog.canal" :items="canalOptions" value-key="value" size="xs" class="w-28" />
                     <USelect v-model="quickLog.resultat" :items="resultatOptions" value-key="value" size="xs" class="flex-1" />
