@@ -91,7 +91,7 @@ const filteredProspects = computed(() => {
   return sortItems(filtered, prospectAccessor)
 })
 
-const { paginatedItems: pagedProspects, page, totalPages, showPagination, next, prev } = usePagination(filteredProspects, 24)
+const { paginatedItems: pagedProspects, page, totalPages, showPagination, next, prev } = usePagination(filteredProspects, 30)
 
 const hasFilters = computed(() => !!search.value || filterStatut.value !== 'all' || filterVille.value !== 'all')
 
@@ -101,9 +101,13 @@ function clearFilters() {
   filterVille.value = 'all'
 }
 
-const stats = computed(() => {
-  if (!prospects.value) return { total: 0 }
-  return { total: prospects.value.length }
+const statsByStatus = computed(() => {
+  if (!prospects.value) return {} as Record<string, number>
+  const counts: Record<string, number> = {}
+  for (const p of prospects.value) {
+    counts[p.statut] = (counts[p.statut] || 0) + 1
+  }
+  return counts
 })
 
 function getProspecteurName(p: Prospect): string {
@@ -115,6 +119,22 @@ function getProspecteurName(p: Prospect): string {
 function formatDateFr(date: string | null) {
   if (!date) return ''
   return new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+}
+
+const statusBorderColor: Record<string, string> = {
+  a_contacter: 'border-l-stone-400',
+  premier_contact: 'border-l-blue-500',
+  en_discussion: 'border-l-amber-500',
+  client: 'border-l-emerald-500',
+  cloture: 'border-l-stone-300'
+}
+
+const statusPillActive: Record<string, string> = {
+  a_contacter: 'bg-stone-700 text-white',
+  premier_contact: 'bg-blue-600 text-white',
+  en_discussion: 'bg-amber-500 text-white',
+  client: 'bg-emerald-600 text-white',
+  cloture: 'bg-red-500 text-white'
 }
 
 function exportCsv() {
@@ -145,7 +165,7 @@ if (import.meta.client) {
 
 <template>
   <div class="flex flex-col h-full">
-    <!-- Opt-in screen for non-prospecteurs -->
+    <!-- Opt-in screen -->
     <template v-if="!isProspecteur">
       <PageHeader title="Prospection" />
       <div class="flex-1 overflow-y-auto p-4 sm:p-6">
@@ -153,9 +173,7 @@ if (import.meta.client) {
           <div class="inline-flex items-center justify-center size-16 rounded-full bg-[rgba(175,143,60,0.08)] mb-6">
             <UIcon name="i-lucide-target" class="size-8 text-[#af8f3c]" />
           </div>
-          <h2 class="text-lg font-semibold text-stone-900 mb-3">
-            Prospection
-          </h2>
+          <h2 class="text-lg font-semibold text-stone-900 mb-3">Prospection</h2>
           <p class="text-sm text-stone-600 leading-relaxed mb-6">
             La prospection, c'est rechercher des clients pour l'entreprise.
             Que ce soit pour nos services informatiques
@@ -164,24 +182,16 @@ if (import.meta.client) {
           </p>
           <p class="text-sm text-stone-600 mb-8">
             Si vous souhaitez participer a la prospection, cliquez sur le bouton ci-dessous.
-            Vous pourrez creer des fiches de prospection et consulter celles des autres.
           </p>
-          <UButton
-            label="Oui, je veux participer"
-            icon="i-lucide-check"
-            size="lg"
-            :loading="optingIn"
-            @click="handleOptIn"
-          />
+          <UButton label="Oui, je veux participer" icon="i-lucide-check" size="lg" :loading="optingIn" @click="handleOptIn" />
         </div>
       </div>
     </template>
 
-    <!-- Normal prospection view -->
+    <!-- Main view -->
     <template v-else>
       <PageHeader>
         <template #left>
-          <!-- Quota compact -->
           <button
             v-if="hasQuota && !quotaLoading"
             class="flex items-center gap-2 text-xs tabular-nums cursor-pointer hover:opacity-80 transition-opacity"
@@ -190,12 +200,12 @@ if (import.meta.client) {
             <span class="font-semibold" :class="todayContacts >= objectifJour! ? 'text-emerald-600' : 'text-stone-700'">
               {{ todayContacts }}/{{ objectifJour }}
             </span>
-            <span class="text-stone-400">aujourd'hui</span>
+            <span class="text-stone-400">jour</span>
             <span class="text-stone-300">|</span>
             <span class="font-semibold" :class="weekContacts >= objectifSemaine! ? 'text-emerald-600' : 'text-stone-700'">
               {{ weekContacts }}/{{ objectifSemaine }}
             </span>
-            <span class="text-stone-400">semaine</span>
+            <span class="text-stone-400">sem.</span>
           </button>
           <UButton
             v-else-if="!hasQuota"
@@ -208,167 +218,172 @@ if (import.meta.client) {
           />
         </template>
         <template #right>
-          <UButton
-            icon="i-lucide-download"
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            :disabled="!filteredProspects.length"
-            @click="exportCsv"
-          />
-          <UButton
-            label="Nouveau prospect"
-            icon="i-lucide-plus"
-            size="sm"
-            to="/prospection/nouveau"
-          />
+          <UButton icon="i-lucide-download" color="neutral" variant="ghost" size="sm" :disabled="!filteredProspects.length" @click="exportCsv" />
+          <UButton label="Nouveau" icon="i-lucide-plus" size="sm" to="/prospection/nouveau" />
         </template>
       </PageHeader>
 
-      <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+      <div class="flex-1 overflow-y-auto">
         <!-- Loading -->
         <div v-if="status === 'pending'" class="flex justify-center py-12">
           <UIcon name="i-lucide-loader-2" class="size-8 text-primary animate-spin" />
         </div>
 
         <template v-else>
-          <!-- Status filter pills -->
-          <div v-if="prospects && prospects.length" class="flex flex-wrap items-center gap-1.5">
-            <button
-              class="px-2.5 py-1 rounded-full text-xs font-medium transition-all"
-              :class="filterStatut === 'all'
-                ? 'bg-stone-800 text-white'
-                : 'text-stone-500 hover:bg-stone-200/60'"
-              @click="filterStatut = 'all'"
-            >
-              Tous
-              <span class="ml-0.5 opacity-60">{{ stats.total }}</span>
-            </button>
-            <button
-              v-for="(config, key) in PROSPECT_STATUTS"
-              :key="key"
-              class="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all"
-              :class="filterStatut === key
-                ? 'bg-stone-800 text-white'
-                : 'text-stone-500 hover:bg-stone-200/60'"
-              @click="filterStatut = filterStatut === key ? 'all' : (key as ProspectStatut)"
-            >
-              <UIcon :name="config.icon" class="size-3" />
-              {{ config.label }}
-            </button>
-          </div>
-
-          <!-- Search + ville filter -->
-          <div class="flex flex-wrap items-center gap-2">
-            <UInput
-              v-model="search"
-              placeholder="Rechercher..."
-              icon="i-lucide-search"
-              size="sm"
-              class="w-full sm:w-52"
-            />
-            <USelect v-model="filterVille" :items="villeOptions" value-key="value" size="sm" class="w-[calc(50%-4px)] sm:w-44" />
-            <UButton
-              v-if="hasFilters"
-              label="Effacer"
-              icon="i-lucide-x"
-              color="neutral"
-              variant="ghost"
-              size="xs"
-              @click="clearFilters"
-            />
-            <span v-if="hasFilters" class="text-xs text-stone-500 ml-1">
-              {{ filteredProspects.length }} resultat{{ filteredProspects.length > 1 ? 's' : '' }}
-            </span>
-          </div>
-
-          <!-- Sort -->
-          <div v-if="filteredProspects.length" class="flex items-center gap-1 text-xs">
-            <span class="text-stone-400 mr-1">Trier :</span>
-            <button
-              v-for="opt in sortProspectOptions"
-              :key="opt.key"
-              class="px-2 py-1 rounded transition-colors"
-              :class="sort.key === opt.key ? 'text-primary font-semibold bg-primary/10' : 'text-stone-400 hover:text-stone-600'"
-              @click="toggleSort(opt.key)"
-            >
-              {{ opt.label }}
-              <span v-if="sort.key === opt.key">{{ sort.dir === 'asc' ? '&uarr;' : '&darr;' }}</span>
-            </button>
-          </div>
-
-          <!-- Empty -->
-          <div v-if="!filteredProspects.length" class="text-center py-12">
-            <UIcon name="i-lucide-target" class="size-10 text-stone-300 mx-auto mb-3" />
-            <p class="text-stone-500">
-              {{ hasFilters ? 'Aucun prospect pour ces filtres' : 'Aucun prospect' }}
-            </p>
-            <UButton
-              v-if="hasFilters"
-              label="Effacer les filtres"
-              icon="i-lucide-x"
-              variant="subtle"
-              class="mt-3"
-              @click="clearFilters"
-            />
-            <UButton
-              v-else
-              label="Creer un prospect"
-              icon="i-lucide-plus"
-              class="mt-4"
-              to="/prospection/nouveau"
-            />
-          </div>
-
-          <!-- Cards -->
-          <div v-else class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-2.5">
-            <NuxtLink
-              v-for="prospect in pagedProspects"
-              :key="prospect.id"
-              :to="`/prospection/${prospect.id}`"
-              class="block group"
-            >
-              <div
-                class="relative flex items-center gap-3 rounded-lg border-l-[3px] bg-white/60 shadow-sm px-3.5 py-3 transition-all hover:shadow-md hover:bg-white/80 border border-white/80"
-                :class="{
-                  'border-l-stone-400': prospect.statut === 'a_contacter',
-                  'border-l-blue-500': prospect.statut === 'premier_contact',
-                  'border-l-amber-500': prospect.statut === 'en_discussion',
-                  'border-l-emerald-500': prospect.statut === 'client',
-                  'border-l-stone-300 opacity-50': prospect.statut === 'cloture'
-                }"
+          <!-- Toolbar -->
+          <div class="sticky top-0 z-10 bg-[#E6E2DA]/95 backdrop-blur-sm border-b border-stone-200/40 px-4 sm:px-6 py-3 space-y-2.5">
+            <!-- Row 1: Filters + search -->
+            <div class="flex flex-wrap items-center gap-2">
+              <!-- Status pills -->
+              <button
+                class="px-2.5 py-1 rounded-full text-xs font-medium transition-all"
+                :class="filterStatut === 'all' ? 'bg-stone-800 text-white' : 'text-stone-500 hover:bg-stone-200/60'"
+                @click="filterStatut = 'all'"
               >
-                <!-- Center: info -->
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2">
-                    <h3 class="text-sm font-semibold text-[#2c2419] truncate group-hover:text-[#af8f3c] transition-colors">
-                      {{ prospect.nom_entreprise }}
-                    </h3>
-                    <span class="text-[11px] text-stone-400 shrink-0">{{ prospect.ville }}</span>
-                  </div>
-                  <div class="flex items-center gap-2 mt-0.5 text-[11px] text-stone-500">
-                    <span v-if="prospect.contact_nom" class="truncate">{{ prospect.contact_nom }}</span>
-                    <span v-if="prospect.telephone" class="flex items-center gap-0.5 shrink-0 font-medium tabular-nums">
-                      <UIcon name="i-lucide-phone" class="size-2.5" />
-                      {{ prospect.telephone }}
-                    </span>
-                    <span v-if="prospect.nb_contacts" class="shrink-0 text-stone-400">
-                      {{ prospect.nb_contacts }} contact{{ prospect.nb_contacts > 1 ? 's' : '' }}
-                    </span>
-                  </div>
-                </div>
+                Tous
+                <span class="ml-0.5 opacity-60 tabular-nums">{{ prospects?.length || 0 }}</span>
+              </button>
+              <button
+                v-for="(config, key) in PROSPECT_STATUTS"
+                :key="key"
+                class="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all tabular-nums"
+                :class="filterStatut === key
+                  ? (statusPillActive[key] || 'bg-stone-800 text-white')
+                  : 'text-stone-500 hover:bg-stone-200/60'"
+                @click="filterStatut = filterStatut === key ? 'all' : (key as ProspectStatut)"
+              >
+                <UIcon :name="config.icon" class="size-3" />
+                {{ config.label }}
+                <span v-if="statsByStatus[key]" class="opacity-60">{{ statsByStatus[key] }}</span>
+              </button>
 
-                <!-- Right: date -->
-                <span class="text-[10px] text-stone-400 shrink-0">{{ formatDateFr(prospect.date_created) }}</span>
+              <div class="ml-auto flex items-center gap-2">
+                <UInput
+                  v-model="search"
+                  placeholder="Rechercher..."
+                  icon="i-lucide-search"
+                  size="sm"
+                  class="w-44"
+                />
+                <USelect v-model="filterVille" :items="villeOptions" value-key="value" size="sm" class="w-40" />
+                <UButton
+                  v-if="hasFilters"
+                  icon="i-lucide-x"
+                  color="neutral"
+                  variant="ghost"
+                  size="xs"
+                  @click="clearFilters"
+                />
               </div>
-            </NuxtLink>
+            </div>
+
+            <!-- Row 2: Sort + result count -->
+            <div class="flex items-center justify-between">
+              <div v-if="filteredProspects.length" class="flex items-center gap-1 text-xs">
+                <span class="text-stone-400 mr-1">Trier :</span>
+                <button
+                  v-for="opt in sortProspectOptions"
+                  :key="opt.key"
+                  class="px-2 py-0.5 rounded transition-colors"
+                  :class="sort.key === opt.key ? 'text-primary font-semibold bg-primary/10' : 'text-stone-400 hover:text-stone-600'"
+                  @click="toggleSort(opt.key)"
+                >
+                  {{ opt.label }}
+                  <span v-if="sort.key === opt.key">{{ sort.dir === 'asc' ? '↑' : '↓' }}</span>
+                </button>
+              </div>
+              <span v-if="hasFilters" class="text-xs text-stone-500 tabular-nums">
+                {{ filteredProspects.length }} resultat{{ filteredProspects.length > 1 ? 's' : '' }}
+              </span>
+            </div>
           </div>
 
-          <!-- Pagination -->
-          <div v-if="showPagination" class="flex items-center justify-center gap-2 pt-4">
-            <UButton icon="i-lucide-chevron-left" size="xs" color="neutral" variant="ghost" :disabled="page <= 1" @click="prev" />
-            <span class="text-xs text-stone-500 tabular-nums">{{ page }} / {{ totalPages }}</span>
-            <UButton icon="i-lucide-chevron-right" size="xs" color="neutral" variant="ghost" :disabled="page >= totalPages" @click="next" />
+          <!-- Content -->
+          <div class="px-4 sm:px-6 py-4">
+            <!-- Empty -->
+            <div v-if="!filteredProspects.length" class="text-center py-16">
+              <UIcon name="i-lucide-target" class="size-10 text-stone-300 mx-auto mb-3" />
+              <p class="text-stone-500">
+                {{ hasFilters ? 'Aucun prospect pour ces filtres' : 'Aucun prospect' }}
+              </p>
+              <UButton
+                v-if="hasFilters"
+                label="Effacer les filtres"
+                icon="i-lucide-x"
+                variant="subtle"
+                class="mt-3"
+                @click="clearFilters"
+              />
+              <UButton
+                v-else
+                label="Creer un prospect"
+                icon="i-lucide-plus"
+                class="mt-4"
+                to="/prospection/nouveau"
+              />
+            </div>
+
+            <!-- Table-style list -->
+            <div v-else class="rounded-xl bg-white/50 shadow-sm border border-white/70 overflow-hidden">
+              <div
+                v-for="(prospect, idx) in pagedProspects"
+                :key="prospect.id"
+                :class="[
+                  idx > 0 ? 'border-t border-stone-100' : '',
+                  prospect.statut === 'cloture' ? 'opacity-40' : ''
+                ]"
+              >
+                <NuxtLink
+                  :to="`/prospection/${prospect.id}`"
+                  class="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-stone-50/60 group border-l-[3px]"
+                  :class="statusBorderColor[prospect.statut] || 'border-l-transparent'"
+                >
+                  <!-- Name + contact -->
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <h3 class="text-sm font-semibold text-[#2c2419] truncate group-hover:text-[#af8f3c] transition-colors">
+                        {{ prospect.nom_entreprise }}
+                      </h3>
+                      <span v-if="prospect.contact_nom" class="text-[11px] text-stone-400 truncate hidden sm:inline">
+                        {{ prospect.contact_nom }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Ville -->
+                  <span class="text-xs text-stone-500 w-24 truncate hidden md:block">{{ prospect.ville }}</span>
+
+                  <!-- Phone -->
+                  <span v-if="prospect.telephone" class="text-xs text-stone-500 tabular-nums w-28 truncate hidden lg:flex items-center gap-1">
+                    <UIcon name="i-lucide-phone" class="size-3 shrink-0" />
+                    {{ prospect.telephone }}
+                  </span>
+                  <span v-else class="w-28 hidden lg:block" />
+
+                  <!-- Contacts count -->
+                  <span class="text-xs tabular-nums w-16 text-right hidden sm:block" :class="prospect.nb_contacts ? 'text-stone-600' : 'text-stone-300'">
+                    {{ prospect.nb_contacts || 0 }} <span class="text-stone-400">cont.</span>
+                  </span>
+
+                  <!-- Prospecteur -->
+                  <span class="text-[11px] text-stone-400 w-24 truncate text-right hidden xl:block">
+                    {{ getProspecteurName(prospect) }}
+                  </span>
+
+                  <!-- Date -->
+                  <span class="text-[11px] text-stone-400 w-16 text-right shrink-0 tabular-nums">
+                    {{ formatDateFr(prospect.date_created) }}
+                  </span>
+                </NuxtLink>
+              </div>
+            </div>
+
+            <!-- Pagination -->
+            <div v-if="showPagination" class="flex items-center justify-center gap-3 pt-4">
+              <UButton icon="i-lucide-chevron-left" size="xs" color="neutral" variant="ghost" :disabled="page <= 1" @click="prev" />
+              <span class="text-xs text-stone-500 tabular-nums">{{ page }} / {{ totalPages }}</span>
+              <UButton icon="i-lucide-chevron-right" size="xs" color="neutral" variant="ghost" :disabled="page >= totalPages" @click="next" />
+            </div>
           </div>
         </template>
       </div>
