@@ -440,6 +440,27 @@ async function createCollections() {
     ]
   }, 'Collection "contacts_history"')
 
+  // ── prospect_offres ──
+  await safeApi('POST', '/collections', {
+    collection: 'prospect_offres',
+    schema: {},
+    meta: { icon: 'request_quote', note: 'Offres proposees aux prospects', sort: 5.5, hidden: true },
+    fields: [
+      uuidPK(),
+      { field: 'titre', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, sort: 1 } },
+      { field: 'montant', type: 'float', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 2 } },
+      dropdown('statut', [
+        { text: 'A proposer', value: 'a_proposer' },
+        { text: 'Proposee', value: 'proposee' },
+        { text: 'Negociation', value: 'negociation' },
+        { text: 'Acceptee', value: 'acceptee' },
+        { text: 'Refusee', value: 'refusee' }
+      ], { required: true, default_value: 'a_proposer', width: 'half' }),
+      { field: 'notes', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 4 } },
+      ...systemFields()
+    ]
+  }, 'Collection "prospect_offres"')
+
   // ── projects ──
   await safeApi('POST', '/collections', {
     collection: 'projects',
@@ -751,6 +772,10 @@ async function createRelations() {
     { coll: 'contacts_history', field: 'prospect', related: 'prospects', template: '{{nom_entreprise}}', one_field: 'historique_contacts' },
     { coll: 'contacts_history', field: 'contacte_par', related: 'directus_users', template: '{{first_name}} {{last_name}}' },
 
+    // prospect_offres
+    { coll: 'prospect_offres', field: 'prospect', related: 'prospects', template: '{{nom_entreprise}}', one_field: 'offres' },
+    { coll: 'prospect_offres', field: 'ajoutee_par', related: 'directus_users', template: '{{first_name}} {{last_name}}' },
+
     // projects
     { coll: 'projects', field: 'categorie', related: 'categories', template: '{{nom}}' },
     { coll: 'projects', field: 'client', related: 'prospects', template: '{{nom_entreprise}}' },
@@ -1002,6 +1027,12 @@ async function setupPermissions(roleIds) {
       { collection: 'contacts_history', action: 'read', fields: ['*'], permissions: {} },
       { collection: 'contacts_history', action: 'update', fields: ['*'], permissions: { user_created: { _eq: '$CURRENT_USER' } } },
       { collection: 'contacts_history', action: 'delete', permissions: { user_created: { _eq: '$CURRENT_USER' } } },
+
+      // Prospect offres: CRUD for all prospecteurs
+      { collection: 'prospect_offres', action: 'create', fields: ['*'], permissions: {} },
+      { collection: 'prospect_offres', action: 'read', fields: ['*'], permissions: {} },
+      { collection: 'prospect_offres', action: 'update', fields: ['*'], permissions: {} },
+      { collection: 'prospect_offres', action: 'delete', permissions: { user_created: { _eq: '$CURRENT_USER' } } },
 
       // Projects: read all, update own
       { collection: 'projects', action: 'create', fields: ['*'], permissions: {} },

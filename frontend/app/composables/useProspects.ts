@@ -1,5 +1,5 @@
 import { readItems, readItem, createItem, updateItem, deleteItem } from '@directus/sdk'
-import type { Prospect, ContactHistory, ContactCanal, ContactResultat } from '~/utils/types'
+import type { Prospect, ContactHistory, ContactCanal, ContactResultat, ProspectOffre, OffreProspectStatut } from '~/utils/types'
 
 export function useProspects() {
   const { $directus } = useNuxtApp()
@@ -36,7 +36,10 @@ export function useProspects() {
         'historique_contacts.date_contact', 'historique_contacts.notes',
         'historique_contacts.contacte_par.id',
         'historique_contacts.contacte_par.first_name', 'historique_contacts.contacte_par.last_name',
-        'historique_contacts.date_created'
+        'historique_contacts.date_created',
+        'offres.id', 'offres.titre', 'offres.montant', 'offres.statut', 'offres.notes',
+        'offres.ajoutee_par.id', 'offres.ajoutee_par.first_name', 'offres.ajoutee_par.last_name',
+        'offres.date_created'
       ]
     })) as Prospect
   }
@@ -64,6 +67,25 @@ export function useProspects() {
     return await $directus.request(createItem('contacts_history', data)) as ContactHistory
   }
 
+  async function addOffre(data: {
+    prospect: string
+    titre: string
+    montant: number | null
+    statut: OffreProspectStatut
+    notes: string
+    ajoutee_par: string
+  }) {
+    return await $directus.request(createItem('prospect_offres', data)) as ProspectOffre
+  }
+
+  async function updateOffre(id: string, data: Partial<ProspectOffre>) {
+    return await $directus.request(updateItem('prospect_offres', id, data)) as ProspectOffre
+  }
+
+  async function removeOffre(id: string) {
+    await $directus.request(deleteItem('prospect_offres', id))
+  }
+
   return {
     getAll,
     getClients,
@@ -71,6 +93,9 @@ export function useProspects() {
     create,
     update,
     remove,
-    addContact
+    addContact,
+    addOffre,
+    updateOffre,
+    removeOffre
   }
 }

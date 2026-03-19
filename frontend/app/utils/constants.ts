@@ -112,6 +112,14 @@ export const CONTACT_RESULTATS = {
   absent: { label: 'Absent', color: 'neutral', icon: 'i-lucide-user-x' }
 } as const
 
+export const OFFRE_PROSPECT_STATUTS = {
+  a_proposer: { label: 'A proposer', color: 'neutral', icon: 'i-lucide-file-text' },
+  proposee: { label: 'Proposee', color: 'blue', icon: 'i-lucide-send' },
+  negociation: { label: 'Negociation', color: 'yellow', icon: 'i-lucide-message-square' },
+  acceptee: { label: 'Acceptee', color: 'green', icon: 'i-lucide-check-circle' },
+  refusee: { label: 'Refusee', color: 'red', icon: 'i-lucide-x-circle' }
+} as const
+
 export const VILLES_FRANCE = [
   'Paris', 'Lyon', 'Marseille', 'Toulouse', 'Nice', 'Nantes', 'Strasbourg', 'Montpellier',
   'Bordeaux', 'Lille', 'Rennes', 'Reims', 'Toulon', 'Saint-Etienne', 'Le Havre',
