@@ -112,6 +112,33 @@ async function handleDelete() {
   }
 }
 
+// --- Quick note ---
+const quickNote = ref('')
+const savingNote = ref(false)
+let noteTimeout: ReturnType<typeof setTimeout> | null = null
+
+watch(prospect, (p) => {
+  if (p) quickNote.value = p.notes || ''
+}, { immediate: true })
+
+function onNoteInput() {
+  if (noteTimeout) clearTimeout(noteTimeout)
+  noteTimeout = setTimeout(saveNote, 800)
+}
+
+async function saveNote() {
+  if (!prospect.value || quickNote.value === (prospect.value.notes || '')) return
+  savingNote.value = true
+  try {
+    await update(prospectId, { notes: quickNote.value.trim() || null })
+    prospect.value.notes = quickNote.value.trim() || null
+  } catch {
+    toast.add({ title: 'Erreur', color: 'error' })
+  } finally {
+    savingNote.value = false
+  }
+}
+
 // --- Contacts (inline) ---
 const showContactForm = ref(false)
 const addingContact = ref(false)
@@ -439,16 +466,13 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
             <UFormField label="Emails secondaires">
               <UTextarea v-model="editForm.emails_secondaires" placeholder="Un par ligne" :rows="2" class="w-full" />
             </UFormField>
-            <UFormField label="Notes">
-              <UTextarea v-model="editForm.notes" :rows="4" class="w-full" />
-            </UFormField>
           </div>
         </template>
 
         <!-- READ MODE -->
         <template v-else>
           <!-- Pipeline -->
-          <div class="flex items-center gap-1 mb-5 max-w-6xl">
+          <div class="flex items-center gap-1 mb-4">
             <button
               v-for="([key, config]) in pipelineSteps"
               :key="key"
@@ -465,7 +489,7 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
             </button>
           </div>
 
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 max-w-6xl">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <!-- Col 1: Fiche + Offres -->
             <div class="space-y-4">
               <!-- Fiche infos -->
@@ -528,10 +552,25 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
                   </div>
                 </div>
 
-                <div v-if="prospect.notes" class="border-t border-stone-100 pt-2.5">
-                  <p class="text-[11px] text-stone-500 uppercase tracking-wide mb-1">Notes</p>
-                  <p class="text-stone-700 whitespace-pre-line">{{ prospect.notes }}</p>
+              </div>
+
+              <!-- Quick notes -->
+              <div class="rounded-xl bg-white/60 shadow-sm border border-white/80 overflow-hidden">
+                <div class="flex items-center justify-between px-4 py-2 border-b border-stone-100">
+                  <span class="text-sm font-semibold text-stone-900">Notes</span>
+                  <span v-if="savingNote" class="text-[11px] text-stone-400 flex items-center gap-1">
+                    <UIcon name="i-lucide-loader-circle" class="size-3 animate-spin" />
+                    Sauvegarde...
+                  </span>
+                  <span v-else-if="quickNote !== (prospect.notes || '')" class="text-[11px] text-stone-400">Non sauvegarde</span>
                 </div>
+                <textarea
+                  v-model="quickNote"
+                  class="w-full p-3 text-sm text-stone-700 bg-transparent resize-none outline-none placeholder:text-stone-300 min-h-[80px]"
+                  placeholder="Ajouter des notes..."
+                  @input="onNoteInput"
+                  @blur="saveNote"
+                />
               </div>
 
               <!-- Offres -->
@@ -605,8 +644,8 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
             </div>
 
             <!-- Col 2-3: Contacts -->
-            <div class="lg:col-span-2">
-              <div class="rounded-xl bg-white/60 shadow-sm border border-white/80 overflow-hidden">
+            <div class="lg:col-span-2 flex flex-col">
+              <div class="rounded-xl bg-white/60 shadow-sm border border-white/80 overflow-hidden flex-1 flex flex-col">
                 <div class="flex items-center justify-between px-4 py-2.5 border-b border-stone-100">
                   <div class="flex items-center gap-2">
                     <span class="text-sm font-semibold text-stone-900">Contacts</span>
@@ -621,7 +660,7 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
                   />
                 </div>
 
-                <div class="p-4">
+                <div class="p-4 flex-1 overflow-y-auto">
                   <!-- Inline add form -->
                   <div v-if="showContactForm" class="mb-4 pb-4 border-b border-stone-100">
                     <form class="space-y-2.5" @submit.prevent="handleAddContact">
