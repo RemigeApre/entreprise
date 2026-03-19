@@ -13,7 +13,11 @@ export function useProspects() {
 
   async function getAll() {
     return await $directus.request(readItems('prospects', {
-      fields: prospectFields,
+      fields: [
+        ...prospectFields,
+        'historique_contacts.id', 'historique_contacts.resultat',
+        'historique_contacts.date_contact', 'historique_contacts.canal'
+      ],
       sort: ['-date_created'],
       limit: -1
     })) as Prospect[]
