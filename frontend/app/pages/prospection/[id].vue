@@ -96,8 +96,8 @@ async function handleDelete() {
   }
 }
 
-// --- Contacts ---
-const showContactModal = ref(false)
+// --- Contacts (inline) ---
+const showContactForm = ref(false)
 const addingContact = ref(false)
 
 const contactForm = reactive({
@@ -116,6 +116,13 @@ const sortedContacts = computed(() => {
     (a, b) => new Date(b.date_contact).getTime() - new Date(a.date_contact).getTime()
   )
 })
+
+function resetContactForm() {
+  contactForm.canal = 'telephone'
+  contactForm.resultat = 'attente'
+  contactForm.date_contact = new Date().toISOString().split('T')[0]
+  contactForm.notes = ''
+}
 
 async function handleAddContact() {
   if (!user.value) return
@@ -147,11 +154,8 @@ async function handleAddContact() {
       : ''
     toast.add({ title: `Contact ajoute${quotaMsg}`, color: 'success' })
 
-    showContactModal.value = false
-    contactForm.canal = 'telephone'
-    contactForm.resultat = 'attente'
-    contactForm.date_contact = new Date().toISOString().split('T')[0]
-    contactForm.notes = ''
+    showContactForm.value = false
+    resetContactForm()
     await refresh()
   } catch {
     toast.add({ title: 'Erreur', color: 'error' })
@@ -160,8 +164,8 @@ async function handleAddContact() {
   }
 }
 
-// --- Offres ---
-const showOffreModal = ref(false)
+// --- Offres (inline) ---
+const showOffreForm = ref(false)
 const addingOffre = ref(false)
 
 const offreForm = reactive({
@@ -172,6 +176,13 @@ const offreForm = reactive({
 })
 
 const offreStatutOptions = Object.entries(OFFRE_PROSPECT_STATUTS).map(([value, config]) => ({ label: config.label, value }))
+
+function resetOffreForm() {
+  offreForm.titre = ''
+  offreForm.montant = null
+  offreForm.statut = 'a_proposer'
+  offreForm.notes = ''
+}
 
 async function handleAddOffre() {
   if (!user.value || !offreForm.titre.trim()) return
@@ -186,11 +197,8 @@ async function handleAddOffre() {
       ajoutee_par: user.value.id
     })
     toast.add({ title: 'Offre ajoutee', color: 'success' })
-    showOffreModal.value = false
-    offreForm.titre = ''
-    offreForm.montant = null
-    offreForm.statut = 'a_proposer'
-    offreForm.notes = ''
+    showOffreForm.value = false
+    resetOffreForm()
     await refresh()
   } catch {
     toast.add({ title: 'Erreur', color: 'error' })
@@ -233,12 +241,12 @@ async function setStatut(statut: ProspectStatut) {
 
 const pipelineSteps = Object.entries(PROSPECT_STATUTS) as [string, typeof PROSPECT_STATUTS[keyof typeof PROSPECT_STATUTS]][]
 
-const pipelineColors: Record<string, { active: string, dot: string }> = {
-  a_contacter: { active: 'bg-stone-600 text-white', dot: 'bg-stone-400' },
-  premier_contact: { active: 'bg-blue-600 text-white', dot: 'bg-blue-400' },
-  en_discussion: { active: 'bg-amber-500 text-white', dot: 'bg-amber-400' },
-  client: { active: 'bg-emerald-600 text-white', dot: 'bg-emerald-400' },
-  cloture: { active: 'bg-red-500 text-white', dot: 'bg-red-400' }
+const pipelineColors: Record<string, { active: string }> = {
+  a_contacter: { active: 'bg-stone-600 text-white' },
+  premier_contact: { active: 'bg-blue-600 text-white' },
+  en_discussion: { active: 'bg-amber-500 text-white' },
+  client: { active: 'bg-emerald-600 text-white' },
+  cloture: { active: 'bg-red-500 text-white' }
 }
 
 function isPipelineReached(key: string): boolean {
@@ -385,12 +393,12 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
 
         <!-- READ MODE -->
         <template v-else>
-          <!-- Pipeline - full width -->
-          <div class="flex items-center gap-1 mb-5 max-w-5xl">
+          <!-- Pipeline -->
+          <div class="flex items-center gap-1 mb-5 max-w-6xl">
             <button
-              v-for="([key, config], index) in pipelineSteps"
+              v-for="([key, config]) in pipelineSteps"
               :key="key"
-              class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all relative"
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
               :class="prospect.statut === key
                 ? pipelineColors[key].active
                 : isPipelineReached(key)
@@ -403,14 +411,12 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
             </button>
           </div>
 
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 max-w-5xl">
-            <!-- Left: infos + offres -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 max-w-6xl">
+            <!-- Col 1: Fiche -->
             <div class="space-y-4">
-              <!-- Infos -->
               <UCard>
-                <div class="space-y-4">
-                  <!-- Info grid -->
-                  <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                <div class="space-y-3 text-sm">
+                  <div class="grid grid-cols-2 gap-x-4 gap-y-2.5">
                     <div>
                       <p class="text-xs text-stone-500 mb-0.5">Ville</p>
                       <p class="font-medium text-stone-800">{{ prospect.ville }}</p>
@@ -425,39 +431,37 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
                     </div>
                     <div v-if="prospect.telephone">
                       <p class="text-xs text-stone-500 mb-0.5">Telephone</p>
-                      <a :href="`tel:${prospect.telephone}`" class="font-medium text-primary hover:underline text-sm">{{ prospect.telephone }}</a>
+                      <a :href="`tel:${prospect.telephone}`" class="font-medium text-primary hover:underline">{{ prospect.telephone }}</a>
                     </div>
                     <div v-if="prospect.email">
                       <p class="text-xs text-stone-500 mb-0.5">Email</p>
-                      <a :href="`mailto:${prospect.email}`" class="font-medium text-primary hover:underline truncate block text-sm">{{ prospect.email }}</a>
+                      <a :href="`mailto:${prospect.email}`" class="font-medium text-primary hover:underline truncate block">{{ prospect.email }}</a>
                     </div>
                     <div v-if="prospect.site_web" class="col-span-2">
                       <p class="text-xs text-stone-500 mb-0.5">Site web</p>
-                      <a :href="prospect.site_web" target="_blank" rel="noopener" class="font-medium text-primary hover:underline truncate block text-sm">{{ prospect.site_web }}</a>
+                      <a :href="prospect.site_web" target="_blank" rel="noopener" class="font-medium text-primary hover:underline truncate block">{{ prospect.site_web }}</a>
                     </div>
                     <div v-if="prospect.adresse" class="col-span-2">
                       <p class="text-xs text-stone-500 mb-0.5">Adresse</p>
-                      <p class="font-medium text-stone-800 text-sm">{{ prospect.adresse }}</p>
+                      <p class="font-medium text-stone-800">{{ prospect.adresse }}</p>
                     </div>
+                  </div>
+                  <div class="border-t border-stone-100 pt-2.5 grid grid-cols-2 gap-x-4 gap-y-2">
                     <div>
                       <p class="text-xs text-stone-500 mb-0.5">Prospecteur</p>
-                      <p class="font-medium text-stone-800 text-sm">{{ getProspecteurName(prospect) }}</p>
+                      <p class="font-medium text-stone-800">{{ getProspecteurName(prospect) }}</p>
                     </div>
                     <div>
                       <p class="text-xs text-stone-500 mb-0.5">Cree le</p>
-                      <p class="font-medium text-stone-800 text-sm">{{ formatDateFr(prospect.date_created) }}</p>
+                      <p class="font-medium text-stone-800">{{ formatDateFr(prospect.date_created) }}</p>
                     </div>
                   </div>
-
-                  <!-- Notes -->
-                  <div v-if="prospect.notes" class="border-t border-stone-100 pt-3">
-                    <p class="text-xs text-stone-500 mb-1.5">Notes</p>
-                    <p class="text-sm text-stone-700 whitespace-pre-line">{{ prospect.notes }}</p>
+                  <div v-if="prospect.notes" class="border-t border-stone-100 pt-2.5">
+                    <p class="text-xs text-stone-500 mb-1">Notes</p>
+                    <p class="text-stone-700 whitespace-pre-line">{{ prospect.notes }}</p>
                   </div>
-
-                  <!-- Emails secondaires -->
-                  <div v-if="prospect.emails_secondaires" class="border-t border-stone-100 pt-3">
-                    <p class="text-xs text-stone-500 mb-1.5">Emails secondaires</p>
+                  <div v-if="prospect.emails_secondaires" class="border-t border-stone-100 pt-2.5">
+                    <p class="text-xs text-stone-500 mb-1">Emails secondaires</p>
                     <p class="text-xs text-stone-600 whitespace-pre-line">{{ prospect.emails_secondaires }}</p>
                   </div>
                 </div>
@@ -468,50 +472,62 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
                 <template #header>
                   <div class="flex items-center justify-between">
                     <span class="text-sm font-semibold text-stone-900">Offres</span>
-                    <UButton label="Ajouter" icon="i-lucide-plus" size="xs" @click="showOffreModal = true" />
+                    <UButton
+                      v-if="!showOffreForm"
+                      icon="i-lucide-plus"
+                      size="xs"
+                      variant="ghost"
+                      @click="showOffreForm = true"
+                    />
                   </div>
                 </template>
 
-                <div v-if="!prospect.offres?.length" class="text-center py-6">
-                  <UIcon name="i-lucide-file-text" class="size-7 text-stone-200 mx-auto mb-2" />
-                  <p class="text-sm text-stone-500 mb-3">Aucune offre</p>
-                  <UButton label="Ajouter une offre" icon="i-lucide-plus" size="xs" variant="subtle" @click="showOffreModal = true" />
+                <!-- Inline add form -->
+                <form v-if="showOffreForm" class="space-y-2.5 mb-3 pb-3 border-b border-stone-100" @submit.prevent="handleAddOffre">
+                  <UInput v-model="offreForm.titre" placeholder="Titre de l'offre..." size="sm" class="w-full" />
+                  <div class="flex gap-2">
+                    <UInput v-model.number="offreForm.montant" type="number" :min="0" placeholder="Montant" size="sm" class="flex-1" />
+                    <USelect v-model="offreForm.statut" :items="offreStatutOptions" value-key="value" size="sm" class="flex-1" />
+                  </div>
+                  <UInput v-model="offreForm.notes" placeholder="Notes..." size="sm" class="w-full" />
+                  <div class="flex justify-end gap-1.5">
+                    <UButton label="Annuler" size="xs" variant="ghost" color="neutral" @click="showOffreForm = false; resetOffreForm()" />
+                    <UButton type="submit" label="Ajouter" size="xs" icon="i-lucide-plus" :loading="addingOffre" />
+                  </div>
+                </form>
+
+                <div v-if="!prospect.offres?.length && !showOffreForm" class="text-center py-4">
+                  <p class="text-xs text-stone-400 mb-2">Aucune offre</p>
+                  <UButton label="Ajouter" icon="i-lucide-plus" size="xs" variant="subtle" @click="showOffreForm = true" />
                 </div>
 
-                <div v-else class="space-y-2">
+                <div v-if="prospect.offres?.length" class="space-y-1.5">
                   <div
                     v-for="offre in prospect.offres"
                     :key="offre.id"
-                    class="flex items-center gap-3 rounded-lg border border-stone-100 px-3 py-2.5 group"
+                    class="flex items-center gap-2.5 rounded-lg px-2.5 py-2 group hover:bg-stone-50 transition-colors"
                   >
-                    <!-- Status pill (cliquable pour cycler) -->
                     <button
                       class="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors"
                       :class="getOffreStatutColor(offre.statut)"
-                      :title="`Cliquer pour changer le statut (actuel : ${OFFRE_PROSPECT_STATUTS[offre.statut]?.label})`"
+                      :title="`Cliquer pour changer le statut`"
                       @click="cycleOffreStatut(offre)"
                     >
                       <UIcon :name="OFFRE_PROSPECT_STATUTS[offre.statut]?.icon || 'i-lucide-file-text'" class="size-3" />
                       {{ OFFRE_PROSPECT_STATUTS[offre.statut]?.label }}
                     </button>
-
-                    <!-- Content -->
                     <div class="flex-1 min-w-0">
                       <p class="text-sm font-medium text-stone-800 truncate">{{ offre.titre }}</p>
-                      <p class="text-[11px] text-stone-500">
+                      <p class="text-[11px] text-stone-500 truncate">
                         {{ getOffreUserName(offre) }}
-                        <span v-if="offre.notes" class="ml-1 text-stone-400">- {{ offre.notes }}</span>
+                        <span v-if="offre.notes" class="text-stone-400"> - {{ offre.notes }}</span>
                       </p>
                     </div>
-
-                    <!-- Amount -->
                     <span v-if="offre.montant" class="text-sm font-semibold text-stone-700 tabular-nums shrink-0">
-                      {{ offre.montant.toLocaleString('fr-FR') }} &euro;
+                      {{ offre.montant.toLocaleString('fr-FR') }}&nbsp;&euro;
                     </span>
-
-                    <!-- Delete -->
                     <button
-                      class="shrink-0 opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity"
+                      class="shrink-0 opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
                       @click="handleRemoveOffre(offre.id)"
                     >
                       <UIcon name="i-lucide-x" class="size-3.5 text-stone-400" />
@@ -521,8 +537,8 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
               </UCard>
             </div>
 
-            <!-- Right: historique contacts -->
-            <div>
+            <!-- Col 2-3: Contacts (spans 2 cols on lg) -->
+            <div class="lg:col-span-2">
               <UCard>
                 <template #header>
                   <div class="flex items-center justify-between">
@@ -530,14 +546,36 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
                       <span class="text-sm font-semibold text-stone-900">Contacts</span>
                       <span v-if="sortedContacts.length" class="text-xs text-stone-500 tabular-nums">{{ sortedContacts.length }}</span>
                     </div>
-                    <UButton label="Ajouter" icon="i-lucide-plus" size="xs" @click="showContactModal = true" />
+                    <UButton
+                      v-if="!showContactForm"
+                      label="Ajouter"
+                      icon="i-lucide-plus"
+                      size="xs"
+                      @click="showContactForm = true"
+                    />
                   </div>
                 </template>
 
-                <div v-if="!sortedContacts.length" class="text-center py-8">
+                <!-- Inline add form -->
+                <div v-if="showContactForm" class="mb-4 pb-4 border-b border-stone-100">
+                  <form class="space-y-2.5" @submit.prevent="handleAddContact">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <USelect v-model="contactForm.canal" :items="canalOptions" value-key="value" size="sm" />
+                      <USelect v-model="contactForm.resultat" :items="resultatOptions" value-key="value" size="sm" />
+                      <UInput v-model="contactForm.date_contact" type="date" size="sm" />
+                      <div class="flex gap-1.5">
+                        <UButton type="submit" label="Ajouter" size="sm" icon="i-lucide-plus" :loading="addingContact" class="flex-1" />
+                        <UButton icon="i-lucide-x" size="sm" variant="ghost" color="neutral" @click="showContactForm = false; resetContactForm()" />
+                      </div>
+                    </div>
+                    <UInput v-model="contactForm.notes" placeholder="Notes sur l'echange..." size="sm" class="w-full" />
+                  </form>
+                </div>
+
+                <div v-if="!sortedContacts.length && !showContactForm" class="text-center py-8">
                   <UIcon name="i-lucide-phone-outgoing" class="size-8 text-stone-200 mx-auto mb-2" />
                   <p class="text-sm text-stone-500 mb-3">Aucun contact enregistre</p>
-                  <UButton label="Premier contact" icon="i-lucide-phone" size="xs" variant="subtle" @click="showContactModal = true" />
+                  <UButton label="Premier contact" icon="i-lucide-phone" size="xs" variant="subtle" @click="showContactForm = true" />
                 </div>
 
                 <div v-else class="space-y-0">
@@ -591,65 +629,7 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
       </div>
     </div>
 
-    <!-- Modal ajout contact -->
-    <UModal :open="showContactModal" @update:open="showContactModal = $event">
-      <template #content>
-        <div class="p-6">
-          <h3 class="text-base font-semibold text-stone-900 mb-4">Enregistrer un contact</h3>
-          <form class="space-y-4" @submit.prevent="handleAddContact">
-            <div class="grid grid-cols-2 gap-3">
-              <UFormField label="Canal">
-                <USelect v-model="contactForm.canal" :items="canalOptions" value-key="value" class="w-full" />
-              </UFormField>
-              <UFormField label="Resultat">
-                <USelect v-model="contactForm.resultat" :items="resultatOptions" value-key="value" class="w-full" />
-              </UFormField>
-            </div>
-            <UFormField label="Date">
-              <UInput v-model="contactForm.date_contact" type="date" class="w-full" />
-            </UFormField>
-            <UFormField label="Notes">
-              <UTextarea v-model="contactForm.notes" placeholder="Details de l'echange, resultat..." :rows="3" class="w-full" />
-            </UFormField>
-            <div class="flex justify-end gap-2 pt-1">
-              <UButton label="Annuler" color="neutral" variant="ghost" @click="showContactModal = false" />
-              <UButton type="submit" label="Ajouter" icon="i-lucide-plus" :loading="addingContact" />
-            </div>
-          </form>
-        </div>
-      </template>
-    </UModal>
-
-    <!-- Modal ajout offre -->
-    <UModal :open="showOffreModal" @update:open="showOffreModal = $event">
-      <template #content>
-        <div class="p-6">
-          <h3 class="text-base font-semibold text-stone-900 mb-4">Ajouter une offre</h3>
-          <form class="space-y-4" @submit.prevent="handleAddOffre">
-            <UFormField label="Titre" required>
-              <UInput v-model="offreForm.titre" placeholder="Ex: Site vitrine, Maintenance, ..." icon="i-lucide-file-text" class="w-full" />
-            </UFormField>
-            <div class="grid grid-cols-2 gap-3">
-              <UFormField label="Montant (EUR)">
-                <UInput v-model.number="offreForm.montant" type="number" :min="0" placeholder="Ex: 2500" icon="i-lucide-euro" class="w-full" />
-              </UFormField>
-              <UFormField label="Statut">
-                <USelect v-model="offreForm.statut" :items="offreStatutOptions" value-key="value" class="w-full" />
-              </UFormField>
-            </div>
-            <UFormField label="Notes">
-              <UTextarea v-model="offreForm.notes" placeholder="Details, conditions..." :rows="2" class="w-full" />
-            </UFormField>
-            <div class="flex justify-end gap-2 pt-1">
-              <UButton label="Annuler" color="neutral" variant="ghost" @click="showOffreModal = false" />
-              <UButton type="submit" label="Ajouter" icon="i-lucide-plus" :loading="addingOffre" />
-            </div>
-          </form>
-        </div>
-      </template>
-    </UModal>
-
-    <!-- Modal suppression -->
+    <!-- Modal suppression (seule modal restante, justifie car action destructive) -->
     <UModal v-model:open="showDeleteModal">
       <template #content>
         <div class="p-6 space-y-4">

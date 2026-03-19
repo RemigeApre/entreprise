@@ -329,23 +329,15 @@ if (import.meta.client) {
               class="block group"
             >
               <div
-                class="relative flex items-center gap-3 rounded-lg border px-3.5 py-3 transition-all hover:border-[#af8f3c]/30 hover:bg-[#af8f3c]/[0.03]"
-                :class="prospect.statut === 'cloture'
-                  ? 'border-stone-200/60 opacity-50'
-                  : 'border-stone-200'"
+                class="relative flex items-center gap-3 rounded-lg border-l-[3px] bg-white/60 shadow-sm px-3.5 py-3 transition-all hover:shadow-md hover:bg-white/80 border border-white/80"
+                :class="{
+                  'border-l-stone-400': prospect.statut === 'a_contacter',
+                  'border-l-blue-500': prospect.statut === 'premier_contact',
+                  'border-l-amber-500': prospect.statut === 'en_discussion',
+                  'border-l-emerald-500': prospect.statut === 'client',
+                  'border-l-stone-300 opacity-50': prospect.statut === 'cloture'
+                }"
               >
-                <!-- Left: status indicator -->
-                <div
-                  class="shrink-0 size-2 rounded-full"
-                  :class="{
-                    'bg-stone-300': prospect.statut === 'a_contacter',
-                    'bg-blue-400': prospect.statut === 'premier_contact',
-                    'bg-amber-400': prospect.statut === 'en_discussion',
-                    'bg-emerald-500': prospect.statut === 'client',
-                    'bg-stone-300/60': prospect.statut === 'cloture'
-                  }"
-                />
-
                 <!-- Center: info -->
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2">
