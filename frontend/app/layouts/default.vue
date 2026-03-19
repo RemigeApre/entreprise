@@ -343,6 +343,9 @@ const userMenuItems = computed(() => [
       <!-- Global search -->
       <GlobalSearch />
 
+      <!-- Notepad -->
+      <StickyNotepad />
+
       <!-- Page content -->
       <div class="page-content bg-watermark">
         <!-- Mobile menu button -->
