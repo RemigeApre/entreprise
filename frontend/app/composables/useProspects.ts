@@ -4,18 +4,11 @@ import type { Prospect, ContactHistory, ContactCanal, ContactResultat, ProspectO
 export function useProspects() {
   const { $directus } = useNuxtApp()
 
-  const prospectFields = [
-    'id', 'nom_entreprise', 'ville', 'secteur', 'adresse', 'telephone',
-    'telephones_secondaires', 'email', 'emails_secondaires', 'site_web',
-    'contact_nom', 'notes', 'statut', 'nb_contacts', 'origine', 'niveau_site',
-    'motif_cloture', 'prospecteur.id', 'prospecteur.first_name', 'prospecteur.last_name',
-    'date_created', 'date_updated'
-  ]
-
   async function getAll() {
     return await $directus.request(readItems('prospects', {
       fields: [
-        ...prospectFields,
+        '*',
+        'prospecteur.id', 'prospecteur.first_name', 'prospecteur.last_name',
         'historique_contacts.id', 'historique_contacts.resultat',
         'historique_contacts.date_contact', 'historique_contacts.canal'
       ],
@@ -27,7 +20,10 @@ export function useProspects() {
   async function getClients() {
     return await $directus.request(readItems('prospects', {
       filter: { statut: { _eq: 'client' } },
-      fields: prospectFields,
+      fields: [
+        '*',
+        'prospecteur.id', 'prospecteur.first_name', 'prospecteur.last_name'
+      ],
       sort: ['-date_created'],
       limit: -1
     })) as Prospect[]
@@ -36,7 +32,8 @@ export function useProspects() {
   async function getById(id: string) {
     return await $directus.request(readItem('prospects', id, {
       fields: [
-        ...prospectFields,
+        '*',
+        'prospecteur.id', 'prospecteur.first_name', 'prospecteur.last_name',
         'historique_contacts.id', 'historique_contacts.canal', 'historique_contacts.resultat',
         'historique_contacts.date_contact', 'historique_contacts.notes',
         'historique_contacts.contacte_par.id',
