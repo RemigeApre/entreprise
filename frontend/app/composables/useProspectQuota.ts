@@ -56,7 +56,8 @@ export function useProspectQuota() {
 
       weekContacts.value = contacts.length
 
-      const todayStr = todayStart.toISOString().split('T')[0]
+      const now = new Date()
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
       todayContacts.value = contacts.filter(c =>
         c.date_contact.startsWith(todayStr)
       ).length
