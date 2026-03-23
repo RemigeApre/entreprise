@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Prospect, ProspectStatut, ContactCanal, ContactResultat, ContactHistory, OffreProspectStatut, ProspectOffre, MotifCloture } from '~/utils/types'
-import { PROSPECT_STATUTS, CONTACT_CANAUX, CONTACT_RESULTATS, OFFRE_PROSPECT_STATUTS, MOTIFS_CLOTURE } from '~/utils/constants'
+import type { Prospect, ProspectStatut, ContactCanal, ContactResultat, ContactHistory, OffreProspectStatut, ProspectOffre, MotifCloture, OrigineProspection, NiveauSite } from '~/utils/types'
+import { PROSPECT_STATUTS, CONTACT_CANAUX, CONTACT_RESULTATS, OFFRE_PROSPECT_STATUTS, MOTIFS_CLOTURE, ORIGINES_PROSPECTION, NIVEAUX_SITE } from '~/utils/constants'
 
 const route = useRoute()
 const { user, isProspecteur } = useAuth()
@@ -42,10 +42,14 @@ const editForm = reactive({
   site_web: '',
   contact_nom: '',
   notes: '',
-  statut: 'a_contacter' as ProspectStatut
+  statut: 'a_contacter' as ProspectStatut,
+  origine: null as OrigineProspection | null,
+  niveau_site: null as NiveauSite | null
 })
 
 const statutOptions = Object.entries(PROSPECT_STATUTS).map(([value, config]) => ({ label: config.label, value }))
+const origineOptions = [{ label: '-', value: '' }, ...Object.entries(ORIGINES_PROSPECTION).map(([value, config]) => ({ label: config.label, value }))]
+const niveauSiteOptions = [{ label: '-', value: '' }, ...Object.entries(NIVEAUX_SITE).map(([value, config]) => ({ label: config.label, value }))]
 
 function startEditing() {
   if (!prospect.value) return
@@ -62,7 +66,9 @@ function startEditing() {
     site_web: p.site_web || '',
     contact_nom: p.contact_nom || '',
     notes: p.notes || '',
-    statut: p.statut
+    statut: p.statut,
+    origine: p.origine || null,
+    niveau_site: p.niveau_site || null
   })
   editing.value = true
 }
@@ -83,7 +89,9 @@ async function saveChanges() {
       site_web: editForm.site_web.trim() || null,
       contact_nom: editForm.contact_nom.trim() || null,
       notes: editForm.notes.trim() || null,
-      statut: editForm.statut
+      statut: editForm.statut,
+      origine: editForm.origine || null,
+      niveau_site: editForm.niveau_site || null
     })
     toast.add({ title: 'Prospect mis a jour', color: 'success' })
     editing.value = false
@@ -441,6 +449,14 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
         <!-- EDIT MODE -->
         <template v-if="editing">
           <div class="max-w-2xl space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+              <UFormField label="Origine">
+                <USelect v-model="editForm.origine" :items="origineOptions" value-key="value" class="w-full" />
+              </UFormField>
+              <UFormField label="Statut">
+                <USelect v-model="editForm.statut" :items="statutOptions" value-key="value" class="w-full" />
+              </UFormField>
+            </div>
             <UFormField label="Nom" required>
               <UInput v-model="editForm.nom_entreprise" icon="i-lucide-building-2" class="w-full" />
             </UFormField>
@@ -448,16 +464,16 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
               <UFormField label="Ville" required>
                 <UInput v-model="editForm.ville" icon="i-lucide-map-pin" class="w-full" />
               </UFormField>
-              <UFormField label="Statut">
-                <USelect v-model="editForm.statut" :items="statutOptions" value-key="value" class="w-full" />
+              <UFormField label="Secteur">
+                <UInput v-model="editForm.secteur" icon="i-lucide-briefcase" class="w-full" />
               </UFormField>
             </div>
             <div class="grid grid-cols-2 gap-3">
               <UFormField label="Contact">
                 <UInput v-model="editForm.contact_nom" icon="i-lucide-user" class="w-full" />
               </UFormField>
-              <UFormField label="Secteur">
-                <UInput v-model="editForm.secteur" icon="i-lucide-briefcase" class="w-full" />
+              <UFormField label="Adresse">
+                <UInput v-model="editForm.adresse" icon="i-lucide-map" class="w-full" />
               </UFormField>
             </div>
             <div class="grid grid-cols-2 gap-3">
@@ -475,8 +491,8 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
               <UFormField label="Site web">
                 <UInput v-model="editForm.site_web" icon="i-lucide-globe" type="url" class="w-full" />
               </UFormField>
-              <UFormField label="Adresse">
-                <UInput v-model="editForm.adresse" icon="i-lucide-map" class="w-full" />
+              <UFormField label="Niveau du site">
+                <USelect v-model="editForm.niveau_site" :items="niveauSiteOptions" value-key="value" class="w-full" />
               </UFormField>
             </div>
             <UFormField label="Emails secondaires">
@@ -531,6 +547,27 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
             <div class="space-y-4">
               <!-- Fiche infos -->
               <div class="rounded-xl bg-white/60 shadow-sm border border-white/80 p-4 space-y-3 text-sm">
+                <!-- Origine + Niveau site -->
+                <div v-if="prospect.origine || prospect.niveau_site" class="flex flex-wrap gap-1.5 pb-2 border-b border-stone-100">
+                  <span v-if="prospect.origine" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-primary/8 text-primary">
+                    <UIcon :name="ORIGINES_PROSPECTION[prospect.origine]?.icon || 'i-lucide-help-circle'" class="size-3" />
+                    {{ ORIGINES_PROSPECTION[prospect.origine]?.label || prospect.origine }}
+                  </span>
+                  <span
+                    v-if="prospect.niveau_site"
+                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium"
+                    :class="{
+                      'bg-stone-100 text-stone-600': prospect.niveau_site === 'pas_de_site',
+                      'bg-red-100 text-red-600': prospect.niveau_site === 'site_casse',
+                      'bg-orange-100 text-orange-600': prospect.niveau_site === 'site_nul',
+                      'bg-amber-100 text-amber-600': prospect.niveau_site === 'site_passable'
+                    }"
+                  >
+                    <UIcon :name="NIVEAUX_SITE[prospect.niveau_site]?.icon || 'i-lucide-globe'" class="size-3" />
+                    {{ NIVEAUX_SITE[prospect.niveau_site]?.label || prospect.niveau_site }}
+                  </span>
+                </div>
+
                 <div class="grid grid-cols-2 gap-x-4 gap-y-2.5">
                   <div>
                     <p class="text-[11px] text-stone-500 uppercase tracking-wide">Ville</p>

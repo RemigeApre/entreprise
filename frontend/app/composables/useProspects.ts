@@ -6,8 +6,9 @@ export function useProspects() {
 
   const prospectFields = [
     'id', 'nom_entreprise', 'ville', 'secteur', 'adresse', 'telephone',
-    'email', 'emails_secondaires', 'site_web', 'contact_nom', 'notes', 'statut', 'nb_contacts',
-    'prospecteur.id', 'prospecteur.first_name', 'prospecteur.last_name',
+    'telephones_secondaires', 'email', 'emails_secondaires', 'site_web',
+    'contact_nom', 'notes', 'statut', 'nb_contacts', 'origine', 'niveau_site',
+    'motif_cloture', 'prospecteur.id', 'prospecteur.first_name', 'prospecteur.last_name',
     'date_created', 'date_updated'
   ]
 

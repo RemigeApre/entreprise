@@ -86,6 +86,23 @@ export const CONGE_TYPES = {
   autre: 'Autre'
 } as const
 
+export const ORIGINES_PROSPECTION = {
+  google_maps: { label: 'Google Maps', icon: 'i-simple-icons-googlemaps' },
+  linkedin: { label: 'LinkedIn', icon: 'i-simple-icons-linkedin' },
+  pages_jaunes: { label: 'Pages Jaunes', icon: 'i-lucide-book-open' },
+  bouche_a_oreille: { label: 'Bouche a oreille', icon: 'i-lucide-ear' },
+  salon: { label: 'Salon / Evenement', icon: 'i-lucide-calendar' },
+  site_web: { label: 'Site web', icon: 'i-lucide-globe' },
+  autre: { label: 'Autre', icon: 'i-lucide-help-circle' }
+} as const
+
+export const NIVEAUX_SITE = {
+  pas_de_site: { label: 'Pas de site', color: 'neutral', icon: 'i-lucide-globe-lock' },
+  site_casse: { label: 'Site casse', color: 'red', icon: 'i-lucide-alert-triangle' },
+  site_nul: { label: 'Site nul', color: 'orange', icon: 'i-lucide-thumbs-down' },
+  site_passable: { label: 'Site passable', color: 'yellow', icon: 'i-lucide-minus' }
+} as const
+
 export const PROSPECT_STATUTS = {
   a_contacter: { label: 'A contacter', color: 'neutral', icon: 'i-lucide-phone-outgoing' },
   premier_contact: { label: 'Premier contact', color: 'blue', icon: 'i-lucide-phone-call' },

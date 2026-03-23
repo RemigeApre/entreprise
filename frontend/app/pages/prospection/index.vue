@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { updateMe } from '@directus/sdk'
 import type { Prospect, ProspectStatut, ContactCanal, ContactResultat } from '~/utils/types'
-import { PROSPECT_STATUTS, CONTACT_CANAUX, CONTACT_RESULTATS, MOTIFS_CLOTURE } from '~/utils/constants'
+import { PROSPECT_STATUTS, CONTACT_CANAUX, CONTACT_RESULTATS, MOTIFS_CLOTURE, ORIGINES_PROSPECTION, NIVEAUX_SITE } from '~/utils/constants'
 import { downloadCsv } from '~/utils/csv'
 
 const { user, isProspecteur, fetchCurrentUser } = useAuth()
@@ -73,7 +73,7 @@ const filteredProspects = computed(() => {
   return sortItems(
     prospects.value.filter((p: Prospect) => {
       const q = search.value.toLowerCase()
-      const matchesSearch = !q || [p.nom_entreprise, p.contact_nom, p.telephone].some(f => f?.toLowerCase().includes(q))
+      const matchesSearch = !q || [p.nom_entreprise, p.contact_nom, p.telephone, p.ville, p.adresse].some(f => f?.toLowerCase().includes(q))
       if (filterStatut.value === 'all') return matchesSearch && p.statut !== 'cloture'
       return matchesSearch && p.statut === filterStatut.value
     }),
@@ -187,10 +187,18 @@ function exportCsv() {
   const rows = data.map(p => ({
     'Entreprise': p.nom_entreprise,
     'Ville': p.ville,
+    'Adresse': p.adresse || '',
+    'Secteur': p.secteur || '',
     'Contact': p.contact_nom || '',
+    'Origine': p.origine ? (ORIGINES_PROSPECTION[p.origine]?.label || p.origine) : '',
     'Telephone': p.telephone || '',
+    'Telephones secondaires': p.telephones_secondaires?.replace(/\n/g, ', ') || '',
     'Email': p.email || '',
+    'Emails secondaires': p.emails_secondaires?.replace(/\n/g, ', ') || '',
+    'Site web': p.site_web || '',
+    'Niveau site': p.niveau_site ? (NIVEAUX_SITE[p.niveau_site]?.label || p.niveau_site) : '',
     'Statut': PROSPECT_STATUTS[p.statut]?.label || p.statut,
+    'Motif cloture': p.motif_cloture ? (MOTIFS_CLOTURE[p.motif_cloture]?.label || p.motif_cloture) : '',
     'Nb contacts': p.nb_contacts || 0,
     'Date creation': p.date_created?.split('T')[0] || ''
   }))
@@ -332,6 +340,11 @@ if (import.meta.client) {
                       >{{ PROSPECT_STATUTS[prospect.statut]?.label }}</span>
                     </div>
                     <div class="flex items-center gap-2 text-xs text-stone-500">
+                      <span v-if="prospect.origine" class="inline-flex items-center gap-0.5 text-[10px] text-primary/70 shrink-0">
+                        <UIcon :name="ORIGINES_PROSPECTION[prospect.origine]?.icon || 'i-lucide-help-circle'" class="size-2.5" />
+                        {{ ORIGINES_PROSPECTION[prospect.origine]?.label }}
+                      </span>
+                      <span v-if="prospect.origine && (prospect.contact_nom || prospect.ville)" class="text-stone-300">-</span>
                       <span v-if="prospect.contact_nom" class="truncate">{{ prospect.contact_nom }}</span>
                       <span v-if="prospect.contact_nom && prospect.ville" class="text-stone-300">-</span>
                       <span class="text-stone-400 truncate">{{ prospect.ville }}</span>

@@ -77,7 +77,16 @@ export default defineNuxtConfig({
         'lucide:feather',
         'lucide:user',
         'lucide:arrow-left',
-        'lucide:database'
+        'lucide:database',
+        'lucide:ear',
+        'lucide:calendar',
+        'lucide:globe-lock',
+        'lucide:alert-triangle',
+        'lucide:thumbs-down',
+        'lucide:plus',
+        'lucide:map',
+        'simple-icons:googlemaps',
+        'simple-icons:linkedin'
       ],
       sizeLimitKb: 0
     }

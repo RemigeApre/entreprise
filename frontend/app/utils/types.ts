@@ -94,6 +94,8 @@ export type MotifCloture = 'concurrent' | 'ferme' | 'refus' | 'autre'
 export type ContactCanal = 'email' | 'telephone' | 'linkedin' | 'en_personne' | 'site_web' | 'autre'
 export type ContactResultat = 'refus' | 'attente' | 'retenter' | 'ligne_coupee' | 'positif' | 'absent'
 export type OffreProspectStatut = 'a_proposer' | 'proposee' | 'negociation' | 'acceptee' | 'refusee'
+export type OrigineProspection = 'google_maps' | 'linkedin' | 'pages_jaunes' | 'bouche_a_oreille' | 'salon' | 'site_web' | 'autre'
+export type NiveauSite = 'pas_de_site' | 'site_casse' | 'site_nul' | 'site_passable'
 
 export interface Prospect {
   id: string
@@ -111,6 +113,8 @@ export interface Prospect {
   prospecteur: UserProfile | string
   statut: ProspectStatut
   motif_cloture: MotifCloture | null
+  origine: OrigineProspection | null
+  niveau_site: NiveauSite | null
   nb_contacts: number
   historique_contacts?: ContactHistory[]
   offres?: ProspectOffre[]
