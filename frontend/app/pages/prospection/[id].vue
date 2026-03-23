@@ -158,7 +158,8 @@ const contactForm = reactive({
   resultat: 'attente' as ContactResultat,
   date_contact: new Date().toISOString().split('T')[0],
   notes: '',
-  selectedPhone: ''
+  selectedPhone: '',
+  selectedEmail: ''
 })
 
 const canalOptions = Object.entries(CONTACT_CANAUX).map(([value, config]) => ({ label: config.label, value }))
@@ -168,10 +169,15 @@ const phoneSelectOptions = computed(() => {
   return allPhones.value.map(p => ({ label: p, value: p }))
 })
 
-// Auto-select first phone when opening form
+const emailSelectOptions = computed(() => {
+  return allEmails.value.map(e => ({ label: e, value: e }))
+})
+
+// Auto-select first phone/email when opening form
 watch(showContactForm, (open) => {
-  if (open && allPhones.value.length) {
-    contactForm.selectedPhone = allPhones.value[0]
+  if (open) {
+    if (allPhones.value.length) contactForm.selectedPhone = allPhones.value[0]
+    if (allEmails.value.length) contactForm.selectedEmail = allEmails.value[0]
   }
 })
 
@@ -188,6 +194,7 @@ function resetContactForm() {
   contactForm.date_contact = new Date().toISOString().split('T')[0]
   contactForm.notes = ''
   contactForm.selectedPhone = allPhones.value[0] || ''
+  contactForm.selectedEmail = allEmails.value[0] || ''
 }
 
 async function handleAddPhone() {
@@ -213,13 +220,18 @@ async function handleAddContact() {
   if (!user.value) return
   addingContact.value = true
   try {
-    const phoneNote = contactForm.selectedPhone ? `[${contactForm.selectedPhone}] ` : ''
+    let contextNote = ''
+    if (contactForm.canal === 'telephone' && contactForm.selectedPhone) {
+      contextNote = `[${contactForm.selectedPhone}] `
+    } else if (contactForm.canal === 'email' && contactForm.selectedEmail) {
+      contextNote = `[${contactForm.selectedEmail}] `
+    }
     await addContact({
       prospect: prospectId,
       canal: contactForm.canal,
       resultat: contactForm.resultat,
       date_contact: contactForm.date_contact,
-      notes: (phoneNote + contactForm.notes).trim(),
+      notes: (contextNote + contactForm.notes).trim(),
       contacte_par: user.value.id
     })
 
@@ -374,6 +386,24 @@ function getContactUserName(contact: ContactHistory): string {
 function getOffreUserName(offre: ProspectOffre): string {
   if (!offre.ajoutee_par || typeof offre.ajoutee_par === 'string') return '-'
   return [offre.ajoutee_par.first_name, offre.ajoutee_par.last_name].filter(Boolean).join(' ') || '-'
+}
+
+// --- All emails (primary + secondaires) ---
+const allEmails = computed(() => {
+  if (!prospect.value) return []
+  const emails: string[] = []
+  if (prospect.value.email) emails.push(prospect.value.email)
+  if (prospect.value.emails_secondaires) {
+    prospect.value.emails_secondaires.split('\n').map(e => e.trim()).filter(Boolean).forEach(e => {
+      if (!emails.includes(e)) emails.push(e)
+    })
+  }
+  return emails
+})
+
+function copyToClipboard(text: string) {
+  navigator.clipboard.writeText(text)
+  toast.add({ title: 'Copie !', color: 'success' })
 }
 
 function formatDateFr(date: string | null) {
@@ -587,22 +617,45 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
                 <div v-if="allPhones.length" class="border-t border-stone-100 pt-2.5">
                   <p class="text-[11px] text-stone-500 uppercase tracking-wide mb-1.5">Telephones</p>
                   <div class="flex flex-wrap gap-1.5">
-                    <a
+                    <span
                       v-for="phone in allPhones"
                       :key="phone"
-                      :href="`tel:${phone}`"
-                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/8 text-primary hover:bg-primary/15 transition-colors tabular-nums"
+                      class="inline-flex items-center gap-1 rounded-full text-xs font-medium bg-primary/8 text-primary tabular-nums group"
                     >
-                      <UIcon name="i-lucide-phone" class="size-3" />
-                      {{ phone }}
-                    </a>
+                      <a :href="`tel:${phone}`" class="pl-2 py-0.5 inline-flex items-center gap-1 hover:underline">
+                        <UIcon name="i-lucide-phone" class="size-3" />
+                        {{ phone }}
+                      </a>
+                      <button
+                        class="px-1.5 py-0.5 rounded-r-full hover:bg-primary/15 transition-colors"
+                        title="Copier"
+                        @click="copyToClipboard(phone)"
+                      >
+                        <UIcon name="i-lucide-copy" class="size-3" />
+                      </button>
+                    </span>
                   </div>
                 </div>
 
-                <!-- Email -->
-                <div v-if="prospect.email" class="border-t border-stone-100 pt-2.5">
-                  <p class="text-[11px] text-stone-500 uppercase tracking-wide mb-0.5">Email</p>
-                  <a :href="`mailto:${prospect.email}`" class="font-medium text-primary hover:underline truncate block">{{ prospect.email }}</a>
+                <!-- Emails -->
+                <div v-if="allEmails.length" class="border-t border-stone-100 pt-2.5">
+                  <p class="text-[11px] text-stone-500 uppercase tracking-wide mb-1.5">Emails</p>
+                  <div class="space-y-1">
+                    <div
+                      v-for="email in allEmails"
+                      :key="email"
+                      class="flex items-center gap-1.5 group"
+                    >
+                      <a :href="`mailto:${email}`" class="font-medium text-primary hover:underline truncate text-sm">{{ email }}</a>
+                      <button
+                        class="shrink-0 p-0.5 rounded hover:bg-stone-100 transition-colors opacity-0 group-hover:opacity-100"
+                        title="Copier"
+                        @click="copyToClipboard(email)"
+                      >
+                        <UIcon name="i-lucide-copy" class="size-3.5 text-stone-400" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 <div v-if="prospect.site_web" class="border-t border-stone-100 pt-2.5">
@@ -777,6 +830,21 @@ function getOffreStatutColor(statut: OffreProspectStatut): string {
                             @click="handleAddPhone"
                           />
                         </div>
+                      </div>
+
+                      <!-- Row 2b: email selector (if canal = email) -->
+                      <div v-if="contactForm.canal === 'email'" class="flex items-center gap-2">
+                        <UIcon name="i-lucide-mail" class="size-4 text-stone-400 shrink-0" />
+                        <USelect
+                          v-if="emailSelectOptions.length"
+                          v-model="contactForm.selectedEmail"
+                          :items="emailSelectOptions"
+                          value-key="value"
+                          size="sm"
+                          placeholder="Email..."
+                          class="flex-1"
+                        />
+                        <span v-else class="text-xs text-stone-400 flex-1">Aucun email enregistre</span>
                       </div>
 
                       <!-- Row 3: notes + actions -->

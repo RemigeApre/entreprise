@@ -85,6 +85,7 @@ export default defineNuxtConfig({
         'lucide:thumbs-down',
         'lucide:plus',
         'lucide:map',
+        'lucide:copy',
         'simple-icons:googlemaps',
         'simple-icons:linkedin'
       ],
