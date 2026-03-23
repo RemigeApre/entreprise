@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import type { OrigineProspection, NiveauSite } from '~/utils/types'
+import { readItems } from '@directus/sdk'
+import type { OrigineProspection, NiveauSite, Prospect } from '~/utils/types'
 import { ORIGINES_PROSPECTION, NIVEAUX_SITE } from '~/utils/constants'
 
 const { user, isProspecteur } = useAuth()
 if (!isProspecteur.value) navigateTo('/prospection')
 
 const { create } = useProspects()
+const { $directus } = useNuxtApp()
 const toast = useToast()
 
 const loading = ref(false)
@@ -56,6 +58,73 @@ function removeEmail(index: number) {
 const isValid = computed(() => {
   return form.origine !== null && form.nom_entreprise.trim() !== '' && form.ville.trim() !== ''
 })
+
+// --- Duplicate detection ---
+const duplicates = ref<Pick<Prospect, 'id' | 'nom_entreprise' | 'ville' | 'telephone' | 'email'>[]>([])
+const checkingDuplicates = ref(false)
+let duplicateTimeout: ReturnType<typeof setTimeout> | null = null
+
+function scheduleDuplicateCheck() {
+  if (duplicateTimeout) clearTimeout(duplicateTimeout)
+  duplicateTimeout = setTimeout(checkDuplicates, 500)
+}
+
+async function checkDuplicates() {
+  const nom = form.nom_entreprise.trim()
+  const phones = form.hasTelephone ? form.telephones.map(t => t.trim()).filter(Boolean) : []
+  const emails = form.hasEmail ? form.emails.map(e => e.trim()).filter(Boolean) : []
+
+  if (!nom && !phones.length && !emails.length) {
+    duplicates.value = []
+    return
+  }
+
+  checkingDuplicates.value = true
+  try {
+    const orFilters: Record<string, any>[] = []
+
+    if (nom.length >= 3) {
+      orFilters.push({ nom_entreprise: { _icontains: nom } })
+    }
+
+    for (const phone of phones) {
+      if (phone.length >= 4) {
+        orFilters.push({ telephone: { _contains: phone } })
+        orFilters.push({ telephones_secondaires: { _contains: phone } })
+      }
+    }
+
+    for (const email of emails) {
+      if (email.length >= 5 && email.includes('@')) {
+        orFilters.push({ email: { _icontains: email } })
+        orFilters.push({ emails_secondaires: { _icontains: email } })
+      }
+    }
+
+    if (!orFilters.length) {
+      duplicates.value = []
+      return
+    }
+
+    const results = await $directus.request(readItems('prospects', {
+      filter: { _or: orFilters },
+      fields: ['id', 'nom_entreprise', 'ville', 'telephone', 'email'],
+      limit: 5
+    })) as Pick<Prospect, 'id' | 'nom_entreprise' | 'ville' | 'telephone' | 'email'>[]
+
+    duplicates.value = results
+  } catch {
+    duplicates.value = []
+  } finally {
+    checkingDuplicates.value = false
+  }
+}
+
+watch(() => form.nom_entreprise, scheduleDuplicateCheck)
+watch(() => form.telephones, scheduleDuplicateCheck, { deep: true })
+watch(() => form.emails, scheduleDuplicateCheck, { deep: true })
+watch(() => form.hasTelephone, scheduleDuplicateCheck)
+watch(() => form.hasEmail, scheduleDuplicateCheck)
 
 // --- Submit ---
 async function handleSubmit() {
@@ -188,6 +257,33 @@ const niveauColorsActive: Record<string, string> = {
             <UFormField label="Nom du contact">
               <UInput v-model="form.contact_nom" placeholder="Prenom Nom" icon="i-lucide-user" class="w-full" />
             </UFormField>
+          </div>
+        </div>
+
+        <!-- Alerte doublons -->
+        <div v-if="duplicates.length" class="rounded-xl border border-amber-200 bg-amber-50/60 p-4 space-y-2">
+          <div class="flex items-center gap-2 text-amber-700">
+            <UIcon name="i-lucide-alert-triangle" class="size-4 shrink-0" />
+            <p class="text-sm font-semibold">Doublon(s) possible(s)</p>
+          </div>
+          <div class="space-y-1.5 pl-6">
+            <div
+              v-for="dup in duplicates"
+              :key="dup.id"
+              class="flex items-center gap-2 text-sm"
+            >
+              <span class="font-medium text-stone-800">{{ dup.nom_entreprise }}</span>
+              <span class="text-stone-400">{{ dup.ville }}</span>
+              <span v-if="dup.telephone" class="text-xs text-stone-500 tabular-nums">{{ dup.telephone }}</span>
+              <span v-if="dup.email" class="text-xs text-stone-500">{{ dup.email }}</span>
+              <NuxtLink
+                :to="`/prospection/${dup.id}`"
+                class="ml-auto shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
+              >
+                <UIcon name="i-lucide-external-link" class="size-3" />
+                Voir la carte
+              </NuxtLink>
+            </div>
           </div>
         </div>
 
