@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { updateMe } from '@directus/sdk'
-import type { Prospect, ProspectStatut, ContactCanal, ContactResultat } from '~/utils/types'
+import type { Prospect, ProspectStatut, NiveauSite, ContactCanal, ContactResultat } from '~/utils/types'
 import { PROSPECT_STATUTS, CONTACT_CANAUX, CONTACT_RESULTATS, MOTIFS_CLOTURE, ORIGINES_PROSPECTION, NIVEAUX_SITE } from '~/utils/constants'
 import { downloadCsv } from '~/utils/csv'
 
@@ -51,8 +51,25 @@ async function handleOptIn() {
 
 const { data: prospects, status, refresh } = useAsyncData('prospects', getAll)
 
-const search = ref('')
-const filterStatut = ref<ProspectStatut | 'all'>('all')
+// --- Filters persisted in URL ---
+const route = useRoute()
+const router = useRouter()
+
+const search = ref((route.query.q as string) || '')
+const filterStatut = ref<ProspectStatut | 'all'>((route.query.statut as ProspectStatut | 'all') || 'all')
+const filterSite = ref<NiveauSite | 'all'>((route.query.site as NiveauSite | 'all') || 'all')
+
+function syncFiltersToUrl() {
+  const query: Record<string, string> = {}
+  if (search.value) query.q = search.value
+  if (filterStatut.value !== 'all') query.statut = filterStatut.value
+  if (filterSite.value !== 'all') query.site = filterSite.value
+  router.replace({ query })
+}
+
+watch(search, syncFiltersToUrl)
+watch(filterStatut, syncFiltersToUrl)
+watch(filterSite, syncFiltersToUrl)
 
 // Sort
 const { sort, toggleSort, sortItems } = useListSort<Prospect>('date_created', 'desc')
@@ -74,8 +91,9 @@ const filteredProspects = computed(() => {
     prospects.value.filter((p: Prospect) => {
       const q = search.value.toLowerCase()
       const matchesSearch = !q || [p.nom_entreprise, p.contact_nom, p.telephone, p.ville, p.adresse].some(f => f?.toLowerCase().includes(q))
-      if (filterStatut.value === 'all') return matchesSearch && p.statut !== 'cloture'
-      return matchesSearch && p.statut === filterStatut.value
+      const matchesSite = filterSite.value === 'all' || p.niveau_site === filterSite.value
+      if (filterStatut.value === 'all') return matchesSearch && matchesSite && p.statut !== 'cloture'
+      return matchesSearch && matchesSite && p.statut === filterStatut.value
     }),
     prospectAccessor
   )
@@ -83,11 +101,12 @@ const filteredProspects = computed(() => {
 
 const { paginatedItems: pagedProspects, page, totalPages, showPagination, next, prev } = usePagination(filteredProspects, 50)
 
-const hasFilters = computed(() => !!search.value || filterStatut.value !== 'all')
+const hasFilters = computed(() => !!search.value || filterStatut.value !== 'all' || filterSite.value !== 'all')
 
 function clearFilters() {
   search.value = ''
   filterStatut.value = 'all'
+  filterSite.value = 'all'
 }
 
 const statsByStatus = computed(() => {
@@ -286,6 +305,27 @@ if (import.meta.client) {
 
               <div class="shrink-0 w-px h-5 bg-stone-300/40 mx-1" />
 
+              <!-- Site level filter -->
+              <button
+                v-for="(config, key) in NIVEAUX_SITE"
+                :key="key"
+                class="shrink-0 flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium transition-all"
+                :class="filterSite === key
+                  ? {
+                      'bg-stone-600 text-white': key === 'pas_de_site',
+                      'bg-red-500 text-white': key === 'site_casse',
+                      'bg-orange-500 text-white': key === 'site_nul',
+                      'bg-amber-500 text-white': key === 'site_passable'
+                    }
+                  : 'text-stone-400 hover:bg-stone-200/60'"
+                @click="filterSite = filterSite === key ? 'all' : (key as NiveauSite)"
+              >
+                <UIcon :name="config.icon" class="size-3" />
+                {{ config.label }}
+              </button>
+
+              <div class="shrink-0 w-px h-5 bg-stone-300/40 mx-1" />
+
               <!-- Sort -->
               <button
                 v-for="opt in sortOptions"
@@ -385,7 +425,7 @@ if (import.meta.client) {
                   <a
                     v-if="prospect.telephone"
                     :href="`tel:${prospect.telephone}`"
-                    class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors tabular-nums flex-1 justify-center"
+                    class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-bold tracking-wide bg-emerald-50 text-emerald-900 hover:bg-emerald-100 transition-colors tabular-nums flex-1 justify-center select-all"
                     @click.stop
                   >
                     <UIcon name="i-lucide-phone" class="size-4" />
