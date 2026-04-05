@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Transaction, TransactionType, TransactionCategorie, TransactionRecurrence } from '~/utils/types'
-import { TRANSACTION_TYPES, TRANSACTION_CATEGORIES, TRANSACTION_RECURRENCES } from '~/utils/constants'
+import { TRANSACTION_CATEGORIES, TRANSACTION_RECURRENCES } from '~/utils/constants'
 
 const { isDirecteur } = useAuth()
 const { getAll, create, update, remove } = useFinance()
@@ -8,41 +8,34 @@ const toast = useToast()
 
 const { data: transactions, status, refresh } = useAsyncData('transactions', getAll)
 
-// --- Filters ---
+// --- Filters (type + search only, no period filter) ---
 const filterType = ref<TransactionType | 'all'>('all')
-const filterPeriod = ref<'all' | 'month' | 'quarter' | 'year'>('month')
 const search = ref('')
 
 const filtered = computed(() => {
   if (!transactions.value) return []
-  const now = new Date()
   return transactions.value.filter(t => {
     if (filterType.value !== 'all' && t.type !== filterType.value) return false
     if (search.value) {
       const q = search.value.toLowerCase()
       if (!t.libelle.toLowerCase().includes(q) && !t.notes?.toLowerCase().includes(q)) return false
     }
-    if (filterPeriod.value !== 'all') {
-      const d = new Date(t.date)
-      if (filterPeriod.value === 'month' && (d.getMonth() !== now.getMonth() || d.getFullYear() !== now.getFullYear())) return false
-      if (filterPeriod.value === 'quarter') {
-        const q1 = Math.floor(now.getMonth() / 3)
-        const q2 = Math.floor(d.getMonth() / 3)
-        if (q1 !== q2 || d.getFullYear() !== now.getFullYear()) return false
-      }
-      if (filterPeriod.value === 'year' && d.getFullYear() !== now.getFullYear()) return false
-    }
     return true
   })
 })
 
+// --- Totals on ALL transactions (not filtered) ---
 const totals = computed(() => {
-  const recettes = filtered.value.filter(t => t.type === 'recette').reduce((s, t) => s + t.montant, 0)
-  const depenses = filtered.value.filter(t => t.type === 'depense').reduce((s, t) => s + t.montant, 0)
+  if (!transactions.value) return { recettes: 0, depenses: 0, solde: 0 }
+  const recettes = transactions.value.filter(t => t.type === 'recette').reduce((s, t) => s + t.montant, 0)
+  const depenses = transactions.value.filter(t => t.type === 'depense').reduce((s, t) => s + t.montant, 0)
   return { recettes, depenses, solde: recettes - depenses }
 })
 
-// --- Group transactions by date ---
+// --- Pagination ---
+const { paginatedItems: pagedTransactions, page, totalPages, showPagination, next, prev } = usePagination(filtered, 50)
+
+// --- Group paginated transactions by date ---
 interface DateGroup {
   label: string
   date: string
@@ -51,7 +44,7 @@ interface DateGroup {
 
 const groupedByDate = computed<DateGroup[]>(() => {
   const map = new Map<string, Transaction[]>()
-  for (const t of filtered.value) {
+  for (const t of pagedTransactions.value) {
     const key = t.date
     const list = map.get(key) || []
     list.push(t)
@@ -164,17 +157,6 @@ function formatDateLong(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
-function formatDateShort(d: string) {
-  return new Date(d + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-}
-
-const periodOptions = [
-  { label: 'Ce mois', value: 'month' },
-  { label: 'Trimestre', value: 'quarter' },
-  { label: 'Annee', value: 'year' },
-  { label: 'Tout', value: 'all' }
-]
-
 function getProjetName(t: Transaction): string | null {
   if (!t.projet) return null
   if (typeof t.projet === 'object') return t.projet.nom
@@ -184,64 +166,46 @@ function getProjetName(t: Transaction): string | null {
 
 <template>
   <div class="flex flex-col h-full">
-    <PageHeader title="Finance">
-      <template #right>
-        <UButton
-          v-if="isDirecteur && !showForm"
-          label="Ajouter"
-          icon="i-lucide-plus"
-          size="sm"
-          @click="openAdd"
-        />
-      </template>
-    </PageHeader>
-
     <div class="flex-1 overflow-y-auto">
       <div v-if="status === 'pending'" class="flex justify-center py-12">
         <UIcon name="i-lucide-loader-circle" class="size-8 text-primary animate-spin" />
       </div>
 
       <template v-else>
-        <!-- Solde central -->
-        <div class="px-4 sm:px-6 pt-6 pb-4">
-          <div class="max-w-sm mx-auto text-center mb-4">
-            <p class="text-[11px] text-stone-500 uppercase tracking-widest mb-1">Solde</p>
+        <!-- Solde hero -->
+        <div class="px-4 sm:px-6 pt-6 pb-2">
+          <div class="max-w-md mx-auto text-center mb-5">
+            <p class="text-[10px] text-stone-400 uppercase tracking-[0.2em] mb-1.5">Solde total</p>
             <p
-              class="text-3xl sm:text-4xl font-bold tabular-nums tracking-tight"
+              class="text-4xl sm:text-5xl font-bold tabular-nums tracking-tight leading-none"
               :class="totals.solde >= 0 ? 'text-emerald-600' : 'text-red-500'"
             >
-              {{ totals.solde >= 0 ? '+' : '' }}{{ formatMoney(totals.solde) }} <span class="text-lg">&euro;</span>
+              {{ totals.solde >= 0 ? '+' : '' }}{{ formatMoney(totals.solde) }} <span class="text-2xl">&euro;</span>
             </p>
           </div>
 
-          <!-- Recettes / Depenses under solde -->
-          <div class="flex items-center justify-center gap-6 text-sm">
-            <div class="flex items-center gap-2">
-              <div class="size-2 rounded-full bg-emerald-500" />
-              <span class="text-stone-500">Recettes</span>
-              <span class="font-semibold text-emerald-600 tabular-nums">{{ formatMoney(totals.recettes) }} &euro;</span>
+          <!-- Recettes / Depenses pills -->
+          <div class="flex items-center justify-center gap-3">
+            <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200/60">
+              <UIcon name="i-lucide-trending-up" class="size-4 text-emerald-600" />
+              <div>
+                <p class="text-[10px] text-emerald-600/70 uppercase tracking-wider font-medium">Recettes</p>
+                <p class="text-sm font-bold text-emerald-700 tabular-nums">{{ formatMoney(totals.recettes) }} &euro;</p>
+              </div>
             </div>
-            <div class="flex items-center gap-2">
-              <div class="size-2 rounded-full bg-red-400" />
-              <span class="text-stone-500">Depenses</span>
-              <span class="font-semibold text-red-500 tabular-nums">{{ formatMoney(totals.depenses) }} &euro;</span>
+            <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-red-50 border border-red-200/60">
+              <UIcon name="i-lucide-trending-down" class="size-4 text-red-500" />
+              <div>
+                <p class="text-[10px] text-red-500/70 uppercase tracking-wider font-medium">Depenses</p>
+                <p class="text-sm font-bold text-red-600 tabular-nums">{{ formatMoney(totals.depenses) }} &euro;</p>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Toolbar -->
-        <div class="sticky top-0 z-10 bg-[#E6E2DA]/95 backdrop-blur-sm border-b border-stone-200/40 px-4 sm:px-6 py-2.5">
+        <div class="sticky top-0 z-10 bg-[#E6E2DA]/95 backdrop-blur-sm border-b border-stone-200/40 px-4 sm:px-6 py-2.5 mt-4">
           <div class="flex items-center gap-2 overflow-x-auto scrollbar-none">
-            <button
-              v-for="opt in periodOptions"
-              :key="opt.value"
-              class="shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-all"
-              :class="filterPeriod === opt.value ? 'bg-stone-800 text-white' : 'text-stone-500 hover:bg-stone-200/60'"
-              @click="filterPeriod = opt.value as any"
-            >
-              {{ opt.label }}
-            </button>
-            <div class="shrink-0 w-px h-5 bg-stone-300/40 mx-1" />
             <button
               class="shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-all"
               :class="filterType === 'all' ? 'bg-stone-700 text-white' : 'text-stone-500 hover:bg-stone-200/60'"
@@ -257,7 +221,16 @@ function getProjetName(t: Transaction): string | null {
               :class="filterType === 'depense' ? 'bg-red-500 text-white' : 'text-red-500/60 hover:bg-red-50'"
               @click="filterType = filterType === 'depense' ? 'all' : 'depense'"
             >Depenses</button>
+
             <UInput v-model="search" placeholder="Rechercher..." icon="i-lucide-search" size="xs" class="ml-auto w-40 shrink-0" />
+
+            <UButton
+              v-if="isDirecteur"
+              label="Ajouter"
+              icon="i-lucide-plus"
+              size="xs"
+              @click="openAdd"
+            />
           </div>
         </div>
 
@@ -342,6 +315,13 @@ function getProjetName(t: Transaction): string | null {
                 </div>
               </div>
             </div>
+          </div>
+
+          <!-- Pagination -->
+          <div v-if="showPagination" class="flex items-center justify-center gap-3 pt-6 pb-2">
+            <UButton icon="i-lucide-chevron-left" size="xs" color="neutral" variant="ghost" :disabled="page <= 1" @click="prev" />
+            <span class="text-xs text-stone-500 tabular-nums">{{ page }} / {{ totalPages }}</span>
+            <UButton icon="i-lucide-chevron-right" size="xs" color="neutral" variant="ghost" :disabled="page >= totalPages" @click="next" />
           </div>
         </div>
       </template>
