@@ -11,20 +11,19 @@ const { data: transactions, status, refresh } = useAsyncData('transactions', get
 
 onMounted(() => { if (!catsLoaded.value) loadCategories() })
 
-// --- Filters ---
-const filterType = ref<TransactionType | 'all'>('all')
+// --- View mode ---
+const view = ref<'transactions' | 'graphiques'>('transactions')
+
+// --- Filters (transactions view) ---
 const search = ref('')
 
 const filtered = computed(() => {
   if (!transactions.value) return []
-  return transactions.value.filter(t => {
-    if (filterType.value !== 'all' && t.type !== filterType.value) return false
-    if (search.value) {
-      const q = search.value.toLowerCase()
-      if (!t.libelle.toLowerCase().includes(q) && !t.notes?.toLowerCase().includes(q)) return false
-    }
-    return true
-  })
+  if (!search.value) return transactions.value
+  const q = search.value.toLowerCase()
+  return transactions.value.filter(t =>
+    t.libelle.toLowerCase().includes(q) || t.notes?.toLowerCase().includes(q)
+  )
 })
 
 // --- Totals on ALL transactions ---
@@ -36,278 +35,11 @@ const totals = computed(() => {
   return { recettes, depenses, fondateur, solde: recettes + fondateur - depenses }
 })
 
-// --- Chart: monthly balance evolution + forecast ---
-interface MonthPoint {
-  label: string
-  solde: number
-  forecast?: boolean
-}
-
-const chartData = computed<MonthPoint[]>(() => {
-  if (!transactions.value?.length) return []
-
-  // Build monthly running balance (all time)
-  const monthly = new Map<string, { recettes: number; depenses: number }>()
-  for (const t of transactions.value) {
-    const d = new Date(t.date)
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    const m = monthly.get(key) || { recettes: 0, depenses: 0 }
-    if (t.type === 'depense') m.depenses += t.montant
-    else m.recettes += t.montant
-    monthly.set(key, m)
-  }
-
-  // Sort months
-  const sortedKeys = [...monthly.keys()].sort()
-  const points: MonthPoint[] = []
-  let runningBalance = 0
-
-  for (const key of sortedKeys) {
-    const m = monthly.get(key)!
-    runningBalance += m.recettes - m.depenses
-    const [y, mo] = key.split('-')
-    const label = new Date(+y, +mo - 1).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })
-    points.push({ label, solde: runningBalance })
-  }
-
-  // Forecast: project 2 months based on recurring transactions
-  if (points.length >= 1) {
-    const recurringMonthly = getMonthlyRecurringNet()
-    const lastSolde = points[points.length - 1].solde
-    const now = new Date()
-
-    for (let i = 1; i <= 2; i++) {
-      const futureDate = new Date(now.getFullYear(), now.getMonth() + i)
-      const label = futureDate.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })
-      points.push({
-        label,
-        solde: lastSolde + recurringMonthly * i,
-        forecast: true
-      })
-    }
-  }
-
-  // Keep last 8 points max
-  return points.slice(-8)
-})
-
-function getMonthlyRecurringNet(): number {
-  if (!transactions.value) return 0
-  let net = 0
-  const now = new Date()
-
-  for (const t of transactions.value) {
-    if (t.recurrence === 'unique') continue
-
-    // Check if recurrence is still active
-    if (t.recurrence_fin) {
-      const fin = new Date(t.recurrence_fin)
-      if (fin < now) continue
-    }
-
-    // Theorique: count at 50% weight
-    const weight = t.recurrence_certitude === 'theorique' ? 0.5 : 1
-
-    let monthlyAmount = t.montant
-    if (t.recurrence === 'trimestriel') monthlyAmount = t.montant / 3
-    if (t.recurrence === 'annuel') monthlyAmount = t.montant / 12
-
-    if (t.type === 'depense') net -= monthlyAmount * weight
-    else net += monthlyAmount * weight
-  }
-  return net
-}
-
-// Chart SVG helpers
-const chartWidth = 600
-const chartHeight = 160
-const chartPadding = { top: 20, right: 20, bottom: 30, left: 10 }
-
-const chartPath = computed(() => {
-  const data = chartData.value
-  if (data.length < 2) return ''
-
-  const w = chartWidth - chartPadding.left - chartPadding.right
-  const h = chartHeight - chartPadding.top - chartPadding.bottom
-  const values = data.map(d => d.solde)
-  const min = Math.min(...values, 0)
-  const max = Math.max(...values, 1)
-  const range = max - min || 1
-
-  const points = data.map((d, i) => {
-    const x = chartPadding.left + (i / (data.length - 1)) * w
-    const y = chartPadding.top + h - ((d.solde - min) / range) * h
-    return `${x},${y}`
-  })
-
-  return `M${points.join(' L')}`
-})
-
-const chartForecastStart = computed(() => {
-  const data = chartData.value
-  const idx = data.findIndex(d => d.forecast)
-  if (idx <= 0) return null
-  const w = chartWidth - chartPadding.left - chartPadding.right
-  return chartPadding.left + ((idx - 1) / (data.length - 1)) * w
-})
-
-const chartAreaPath = computed(() => {
-  const data = chartData.value
-  if (data.length < 2) return ''
-  const w = chartWidth - chartPadding.left - chartPadding.right
-  const h = chartHeight - chartPadding.top - chartPadding.bottom
-  const values = data.map(d => d.solde)
-  const min = Math.min(...values, 0)
-  const max = Math.max(...values, 1)
-  const range = max - min || 1
-  const bottom = chartPadding.top + h
-
-  const points = data.map((d, i) => {
-    const x = chartPadding.left + (i / (data.length - 1)) * w
-    const y = chartPadding.top + h - ((d.solde - min) / range) * h
-    return `${x},${y}`
-  })
-
-  const firstX = chartPadding.left
-  const lastX = chartPadding.left + w
-  return `M${firstX},${bottom} L${points.join(' L')} L${lastX},${bottom} Z`
-})
-
-const chartZeroY = computed(() => {
-  const data = chartData.value
-  if (!data.length) return 0
-  const h = chartHeight - chartPadding.top - chartPadding.bottom
-  const values = data.map(d => d.solde)
-  const min = Math.min(...values, 0)
-  const max = Math.max(...values, 1)
-  const range = max - min || 1
-  return chartPadding.top + h - ((0 - min) / range) * h
-})
-
-const monthlyRecurring = computed(() => getMonthlyRecurringNet())
-
-// --- Sub-tabs with sparklines ---
-interface SubTab {
-  key: TransactionType | 'all'
-  label: string
-  icon: string
-  total: number
-  count: number
-  sparkline: number[]
-  sparklinePath: string
-  activeBg: string
-  activeBorder: string
-  labelColor: string
-  iconColor: string
-  valueColor: string
-  strokeColor: string
-}
-
-function buildSparkline(values: number[]): string {
-  if (values.length < 2) return ''
-  const min = Math.min(...values)
-  const max = Math.max(...values)
-  const range = max - min || 1
-  const points = values.map((v, i) => {
-    const x = (i / (values.length - 1)) * 100
-    const y = 28 - ((v - min) / range) * 24 - 2
-    return `${x},${y}`
-  })
-  return `M${points.join(' L')}`
-}
-
-function getMonthlyTotals(type: TransactionType | 'all'): number[] {
-  if (!transactions.value) return []
-  const monthly = new Map<string, number>()
-  for (const t of transactions.value) {
-    if (type !== 'all' && t.type !== type) continue
-    const d = new Date(t.date)
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    monthly.set(key, (monthly.get(key) || 0) + t.montant)
-  }
-  return [...monthly.entries()].sort((a, b) => a[0].localeCompare(b[0])).slice(-6).map(([, v]) => v)
-}
-
-const subTabs = computed<SubTab[]>(() => {
-  const all = transactions.value || []
-
-  const tabs: SubTab[] = [
-    {
-      key: 'all',
-      label: 'Solde net',
-      icon: 'i-lucide-wallet',
-      total: totals.value.solde,
-      count: all.length,
-      activeBg: 'bg-stone-50', activeBorder: 'border-stone-300',
-      labelColor: 'text-stone-600', iconColor: 'text-stone-400',
-      valueColor: totals.value.solde >= 0 ? 'text-emerald-600' : 'text-red-500',
-      strokeColor: totals.value.solde >= 0 ? '#10b981' : '#ef4444'
-    },
-    {
-      key: 'recette',
-      label: 'Recettes',
-      icon: 'i-lucide-trending-up',
-      total: totals.value.recettes,
-      count: all.filter(t => t.type === 'recette').length,
-      activeBg: 'bg-emerald-50', activeBorder: 'border-emerald-300',
-      labelColor: 'text-emerald-700', iconColor: 'text-emerald-500',
-      valueColor: 'text-emerald-600',
-      strokeColor: '#10b981'
-    },
-    {
-      key: 'depense',
-      label: 'Depenses',
-      icon: 'i-lucide-trending-down',
-      total: totals.value.depenses,
-      count: all.filter(t => t.type === 'depense').length,
-      activeBg: 'bg-red-50', activeBorder: 'border-red-300',
-      labelColor: 'text-red-600', iconColor: 'text-red-400',
-      valueColor: 'text-red-500',
-      strokeColor: '#ef4444'
-    },
-    {
-      key: 'fondateur',
-      label: 'Fondateur',
-      icon: 'i-lucide-heart-handshake',
-      total: totals.value.fondateur,
-      count: all.filter(t => t.type === 'fondateur').length,
-      activeBg: 'bg-amber-50', activeBorder: 'border-amber-300',
-      labelColor: 'text-amber-700', iconColor: 'text-amber-500',
-      valueColor: 'text-amber-600',
-      strokeColor: '#f59e0b'
-    }
-  ]
-
-  for (const tab of tabs) {
-    if (tab.key === 'all') {
-      // For "all" sparkline, use running balance per month
-      const vals = chartData.value.filter(d => !d.forecast).map(d => d.solde)
-      tab.sparkline = vals
-      tab.sparklinePath = buildSparkline(vals)
-    } else {
-      tab.sparkline = getMonthlyTotals(tab.key)
-      tab.sparklinePath = buildSparkline(tab.sparkline)
-    }
-  }
-
-  return tabs
-})
-
-const forecastLabel = computed(() => {
-  const net = monthlyRecurring.value
-  if (net === 0) return 'stable'
-  return `${net > 0 ? '+' : ''}${formatMoney(net)} /mois`
-})
-
 // --- Pagination ---
 const { paginatedItems: pagedTransactions, page, totalPages, showPagination, next, prev } = usePagination(filtered, 50)
 
 // --- Group paginated transactions by date ---
-interface DateGroup {
-  label: string
-  date: string
-  transactions: Transaction[]
-}
+interface DateGroup { label: string; date: string; transactions: Transaction[] }
 
 const groupedByDate = computed<DateGroup[]>(() => {
   const map = new Map<string, Transaction[]>()
@@ -317,12 +49,115 @@ const groupedByDate = computed<DateGroup[]>(() => {
     list.push(t)
     map.set(key, list)
   }
-  return [...map.entries()].map(([date, txs]) => ({
-    label: formatDateLong(date),
-    date,
-    transactions: txs
-  }))
+  return [...map.entries()].map(([date, txs]) => ({ label: formatDateLong(date), date, transactions: txs }))
 })
+
+// ==============================
+// GRAPHIQUES
+// ==============================
+
+interface MonthPoint { label: string; month: string; recettes: number; depenses: number; solde: number; forecast?: boolean }
+
+const chartMonths = computed<MonthPoint[]>(() => {
+  if (!transactions.value?.length) return []
+  const monthly = new Map<string, { recettes: number; depenses: number }>()
+  for (const t of transactions.value) {
+    const d = new Date(t.date)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const m = monthly.get(key) || { recettes: 0, depenses: 0 }
+    if (t.type === 'depense') m.depenses += t.montant
+    else m.recettes += t.montant
+    monthly.set(key, m)
+  }
+  const sortedKeys = [...monthly.keys()].sort()
+  const points: MonthPoint[] = []
+  let balance = 0
+  for (const key of sortedKeys) {
+    const m = monthly.get(key)!
+    balance += m.recettes - m.depenses
+    const [y, mo] = key.split('-')
+    points.push({ label: new Date(+y, +mo - 1).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }), month: key, recettes: m.recettes, depenses: m.depenses, solde: balance })
+  }
+  // Forecast 2 months
+  const recurNet = getMonthlyRecurringNet()
+  const now = new Date()
+  for (let i = 1; i <= 2; i++) {
+    const futureDate = new Date(now.getFullYear(), now.getMonth() + i)
+    balance += recurNet
+    points.push({ label: futureDate.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }), month: '', recettes: 0, depenses: 0, solde: balance, forecast: true })
+  }
+  return points.slice(-10)
+})
+
+function getMonthlyRecurringNet(): number {
+  if (!transactions.value) return 0
+  let net = 0
+  const now = new Date()
+  for (const t of transactions.value) {
+    if (t.recurrence === 'unique') continue
+    if (t.recurrence_fin && new Date(t.recurrence_fin) < now) continue
+    const weight = t.recurrence_certitude === 'theorique' ? 0.5 : 1
+    let m = t.montant
+    if (t.recurrence === 'trimestriel') m /= 3
+    if (t.recurrence === 'annuel') m /= 12
+    if (t.type === 'depense') net -= m * weight
+    else net += m * weight
+  }
+  return net
+}
+
+// SVG chart helpers
+const CW = 600; const CH = 180; const CP = { t: 20, r: 20, b: 30, l: 10 }
+
+function svgPath(values: number[]): string {
+  if (values.length < 2) return ''
+  const w = CW - CP.l - CP.r; const h = CH - CP.t - CP.b
+  const min = Math.min(...values, 0); const max = Math.max(...values, 1); const range = max - min || 1
+  return 'M' + values.map((v, i) => `${CP.l + (i / (values.length - 1)) * w},${CP.t + h - ((v - min) / range) * h}`).join(' L')
+}
+function svgArea(values: number[]): string {
+  if (values.length < 2) return ''
+  const w = CW - CP.l - CP.r; const h = CH - CP.t - CP.b; const bottom = CP.t + h
+  const min = Math.min(...values, 0); const max = Math.max(...values, 1); const range = max - min || 1
+  const pts = values.map((v, i) => `${CP.l + (i / (values.length - 1)) * w},${CP.t + h - ((v - min) / range) * h}`).join(' L')
+  return `M${CP.l},${bottom} L${pts} L${CP.l + w},${bottom} Z`
+}
+function svgZeroY(values: number[]): number {
+  const h = CH - CP.t - CP.b; const min = Math.min(...values, 0); const max = Math.max(...values, 1); const range = max - min || 1
+  return CP.t + h - ((0 - min) / range) * h
+}
+function svgDotY(value: number, values: number[]): number {
+  const h = CH - CP.t - CP.b; const min = Math.min(...values, 0); const max = Math.max(...values, 1); const range = max - min || 1
+  return CP.t + h - ((value - min) / range) * h
+}
+function svgDotX(i: number, total: number): number {
+  return CP.l + (i / (total - 1)) * (CW - CP.l - CP.r)
+}
+
+// --- Intermediary / Tax stats ---
+const intermediaryStats = computed(() => {
+  if (!transactions.value) return { totalPaye: 0, totalRecu: 0, commission: 0, count: 0 }
+  let totalPaye = 0; let totalRecu = 0; let count = 0
+  for (const t of transactions.value) {
+    if (t.montant_reel && t.montant_reel > t.montant) {
+      totalPaye += t.montant_reel; totalRecu += t.montant; count++
+    }
+  }
+  return { totalPaye, totalRecu, commission: totalPaye - totalRecu, count }
+})
+
+const taxStats = computed(() => {
+  if (!transactions.value) return { totalBrut: 0, totalTaxe: 0, count: 0 }
+  let totalBrut = 0; let totalTaxe = 0; let count = 0
+  for (const t of transactions.value) {
+    if (t.taux_taxe && t.taux_taxe > 0 && t.type === 'recette') {
+      totalBrut += t.montant; totalTaxe += t.montant * (t.taux_taxe / 100); count++
+    }
+  }
+  return { totalBrut, totalTaxe, count }
+})
+
+const monthlyRecurring = computed(() => getMonthlyRecurringNet())
 
 // --- Form state ---
 const showForm = ref(false)
@@ -345,54 +180,25 @@ const form = reactive({
 })
 
 const recOptions = Object.entries(TRANSACTION_RECURRENCES).map(([value, c]) => ({ label: c.label, value }))
+const formCategories = computed(() => getCategoriesByType(form.type).map(c => ({ label: c.sous_categorie ? `${c.label} (${c.sous_categorie})` : c.label, value: c.id })))
 
-const formCategories = computed(() => {
-  const cats = getCategoriesByType(form.type)
-  return cats.map(c => ({
-    label: c.sous_categorie ? `${c.label} (${c.sous_categorie})` : c.label,
-    value: c.id
-  }))
-})
-
-watch(() => form.type, () => {
-  const cats = getCategoriesByType(form.type)
-  form.categorie = cats.length ? cats[0].id : null
-})
+watch(() => form.type, () => { const cats = getCategoriesByType(form.type); form.categorie = cats.length ? cats[0].id : null })
 
 function resetForm() {
-  form.libelle = ''
-  form.montant = null
-  form.montant_reel = null
-  form.taux_taxe = null
-  form.type = 'depense'
-  form.date = new Date().toISOString().split('T')[0]
-  form.recurrence = 'unique'
-  form.recurrence_certitude = 'stricte'
-  form.recurrence_debut = ''
-  form.recurrence_fin = ''
-  form.notes = ''
+  form.libelle = ''; form.montant = null; form.montant_reel = null; form.taux_taxe = null
+  form.type = 'depense'; form.date = new Date().toISOString().split('T')[0]
+  form.recurrence = 'unique'; form.recurrence_certitude = 'stricte'
+  form.recurrence_debut = ''; form.recurrence_fin = ''; form.notes = ''
   editingId.value = null
-  const cats = getCategoriesByType('depense')
-  form.categorie = cats.length ? cats[0].id : null
+  const cats = getCategoriesByType('depense'); form.categorie = cats.length ? cats[0].id : null
 }
-
-function openAdd() {
-  resetForm()
-  showForm.value = true
-}
-
+function openAdd() { resetForm(); showForm.value = true }
 function openEdit(t: Transaction) {
-  editingId.value = t.id
-  form.libelle = t.libelle
-  form.montant = t.montant
-  form.montant_reel = t.montant_reel
-  form.taux_taxe = t.taux_taxe
-  form.type = t.type
-  form.date = t.date
-  form.recurrence = t.recurrence
+  editingId.value = t.id; form.libelle = t.libelle; form.montant = t.montant
+  form.montant_reel = t.montant_reel; form.taux_taxe = t.taux_taxe; form.type = t.type
+  form.date = t.date; form.recurrence = t.recurrence
   form.recurrence_certitude = t.recurrence_certitude || 'stricte'
-  form.recurrence_debut = t.recurrence_debut || ''
-  form.recurrence_fin = t.recurrence_fin || ''
+  form.recurrence_debut = t.recurrence_debut || ''; form.recurrence_fin = t.recurrence_fin || ''
   form.notes = t.notes || ''
   form.categorie = t.categorie && typeof t.categorie === 'object' ? t.categorie.id : (t.categorie as string | null)
   showForm.value = true
@@ -403,94 +209,42 @@ async function handleSubmit() {
   saving.value = true
   try {
     const data: any = {
-      libelle: form.libelle.trim(),
-      montant: form.montant,
-      montant_reel: form.montant_reel || null,
-      taux_taxe: form.taux_taxe || null,
-      type: form.type,
-      categorie: form.categorie || null,
-      date: form.date,
-      recurrence: form.recurrence,
+      libelle: form.libelle.trim(), montant: form.montant, montant_reel: form.montant_reel || null,
+      taux_taxe: form.taux_taxe || null, type: form.type, categorie: form.categorie || null,
+      date: form.date, recurrence: form.recurrence,
       recurrence_certitude: form.recurrence !== 'unique' ? form.recurrence_certitude : null,
       recurrence_debut: form.recurrence !== 'unique' && form.recurrence_debut ? form.recurrence_debut : null,
       recurrence_fin: form.recurrence !== 'unique' && form.recurrence_fin ? form.recurrence_fin : null,
       notes: form.notes.trim() || null
     }
-
-    if (editingId.value) {
-      await update(editingId.value, data)
-      toast.add({ title: 'Transaction modifiee', color: 'success' })
-    } else {
-      await create(data)
-      toast.add({ title: 'Transaction ajoutee', color: 'success' })
-    }
-    showForm.value = false
-    resetForm()
-    await refresh()
-  } catch {
-    toast.add({ title: 'Erreur', color: 'error' })
-  } finally {
-    saving.value = false
-  }
+    if (editingId.value) { await update(editingId.value, data); toast.add({ title: 'Transaction modifiee', color: 'success' }) }
+    else { await create(data); toast.add({ title: 'Transaction ajoutee', color: 'success' }) }
+    showForm.value = false; resetForm(); await refresh()
+  } catch { toast.add({ title: 'Erreur', color: 'error' }) } finally { saving.value = false }
 }
 
 async function handleDelete(id: string) {
-  try {
-    await remove(id)
-    toast.add({ title: 'Supprimee', color: 'success' })
-    await refresh()
-  } catch {
-    toast.add({ title: 'Erreur', color: 'error' })
-  }
+  try { await remove(id); toast.add({ title: 'Supprimee', color: 'success' }); await refresh() }
+  catch { toast.add({ title: 'Erreur', color: 'error' }) }
 }
 
 // --- Add category inline ---
-const showAddCat = ref(false)
-const newCatLabel = ref('')
-const newCatSousCat = ref('')
-const addingCat = ref(false)
-
+const showAddCat = ref(false); const newCatLabel = ref(''); const newCatSousCat = ref(''); const addingCat = ref(false)
 async function handleAddCategory() {
-  if (!newCatLabel.value.trim()) return
-  addingCat.value = true
+  if (!newCatLabel.value.trim()) return; addingCat.value = true
   try {
-    const cat = await createCategory({
-      label: newCatLabel.value.trim(),
-      type: form.type,
-      sous_categorie: newCatSousCat.value.trim() || undefined
-    })
-    form.categorie = cat.id
-    showAddCat.value = false
-    newCatLabel.value = ''
-    newCatSousCat.value = ''
+    const cat = await createCategory({ label: newCatLabel.value.trim(), type: form.type, sous_categorie: newCatSousCat.value.trim() || undefined })
+    form.categorie = cat.id; showAddCat.value = false; newCatLabel.value = ''; newCatSousCat.value = ''
     toast.add({ title: 'Categorie ajoutee', color: 'success' })
-  } catch {
-    toast.add({ title: 'Erreur', color: 'error' })
-  } finally {
-    addingCat.value = false
-  }
+  } catch { toast.add({ title: 'Erreur', color: 'error' }) } finally { addingCat.value = false }
 }
 
 // --- Helpers ---
-function formatMoney(n: number) {
-  return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
-
-function formatDateLong(d: string) {
-  return new Date(d + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
-}
-
-function getProjetName(t: Transaction): string | null {
-  if (!t.projet) return null
-  if (typeof t.projet === 'object') return t.projet.nom
-  return null
-}
-
-function txIsPositive(t: Transaction): boolean {
-  return t.type === 'recette' || t.type === 'fondateur'
-}
-
-const TYPE_STYLES = {
+function formatMoney(n: number) { return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
+function formatDateLong(d: string) { return new Date(d + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) }
+function getProjetName(t: Transaction): string | null { if (!t.projet) return null; if (typeof t.projet === 'object') return t.projet.nom; return null }
+function txIsPositive(t: Transaction): boolean { return t.type === 'recette' || t.type === 'fondateur' }
+const TYPE_STYLES: Record<string, { text: string; icon: string }> = {
   recette: { text: 'text-emerald-600', icon: 'bg-emerald-50 text-emerald-600' },
   depense: { text: 'text-red-500', icon: 'bg-red-50 text-red-400' },
   fondateur: { text: 'text-amber-600', icon: 'bg-amber-50 text-amber-600' }
@@ -509,150 +263,61 @@ const TYPE_STYLES = {
         <div class="px-4 sm:px-6 pt-6 pb-3">
           <div class="max-w-md mx-auto text-center">
             <p class="text-[10px] text-stone-400 uppercase tracking-[0.2em] mb-1.5">Solde total</p>
-            <p
-              class="text-4xl sm:text-5xl font-bold tabular-nums tracking-tight leading-none"
-              :class="totals.solde >= 0 ? 'text-emerald-600' : 'text-red-500'"
-            >
+            <p class="text-4xl sm:text-5xl font-bold tabular-nums tracking-tight leading-none" :class="totals.solde >= 0 ? 'text-emerald-600' : 'text-red-500'">
               {{ totals.solde >= 0 ? '+' : '' }}{{ formatMoney(totals.solde) }} <span class="text-2xl">&euro;</span>
             </p>
           </div>
         </div>
 
-        <!-- Chart + Forecast -->
-        <div v-if="chartData.length >= 2" class="px-4 sm:px-6 pb-4">
-          <div class="max-w-2xl mx-auto rounded-xl bg-white/50 border border-white/70 shadow-sm p-4">
-            <div class="flex items-center justify-between mb-2">
-              <p class="text-xs font-semibold text-stone-600">Evolution du solde</p>
-              <div class="flex items-center gap-3 text-[10px]">
-                <span class="flex items-center gap-1 text-stone-500">
-                  <span class="w-4 h-0.5 bg-emerald-500 rounded" /> Reel
-                </span>
-                <span class="flex items-center gap-1 text-stone-400">
-                  <span class="w-4 h-0.5 bg-emerald-300 rounded border-dashed" style="border-bottom: 1px dashed" /> Prevision
-                </span>
-              </div>
+        <!-- Recettes / Depenses rectangles -->
+        <div class="flex items-center justify-center gap-3 px-4 sm:px-6 pb-4 flex-wrap">
+          <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200/60">
+            <UIcon name="i-lucide-trending-up" class="size-4 text-emerald-600" />
+            <div>
+              <p class="text-[10px] text-emerald-600/70 uppercase tracking-wider font-medium">Recettes</p>
+              <p class="text-sm font-bold text-emerald-700 tabular-nums">{{ formatMoney(totals.recettes) }} &euro;</p>
             </div>
-
-            <!-- SVG Chart -->
-            <svg :viewBox="`0 0 ${chartWidth} ${chartHeight}`" class="w-full h-32 sm:h-40">
-              <!-- Zero line -->
-              <line
-                :x1="chartPadding.left" :x2="chartWidth - chartPadding.right"
-                :y1="chartZeroY" :y2="chartZeroY"
-                stroke="#d6d3d1" stroke-width="0.5" stroke-dasharray="4,4"
-              />
-
-              <!-- Area fill -->
-              <path :d="chartAreaPath" fill="url(#solde-gradient)" opacity="0.3" />
-
-              <!-- Main line -->
-              <path :d="chartPath" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-
-              <!-- Forecast dashed overlay -->
-              <line
-                v-if="chartForecastStart"
-                :x1="chartForecastStart" :x2="chartWidth - chartPadding.right"
-                :y1="chartPadding.top" :y2="chartPadding.top"
-                stroke="none"
-              />
-
-              <!-- Dots -->
-              <circle
-                v-for="(pt, i) in chartData"
-                :key="i"
-                :cx="chartPadding.left + (i / (chartData.length - 1)) * (chartWidth - chartPadding.left - chartPadding.right)"
-                :cy="chartPadding.top + (chartHeight - chartPadding.top - chartPadding.bottom) - ((pt.solde - Math.min(...chartData.map(d => d.solde), 0)) / (Math.max(...chartData.map(d => d.solde), 1) - Math.min(...chartData.map(d => d.solde), 0) || 1)) * (chartHeight - chartPadding.top - chartPadding.bottom)"
-                :r="pt.forecast ? 3 : 4"
-                :fill="pt.forecast ? '#6ee7b7' : '#10b981'"
-                :stroke="pt.forecast ? '#6ee7b7' : 'white'"
-                :stroke-width="pt.forecast ? 1 : 2"
-                :stroke-dasharray="pt.forecast ? '2,2' : 'none'"
-              />
-
-              <!-- Month labels -->
-              <text
-                v-for="(pt, i) in chartData"
-                :key="'label-' + i"
-                :x="chartPadding.left + (i / (chartData.length - 1)) * (chartWidth - chartPadding.left - chartPadding.right)"
-                :y="chartHeight - 5"
-                text-anchor="middle"
-                class="text-[10px]"
-                :fill="pt.forecast ? '#a8a29e' : '#78716c'"
-                :font-style="pt.forecast ? 'italic' : 'normal'"
-              >
-                {{ pt.label }}
-              </text>
-
-              <!-- Gradient def -->
-              <defs>
-                <linearGradient id="solde-gradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#10b981" stop-opacity="0.4" />
-                  <stop offset="100%" stop-color="#10b981" stop-opacity="0" />
-                </linearGradient>
-              </defs>
-            </svg>
-
-            <!-- Forecast summary -->
-            <div class="flex items-center justify-center gap-4 mt-2 text-xs">
-              <div class="flex items-center gap-1.5 text-stone-500">
-                <UIcon name="i-lucide-calculator" class="size-3.5" />
-                <span>Recurrent net : <strong :class="monthlyRecurring >= 0 ? 'text-emerald-600' : 'text-red-500'">{{ forecastLabel }}</strong></span>
-              </div>
-              <div v-if="transactions?.some(t => t.recurrence !== 'unique' && t.recurrence_certitude === 'theorique')" class="flex items-center gap-1 text-stone-400">
-                <UIcon name="i-lucide-help-circle" class="size-3" />
-                <span>Incl. theoriques a 50%</span>
-              </div>
+          </div>
+          <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-red-50 border border-red-200/60">
+            <UIcon name="i-lucide-trending-down" class="size-4 text-red-500" />
+            <div>
+              <p class="text-[10px] text-red-500/70 uppercase tracking-wider font-medium">Depenses</p>
+              <p class="text-sm font-bold text-red-600 tabular-nums">{{ formatMoney(totals.depenses) }} &euro;</p>
+            </div>
+          </div>
+          <div v-if="totals.fondateur > 0" class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200/60">
+            <UIcon name="i-lucide-heart-handshake" class="size-4 text-amber-600" />
+            <div>
+              <p class="text-[10px] text-amber-600/70 uppercase tracking-wider font-medium">Fondateur</p>
+              <p class="text-sm font-bold text-amber-700 tabular-nums">{{ formatMoney(totals.fondateur) }} &euro;</p>
             </div>
           </div>
         </div>
 
-        <!-- Sub-tabs with mini charts -->
-        <div class="px-4 sm:px-6 pb-4">
-          <div class="max-w-2xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <!-- Sub-nav : Transactions | Graphiques -->
+        <div class="px-4 sm:px-6 border-b border-stone-200/40">
+          <div class="flex items-center gap-0 max-w-3xl mx-auto">
             <button
-              v-for="tab in subTabs"
-              :key="tab.key"
-              class="rounded-xl border p-3 text-left transition-all"
-              :class="filterType === tab.key
-                ? tab.activeBg + ' ' + tab.activeBorder + ' shadow-sm'
-                : 'bg-white/40 border-white/60 hover:border-stone-200'"
-              @click="filterType = filterType === tab.key ? 'all' : tab.key"
-            >
-              <div class="flex items-center justify-between mb-1.5">
-                <span class="text-[10px] font-semibold uppercase tracking-wider" :class="tab.labelColor">{{ tab.label }}</span>
-                <UIcon :name="tab.icon" class="size-3.5" :class="tab.iconColor" />
-              </div>
-              <!-- Mini sparkline -->
-              <svg v-if="tab.sparkline.length >= 2" viewBox="0 0 100 28" class="w-full h-5 mb-1" preserveAspectRatio="none">
-                <path :d="tab.sparklinePath" fill="none" :stroke="tab.strokeColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-              <p class="text-sm font-bold tabular-nums" :class="tab.valueColor">
-                {{ tab.key === 'all' ? (tab.total >= 0 ? '+' : '') : '' }}{{ formatMoney(tab.total) }} <span class="text-[10px]">&euro;</span>
-              </p>
-              <p v-if="tab.count" class="text-[10px] text-stone-400 tabular-nums">{{ tab.count }} operation{{ tab.count > 1 ? 's' : '' }}</p>
-            </button>
+              class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all"
+              :class="view === 'transactions' ? 'border-[#AF8F3C] text-[#AF8F3C]' : 'border-transparent text-stone-400 hover:text-stone-600'"
+              @click="view = 'transactions'"
+            >Transactions</button>
+            <button
+              class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all"
+              :class="view === 'graphiques' ? 'border-[#AF8F3C] text-[#AF8F3C]' : 'border-transparent text-stone-400 hover:text-stone-600'"
+              @click="view = 'graphiques'"
+            >Graphiques</button>
+
+            <!-- Search + Add (only in transactions view) -->
+            <template v-if="view === 'transactions'">
+              <UInput v-model="search" placeholder="Rechercher..." icon="i-lucide-search" size="xs" class="ml-auto w-40 shrink-0" />
+              <UButton v-if="isDirecteur" label="Ajouter" icon="i-lucide-plus" size="xs" class="ml-2" @click="openAdd" />
+            </template>
           </div>
         </div>
 
-        <!-- Search + Add -->
-        <div class="px-4 sm:px-6 py-2.5 border-b border-stone-200/40">
-          <div class="flex items-center gap-2">
-            <p v-if="filterType !== 'all'" class="text-xs text-stone-500">
-              Filtre : <strong>{{ { recette: 'Recettes', depense: 'Depenses', fondateur: 'Fondateur' }[filterType] }}</strong>
-              <button class="ml-1 text-stone-400 hover:text-stone-600" @click="filterType = 'all'">&times;</button>
-            </p>
-            <UInput v-model="search" placeholder="Rechercher..." icon="i-lucide-search" size="xs" class="ml-auto w-40 shrink-0" />
-            <UButton
-              v-if="isDirecteur"
-              label="Ajouter"
-              icon="i-lucide-plus"
-              size="xs"
-              @click="openAdd"
-            />
-          </div>
-        </div>
-
-        <div class="px-4 sm:px-6 py-4 max-w-3xl mx-auto">
+        <!-- ==================== TRANSACTIONS VIEW ==================== -->
+        <div v-if="view === 'transactions'" class="px-4 sm:px-6 py-4 max-w-3xl mx-auto">
           <div v-if="!filtered.length" class="text-center py-12">
             <UIcon name="i-lucide-landmark" class="size-10 text-stone-300 mx-auto mb-3" />
             <p class="text-stone-500">Aucune transaction</p>
@@ -664,56 +329,32 @@ const TYPE_STYLES = {
                 <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider capitalize">{{ group.label }}</p>
                 <div class="flex-1 h-px bg-stone-200/60" />
               </div>
-
               <div class="space-y-1.5">
                 <div
-                  v-for="t in group.transactions"
-                  :key="t.id"
+                  v-for="t in group.transactions" :key="t.id"
                   class="group flex items-center gap-3 px-4 py-3 rounded-xl bg-white/60 border border-white/70 hover:border-[rgba(175,143,60,0.15)] hover:shadow-sm transition-all"
                 >
                   <div class="size-9 rounded-lg flex items-center justify-center shrink-0" :class="TYPE_STYLES[t.type]?.icon">
                     <UIcon :name="getCategoryIcon(t.categorie)" class="size-4" />
                   </div>
-
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-1.5">
                       <p class="text-sm font-medium text-stone-800 truncate">{{ t.libelle }}</p>
-                      <span
-                        v-if="t.recurrence !== 'unique' && t.recurrence_certitude === 'theorique'"
-                        class="shrink-0 text-[9px] font-medium text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded-full"
-                      >theorique</span>
+                      <span v-if="t.recurrence !== 'unique' && t.recurrence_certitude === 'theorique'" class="shrink-0 text-[9px] font-medium text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded-full">theorique</span>
                     </div>
                     <div class="flex items-center gap-1.5 flex-wrap">
                       <span class="text-[11px] text-stone-400">{{ getCategoryLabel(t.categorie) }}</span>
-                      <span v-if="t.recurrence !== 'unique'" class="text-[11px] text-stone-400">
-                        - {{ TRANSACTION_RECURRENCES[t.recurrence]?.label }}
-                        <template v-if="t.recurrence_certitude === 'theorique'"> ~</template>
-                      </span>
-                      <span v-if="t.montant_reel" class="text-[10px] text-stone-400 bg-stone-50 px-1.5 py-0.5 rounded">
-                        paye {{ formatMoney(t.montant_reel) }}&euro;
-                      </span>
-                      <span v-if="t.taux_taxe" class="text-[10px] text-stone-400 bg-stone-50 px-1.5 py-0.5 rounded">
-                        taxe {{ t.taux_taxe }}%
-                      </span>
-                      <span v-if="getProjetName(t)" class="inline-flex items-center gap-0.5 text-[10px] text-primary/70 bg-primary/5 px-1.5 py-0.5 rounded-full">
-                        <UIcon name="i-lucide-folder" class="size-2.5" />
-                        {{ getProjetName(t) }}
-                      </span>
+                      <span v-if="t.recurrence !== 'unique'" class="text-[11px] text-stone-400">- {{ TRANSACTION_RECURRENCES[t.recurrence]?.label }}<template v-if="t.recurrence_certitude === 'theorique'"> ~</template></span>
+                      <span v-if="t.montant_reel" class="text-[10px] text-stone-400 bg-stone-50 px-1.5 py-0.5 rounded">paye {{ formatMoney(t.montant_reel) }}&euro;</span>
+                      <span v-if="t.taux_taxe" class="text-[10px] text-stone-400 bg-stone-50 px-1.5 py-0.5 rounded">taxe {{ t.taux_taxe }}%</span>
+                      <span v-if="getProjetName(t)" class="inline-flex items-center gap-0.5 text-[10px] text-primary/70 bg-primary/5 px-1.5 py-0.5 rounded-full"><UIcon name="i-lucide-folder" class="size-2.5" /> {{ getProjetName(t) }}</span>
                       <span v-if="t.notes" class="text-[11px] text-stone-400 truncate">- {{ t.notes }}</span>
                     </div>
                   </div>
-
-                  <span class="text-sm font-bold tabular-nums shrink-0" :class="TYPE_STYLES[t.type]?.text">
-                    {{ txIsPositive(t) ? '+' : '-' }}{{ formatMoney(t.montant) }} &euro;
-                  </span>
-
+                  <span class="text-sm font-bold tabular-nums shrink-0" :class="TYPE_STYLES[t.type]?.text">{{ txIsPositive(t) ? '+' : '-' }}{{ formatMoney(t.montant) }} &euro;</span>
                   <div v-if="isDirecteur" class="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button class="p-1 rounded hover:bg-stone-100 transition-colors" @click="openEdit(t)">
-                      <UIcon name="i-lucide-pencil" class="size-3.5 text-stone-400" />
-                    </button>
-                    <button class="p-1 rounded hover:bg-red-50 transition-colors" @click="handleDelete(t.id)">
-                      <UIcon name="i-lucide-trash-2" class="size-3.5 text-stone-400 hover:text-red-400" />
-                    </button>
+                    <button class="p-1 rounded hover:bg-stone-100 transition-colors" @click="openEdit(t)"><UIcon name="i-lucide-pencil" class="size-3.5 text-stone-400" /></button>
+                    <button class="p-1 rounded hover:bg-red-50 transition-colors" @click="handleDelete(t.id)"><UIcon name="i-lucide-trash-2" class="size-3.5 text-stone-400 hover:text-red-400" /></button>
                   </div>
                 </div>
               </div>
@@ -726,6 +367,94 @@ const TYPE_STYLES = {
             <UButton icon="i-lucide-chevron-right" size="xs" color="neutral" variant="ghost" :disabled="page >= totalPages" @click="next" />
           </div>
         </div>
+
+        <!-- ==================== GRAPHIQUES VIEW ==================== -->
+        <div v-else class="px-4 sm:px-6 py-6 max-w-3xl mx-auto space-y-6">
+
+          <!-- Evolution du solde -->
+          <div class="rounded-xl bg-white/50 border border-white/70 shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-sm font-semibold text-stone-800">Evolution du solde</h3>
+              <div class="flex items-center gap-3 text-[10px]">
+                <span class="flex items-center gap-1 text-stone-500"><span class="w-4 h-0.5 bg-emerald-500 rounded" /> Reel</span>
+                <span class="flex items-center gap-1 text-stone-400"><span class="w-4 h-0.5 bg-emerald-300 rounded" style="border-bottom: 1px dashed" /> Prevision</span>
+              </div>
+            </div>
+            <svg v-if="chartMonths.length >= 2" :viewBox="`0 0 ${CW} ${CH}`" class="w-full h-36 sm:h-44">
+              <line :x1="CP.l" :x2="CW - CP.r" :y1="svgZeroY(chartMonths.map(d => d.solde))" :y2="svgZeroY(chartMonths.map(d => d.solde))" stroke="#d6d3d1" stroke-width="0.5" stroke-dasharray="4,4" />
+              <path :d="svgArea(chartMonths.map(d => d.solde))" fill="url(#g-solde)" opacity="0.3" />
+              <path :d="svgPath(chartMonths.map(d => d.solde))" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+              <circle v-for="(pt, i) in chartMonths" :key="i" :cx="svgDotX(i, chartMonths.length)" :cy="svgDotY(pt.solde, chartMonths.map(d => d.solde))" :r="pt.forecast ? 3 : 4" :fill="pt.forecast ? '#6ee7b7' : '#10b981'" :stroke="pt.forecast ? '#6ee7b7' : 'white'" :stroke-width="pt.forecast ? 1 : 2" />
+              <text v-for="(pt, i) in chartMonths" :key="'l'+i" :x="svgDotX(i, chartMonths.length)" :y="CH - 5" text-anchor="middle" class="text-[10px]" :fill="pt.forecast ? '#a8a29e' : '#78716c'" :font-style="pt.forecast ? 'italic' : 'normal'">{{ pt.label }}</text>
+              <defs><linearGradient id="g-solde" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10b981" stop-opacity="0.4" /><stop offset="100%" stop-color="#10b981" stop-opacity="0" /></linearGradient></defs>
+            </svg>
+            <div class="flex items-center justify-center gap-4 mt-2 text-xs">
+              <span class="text-stone-500">Recurrent net : <strong :class="monthlyRecurring >= 0 ? 'text-emerald-600' : 'text-red-500'">{{ monthlyRecurring >= 0 ? '+' : '' }}{{ formatMoney(monthlyRecurring) }} /mois</strong></span>
+              <span v-if="transactions?.some(t => t.recurrence !== 'unique' && t.recurrence_certitude === 'theorique')" class="text-stone-400 flex items-center gap-1"><UIcon name="i-lucide-help-circle" class="size-3" /> Theoriques a 50%</span>
+            </div>
+          </div>
+
+          <!-- Ce que prennent les intermediaires -->
+          <div class="rounded-xl bg-white/50 border border-white/70 shadow-sm p-5">
+            <h3 class="text-sm font-semibold text-stone-800 mb-1">Commissions des intermediaires</h3>
+            <p class="text-[11px] text-stone-400 mb-4">Difference entre ce que paye le client et ce qui arrive sur le compte (Tipeee, Stripe, etc.)</p>
+
+            <div v-if="intermediaryStats.count === 0" class="text-center py-6 text-sm text-stone-400">
+              Aucune donnee. Renseignez le "montant paye par le client" sur vos recettes.
+            </div>
+            <template v-else>
+              <div class="grid grid-cols-3 gap-3 mb-3">
+                <div class="text-center p-3 rounded-lg bg-stone-50">
+                  <p class="text-[10px] text-stone-500 uppercase tracking-wider">Paye par clients</p>
+                  <p class="text-lg font-bold text-stone-800 tabular-nums">{{ formatMoney(intermediaryStats.totalPaye) }} &euro;</p>
+                </div>
+                <div class="text-center p-3 rounded-lg bg-emerald-50">
+                  <p class="text-[10px] text-emerald-600/70 uppercase tracking-wider">Recu</p>
+                  <p class="text-lg font-bold text-emerald-600 tabular-nums">{{ formatMoney(intermediaryStats.totalRecu) }} &euro;</p>
+                </div>
+                <div class="text-center p-3 rounded-lg bg-red-50">
+                  <p class="text-[10px] text-red-500/70 uppercase tracking-wider">Commission prise</p>
+                  <p class="text-lg font-bold text-red-500 tabular-nums">{{ formatMoney(intermediaryStats.commission) }} &euro;</p>
+                </div>
+              </div>
+              <p class="text-xs text-stone-500 text-center">
+                Sur {{ intermediaryStats.count }} transaction{{ intermediaryStats.count > 1 ? 's' : '' }}, les plateformes ont pris
+                <strong class="text-red-500">{{ intermediaryStats.totalPaye > 0 ? ((intermediaryStats.commission / intermediaryStats.totalPaye) * 100).toFixed(1) : 0 }}%</strong>
+              </p>
+            </template>
+          </div>
+
+          <!-- Ce que prend l'Etat -->
+          <div class="rounded-xl bg-white/50 border border-white/70 shadow-sm p-5">
+            <h3 class="text-sm font-semibold text-stone-800 mb-1">Pression fiscale</h3>
+            <p class="text-[11px] text-stone-400 mb-4">Estimation de ce que l'Etat preleveera sur les recettes declarees (informatif, base sur le taux renseigne)</p>
+
+            <div v-if="taxStats.count === 0" class="text-center py-6 text-sm text-stone-400">
+              Aucune donnee. Renseignez le "taux de taxe" sur vos recettes.
+            </div>
+            <template v-else>
+              <div class="grid grid-cols-3 gap-3 mb-3">
+                <div class="text-center p-3 rounded-lg bg-emerald-50">
+                  <p class="text-[10px] text-emerald-600/70 uppercase tracking-wider">Recettes brutes</p>
+                  <p class="text-lg font-bold text-emerald-600 tabular-nums">{{ formatMoney(taxStats.totalBrut) }} &euro;</p>
+                </div>
+                <div class="text-center p-3 rounded-lg bg-orange-50">
+                  <p class="text-[10px] text-orange-600/70 uppercase tracking-wider">Estimation impots</p>
+                  <p class="text-lg font-bold text-orange-600 tabular-nums">{{ formatMoney(taxStats.totalTaxe) }} &euro;</p>
+                </div>
+                <div class="text-center p-3 rounded-lg bg-stone-50">
+                  <p class="text-[10px] text-stone-500 uppercase tracking-wider">Net apres impots</p>
+                  <p class="text-lg font-bold text-stone-800 tabular-nums">{{ formatMoney(taxStats.totalBrut - taxStats.totalTaxe) }} &euro;</p>
+                </div>
+              </div>
+              <p class="text-xs text-stone-500 text-center">
+                Sur {{ taxStats.count }} recette{{ taxStats.count > 1 ? 's' : '' }} taxees, l'Etat preleveera environ
+                <strong class="text-orange-600">{{ taxStats.totalBrut > 0 ? ((taxStats.totalTaxe / taxStats.totalBrut) * 100).toFixed(1) : 0 }}%</strong>
+              </p>
+            </template>
+          </div>
+
+        </div>
       </template>
     </div>
 
@@ -733,66 +462,33 @@ const TYPE_STYLES = {
     <UModal :open="showForm" @update:open="val => { if (!val) { showForm = false; resetForm() } }">
       <template #content>
         <div class="p-6 max-h-[85vh] overflow-y-auto">
-          <h3 class="text-lg font-semibold text-stone-900 mb-5">
-            {{ editingId ? 'Modifier la transaction' : 'Nouvelle transaction' }}
-          </h3>
-
+          <h3 class="text-lg font-semibold text-stone-900 mb-5">{{ editingId ? 'Modifier la transaction' : 'Nouvelle transaction' }}</h3>
           <form class="space-y-5" @submit.prevent="handleSubmit">
             <!-- Type toggle -->
             <div class="flex items-center justify-center">
-              <div class="inline-flex items-center rounded-xl border-2 overflow-hidden transition-colors"
-                :class="{ 'border-red-300': form.type === 'depense', 'border-emerald-300': form.type === 'recette', 'border-amber-300': form.type === 'fondateur' }"
-              >
-                <button type="button" class="px-4 py-2.5 text-sm font-semibold transition-all flex items-center gap-1.5"
-                  :class="form.type === 'depense' ? 'bg-red-500 text-white' : 'bg-white text-stone-400 hover:text-stone-600'"
-                  @click="form.type = 'depense'"
-                ><UIcon name="i-lucide-trending-down" class="size-4" /> Depense</button>
-                <button type="button" class="px-4 py-2.5 text-sm font-semibold transition-all flex items-center gap-1.5"
-                  :class="form.type === 'recette' ? 'bg-emerald-500 text-white' : 'bg-white text-stone-400 hover:text-stone-600'"
-                  @click="form.type = 'recette'"
-                ><UIcon name="i-lucide-trending-up" class="size-4" /> Recette</button>
-                <button type="button" class="px-4 py-2.5 text-sm font-semibold transition-all flex items-center gap-1.5"
-                  :class="form.type === 'fondateur' ? 'bg-amber-500 text-white' : 'bg-white text-stone-400 hover:text-stone-600'"
-                  @click="form.type = 'fondateur'"
-                ><UIcon name="i-lucide-heart-handshake" class="size-4" /> Fondateur</button>
+              <div class="inline-flex items-center rounded-xl border-2 overflow-hidden transition-colors" :class="{ 'border-red-300': form.type === 'depense', 'border-emerald-300': form.type === 'recette', 'border-amber-300': form.type === 'fondateur' }">
+                <button type="button" class="px-4 py-2.5 text-sm font-semibold transition-all flex items-center gap-1.5" :class="form.type === 'depense' ? 'bg-red-500 text-white' : 'bg-white text-stone-400 hover:text-stone-600'" @click="form.type = 'depense'"><UIcon name="i-lucide-trending-down" class="size-4" /> Depense</button>
+                <button type="button" class="px-4 py-2.5 text-sm font-semibold transition-all flex items-center gap-1.5" :class="form.type === 'recette' ? 'bg-emerald-500 text-white' : 'bg-white text-stone-400 hover:text-stone-600'" @click="form.type = 'recette'"><UIcon name="i-lucide-trending-up" class="size-4" /> Recette</button>
+                <button type="button" class="px-4 py-2.5 text-sm font-semibold transition-all flex items-center gap-1.5" :class="form.type === 'fondateur' ? 'bg-amber-500 text-white' : 'bg-white text-stone-400 hover:text-stone-600'" @click="form.type = 'fondateur'"><UIcon name="i-lucide-heart-handshake" class="size-4" /> Fondateur</button>
               </div>
             </div>
-
             <!-- Libelle + Montant -->
             <div class="grid grid-cols-3 gap-3">
-              <UFormField label="Libelle" required class="col-span-2">
-                <UInput v-model="form.libelle" placeholder="Description..." icon="i-lucide-text" class="w-full" />
-              </UFormField>
-              <UFormField label="Montant recu" required>
-                <UInput v-model.number="form.montant" type="number" :min="0" step="0.01" placeholder="0.00" icon="i-lucide-euro" class="w-full" />
-              </UFormField>
+              <UFormField label="Libelle" required class="col-span-2"><UInput v-model="form.libelle" placeholder="Description..." icon="i-lucide-text" class="w-full" /></UFormField>
+              <UFormField label="Montant recu" required><UInput v-model.number="form.montant" type="number" :min="0" step="0.01" placeholder="0.00" icon="i-lucide-euro" class="w-full" /></UFormField>
             </div>
-
-            <!-- Montant reel + Taxe (recettes only) -->
+            <!-- Montant reel + Taxe (recettes) -->
             <div v-if="form.type === 'recette'" class="grid grid-cols-2 gap-3">
-              <UFormField label="Montant paye par le client">
-                <UInput v-model.number="form.montant_reel" type="number" :min="0" step="0.01" placeholder="Optionnel" icon="i-lucide-receipt" class="w-full" />
-                <template #hint>
-                  <span class="text-[10px] text-stone-400">Avant commission plateforme</span>
-                </template>
-              </UFormField>
-              <UFormField label="Taux de taxe (%)">
-                <UInput v-model.number="form.taux_taxe" type="number" :min="0" :max="100" step="0.1" placeholder="Ex: 23" icon="i-lucide-percent" class="w-full" />
-                <template #hint>
-                  <span class="text-[10px] text-stone-400">Informatif, n'impacte pas le solde</span>
-                </template>
-              </UFormField>
+              <UFormField label="Montant paye par le client"><UInput v-model.number="form.montant_reel" type="number" :min="0" step="0.01" placeholder="Optionnel" icon="i-lucide-receipt" class="w-full" /><template #hint><span class="text-[10px] text-stone-400">Avant commission plateforme</span></template></UFormField>
+              <UFormField label="Taux de taxe (%)"><UInput v-model.number="form.taux_taxe" type="number" :min="0" :max="100" step="0.1" placeholder="Ex: 23" icon="i-lucide-percent" class="w-full" /><template #hint><span class="text-[10px] text-stone-400">Informatif, n'impacte pas le solde</span></template></UFormField>
             </div>
-
             <!-- Categorie + Date -->
             <div class="grid grid-cols-2 gap-3">
               <UFormField label="Categorie">
                 <div class="flex items-center gap-1.5">
                   <USelect v-if="formCategories.length" v-model="form.categorie" :items="formCategories" value-key="value" class="flex-1" />
                   <span v-else class="flex-1 text-sm text-stone-400 italic">Aucune</span>
-                  <UTooltip text="Nouvelle categorie">
-                    <UButton icon="i-lucide-plus" size="xs" variant="ghost" color="neutral" @click="showAddCat = !showAddCat" />
-                  </UTooltip>
+                  <UTooltip text="Nouvelle categorie"><UButton icon="i-lucide-plus" size="xs" variant="ghost" color="neutral" @click="showAddCat = !showAddCat" /></UTooltip>
                 </div>
                 <div v-if="showAddCat" class="mt-2 p-3 rounded-lg bg-stone-50 border border-stone-200/60 space-y-2">
                   <UInput v-model="newCatLabel" placeholder="Nom de la categorie" size="sm" />
@@ -803,79 +499,39 @@ const TYPE_STYLES = {
                   </div>
                 </div>
               </UFormField>
-              <UFormField label="Date">
-                <UInput v-model="form.date" type="date" class="w-full" />
-              </UFormField>
+              <UFormField label="Date"><UInput v-model="form.date" type="date" class="w-full" /></UFormField>
             </div>
-
             <!-- Recurrence -->
             <div class="space-y-3">
               <div class="grid grid-cols-2 gap-3">
-                <UFormField label="Recurrence">
-                  <USelect v-model="form.recurrence" :items="recOptions" value-key="value" class="w-full" />
-                </UFormField>
-                <UFormField label="Notes">
-                  <UInput v-model="form.notes" placeholder="Optionnel..." class="w-full" />
-                </UFormField>
+                <UFormField label="Recurrence"><USelect v-model="form.recurrence" :items="recOptions" value-key="value" class="w-full" /></UFormField>
+                <UFormField label="Notes"><UInput v-model="form.notes" placeholder="Optionnel..." class="w-full" /></UFormField>
               </div>
-
-              <!-- Recurrence details (if not unique) -->
               <div v-if="form.recurrence !== 'unique'" class="p-3 rounded-lg bg-stone-50/80 border border-stone-200/60 space-y-3">
                 <div class="flex items-center gap-2">
                   <p class="text-xs font-semibold text-stone-600">Certitude</p>
-                  <div class="inline-flex items-center rounded-lg border overflow-hidden"
-                    :class="form.recurrence_certitude === 'stricte' ? 'border-emerald-300' : 'border-amber-300'"
-                  >
-                    <button type="button" class="px-3 py-1.5 text-xs font-medium transition-all"
-                      :class="form.recurrence_certitude === 'stricte' ? 'bg-emerald-500 text-white' : 'bg-white text-stone-400'"
-                      @click="form.recurrence_certitude = 'stricte'"
-                    >Stricte</button>
-                    <button type="button" class="px-3 py-1.5 text-xs font-medium transition-all"
-                      :class="form.recurrence_certitude === 'theorique' ? 'bg-amber-500 text-white' : 'bg-white text-stone-400'"
-                      @click="form.recurrence_certitude = 'theorique'"
-                    >Theorique</button>
+                  <div class="inline-flex items-center rounded-lg border overflow-hidden" :class="form.recurrence_certitude === 'stricte' ? 'border-emerald-300' : 'border-amber-300'">
+                    <button type="button" class="px-3 py-1.5 text-xs font-medium transition-all" :class="form.recurrence_certitude === 'stricte' ? 'bg-emerald-500 text-white' : 'bg-white text-stone-400'" @click="form.recurrence_certitude = 'stricte'">Stricte</button>
+                    <button type="button" class="px-3 py-1.5 text-xs font-medium transition-all" :class="form.recurrence_certitude === 'theorique' ? 'bg-amber-500 text-white' : 'bg-white text-stone-400'" @click="form.recurrence_certitude = 'theorique'">Theorique</button>
                   </div>
                 </div>
                 <p class="text-[10px] text-stone-400 leading-relaxed">
-                  <template v-if="form.recurrence_certitude === 'stricte'">
-                    Stricte : montant garanti (abonnement fixe, loyer, etc.)
-                  </template>
-                  <template v-else>
-                    Theorique : montant incertain (dons, revenus variables). Compte a 50% dans les previsions.
-                  </template>
+                  <template v-if="form.recurrence_certitude === 'stricte'">Stricte : montant garanti (abonnement fixe, loyer, etc.)</template>
+                  <template v-else>Theorique : montant incertain (dons, revenus variables). Compte a 50% dans les previsions.</template>
                 </p>
                 <div class="grid grid-cols-2 gap-3">
-                  <UFormField label="Debut">
-                    <UInput v-model="form.recurrence_debut" type="date" class="w-full" placeholder="Optionnel" />
-                  </UFormField>
-                  <UFormField label="Fin">
-                    <UInput v-model="form.recurrence_fin" type="date" class="w-full" placeholder="Optionnel" />
-                  </UFormField>
+                  <UFormField label="Debut"><UInput v-model="form.recurrence_debut" type="date" class="w-full" /></UFormField>
+                  <UFormField label="Fin"><UInput v-model="form.recurrence_fin" type="date" class="w-full" /></UFormField>
                 </div>
               </div>
             </div>
-
             <!-- Actions -->
             <div class="flex items-center justify-between pt-2">
-              <UButton
-                v-if="editingId"
-                label="Supprimer"
-                icon="i-lucide-trash-2"
-                color="error"
-                variant="ghost"
-                size="sm"
-                @click="handleDelete(editingId!); showForm = false; resetForm()"
-              />
+              <UButton v-if="editingId" label="Supprimer" icon="i-lucide-trash-2" color="error" variant="ghost" size="sm" @click="handleDelete(editingId!); showForm = false; resetForm()" />
               <div v-else />
               <div class="flex items-center gap-2">
                 <UButton label="Annuler" color="neutral" variant="ghost" @click="showForm = false; resetForm()" />
-                <UButton
-                  type="submit"
-                  :label="editingId ? 'Enregistrer' : 'Ajouter'"
-                  :icon="editingId ? 'i-lucide-check' : 'i-lucide-plus'"
-                  :loading="saving"
-                  :disabled="!form.libelle.trim() || !form.montant"
-                />
+                <UButton type="submit" :label="editingId ? 'Enregistrer' : 'Ajouter'" :icon="editingId ? 'i-lucide-check' : 'i-lucide-plus'" :loading="saving" :disabled="!form.libelle.trim() || !form.montant" />
               </div>
             </div>
           </form>
