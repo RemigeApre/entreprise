@@ -138,8 +138,16 @@ export default defineNuxtConfig({
     '/candidats/**': { ssr: false },
     '/wiki': { ssr: false },
     '/wiki/**': { ssr: false },
+    '/finance': { ssr: false },
+    '/finance/**': { ssr: false },
+    '/materiel': { ssr: false },
+    '/materiel/**': { ssr: false },
+    '/produits': { ssr: false },
+    '/produits/**': { ssr: false },
     '/stages': { ssr: false },
-    '/stages/**': { ssr: false }
+    '/stages/**': { ssr: false },
+    '/anciens': { ssr: false },
+    '/login': { ssr: false }
   },
 
   app: {
