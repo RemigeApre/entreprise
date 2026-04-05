@@ -404,16 +404,24 @@ export interface CandidatBookingToken {
 
 // --- Finance ---
 
-export type TransactionType = 'recette' | 'depense'
-export type TransactionCategorie = 'vente' | 'prestation' | 'abonnement' | 'salaire' | 'freelance' | 'achat_materiel' | 'logiciel' | 'hebergement' | 'marketing' | 'deplacement' | 'administratif' | 'financement_fondateur' | 'autre'
+export type TransactionType = 'recette' | 'depense' | 'fondateur'
 export type TransactionRecurrence = 'unique' | 'mensuel' | 'trimestriel' | 'annuel'
+
+export interface CategorieFinance {
+  id: string
+  label: string
+  type: TransactionType
+  icone: string | null
+  sous_categorie: string | null
+  date_created: string
+}
 
 export interface Transaction {
   id: string
   libelle: string
   montant: number
   type: TransactionType
-  categorie: TransactionCategorie
+  categorie: CategorieFinance | string | null
   date: string
   recurrence: TransactionRecurrence
   notes: string | null

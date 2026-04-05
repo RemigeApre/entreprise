@@ -335,23 +335,8 @@ export const CONTRACT_HEX_COLORS: Record<string, string> = {
 
 export const TRANSACTION_TYPES = {
   recette: { label: 'Recette', color: 'green', icon: 'i-lucide-trending-up' },
-  depense: { label: 'Depense', color: 'red', icon: 'i-lucide-trending-down' }
-} as const
-
-export const TRANSACTION_CATEGORIES = {
-  vente: { label: 'Vente', icon: 'i-lucide-shopping-bag' },
-  prestation: { label: 'Prestation', icon: 'i-lucide-briefcase' },
-  abonnement: { label: 'Abonnement', icon: 'i-lucide-repeat' },
-  salaire: { label: 'Salaire', icon: 'i-lucide-wallet' },
-  freelance: { label: 'Freelance', icon: 'i-lucide-user' },
-  achat_materiel: { label: 'Achat materiel', icon: 'i-lucide-monitor' },
-  logiciel: { label: 'Logiciel / SaaS', icon: 'i-lucide-code' },
-  hebergement: { label: 'Hebergement', icon: 'i-lucide-server' },
-  marketing: { label: 'Marketing', icon: 'i-lucide-megaphone' },
-  deplacement: { label: 'Deplacement', icon: 'i-lucide-car' },
-  administratif: { label: 'Administratif', icon: 'i-lucide-file-text' },
-  financement_fondateur: { label: 'Financement fondateur', icon: 'i-lucide-heart-handshake' },
-  autre: { label: 'Autre', icon: 'i-lucide-circle' }
+  depense: { label: 'Depense', color: 'red', icon: 'i-lucide-trending-down' },
+  fondateur: { label: 'Fondateur', color: 'amber', icon: 'i-lucide-heart-handshake' }
 } as const
 
 export const TRANSACTION_RECURRENCES = {

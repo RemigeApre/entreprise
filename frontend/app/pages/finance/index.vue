@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import type { Transaction, TransactionType, TransactionCategorie, TransactionRecurrence } from '~/utils/types'
-import { TRANSACTION_CATEGORIES, TRANSACTION_RECURRENCES } from '~/utils/constants'
+import type { Transaction, TransactionType, TransactionRecurrence, CategorieFinance } from '~/utils/types'
+import { TRANSACTION_TYPES, TRANSACTION_RECURRENCES } from '~/utils/constants'
 
 const { isDirecteur } = useAuth()
 const { getAll, create, update, remove } = useFinance()
+const { categories, loaded: catsLoaded, loadCategories, createCategory, getCategoriesByType, getCategoryLabel, getCategoryIcon } = useFinanceCategories()
 const toast = useToast()
 
 const { data: transactions, status, refresh } = useAsyncData('transactions', getAll)
 
-// --- Filters (type + search only, no period filter) ---
+onMounted(() => { if (!catsLoaded.value) loadCategories() })
+
+// --- Filters ---
 const filterType = ref<TransactionType | 'all'>('all')
 const search = ref('')
 
@@ -24,12 +27,13 @@ const filtered = computed(() => {
   })
 })
 
-// --- Totals on ALL transactions (not filtered) ---
+// --- Totals on ALL transactions ---
 const totals = computed(() => {
-  if (!transactions.value) return { recettes: 0, depenses: 0, solde: 0 }
+  if (!transactions.value) return { recettes: 0, depenses: 0, fondateur: 0, solde: 0 }
   const recettes = transactions.value.filter(t => t.type === 'recette').reduce((s, t) => s + t.montant, 0)
   const depenses = transactions.value.filter(t => t.type === 'depense').reduce((s, t) => s + t.montant, 0)
-  return { recettes, depenses, solde: recettes - depenses }
+  const fondateur = transactions.value.filter(t => t.type === 'fondateur').reduce((s, t) => s + t.montant, 0)
+  return { recettes, depenses, fondateur, solde: recettes + fondateur - depenses }
 })
 
 // --- Pagination ---
@@ -66,26 +70,38 @@ const form = reactive({
   libelle: '',
   montant: null as number | null,
   type: 'depense' as TransactionType,
-  categorie: 'autre' as TransactionCategorie,
+  categorie: null as string | null,
   date: new Date().toISOString().split('T')[0],
   recurrence: 'unique' as TransactionRecurrence,
-  notes: '',
-  projet: null as string | null
+  notes: ''
 })
 
-const catOptions = Object.entries(TRANSACTION_CATEGORIES).map(([value, c]) => ({ label: c.label, value }))
 const recOptions = Object.entries(TRANSACTION_RECURRENCES).map(([value, c]) => ({ label: c.label, value }))
+
+const formCategories = computed(() => {
+  const cats = getCategoriesByType(form.type)
+  return cats.map(c => ({
+    label: c.sous_categorie ? `${c.label} (${c.sous_categorie})` : c.label,
+    value: c.id
+  }))
+})
+
+// Auto-select first category when type changes
+watch(() => form.type, () => {
+  const cats = getCategoriesByType(form.type)
+  form.categorie = cats.length ? cats[0].id : null
+})
 
 function resetForm() {
   form.libelle = ''
   form.montant = null
   form.type = 'depense'
-  form.categorie = 'autre'
   form.date = new Date().toISOString().split('T')[0]
   form.recurrence = 'unique'
   form.notes = ''
-  form.projet = null
   editingId.value = null
+  const cats = getCategoriesByType('depense')
+  form.categorie = cats.length ? cats[0].id : null
 }
 
 function openAdd() {
@@ -98,11 +114,10 @@ function openEdit(t: Transaction) {
   form.libelle = t.libelle
   form.montant = t.montant
   form.type = t.type
-  form.categorie = t.categorie
   form.date = t.date
   form.recurrence = t.recurrence
   form.notes = t.notes || ''
-  form.projet = t.projet && typeof t.projet === 'object' ? t.projet.id : (t.projet as string | null)
+  form.categorie = t.categorie && typeof t.categorie === 'object' ? t.categorie.id : (t.categorie as string | null)
   showForm.value = true
 }
 
@@ -110,15 +125,14 @@ async function handleSubmit() {
   if (!form.libelle.trim() || !form.montant) return
   saving.value = true
   try {
-    const data: Partial<Transaction> = {
+    const data: any = {
       libelle: form.libelle.trim(),
       montant: form.montant,
       type: form.type,
-      categorie: form.categorie,
+      categorie: form.categorie || null,
       date: form.date,
       recurrence: form.recurrence,
-      notes: form.notes.trim() || null,
-      projet: form.projet || null
+      notes: form.notes.trim() || null
     }
 
     if (editingId.value) {
@@ -148,6 +162,33 @@ async function handleDelete(id: string) {
   }
 }
 
+// --- Add category inline ---
+const showAddCat = ref(false)
+const newCatLabel = ref('')
+const newCatSousCat = ref('')
+const addingCat = ref(false)
+
+async function handleAddCategory() {
+  if (!newCatLabel.value.trim()) return
+  addingCat.value = true
+  try {
+    const cat = await createCategory({
+      label: newCatLabel.value.trim(),
+      type: form.type,
+      sous_categorie: newCatSousCat.value.trim() || undefined
+    })
+    form.categorie = cat.id
+    showAddCat.value = false
+    newCatLabel.value = ''
+    newCatSousCat.value = ''
+    toast.add({ title: 'Categorie ajoutee', color: 'success' })
+  } catch {
+    toast.add({ title: 'Erreur', color: 'error' })
+  } finally {
+    addingCat.value = false
+  }
+}
+
 // --- Helpers ---
 function formatMoney(n: number) {
   return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -161,6 +202,16 @@ function getProjetName(t: Transaction): string | null {
   if (!t.projet) return null
   if (typeof t.projet === 'object') return t.projet.nom
   return null
+}
+
+function txIsPositive(t: Transaction): boolean {
+  return t.type === 'recette' || t.type === 'fondateur'
+}
+
+const TYPE_STYLES = {
+  recette: { text: 'text-emerald-600', bg: 'bg-emerald-50', icon: 'bg-emerald-50 text-emerald-600' },
+  depense: { text: 'text-red-500', bg: 'bg-red-50', icon: 'bg-red-50 text-red-400' },
+  fondateur: { text: 'text-amber-600', bg: 'bg-amber-50', icon: 'bg-amber-50 text-amber-600' }
 }
 </script>
 
@@ -184,8 +235,8 @@ function getProjetName(t: Transaction): string | null {
             </p>
           </div>
 
-          <!-- Recettes / Depenses pills -->
-          <div class="flex items-center justify-center gap-3">
+          <!-- Recettes / Depenses / Fondateur pills -->
+          <div class="flex items-center justify-center gap-3 flex-wrap">
             <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200/60">
               <UIcon name="i-lucide-trending-up" class="size-4 text-emerald-600" />
               <div>
@@ -198,6 +249,13 @@ function getProjetName(t: Transaction): string | null {
               <div>
                 <p class="text-[10px] text-red-500/70 uppercase tracking-wider font-medium">Depenses</p>
                 <p class="text-sm font-bold text-red-600 tabular-nums">{{ formatMoney(totals.depenses) }} &euro;</p>
+              </div>
+            </div>
+            <div v-if="totals.fondateur > 0" class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200/60">
+              <UIcon name="i-lucide-heart-handshake" class="size-4 text-amber-600" />
+              <div>
+                <p class="text-[10px] text-amber-600/70 uppercase tracking-wider font-medium">Fondateur</p>
+                <p class="text-sm font-bold text-amber-700 tabular-nums">{{ formatMoney(totals.fondateur) }} &euro;</p>
               </div>
             </div>
           </div>
@@ -221,6 +279,11 @@ function getProjetName(t: Transaction): string | null {
               :class="filterType === 'depense' ? 'bg-red-500 text-white' : 'text-red-500/60 hover:bg-red-50'"
               @click="filterType = filterType === 'depense' ? 'all' : 'depense'"
             >Depenses</button>
+            <button
+              class="shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-all"
+              :class="filterType === 'fondateur' ? 'bg-amber-500 text-white' : 'text-amber-600/60 hover:bg-amber-50'"
+              @click="filterType = filterType === 'fondateur' ? 'all' : 'fondateur'"
+            >Fondateur</button>
 
             <UInput v-model="search" placeholder="Rechercher..." icon="i-lucide-search" size="xs" class="ml-auto w-40 shrink-0" />
 
@@ -260,12 +323,11 @@ function getProjetName(t: Transaction): string | null {
                   <!-- Category icon -->
                   <div
                     class="size-9 rounded-lg flex items-center justify-center shrink-0"
-                    :class="t.type === 'recette' ? 'bg-emerald-50' : 'bg-red-50'"
+                    :class="TYPE_STYLES[t.type]?.icon"
                   >
                     <UIcon
-                      :name="TRANSACTION_CATEGORIES[t.categorie]?.icon || 'i-lucide-circle'"
+                      :name="getCategoryIcon(t.categorie)"
                       class="size-4"
-                      :class="t.type === 'recette' ? 'text-emerald-600' : 'text-red-400'"
                     />
                   </div>
 
@@ -274,7 +336,7 @@ function getProjetName(t: Transaction): string | null {
                     <p class="text-sm font-medium text-stone-800 truncate">{{ t.libelle }}</p>
                     <div class="flex items-center gap-1.5 flex-wrap">
                       <span class="text-[11px] text-stone-400">
-                        {{ TRANSACTION_CATEGORIES[t.categorie]?.label }}
+                        {{ getCategoryLabel(t.categorie) }}
                       </span>
                       <span v-if="t.recurrence !== 'unique'" class="text-[11px] text-stone-400">
                         - {{ TRANSACTION_RECURRENCES[t.recurrence]?.label }}
@@ -292,23 +354,17 @@ function getProjetName(t: Transaction): string | null {
                   <!-- Amount -->
                   <span
                     class="text-sm font-bold tabular-nums shrink-0"
-                    :class="t.type === 'recette' ? 'text-emerald-600' : 'text-red-500'"
+                    :class="TYPE_STYLES[t.type]?.text"
                   >
-                    {{ t.type === 'recette' ? '+' : '-' }}{{ formatMoney(t.montant) }} &euro;
+                    {{ txIsPositive(t) ? '+' : '-' }}{{ formatMoney(t.montant) }} &euro;
                   </span>
 
                   <!-- Actions (directors only) -->
                   <div v-if="isDirecteur" class="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      class="p-1 rounded hover:bg-stone-100 transition-colors"
-                      @click="openEdit(t)"
-                    >
+                    <button class="p-1 rounded hover:bg-stone-100 transition-colors" @click="openEdit(t)">
                       <UIcon name="i-lucide-pencil" class="size-3.5 text-stone-400" />
                     </button>
-                    <button
-                      class="p-1 rounded hover:bg-red-50 transition-colors"
-                      @click="handleDelete(t.id)"
-                    >
+                    <button class="p-1 rounded hover:bg-red-50 transition-colors" @click="handleDelete(t.id)">
                       <UIcon name="i-lucide-trash-2" class="size-3.5 text-stone-400 hover:text-red-400" />
                     </button>
                   </div>
@@ -336,14 +392,18 @@ function getProjetName(t: Transaction): string | null {
           </h3>
 
           <form class="space-y-5" @submit.prevent="handleSubmit">
-            <!-- Type toggle -->
+            <!-- Type toggle (3 options) -->
             <div class="flex items-center justify-center">
               <div class="inline-flex items-center rounded-xl border-2 overflow-hidden transition-colors"
-                :class="form.type === 'recette' ? 'border-emerald-300' : 'border-red-300'"
+                :class="{
+                  'border-red-300': form.type === 'depense',
+                  'border-emerald-300': form.type === 'recette',
+                  'border-amber-300': form.type === 'fondateur'
+                }"
               >
                 <button
                   type="button"
-                  class="px-5 py-2.5 text-sm font-semibold transition-all flex items-center gap-2"
+                  class="px-4 py-2.5 text-sm font-semibold transition-all flex items-center gap-1.5"
                   :class="form.type === 'depense'
                     ? 'bg-red-500 text-white'
                     : 'bg-white text-stone-400 hover:text-stone-600'"
@@ -354,7 +414,7 @@ function getProjetName(t: Transaction): string | null {
                 </button>
                 <button
                   type="button"
-                  class="px-5 py-2.5 text-sm font-semibold transition-all flex items-center gap-2"
+                  class="px-4 py-2.5 text-sm font-semibold transition-all flex items-center gap-1.5"
                   :class="form.type === 'recette'
                     ? 'bg-emerald-500 text-white'
                     : 'bg-white text-stone-400 hover:text-stone-600'"
@@ -363,36 +423,61 @@ function getProjetName(t: Transaction): string | null {
                   <UIcon name="i-lucide-trending-up" class="size-4" />
                   Recette
                 </button>
+                <button
+                  type="button"
+                  class="px-4 py-2.5 text-sm font-semibold transition-all flex items-center gap-1.5"
+                  :class="form.type === 'fondateur'
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-white text-stone-400 hover:text-stone-600'"
+                  @click="form.type = 'fondateur'"
+                >
+                  <UIcon name="i-lucide-heart-handshake" class="size-4" />
+                  Fondateur
+                </button>
               </div>
             </div>
 
             <!-- Libelle + Montant -->
             <div class="grid grid-cols-3 gap-3">
               <UFormField label="Libelle" required class="col-span-2">
-                <UInput
-                  v-model="form.libelle"
-                  placeholder="Description..."
-                  icon="i-lucide-text"
-                  class="w-full"
-                />
+                <UInput v-model="form.libelle" placeholder="Description..." icon="i-lucide-text" class="w-full" />
               </UFormField>
               <UFormField label="Montant" required>
-                <UInput
-                  v-model.number="form.montant"
-                  type="number"
-                  :min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  icon="i-lucide-euro"
-                  class="w-full"
-                />
+                <UInput v-model.number="form.montant" type="number" :min="0" step="0.01" placeholder="0.00" icon="i-lucide-euro" class="w-full" />
               </UFormField>
             </div>
 
             <!-- Categorie + Date -->
             <div class="grid grid-cols-2 gap-3">
               <UFormField label="Categorie">
-                <USelect v-model="form.categorie" :items="catOptions" value-key="value" class="w-full" />
+                <div class="flex items-center gap-1.5">
+                  <USelect
+                    v-if="formCategories.length"
+                    v-model="form.categorie"
+                    :items="formCategories"
+                    value-key="value"
+                    class="flex-1"
+                  />
+                  <span v-else class="flex-1 text-sm text-stone-400 italic">Aucune categorie</span>
+                  <UTooltip text="Nouvelle categorie">
+                    <UButton
+                      icon="i-lucide-plus"
+                      size="xs"
+                      variant="ghost"
+                      color="neutral"
+                      @click="showAddCat = !showAddCat"
+                    />
+                  </UTooltip>
+                </div>
+                <!-- Inline add category -->
+                <div v-if="showAddCat" class="mt-2 p-3 rounded-lg bg-stone-50 border border-stone-200/60 space-y-2">
+                  <UInput v-model="newCatLabel" placeholder="Nom de la categorie" size="sm" />
+                  <UInput v-model="newCatSousCat" placeholder="Sous-categorie (optionnel)" size="sm" />
+                  <div class="flex justify-end gap-1.5">
+                    <UButton label="Annuler" size="xs" variant="ghost" color="neutral" @click="showAddCat = false; newCatLabel = ''; newCatSousCat = ''" />
+                    <UButton label="Creer" size="xs" icon="i-lucide-check" :loading="addingCat" :disabled="!newCatLabel.trim()" @click="handleAddCategory" />
+                  </div>
+                </div>
               </UFormField>
               <UFormField label="Date">
                 <UInput v-model="form.date" type="date" class="w-full" />

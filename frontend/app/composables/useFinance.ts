@@ -5,8 +5,9 @@ export function useFinance() {
   const { $directus } = useNuxtApp()
 
   const fields = [
-    'id', 'libelle', 'montant', 'type', 'categorie', 'date',
-    'recurrence', 'notes', 'projet.id', 'projet.nom',
+    'id', 'libelle', 'montant', 'type',
+    'categorie.id', 'categorie.label', 'categorie.icone', 'categorie.sous_categorie', 'categorie.type',
+    'date', 'recurrence', 'notes', 'projet.id', 'projet.nom',
     'date_created', 'user_created'
   ]
 
