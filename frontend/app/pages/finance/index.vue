@@ -291,7 +291,6 @@ function resetForm() {
   const cats = getCategoriesByType('depense'); form.categorie = cats.length ? cats[0].id : null
 }
 function openAdd() { resetForm(); showForm.value = true }
-function openAddFondateur() { resetForm(); form.type = 'fondateur'; const cats = getCategoriesByType('fondateur'); form.categorie = cats.length ? cats[0].id : null; showForm.value = true }
 function openEdit(t: Transaction) {
   editingId.value = t.id; form.libelle = t.libelle; form.montant = t.montant
   form.montant_reel = t.montant_reel; form.taux_taxe = t.taux_taxe; form.type = t.type
