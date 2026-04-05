@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Transaction, TransactionType, TransactionRecurrence, CategorieFinance } from '~/utils/types'
-import { TRANSACTION_TYPES, TRANSACTION_RECURRENCES } from '~/utils/constants'
+import type { Transaction, TransactionType, TransactionRecurrence, RecurrenceCertitude } from '~/utils/types'
+import { TRANSACTION_RECURRENCES } from '~/utils/constants'
 
 const { isDirecteur } = useAuth()
 const { getAll, create, update, remove } = useFinance()
@@ -36,6 +36,162 @@ const totals = computed(() => {
   return { recettes, depenses, fondateur, solde: recettes + fondateur - depenses }
 })
 
+// --- Chart: monthly balance evolution + forecast ---
+interface MonthPoint {
+  label: string
+  solde: number
+  forecast?: boolean
+}
+
+const chartData = computed<MonthPoint[]>(() => {
+  if (!transactions.value?.length) return []
+
+  // Build monthly running balance (all time)
+  const monthly = new Map<string, { recettes: number; depenses: number }>()
+  for (const t of transactions.value) {
+    const d = new Date(t.date)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const m = monthly.get(key) || { recettes: 0, depenses: 0 }
+    if (t.type === 'depense') m.depenses += t.montant
+    else m.recettes += t.montant
+    monthly.set(key, m)
+  }
+
+  // Sort months
+  const sortedKeys = [...monthly.keys()].sort()
+  const points: MonthPoint[] = []
+  let runningBalance = 0
+
+  for (const key of sortedKeys) {
+    const m = monthly.get(key)!
+    runningBalance += m.recettes - m.depenses
+    const [y, mo] = key.split('-')
+    const label = new Date(+y, +mo - 1).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })
+    points.push({ label, solde: runningBalance })
+  }
+
+  // Forecast: project 2 months based on recurring transactions
+  if (points.length >= 1) {
+    const recurringMonthly = getMonthlyRecurringNet()
+    const lastSolde = points[points.length - 1].solde
+    const now = new Date()
+
+    for (let i = 1; i <= 2; i++) {
+      const futureDate = new Date(now.getFullYear(), now.getMonth() + i)
+      const label = futureDate.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })
+      points.push({
+        label,
+        solde: lastSolde + recurringMonthly * i,
+        forecast: true
+      })
+    }
+  }
+
+  // Keep last 8 points max
+  return points.slice(-8)
+})
+
+function getMonthlyRecurringNet(): number {
+  if (!transactions.value) return 0
+  let net = 0
+  const now = new Date()
+
+  for (const t of transactions.value) {
+    if (t.recurrence === 'unique') continue
+
+    // Check if recurrence is still active
+    if (t.recurrence_fin) {
+      const fin = new Date(t.recurrence_fin)
+      if (fin < now) continue
+    }
+
+    // Theorique: count at 50% weight
+    const weight = t.recurrence_certitude === 'theorique' ? 0.5 : 1
+
+    let monthlyAmount = t.montant
+    if (t.recurrence === 'trimestriel') monthlyAmount = t.montant / 3
+    if (t.recurrence === 'annuel') monthlyAmount = t.montant / 12
+
+    if (t.type === 'depense') net -= monthlyAmount * weight
+    else net += monthlyAmount * weight
+  }
+  return net
+}
+
+// Chart SVG helpers
+const chartWidth = 600
+const chartHeight = 160
+const chartPadding = { top: 20, right: 20, bottom: 30, left: 10 }
+
+const chartPath = computed(() => {
+  const data = chartData.value
+  if (data.length < 2) return ''
+
+  const w = chartWidth - chartPadding.left - chartPadding.right
+  const h = chartHeight - chartPadding.top - chartPadding.bottom
+  const values = data.map(d => d.solde)
+  const min = Math.min(...values, 0)
+  const max = Math.max(...values, 1)
+  const range = max - min || 1
+
+  const points = data.map((d, i) => {
+    const x = chartPadding.left + (i / (data.length - 1)) * w
+    const y = chartPadding.top + h - ((d.solde - min) / range) * h
+    return `${x},${y}`
+  })
+
+  return `M${points.join(' L')}`
+})
+
+const chartForecastStart = computed(() => {
+  const data = chartData.value
+  const idx = data.findIndex(d => d.forecast)
+  if (idx <= 0) return null
+  const w = chartWidth - chartPadding.left - chartPadding.right
+  return chartPadding.left + ((idx - 1) / (data.length - 1)) * w
+})
+
+const chartAreaPath = computed(() => {
+  const data = chartData.value
+  if (data.length < 2) return ''
+  const w = chartWidth - chartPadding.left - chartPadding.right
+  const h = chartHeight - chartPadding.top - chartPadding.bottom
+  const values = data.map(d => d.solde)
+  const min = Math.min(...values, 0)
+  const max = Math.max(...values, 1)
+  const range = max - min || 1
+  const bottom = chartPadding.top + h
+
+  const points = data.map((d, i) => {
+    const x = chartPadding.left + (i / (data.length - 1)) * w
+    const y = chartPadding.top + h - ((d.solde - min) / range) * h
+    return `${x},${y}`
+  })
+
+  const firstX = chartPadding.left
+  const lastX = chartPadding.left + w
+  return `M${firstX},${bottom} L${points.join(' L')} L${lastX},${bottom} Z`
+})
+
+const chartZeroY = computed(() => {
+  const data = chartData.value
+  if (!data.length) return 0
+  const h = chartHeight - chartPadding.top - chartPadding.bottom
+  const values = data.map(d => d.solde)
+  const min = Math.min(...values, 0)
+  const max = Math.max(...values, 1)
+  const range = max - min || 1
+  return chartPadding.top + h - ((0 - min) / range) * h
+})
+
+const monthlyRecurring = computed(() => getMonthlyRecurringNet())
+
+const forecastLabel = computed(() => {
+  const net = monthlyRecurring.value
+  if (net === 0) return 'stable'
+  return `${net > 0 ? '+' : ''}${formatMoney(net)} /mois`
+})
+
 // --- Pagination ---
 const { paginatedItems: pagedTransactions, page, totalPages, showPagination, next, prev } = usePagination(filtered, 50)
 
@@ -69,10 +225,15 @@ const saving = ref(false)
 const form = reactive({
   libelle: '',
   montant: null as number | null,
+  montant_reel: null as number | null,
+  taux_taxe: null as number | null,
   type: 'depense' as TransactionType,
   categorie: null as string | null,
   date: new Date().toISOString().split('T')[0],
   recurrence: 'unique' as TransactionRecurrence,
+  recurrence_certitude: 'stricte' as RecurrenceCertitude,
+  recurrence_debut: '' as string,
+  recurrence_fin: '' as string,
   notes: ''
 })
 
@@ -86,7 +247,6 @@ const formCategories = computed(() => {
   }))
 })
 
-// Auto-select first category when type changes
 watch(() => form.type, () => {
   const cats = getCategoriesByType(form.type)
   form.categorie = cats.length ? cats[0].id : null
@@ -95,9 +255,14 @@ watch(() => form.type, () => {
 function resetForm() {
   form.libelle = ''
   form.montant = null
+  form.montant_reel = null
+  form.taux_taxe = null
   form.type = 'depense'
   form.date = new Date().toISOString().split('T')[0]
   form.recurrence = 'unique'
+  form.recurrence_certitude = 'stricte'
+  form.recurrence_debut = ''
+  form.recurrence_fin = ''
   form.notes = ''
   editingId.value = null
   const cats = getCategoriesByType('depense')
@@ -113,9 +278,14 @@ function openEdit(t: Transaction) {
   editingId.value = t.id
   form.libelle = t.libelle
   form.montant = t.montant
+  form.montant_reel = t.montant_reel
+  form.taux_taxe = t.taux_taxe
   form.type = t.type
   form.date = t.date
   form.recurrence = t.recurrence
+  form.recurrence_certitude = t.recurrence_certitude || 'stricte'
+  form.recurrence_debut = t.recurrence_debut || ''
+  form.recurrence_fin = t.recurrence_fin || ''
   form.notes = t.notes || ''
   form.categorie = t.categorie && typeof t.categorie === 'object' ? t.categorie.id : (t.categorie as string | null)
   showForm.value = true
@@ -128,10 +298,15 @@ async function handleSubmit() {
     const data: any = {
       libelle: form.libelle.trim(),
       montant: form.montant,
+      montant_reel: form.montant_reel || null,
+      taux_taxe: form.taux_taxe || null,
       type: form.type,
       categorie: form.categorie || null,
       date: form.date,
       recurrence: form.recurrence,
+      recurrence_certitude: form.recurrence !== 'unique' ? form.recurrence_certitude : null,
+      recurrence_debut: form.recurrence !== 'unique' && form.recurrence_debut ? form.recurrence_debut : null,
+      recurrence_fin: form.recurrence !== 'unique' && form.recurrence_fin ? form.recurrence_fin : null,
       notes: form.notes.trim() || null
     }
 
@@ -209,9 +384,9 @@ function txIsPositive(t: Transaction): boolean {
 }
 
 const TYPE_STYLES = {
-  recette: { text: 'text-emerald-600', bg: 'bg-emerald-50', icon: 'bg-emerald-50 text-emerald-600' },
-  depense: { text: 'text-red-500', bg: 'bg-red-50', icon: 'bg-red-50 text-red-400' },
-  fondateur: { text: 'text-amber-600', bg: 'bg-amber-50', icon: 'bg-amber-50 text-amber-600' }
+  recette: { text: 'text-emerald-600', icon: 'bg-emerald-50 text-emerald-600' },
+  depense: { text: 'text-red-500', icon: 'bg-red-50 text-red-400' },
+  fondateur: { text: 'text-amber-600', icon: 'bg-amber-50 text-amber-600' }
 }
 </script>
 
@@ -225,7 +400,7 @@ const TYPE_STYLES = {
       <template v-else>
         <!-- Solde hero -->
         <div class="px-4 sm:px-6 pt-6 pb-2">
-          <div class="max-w-md mx-auto text-center mb-5">
+          <div class="max-w-md mx-auto text-center mb-4">
             <p class="text-[10px] text-stone-400 uppercase tracking-[0.2em] mb-1.5">Solde total</p>
             <p
               class="text-4xl sm:text-5xl font-bold tabular-nums tracking-tight leading-none"
@@ -234,35 +409,98 @@ const TYPE_STYLES = {
               {{ totals.solde >= 0 ? '+' : '' }}{{ formatMoney(totals.solde) }} <span class="text-2xl">&euro;</span>
             </p>
           </div>
+        </div>
 
-          <!-- Recettes / Depenses / Fondateur pills -->
-          <div class="flex items-center justify-center gap-3 flex-wrap">
-            <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200/60">
-              <UIcon name="i-lucide-trending-up" class="size-4 text-emerald-600" />
-              <div>
-                <p class="text-[10px] text-emerald-600/70 uppercase tracking-wider font-medium">Recettes</p>
-                <p class="text-sm font-bold text-emerald-700 tabular-nums">{{ formatMoney(totals.recettes) }} &euro;</p>
+        <!-- Chart + Forecast -->
+        <div v-if="chartData.length >= 2" class="px-4 sm:px-6 pb-4">
+          <div class="max-w-2xl mx-auto rounded-xl bg-white/50 border border-white/70 shadow-sm p-4">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-xs font-semibold text-stone-600">Evolution du solde</p>
+              <div class="flex items-center gap-3 text-[10px]">
+                <span class="flex items-center gap-1 text-stone-500">
+                  <span class="w-4 h-0.5 bg-emerald-500 rounded" /> Reel
+                </span>
+                <span class="flex items-center gap-1 text-stone-400">
+                  <span class="w-4 h-0.5 bg-emerald-300 rounded border-dashed" style="border-bottom: 1px dashed" /> Prevision
+                </span>
               </div>
             </div>
-            <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-red-50 border border-red-200/60">
-              <UIcon name="i-lucide-trending-down" class="size-4 text-red-500" />
-              <div>
-                <p class="text-[10px] text-red-500/70 uppercase tracking-wider font-medium">Depenses</p>
-                <p class="text-sm font-bold text-red-600 tabular-nums">{{ formatMoney(totals.depenses) }} &euro;</p>
+
+            <!-- SVG Chart -->
+            <svg :viewBox="`0 0 ${chartWidth} ${chartHeight}`" class="w-full h-32 sm:h-40">
+              <!-- Zero line -->
+              <line
+                :x1="chartPadding.left" :x2="chartWidth - chartPadding.right"
+                :y1="chartZeroY" :y2="chartZeroY"
+                stroke="#d6d3d1" stroke-width="0.5" stroke-dasharray="4,4"
+              />
+
+              <!-- Area fill -->
+              <path :d="chartAreaPath" fill="url(#solde-gradient)" opacity="0.3" />
+
+              <!-- Main line -->
+              <path :d="chartPath" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+
+              <!-- Forecast dashed overlay -->
+              <line
+                v-if="chartForecastStart"
+                :x1="chartForecastStart" :x2="chartWidth - chartPadding.right"
+                :y1="chartPadding.top" :y2="chartPadding.top"
+                stroke="none"
+              />
+
+              <!-- Dots -->
+              <circle
+                v-for="(pt, i) in chartData"
+                :key="i"
+                :cx="chartPadding.left + (i / (chartData.length - 1)) * (chartWidth - chartPadding.left - chartPadding.right)"
+                :cy="chartPadding.top + (chartHeight - chartPadding.top - chartPadding.bottom) - ((pt.solde - Math.min(...chartData.map(d => d.solde), 0)) / (Math.max(...chartData.map(d => d.solde), 1) - Math.min(...chartData.map(d => d.solde), 0) || 1)) * (chartHeight - chartPadding.top - chartPadding.bottom)"
+                :r="pt.forecast ? 3 : 4"
+                :fill="pt.forecast ? '#6ee7b7' : '#10b981'"
+                :stroke="pt.forecast ? '#6ee7b7' : 'white'"
+                :stroke-width="pt.forecast ? 1 : 2"
+                :stroke-dasharray="pt.forecast ? '2,2' : 'none'"
+              />
+
+              <!-- Month labels -->
+              <text
+                v-for="(pt, i) in chartData"
+                :key="'label-' + i"
+                :x="chartPadding.left + (i / (chartData.length - 1)) * (chartWidth - chartPadding.left - chartPadding.right)"
+                :y="chartHeight - 5"
+                text-anchor="middle"
+                class="text-[10px]"
+                :fill="pt.forecast ? '#a8a29e' : '#78716c'"
+                :font-style="pt.forecast ? 'italic' : 'normal'"
+              >
+                {{ pt.label }}
+              </text>
+
+              <!-- Gradient def -->
+              <defs>
+                <linearGradient id="solde-gradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#10b981" stop-opacity="0.4" />
+                  <stop offset="100%" stop-color="#10b981" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+            </svg>
+
+            <!-- Forecast summary -->
+            <div class="flex items-center justify-center gap-4 mt-2 text-xs">
+              <div class="flex items-center gap-1.5 text-stone-500">
+                <UIcon name="i-lucide-calculator" class="size-3.5" />
+                <span>Recurrent net : <strong :class="monthlyRecurring >= 0 ? 'text-emerald-600' : 'text-red-500'">{{ forecastLabel }}</strong></span>
               </div>
-            </div>
-            <div v-if="totals.fondateur > 0" class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200/60">
-              <UIcon name="i-lucide-heart-handshake" class="size-4 text-amber-600" />
-              <div>
-                <p class="text-[10px] text-amber-600/70 uppercase tracking-wider font-medium">Fondateur</p>
-                <p class="text-sm font-bold text-amber-700 tabular-nums">{{ formatMoney(totals.fondateur) }} &euro;</p>
+              <div v-if="transactions?.some(t => t.recurrence !== 'unique' && t.recurrence_certitude === 'theorique')" class="flex items-center gap-1 text-stone-400">
+                <UIcon name="i-lucide-help-circle" class="size-3" />
+                <span>Incl. theoriques a 50%</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Toolbar -->
-        <div class="sticky top-0 z-10 bg-[#E6E2DA]/95 backdrop-blur-sm border-b border-stone-200/40 px-4 sm:px-6 py-2.5 mt-4">
+        <!-- Toolbar (no opaque background) -->
+        <div class="px-4 sm:px-6 py-2.5 border-b border-stone-200/40">
           <div class="flex items-center gap-2 overflow-x-auto scrollbar-none">
             <button
               class="shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-all"
@@ -298,68 +536,60 @@ const TYPE_STYLES = {
         </div>
 
         <div class="px-4 sm:px-6 py-4 max-w-3xl mx-auto">
-          <!-- Empty -->
           <div v-if="!filtered.length" class="text-center py-12">
             <UIcon name="i-lucide-landmark" class="size-10 text-stone-300 mx-auto mb-3" />
             <p class="text-stone-500">Aucune transaction</p>
           </div>
 
-          <!-- Grouped by date -->
           <div v-else class="space-y-6">
             <div v-for="group in groupedByDate" :key="group.date">
-              <!-- Date header -->
               <div class="flex items-center gap-3 mb-2">
                 <p class="text-xs font-semibold text-stone-500 uppercase tracking-wider capitalize">{{ group.label }}</p>
                 <div class="flex-1 h-px bg-stone-200/60" />
               </div>
 
-              <!-- Transactions -->
               <div class="space-y-1.5">
                 <div
                   v-for="t in group.transactions"
                   :key="t.id"
                   class="group flex items-center gap-3 px-4 py-3 rounded-xl bg-white/60 border border-white/70 hover:border-[rgba(175,143,60,0.15)] hover:shadow-sm transition-all"
                 >
-                  <!-- Category icon -->
-                  <div
-                    class="size-9 rounded-lg flex items-center justify-center shrink-0"
-                    :class="TYPE_STYLES[t.type]?.icon"
-                  >
-                    <UIcon
-                      :name="getCategoryIcon(t.categorie)"
-                      class="size-4"
-                    />
+                  <div class="size-9 rounded-lg flex items-center justify-center shrink-0" :class="TYPE_STYLES[t.type]?.icon">
+                    <UIcon :name="getCategoryIcon(t.categorie)" class="size-4" />
                   </div>
 
-                  <!-- Content -->
                   <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-stone-800 truncate">{{ t.libelle }}</p>
+                    <div class="flex items-center gap-1.5">
+                      <p class="text-sm font-medium text-stone-800 truncate">{{ t.libelle }}</p>
+                      <span
+                        v-if="t.recurrence !== 'unique' && t.recurrence_certitude === 'theorique'"
+                        class="shrink-0 text-[9px] font-medium text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded-full"
+                      >theorique</span>
+                    </div>
                     <div class="flex items-center gap-1.5 flex-wrap">
-                      <span class="text-[11px] text-stone-400">
-                        {{ getCategoryLabel(t.categorie) }}
-                      </span>
+                      <span class="text-[11px] text-stone-400">{{ getCategoryLabel(t.categorie) }}</span>
                       <span v-if="t.recurrence !== 'unique'" class="text-[11px] text-stone-400">
                         - {{ TRANSACTION_RECURRENCES[t.recurrence]?.label }}
+                        <template v-if="t.recurrence_certitude === 'theorique'"> ~</template>
+                      </span>
+                      <span v-if="t.montant_reel" class="text-[10px] text-stone-400 bg-stone-50 px-1.5 py-0.5 rounded">
+                        paye {{ formatMoney(t.montant_reel) }}&euro;
+                      </span>
+                      <span v-if="t.taux_taxe" class="text-[10px] text-stone-400 bg-stone-50 px-1.5 py-0.5 rounded">
+                        taxe {{ t.taux_taxe }}%
                       </span>
                       <span v-if="getProjetName(t)" class="inline-flex items-center gap-0.5 text-[10px] text-primary/70 bg-primary/5 px-1.5 py-0.5 rounded-full">
                         <UIcon name="i-lucide-folder" class="size-2.5" />
                         {{ getProjetName(t) }}
                       </span>
-                      <span v-if="t.notes" class="text-[11px] text-stone-400 truncate">
-                        - {{ t.notes }}
-                      </span>
+                      <span v-if="t.notes" class="text-[11px] text-stone-400 truncate">- {{ t.notes }}</span>
                     </div>
                   </div>
 
-                  <!-- Amount -->
-                  <span
-                    class="text-sm font-bold tabular-nums shrink-0"
-                    :class="TYPE_STYLES[t.type]?.text"
-                  >
+                  <span class="text-sm font-bold tabular-nums shrink-0" :class="TYPE_STYLES[t.type]?.text">
                     {{ txIsPositive(t) ? '+' : '-' }}{{ formatMoney(t.montant) }} &euro;
                   </span>
 
-                  <!-- Actions (directors only) -->
                   <div v-if="isDirecteur" class="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button class="p-1 rounded hover:bg-stone-100 transition-colors" @click="openEdit(t)">
                       <UIcon name="i-lucide-pencil" class="size-3.5 text-stone-400" />
@@ -373,7 +603,6 @@ const TYPE_STYLES = {
             </div>
           </div>
 
-          <!-- Pagination -->
           <div v-if="showPagination" class="flex items-center justify-center gap-3 pt-6 pb-2">
             <UButton icon="i-lucide-chevron-left" size="xs" color="neutral" variant="ghost" :disabled="page <= 1" @click="prev" />
             <span class="text-xs text-stone-500 tabular-nums">{{ page }} / {{ totalPages }}</span>
@@ -386,54 +615,29 @@ const TYPE_STYLES = {
     <!-- Add/Edit modal -->
     <UModal :open="showForm" @update:open="val => { if (!val) { showForm = false; resetForm() } }">
       <template #content>
-        <div class="p-6">
+        <div class="p-6 max-h-[85vh] overflow-y-auto">
           <h3 class="text-lg font-semibold text-stone-900 mb-5">
             {{ editingId ? 'Modifier la transaction' : 'Nouvelle transaction' }}
           </h3>
 
           <form class="space-y-5" @submit.prevent="handleSubmit">
-            <!-- Type toggle (3 options) -->
+            <!-- Type toggle -->
             <div class="flex items-center justify-center">
               <div class="inline-flex items-center rounded-xl border-2 overflow-hidden transition-colors"
-                :class="{
-                  'border-red-300': form.type === 'depense',
-                  'border-emerald-300': form.type === 'recette',
-                  'border-amber-300': form.type === 'fondateur'
-                }"
+                :class="{ 'border-red-300': form.type === 'depense', 'border-emerald-300': form.type === 'recette', 'border-amber-300': form.type === 'fondateur' }"
               >
-                <button
-                  type="button"
-                  class="px-4 py-2.5 text-sm font-semibold transition-all flex items-center gap-1.5"
-                  :class="form.type === 'depense'
-                    ? 'bg-red-500 text-white'
-                    : 'bg-white text-stone-400 hover:text-stone-600'"
+                <button type="button" class="px-4 py-2.5 text-sm font-semibold transition-all flex items-center gap-1.5"
+                  :class="form.type === 'depense' ? 'bg-red-500 text-white' : 'bg-white text-stone-400 hover:text-stone-600'"
                   @click="form.type = 'depense'"
-                >
-                  <UIcon name="i-lucide-trending-down" class="size-4" />
-                  Depense
-                </button>
-                <button
-                  type="button"
-                  class="px-4 py-2.5 text-sm font-semibold transition-all flex items-center gap-1.5"
-                  :class="form.type === 'recette'
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-white text-stone-400 hover:text-stone-600'"
+                ><UIcon name="i-lucide-trending-down" class="size-4" /> Depense</button>
+                <button type="button" class="px-4 py-2.5 text-sm font-semibold transition-all flex items-center gap-1.5"
+                  :class="form.type === 'recette' ? 'bg-emerald-500 text-white' : 'bg-white text-stone-400 hover:text-stone-600'"
                   @click="form.type = 'recette'"
-                >
-                  <UIcon name="i-lucide-trending-up" class="size-4" />
-                  Recette
-                </button>
-                <button
-                  type="button"
-                  class="px-4 py-2.5 text-sm font-semibold transition-all flex items-center gap-1.5"
-                  :class="form.type === 'fondateur'
-                    ? 'bg-amber-500 text-white'
-                    : 'bg-white text-stone-400 hover:text-stone-600'"
+                ><UIcon name="i-lucide-trending-up" class="size-4" /> Recette</button>
+                <button type="button" class="px-4 py-2.5 text-sm font-semibold transition-all flex items-center gap-1.5"
+                  :class="form.type === 'fondateur' ? 'bg-amber-500 text-white' : 'bg-white text-stone-400 hover:text-stone-600'"
                   @click="form.type = 'fondateur'"
-                >
-                  <UIcon name="i-lucide-heart-handshake" class="size-4" />
-                  Fondateur
-                </button>
+                ><UIcon name="i-lucide-heart-handshake" class="size-4" /> Fondateur</button>
               </div>
             </div>
 
@@ -442,8 +646,24 @@ const TYPE_STYLES = {
               <UFormField label="Libelle" required class="col-span-2">
                 <UInput v-model="form.libelle" placeholder="Description..." icon="i-lucide-text" class="w-full" />
               </UFormField>
-              <UFormField label="Montant" required>
+              <UFormField label="Montant recu" required>
                 <UInput v-model.number="form.montant" type="number" :min="0" step="0.01" placeholder="0.00" icon="i-lucide-euro" class="w-full" />
+              </UFormField>
+            </div>
+
+            <!-- Montant reel + Taxe (recettes only) -->
+            <div v-if="form.type === 'recette'" class="grid grid-cols-2 gap-3">
+              <UFormField label="Montant paye par le client">
+                <UInput v-model.number="form.montant_reel" type="number" :min="0" step="0.01" placeholder="Optionnel" icon="i-lucide-receipt" class="w-full" />
+                <template #hint>
+                  <span class="text-[10px] text-stone-400">Avant commission plateforme</span>
+                </template>
+              </UFormField>
+              <UFormField label="Taux de taxe (%)">
+                <UInput v-model.number="form.taux_taxe" type="number" :min="0" :max="100" step="0.1" placeholder="Ex: 23" icon="i-lucide-percent" class="w-full" />
+                <template #hint>
+                  <span class="text-[10px] text-stone-400">Informatif, n'impacte pas le solde</span>
+                </template>
               </UFormField>
             </div>
 
@@ -451,25 +671,12 @@ const TYPE_STYLES = {
             <div class="grid grid-cols-2 gap-3">
               <UFormField label="Categorie">
                 <div class="flex items-center gap-1.5">
-                  <USelect
-                    v-if="formCategories.length"
-                    v-model="form.categorie"
-                    :items="formCategories"
-                    value-key="value"
-                    class="flex-1"
-                  />
-                  <span v-else class="flex-1 text-sm text-stone-400 italic">Aucune categorie</span>
+                  <USelect v-if="formCategories.length" v-model="form.categorie" :items="formCategories" value-key="value" class="flex-1" />
+                  <span v-else class="flex-1 text-sm text-stone-400 italic">Aucune</span>
                   <UTooltip text="Nouvelle categorie">
-                    <UButton
-                      icon="i-lucide-plus"
-                      size="xs"
-                      variant="ghost"
-                      color="neutral"
-                      @click="showAddCat = !showAddCat"
-                    />
+                    <UButton icon="i-lucide-plus" size="xs" variant="ghost" color="neutral" @click="showAddCat = !showAddCat" />
                   </UTooltip>
                 </div>
-                <!-- Inline add category -->
                 <div v-if="showAddCat" class="mt-2 p-3 rounded-lg bg-stone-50 border border-stone-200/60 space-y-2">
                   <UInput v-model="newCatLabel" placeholder="Nom de la categorie" size="sm" />
                   <UInput v-model="newCatSousCat" placeholder="Sous-categorie (optionnel)" size="sm" />
@@ -484,14 +691,51 @@ const TYPE_STYLES = {
               </UFormField>
             </div>
 
-            <!-- Recurrence + Notes -->
-            <div class="grid grid-cols-2 gap-3">
-              <UFormField label="Recurrence">
-                <USelect v-model="form.recurrence" :items="recOptions" value-key="value" class="w-full" />
-              </UFormField>
-              <UFormField label="Notes">
-                <UInput v-model="form.notes" placeholder="Optionnel..." class="w-full" />
-              </UFormField>
+            <!-- Recurrence -->
+            <div class="space-y-3">
+              <div class="grid grid-cols-2 gap-3">
+                <UFormField label="Recurrence">
+                  <USelect v-model="form.recurrence" :items="recOptions" value-key="value" class="w-full" />
+                </UFormField>
+                <UFormField label="Notes">
+                  <UInput v-model="form.notes" placeholder="Optionnel..." class="w-full" />
+                </UFormField>
+              </div>
+
+              <!-- Recurrence details (if not unique) -->
+              <div v-if="form.recurrence !== 'unique'" class="p-3 rounded-lg bg-stone-50/80 border border-stone-200/60 space-y-3">
+                <div class="flex items-center gap-2">
+                  <p class="text-xs font-semibold text-stone-600">Certitude</p>
+                  <div class="inline-flex items-center rounded-lg border overflow-hidden"
+                    :class="form.recurrence_certitude === 'stricte' ? 'border-emerald-300' : 'border-amber-300'"
+                  >
+                    <button type="button" class="px-3 py-1.5 text-xs font-medium transition-all"
+                      :class="form.recurrence_certitude === 'stricte' ? 'bg-emerald-500 text-white' : 'bg-white text-stone-400'"
+                      @click="form.recurrence_certitude = 'stricte'"
+                    >Stricte</button>
+                    <button type="button" class="px-3 py-1.5 text-xs font-medium transition-all"
+                      :class="form.recurrence_certitude === 'theorique' ? 'bg-amber-500 text-white' : 'bg-white text-stone-400'"
+                      @click="form.recurrence_certitude = 'theorique'"
+                    >Theorique</button>
+                  </div>
+                </div>
+                <p class="text-[10px] text-stone-400 leading-relaxed">
+                  <template v-if="form.recurrence_certitude === 'stricte'">
+                    Stricte : montant garanti (abonnement fixe, loyer, etc.)
+                  </template>
+                  <template v-else>
+                    Theorique : montant incertain (dons, revenus variables). Compte a 50% dans les previsions.
+                  </template>
+                </p>
+                <div class="grid grid-cols-2 gap-3">
+                  <UFormField label="Debut">
+                    <UInput v-model="form.recurrence_debut" type="date" class="w-full" placeholder="Optionnel" />
+                  </UFormField>
+                  <UFormField label="Fin">
+                    <UInput v-model="form.recurrence_fin" type="date" class="w-full" placeholder="Optionnel" />
+                  </UFormField>
+                </div>
+              </div>
             </div>
 
             <!-- Actions -->

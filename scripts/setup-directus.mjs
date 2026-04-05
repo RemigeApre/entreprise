@@ -1276,7 +1276,17 @@ async function setupPermissions(roleIds) {
       // Candidat commentaires
       { collection: 'candidat_commentaires', action: 'create', fields: ['*'], permissions: {} },
       { collection: 'candidat_commentaires', action: 'read', fields: ['*'], permissions: {} },
-      { collection: 'candidat_commentaires', action: 'delete', permissions: {} }
+      { collection: 'candidat_commentaires', action: 'delete', permissions: {} },
+
+      // Categories finance: read all, create for directors (via page)
+      { collection: 'categories_finance', action: 'read', fields: ['*'], permissions: {} },
+      { collection: 'categories_finance', action: 'create', fields: ['*'], permissions: {} },
+
+      // Anciens: retex + soutiens
+      { collection: 'retex_anciens', action: 'create', fields: ['*'], permissions: {} },
+      { collection: 'retex_anciens', action: 'read', fields: ['*'], permissions: { utilisateur: { _eq: '$CURRENT_USER' } } },
+      { collection: 'soutiens_anciens', action: 'create', fields: ['*'], permissions: {} },
+      { collection: 'soutiens_anciens', action: 'read', fields: ['*'], permissions: { depose_par: { _eq: '$CURRENT_USER' } } }
     ]
 
     for (const perm of perms) {

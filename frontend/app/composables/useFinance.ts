@@ -4,16 +4,14 @@ import type { Transaction } from '~/utils/types'
 export function useFinance() {
   const { $directus } = useNuxtApp()
 
-  const fields = [
-    'id', 'libelle', 'montant', 'type',
-    'categorie.id', 'categorie.label', 'categorie.icone', 'categorie.sous_categorie', 'categorie.type',
-    'date', 'recurrence', 'notes', 'projet.id', 'projet.nom',
-    'date_created', 'user_created'
-  ]
-
   async function getAll() {
+    // Use wildcard + explicit relations to be tolerant of missing fields
     return await $directus.request(readItems('transactions', {
-      fields,
+      fields: [
+        '*',
+        'categorie.id', 'categorie.label', 'categorie.icone', 'categorie.sous_categorie', 'categorie.type',
+        'projet.id', 'projet.nom'
+      ],
       sort: ['-date'],
       limit: -1
     })) as Transaction[]

@@ -406,6 +406,7 @@ export interface CandidatBookingToken {
 
 export type TransactionType = 'recette' | 'depense' | 'fondateur'
 export type TransactionRecurrence = 'unique' | 'mensuel' | 'trimestriel' | 'annuel'
+export type RecurrenceCertitude = 'stricte' | 'theorique'
 
 export interface CategorieFinance {
   id: string
@@ -420,10 +421,15 @@ export interface Transaction {
   id: string
   libelle: string
   montant: number
+  montant_reel: number | null
+  taux_taxe: number | null
   type: TransactionType
   categorie: CategorieFinance | string | null
   date: string
   recurrence: TransactionRecurrence
+  recurrence_certitude: RecurrenceCertitude | null
+  recurrence_debut: string | null
+  recurrence_fin: string | null
   notes: string | null
   projet: Project | string | null
   date_created: string
