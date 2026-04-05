@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { readItems, createItem, updateItem, deleteItem } from '@directus/sdk'
 import type { Transaction, TransactionType, TransactionRecurrence, RecurrenceCertitude } from '~/utils/types'
 import { TRANSACTION_RECURRENCES } from '~/utils/constants'
 
 const { isDirecteur } = useAuth()
+const { $directus } = useNuxtApp()
 const { getAll, create, update, remove } = useFinance()
 const { categories, loaded: catsLoaded, loadCategories, createCategory, getCategoriesByType, getCategoryLabel, getCategoryIcon } = useFinanceCategories()
 const toast = useToast()
@@ -13,6 +15,7 @@ onMounted(() => { if (!catsLoaded.value) loadCategories() })
 
 // --- View mode ---
 const view = ref<'transactions' | 'graphiques' | 'fondateur'>('transactions')
+watch(view, v => { if (v === 'fondateur' && !depensesFondateur.value.length) loadDepensesFondateur() })
 
 // --- Filters (transactions view) ---
 const search = ref('')
@@ -159,25 +162,100 @@ const taxStats = computed(() => {
 
 const monthlyRecurring = computed(() => getMonthlyRecurringNet())
 
-// --- Fondateur tab ---
-const fondateurTransactions = computed(() => {
-  if (!transactions.value) return []
-  return transactions.value.filter(t => t.type === 'fondateur')
-})
+// --- Fondateur tab (depenses perso, hors solde) ---
+interface DepenseFondateur {
+  id: string
+  libelle: string
+  montant: number
+  recurrent: boolean
+  frequence: string | null
+  notes: string | null
+  date_created: string
+}
 
-const fondateurPonctuels = computed(() => fondateurTransactions.value.filter(t => t.recurrence === 'unique'))
-const fondateurRecurrents = computed(() => fondateurTransactions.value.filter(t => t.recurrence !== 'unique'))
+const depensesFondateur = ref<DepenseFondateur[]>([])
+const depensesFondateurLoading = ref(false)
 
-const fondateurRecurrentMensuel = computed(() => {
+async function loadDepensesFondateur() {
+  depensesFondateurLoading.value = true
+  try {
+    depensesFondateur.value = await $directus.request(readItems('depenses_fondateur', {
+      fields: ['*'],
+      sort: ['-date_created'],
+      limit: -1
+    })) as DepenseFondateur[]
+  } catch { depensesFondateur.value = [] }
+  finally { depensesFondateurLoading.value = false }
+}
+
+const fondateurPonctuels = computed(() => depensesFondateur.value.filter(d => !d.recurrent))
+const fondateurRecurrents = computed(() => depensesFondateur.value.filter(d => d.recurrent))
+
+const fondateurTotal = computed(() => depensesFondateur.value.reduce((s, d) => s + d.montant, 0))
+const fondateurMensuel = computed(() => {
   let total = 0
-  for (const t of fondateurRecurrents.value) {
-    let m = t.montant
-    if (t.recurrence === 'trimestriel') m /= 3
-    if (t.recurrence === 'annuel') m /= 12
+  for (const d of fondateurRecurrents.value) {
+    let m = d.montant
+    if (d.frequence === 'trimestriel') m /= 3
+    if (d.frequence === 'annuel') m /= 12
     total += m
   }
   return total
 })
+
+// Fondateur form
+const showFondateurForm = ref(false)
+const editingFondateurId = ref<string | null>(null)
+const savingFondateur = ref(false)
+const fondateurForm = reactive({
+  libelle: '',
+  montant: null as number | null,
+  recurrent: false,
+  frequence: 'mensuel' as string,
+  notes: ''
+})
+
+function resetFondateurForm() {
+  fondateurForm.libelle = ''; fondateurForm.montant = null
+  fondateurForm.recurrent = false; fondateurForm.frequence = 'mensuel'
+  fondateurForm.notes = ''; editingFondateurId.value = null
+}
+
+function openAddFondateur() { resetFondateurForm(); showFondateurForm.value = true }
+function openEditFondateur(d: DepenseFondateur) {
+  editingFondateurId.value = d.id; fondateurForm.libelle = d.libelle
+  fondateurForm.montant = d.montant; fondateurForm.recurrent = d.recurrent
+  fondateurForm.frequence = d.frequence || 'mensuel'; fondateurForm.notes = d.notes || ''
+  showFondateurForm.value = true
+}
+
+async function handleFondateurSubmit() {
+  if (!fondateurForm.libelle.trim() || !fondateurForm.montant) return
+  savingFondateur.value = true
+  try {
+    const data = {
+      libelle: fondateurForm.libelle.trim(),
+      montant: fondateurForm.montant,
+      recurrent: fondateurForm.recurrent,
+      frequence: fondateurForm.recurrent ? fondateurForm.frequence : null,
+      notes: fondateurForm.notes.trim() || null
+    }
+    if (editingFondateurId.value) {
+      await $directus.request(updateItem('depenses_fondateur', editingFondateurId.value, data))
+      toast.add({ title: 'Modifie', color: 'success' })
+    } else {
+      await $directus.request(createItem('depenses_fondateur', data))
+      toast.add({ title: 'Ajoute', color: 'success' })
+    }
+    showFondateurForm.value = false; resetFondateurForm(); await loadDepensesFondateur()
+  } catch { toast.add({ title: 'Erreur', color: 'error' }) }
+  finally { savingFondateur.value = false }
+}
+
+async function handleDeleteFondateur(id: string) {
+  try { await $directus.request(deleteItem('depenses_fondateur', id)); toast.add({ title: 'Supprime', color: 'success' }); await loadDepensesFondateur() }
+  catch { toast.add({ title: 'Erreur', color: 'error' }) }
+}
 
 // --- Form state ---
 const showForm = ref(false)
@@ -398,86 +476,86 @@ const TYPE_STYLES: Record<string, { text: string; icon: string }> = {
         <!-- ==================== FONDATEUR VIEW ==================== -->
         <div v-else-if="view === 'fondateur'" class="px-4 sm:px-6 py-6 max-w-3xl mx-auto space-y-6">
 
+          <p class="text-xs text-stone-400 text-center leading-relaxed">
+            Ce que le fondateur paye de son compte personnel pour l'entreprise. Informatif uniquement, n'impacte pas le solde.
+          </p>
+
           <!-- Summary -->
           <div class="rounded-xl bg-amber-50/50 border border-amber-200/60 p-5 text-center">
-            <p class="text-[10px] text-amber-600/70 uppercase tracking-widest mb-1">Total finance par le fondateur</p>
-            <p class="text-3xl font-bold text-amber-700 tabular-nums">{{ formatMoney(totals.fondateur) }} &euro;</p>
-            <p v-if="fondateurRecurrentMensuel > 0" class="text-xs text-amber-600/60 mt-1">
-              dont {{ formatMoney(fondateurRecurrentMensuel) }} &euro;/mois en recurrent
+            <p class="text-[10px] text-amber-600/70 uppercase tracking-widest mb-1">Total depense du compte perso</p>
+            <p class="text-3xl font-bold text-amber-700 tabular-nums">{{ formatMoney(fondateurTotal) }} &euro;</p>
+            <p v-if="fondateurMensuel > 0" class="text-xs text-amber-600/60 mt-1">
+              dont ~{{ formatMoney(fondateurMensuel) }} &euro;/mois en recurrent
             </p>
           </div>
 
-          <!-- Recurrent -->
-          <div v-if="fondateurRecurrents.length">
-            <div class="flex items-center gap-3 mb-3">
-              <p class="text-xs font-semibold text-amber-700 uppercase tracking-wider">Recurrents</p>
-              <div class="flex-1 h-px bg-amber-200/40" />
-            </div>
-            <div class="space-y-1.5">
-              <div
-                v-for="t in fondateurRecurrents" :key="t.id"
-                class="group flex items-center gap-3 px-4 py-3 rounded-xl bg-white/60 border border-white/70 hover:border-amber-200/40 hover:shadow-sm transition-all"
-              >
-                <div class="size-9 rounded-lg flex items-center justify-center shrink-0 bg-amber-50 text-amber-600">
-                  <UIcon :name="getCategoryIcon(t.categorie)" class="size-4" />
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-medium text-stone-800">{{ t.libelle }}</p>
-                  <div class="flex items-center gap-1.5 text-[11px] text-stone-400">
-                    <span>{{ getCategoryLabel(t.categorie) }}</span>
-                    <span>- {{ TRANSACTION_RECURRENCES[t.recurrence]?.label }}</span>
-                    <span v-if="t.recurrence_certitude === 'theorique'" class="text-[9px] font-medium bg-stone-100 px-1.5 py-0.5 rounded-full">theorique</span>
-                    <span v-if="t.recurrence_debut || t.recurrence_fin" class="text-stone-300">
-                      {{ t.recurrence_debut ? 'du ' + t.recurrence_debut : '' }}{{ t.recurrence_fin ? ' au ' + t.recurrence_fin : '' }}
-                    </span>
+          <div v-if="depensesFondateurLoading" class="flex justify-center py-8">
+            <UIcon name="i-lucide-loader-circle" class="size-6 text-amber-500 animate-spin" />
+          </div>
+
+          <template v-else>
+            <!-- Recurrents -->
+            <div v-if="fondateurRecurrents.length">
+              <div class="flex items-center gap-3 mb-3">
+                <p class="text-xs font-semibold text-amber-700 uppercase tracking-wider">Mensuels / recurrents</p>
+                <div class="flex-1 h-px bg-amber-200/40" />
+              </div>
+              <div class="space-y-1.5">
+                <div
+                  v-for="d in fondateurRecurrents" :key="d.id"
+                  class="group flex items-center gap-3 px-4 py-3 rounded-xl bg-white/60 border border-white/70 hover:border-amber-200/40 hover:shadow-sm transition-all"
+                >
+                  <div class="size-9 rounded-lg flex items-center justify-center shrink-0 bg-amber-50 text-amber-600">
+                    <UIcon name="i-lucide-repeat" class="size-4" />
                   </div>
-                </div>
-                <span class="text-sm font-bold text-amber-600 tabular-nums shrink-0">{{ formatMoney(t.montant) }} &euro;/{{ { mensuel: 'mois', trimestriel: 'trim.', annuel: 'an' }[t.recurrence] }}</span>
-                <div v-if="isDirecteur" class="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button class="p-1 rounded hover:bg-stone-100 transition-colors" @click="openEdit(t)"><UIcon name="i-lucide-pencil" class="size-3.5 text-stone-400" /></button>
-                  <button class="p-1 rounded hover:bg-red-50 transition-colors" @click="handleDelete(t.id)"><UIcon name="i-lucide-trash-2" class="size-3.5 text-stone-400 hover:text-red-400" /></button>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-stone-800">{{ d.libelle }}</p>
+                    <p v-if="d.notes" class="text-[11px] text-stone-400">{{ d.notes }}</p>
+                  </div>
+                  <span class="text-sm font-bold text-amber-600 tabular-nums shrink-0">{{ formatMoney(d.montant) }} &euro;/{{ { mensuel: 'mois', trimestriel: 'trim.', annuel: 'an' }[d.frequence || 'mensuel'] }}</span>
+                  <div v-if="isDirecteur" class="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button class="p-1 rounded hover:bg-stone-100" @click="openEditFondateur(d)"><UIcon name="i-lucide-pencil" class="size-3.5 text-stone-400" /></button>
+                    <button class="p-1 rounded hover:bg-red-50" @click="handleDeleteFondateur(d.id)"><UIcon name="i-lucide-trash-2" class="size-3.5 text-stone-400 hover:text-red-400" /></button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Ponctuels -->
-          <div v-if="fondateurPonctuels.length">
-            <div class="flex items-center gap-3 mb-3">
-              <p class="text-xs font-semibold text-amber-700 uppercase tracking-wider">Ponctuels</p>
-              <div class="flex-1 h-px bg-amber-200/40" />
-            </div>
-            <div class="space-y-1.5">
-              <div
-                v-for="t in fondateurPonctuels" :key="t.id"
-                class="group flex items-center gap-3 px-4 py-3 rounded-xl bg-white/60 border border-white/70 hover:border-amber-200/40 hover:shadow-sm transition-all"
-              >
-                <div class="size-9 rounded-lg flex items-center justify-center shrink-0 bg-amber-50 text-amber-600">
-                  <UIcon :name="getCategoryIcon(t.categorie)" class="size-4" />
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-medium text-stone-800">{{ t.libelle }}</p>
-                  <div class="flex items-center gap-1.5 text-[11px] text-stone-400">
-                    <span>{{ getCategoryLabel(t.categorie) }}</span>
-                    <span v-if="t.notes">- {{ t.notes }}</span>
+            <!-- Ponctuels -->
+            <div v-if="fondateurPonctuels.length">
+              <div class="flex items-center gap-3 mb-3">
+                <p class="text-xs font-semibold text-amber-700 uppercase tracking-wider">Ponctuels</p>
+                <div class="flex-1 h-px bg-amber-200/40" />
+              </div>
+              <div class="space-y-1.5">
+                <div
+                  v-for="d in fondateurPonctuels" :key="d.id"
+                  class="group flex items-center gap-3 px-4 py-3 rounded-xl bg-white/60 border border-white/70 hover:border-amber-200/40 hover:shadow-sm transition-all"
+                >
+                  <div class="size-9 rounded-lg flex items-center justify-center shrink-0 bg-amber-50 text-amber-600">
+                    <UIcon name="i-lucide-receipt" class="size-4" />
                   </div>
-                </div>
-                <span class="text-xs text-stone-400 shrink-0 tabular-nums">{{ new Date(t.date + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) }}</span>
-                <span class="text-sm font-bold text-amber-600 tabular-nums shrink-0">{{ formatMoney(t.montant) }} &euro;</span>
-                <div v-if="isDirecteur" class="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button class="p-1 rounded hover:bg-stone-100 transition-colors" @click="openEdit(t)"><UIcon name="i-lucide-pencil" class="size-3.5 text-stone-400" /></button>
-                  <button class="p-1 rounded hover:bg-red-50 transition-colors" @click="handleDelete(t.id)"><UIcon name="i-lucide-trash-2" class="size-3.5 text-stone-400 hover:text-red-400" /></button>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-stone-800">{{ d.libelle }}</p>
+                    <p v-if="d.notes" class="text-[11px] text-stone-400">{{ d.notes }}</p>
+                  </div>
+                  <span class="text-xs text-stone-400 shrink-0 tabular-nums">{{ new Date(d.date_created).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) }}</span>
+                  <span class="text-sm font-bold text-amber-600 tabular-nums shrink-0">{{ formatMoney(d.montant) }} &euro;</span>
+                  <div v-if="isDirecteur" class="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button class="p-1 rounded hover:bg-stone-100" @click="openEditFondateur(d)"><UIcon name="i-lucide-pencil" class="size-3.5 text-stone-400" /></button>
+                    <button class="p-1 rounded hover:bg-red-50" @click="handleDeleteFondateur(d.id)"><UIcon name="i-lucide-trash-2" class="size-3.5 text-stone-400 hover:text-red-400" /></button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Empty -->
-          <div v-if="!fondateurTransactions.length" class="text-center py-12">
-            <UIcon name="i-lucide-heart-handshake" class="size-10 text-amber-300 mx-auto mb-3" />
-            <p class="text-stone-500">Aucun financement du fondateur</p>
-            <UButton v-if="isDirecteur" label="Ajouter un apport" icon="i-lucide-plus" variant="subtle" size="sm" class="mt-3" @click="openAddFondateur()" />
-          </div>
+            <!-- Empty -->
+            <div v-if="!depensesFondateur.length" class="text-center py-12">
+              <UIcon name="i-lucide-heart-handshake" class="size-10 text-amber-300 mx-auto mb-3" />
+              <p class="text-stone-500">Aucune depense personnelle enregistree</p>
+              <UButton v-if="isDirecteur" label="Ajouter" icon="i-lucide-plus" variant="subtle" size="sm" class="mt-3" @click="openAddFondateur()" />
+            </div>
+          </template>
         </div>
 
         <!-- ==================== GRAPHIQUES VIEW ==================== -->
@@ -644,6 +722,61 @@ const TYPE_STYLES: Record<string, { text: string; icon: string }> = {
               <div class="flex items-center gap-2">
                 <UButton label="Annuler" color="neutral" variant="ghost" @click="showForm = false; resetForm()" />
                 <UButton type="submit" :label="editingId ? 'Enregistrer' : 'Ajouter'" :icon="editingId ? 'i-lucide-check' : 'i-lucide-plus'" :loading="saving" :disabled="!form.libelle.trim() || !form.montant" />
+              </div>
+            </div>
+          </form>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Fondateur modal -->
+    <UModal :open="showFondateurForm" @update:open="val => { if (!val) { showFondateurForm = false; resetFondateurForm() } }">
+      <template #content>
+        <div class="p-6">
+          <h3 class="text-lg font-semibold text-stone-900 mb-5">
+            {{ editingFondateurId ? 'Modifier' : 'Depense personnelle du fondateur' }}
+          </h3>
+          <form class="space-y-4" @submit.prevent="handleFondateurSubmit">
+            <div class="grid grid-cols-3 gap-3">
+              <UFormField label="Libelle" required class="col-span-2">
+                <UInput v-model="fondateurForm.libelle" placeholder="Ex: Hebergement OVH, Domaine..." icon="i-lucide-text" class="w-full" />
+              </UFormField>
+              <UFormField label="Montant" required>
+                <UInput v-model.number="fondateurForm.montant" type="number" :min="0" step="0.01" placeholder="0.00" icon="i-lucide-euro" class="w-full" />
+              </UFormField>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <div
+                  class="flex items-center justify-center size-5 rounded border-2 transition-all"
+                  :class="fondateurForm.recurrent ? 'bg-amber-500 border-amber-500' : 'border-stone-300'"
+                  @click="fondateurForm.recurrent = !fondateurForm.recurrent"
+                >
+                  <UIcon v-if="fondateurForm.recurrent" name="i-lucide-check" class="size-3 text-white" />
+                </div>
+                <span class="text-sm text-stone-700">Recurrent</span>
+              </label>
+              <USelect
+                v-if="fondateurForm.recurrent"
+                v-model="fondateurForm.frequence"
+                :items="[{ label: 'Mensuel', value: 'mensuel' }, { label: 'Trimestriel', value: 'trimestriel' }, { label: 'Annuel', value: 'annuel' }]"
+                value-key="value"
+                size="sm"
+                class="w-36"
+              />
+            </div>
+
+            <UFormField label="Notes">
+              <UInput v-model="fondateurForm.notes" placeholder="Optionnel..." class="w-full" />
+            </UFormField>
+
+            <div class="flex items-center justify-between pt-2">
+              <UButton v-if="editingFondateurId" label="Supprimer" icon="i-lucide-trash-2" color="error" variant="ghost" size="sm" @click="handleDeleteFondateur(editingFondateurId!); showFondateurForm = false; resetFondateurForm()" />
+              <div v-else />
+              <div class="flex items-center gap-2">
+                <UButton label="Annuler" color="neutral" variant="ghost" @click="showFondateurForm = false; resetFondateurForm()" />
+                <UButton type="submit" :label="editingFondateurId ? 'Enregistrer' : 'Ajouter'" :icon="editingFondateurId ? 'i-lucide-check' : 'i-lucide-plus'" :loading="savingFondateur" :disabled="!fondateurForm.libelle.trim() || !fondateurForm.montant" />
               </div>
             </div>
           </form>
