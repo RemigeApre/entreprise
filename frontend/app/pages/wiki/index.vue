@@ -95,35 +95,74 @@ function smartExcerpt(html: string): string {
     <div class="flex-1 overflow-y-auto p-4 sm:p-6">
       <div class="max-w-5xl mx-auto">
 
-        <!-- Carte identite epinglee -->
-        <NuxtLink
-          v-if="!search"
-          to="/wiki/identite"
-          class="block mb-8 group"
-        >
-          <div class="wiki-pinned-card">
-            <div class="flex items-center gap-4">
-              <div class="size-12 rounded-xl bg-[rgba(175,143,60,0.08)] flex items-center justify-center shrink-0">
-                <UIcon name="i-lucide-palette" class="size-6 text-[#AF8F3C]" />
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2">
-                  <h2 class="font-heading text-lg font-bold text-stone-900 group-hover:text-[#AF8F3C] transition-colors">
-                    Notre identite
-                  </h2>
-                  <span class="wiki-pinned-badge">
-                    <UIcon name="i-lucide-pin" class="size-3" />
-                    Epingle
-                  </span>
+        <!-- Cartes epinglees -->
+        <div v-if="!search" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+          <NuxtLink to="/wiki/identite" class="block group">
+            <div class="wiki-pinned-card h-full">
+              <div class="flex items-center gap-4">
+                <div class="size-11 rounded-xl bg-[rgba(175,143,60,0.08)] flex items-center justify-center shrink-0">
+                  <UIcon name="i-lucide-palette" class="size-5 text-[#AF8F3C]" />
                 </div>
-                <p class="text-sm text-stone-500 mt-0.5">
-                  Charte graphique, mood board, logo, palette de couleurs et typographie
-                </p>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    <h2 class="font-semibold text-stone-900 group-hover:text-[#AF8F3C] transition-colors">
+                      Notre identite
+                    </h2>
+                    <span class="wiki-pinned-badge">
+                      <UIcon name="i-lucide-pin" class="size-3" />
+                    </span>
+                  </div>
+                  <p class="text-xs text-stone-500 mt-0.5">Logo, couleurs, typographie, ambiances</p>
+                </div>
+                <UIcon name="i-lucide-chevron-right" class="size-4 text-stone-300 group-hover:text-[#AF8F3C] transition-colors shrink-0" />
               </div>
-              <UIcon name="i-lucide-chevron-right" class="size-5 text-stone-300 group-hover:text-[#AF8F3C] transition-colors shrink-0" />
             </div>
-          </div>
-        </NuxtLink>
+          </NuxtLink>
+
+          <NuxtLink to="/wiki/documents" class="block group">
+            <div class="wiki-pinned-card h-full">
+              <div class="flex items-center gap-4">
+                <div class="size-11 rounded-xl bg-[rgba(175,143,60,0.08)] flex items-center justify-center shrink-0">
+                  <UIcon name="i-lucide-library" class="size-5 text-[#AF8F3C]" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    <h2 class="font-semibold text-stone-900 group-hover:text-[#AF8F3C] transition-colors">
+                      Documents
+                    </h2>
+                    <span class="wiki-pinned-badge">
+                      <UIcon name="i-lucide-pin" class="size-3" />
+                    </span>
+                  </div>
+                  <p class="text-xs text-stone-500 mt-0.5">Reglement, contrats, charte, offres de stages</p>
+                </div>
+                <UIcon name="i-lucide-chevron-right" class="size-4 text-stone-300 group-hover:text-[#AF8F3C] transition-colors shrink-0" />
+              </div>
+            </div>
+          </NuxtLink>
+
+          <NuxtLink to="/wiki/reglement" class="block group">
+            <div class="wiki-pinned-card h-full">
+              <div class="flex items-center gap-4">
+                <div class="size-11 rounded-xl bg-[rgba(175,143,60,0.08)] flex items-center justify-center shrink-0">
+                  <UIcon name="i-lucide-scale" class="size-5 text-[#AF8F3C]" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    <h2 class="font-semibold text-stone-900 group-hover:text-[#AF8F3C] transition-colors">
+                      Reglement interieur
+                    </h2>
+                    <span class="wiki-pinned-badge">
+                      <UIcon name="i-lucide-pin" class="size-3" />
+                    </span>
+                  </div>
+                  <p class="text-xs text-stone-500 mt-0.5">Articles navigables, regles de vie</p>
+                </div>
+                <UIcon name="i-lucide-chevron-right" class="size-4 text-stone-300 group-hover:text-[#AF8F3C] transition-colors shrink-0" />
+              </div>
+            </div>
+          </NuxtLink>
+        </div>
 
         <!-- Loading -->
         <div v-if="status === 'pending' && !wikiPages" class="flex justify-center py-12">
