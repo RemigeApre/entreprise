@@ -12,7 +12,7 @@ const { data: transactions, status, refresh } = useAsyncData('transactions', get
 onMounted(() => { if (!catsLoaded.value) loadCategories() })
 
 // --- View mode ---
-const view = ref<'transactions' | 'graphiques'>('transactions')
+const view = ref<'transactions' | 'graphiques' | 'fondateur'>('transactions')
 
 // --- Filters (transactions view) ---
 const search = ref('')
@@ -159,6 +159,26 @@ const taxStats = computed(() => {
 
 const monthlyRecurring = computed(() => getMonthlyRecurringNet())
 
+// --- Fondateur tab ---
+const fondateurTransactions = computed(() => {
+  if (!transactions.value) return []
+  return transactions.value.filter(t => t.type === 'fondateur')
+})
+
+const fondateurPonctuels = computed(() => fondateurTransactions.value.filter(t => t.recurrence === 'unique'))
+const fondateurRecurrents = computed(() => fondateurTransactions.value.filter(t => t.recurrence !== 'unique'))
+
+const fondateurRecurrentMensuel = computed(() => {
+  let total = 0
+  for (const t of fondateurRecurrents.value) {
+    let m = t.montant
+    if (t.recurrence === 'trimestriel') m /= 3
+    if (t.recurrence === 'annuel') m /= 12
+    total += m
+  }
+  return total
+})
+
 // --- Form state ---
 const showForm = ref(false)
 const editingId = ref<string | null>(null)
@@ -193,6 +213,7 @@ function resetForm() {
   const cats = getCategoriesByType('depense'); form.categorie = cats.length ? cats[0].id : null
 }
 function openAdd() { resetForm(); showForm.value = true }
+function openAddFondateur() { resetForm(); form.type = 'fondateur'; const cats = getCategoriesByType('fondateur'); form.categorie = cats.length ? cats[0].id : null; showForm.value = true }
 function openEdit(t: Transaction) {
   editingId.value = t.id; form.libelle = t.libelle; form.montant = t.montant
   form.montant_reel = t.montant_reel; form.taux_taxe = t.taux_taxe; form.type = t.type
@@ -294,7 +315,7 @@ const TYPE_STYLES: Record<string, { text: string; icon: string }> = {
           </div>
         </div>
 
-        <!-- Sub-nav : Transactions | Graphiques -->
+        <!-- Sub-nav : Transactions | Fondateur | Graphiques -->
         <div class="px-4 sm:px-6 border-b border-stone-200/40">
           <div class="flex items-center gap-0 max-w-3xl mx-auto">
             <button
@@ -304,14 +325,20 @@ const TYPE_STYLES: Record<string, { text: string; icon: string }> = {
             >Transactions</button>
             <button
               class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all"
+              :class="view === 'fondateur' ? 'border-amber-500 text-amber-600' : 'border-transparent text-stone-400 hover:text-stone-600'"
+              @click="view = 'fondateur'"
+            >Fondateur</button>
+            <button
+              class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all"
               :class="view === 'graphiques' ? 'border-[#AF8F3C] text-[#AF8F3C]' : 'border-transparent text-stone-400 hover:text-stone-600'"
               @click="view = 'graphiques'"
             >Graphiques</button>
 
-            <!-- Search + Add (only in transactions view) -->
-            <template v-if="view === 'transactions'">
-              <UInput v-model="search" placeholder="Rechercher..." icon="i-lucide-search" size="xs" class="ml-auto w-40 shrink-0" />
-              <UButton v-if="isDirecteur" label="Ajouter" icon="i-lucide-plus" size="xs" class="ml-2" @click="openAdd" />
+            <!-- Search + Add (transactions or fondateur) -->
+            <template v-if="view === 'transactions' || view === 'fondateur'">
+              <UInput v-if="view === 'transactions'" v-model="search" placeholder="Rechercher..." icon="i-lucide-search" size="xs" class="ml-auto w-40 shrink-0" />
+              <div v-else class="ml-auto" />
+              <UButton v-if="isDirecteur" label="Ajouter" icon="i-lucide-plus" size="xs" class="ml-2" @click="view === 'fondateur' ? openAddFondateur() : openAdd()" />
             </template>
           </div>
         </div>
@@ -365,6 +392,91 @@ const TYPE_STYLES: Record<string, { text: string; icon: string }> = {
             <UButton icon="i-lucide-chevron-left" size="xs" color="neutral" variant="ghost" :disabled="page <= 1" @click="prev" />
             <span class="text-xs text-stone-500 tabular-nums">{{ page }} / {{ totalPages }}</span>
             <UButton icon="i-lucide-chevron-right" size="xs" color="neutral" variant="ghost" :disabled="page >= totalPages" @click="next" />
+          </div>
+        </div>
+
+        <!-- ==================== FONDATEUR VIEW ==================== -->
+        <div v-else-if="view === 'fondateur'" class="px-4 sm:px-6 py-6 max-w-3xl mx-auto space-y-6">
+
+          <!-- Summary -->
+          <div class="rounded-xl bg-amber-50/50 border border-amber-200/60 p-5 text-center">
+            <p class="text-[10px] text-amber-600/70 uppercase tracking-widest mb-1">Total finance par le fondateur</p>
+            <p class="text-3xl font-bold text-amber-700 tabular-nums">{{ formatMoney(totals.fondateur) }} &euro;</p>
+            <p v-if="fondateurRecurrentMensuel > 0" class="text-xs text-amber-600/60 mt-1">
+              dont {{ formatMoney(fondateurRecurrentMensuel) }} &euro;/mois en recurrent
+            </p>
+          </div>
+
+          <!-- Recurrent -->
+          <div v-if="fondateurRecurrents.length">
+            <div class="flex items-center gap-3 mb-3">
+              <p class="text-xs font-semibold text-amber-700 uppercase tracking-wider">Recurrents</p>
+              <div class="flex-1 h-px bg-amber-200/40" />
+            </div>
+            <div class="space-y-1.5">
+              <div
+                v-for="t in fondateurRecurrents" :key="t.id"
+                class="group flex items-center gap-3 px-4 py-3 rounded-xl bg-white/60 border border-white/70 hover:border-amber-200/40 hover:shadow-sm transition-all"
+              >
+                <div class="size-9 rounded-lg flex items-center justify-center shrink-0 bg-amber-50 text-amber-600">
+                  <UIcon :name="getCategoryIcon(t.categorie)" class="size-4" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-stone-800">{{ t.libelle }}</p>
+                  <div class="flex items-center gap-1.5 text-[11px] text-stone-400">
+                    <span>{{ getCategoryLabel(t.categorie) }}</span>
+                    <span>- {{ TRANSACTION_RECURRENCES[t.recurrence]?.label }}</span>
+                    <span v-if="t.recurrence_certitude === 'theorique'" class="text-[9px] font-medium bg-stone-100 px-1.5 py-0.5 rounded-full">theorique</span>
+                    <span v-if="t.recurrence_debut || t.recurrence_fin" class="text-stone-300">
+                      {{ t.recurrence_debut ? 'du ' + t.recurrence_debut : '' }}{{ t.recurrence_fin ? ' au ' + t.recurrence_fin : '' }}
+                    </span>
+                  </div>
+                </div>
+                <span class="text-sm font-bold text-amber-600 tabular-nums shrink-0">{{ formatMoney(t.montant) }} &euro;/{{ { mensuel: 'mois', trimestriel: 'trim.', annuel: 'an' }[t.recurrence] }}</span>
+                <div v-if="isDirecteur" class="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button class="p-1 rounded hover:bg-stone-100 transition-colors" @click="openEdit(t)"><UIcon name="i-lucide-pencil" class="size-3.5 text-stone-400" /></button>
+                  <button class="p-1 rounded hover:bg-red-50 transition-colors" @click="handleDelete(t.id)"><UIcon name="i-lucide-trash-2" class="size-3.5 text-stone-400 hover:text-red-400" /></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ponctuels -->
+          <div v-if="fondateurPonctuels.length">
+            <div class="flex items-center gap-3 mb-3">
+              <p class="text-xs font-semibold text-amber-700 uppercase tracking-wider">Ponctuels</p>
+              <div class="flex-1 h-px bg-amber-200/40" />
+            </div>
+            <div class="space-y-1.5">
+              <div
+                v-for="t in fondateurPonctuels" :key="t.id"
+                class="group flex items-center gap-3 px-4 py-3 rounded-xl bg-white/60 border border-white/70 hover:border-amber-200/40 hover:shadow-sm transition-all"
+              >
+                <div class="size-9 rounded-lg flex items-center justify-center shrink-0 bg-amber-50 text-amber-600">
+                  <UIcon :name="getCategoryIcon(t.categorie)" class="size-4" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-stone-800">{{ t.libelle }}</p>
+                  <div class="flex items-center gap-1.5 text-[11px] text-stone-400">
+                    <span>{{ getCategoryLabel(t.categorie) }}</span>
+                    <span v-if="t.notes">- {{ t.notes }}</span>
+                  </div>
+                </div>
+                <span class="text-xs text-stone-400 shrink-0 tabular-nums">{{ new Date(t.date + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) }}</span>
+                <span class="text-sm font-bold text-amber-600 tabular-nums shrink-0">{{ formatMoney(t.montant) }} &euro;</span>
+                <div v-if="isDirecteur" class="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button class="p-1 rounded hover:bg-stone-100 transition-colors" @click="openEdit(t)"><UIcon name="i-lucide-pencil" class="size-3.5 text-stone-400" /></button>
+                  <button class="p-1 rounded hover:bg-red-50 transition-colors" @click="handleDelete(t.id)"><UIcon name="i-lucide-trash-2" class="size-3.5 text-stone-400 hover:text-red-400" /></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty -->
+          <div v-if="!fondateurTransactions.length" class="text-center py-12">
+            <UIcon name="i-lucide-heart-handshake" class="size-10 text-amber-300 mx-auto mb-3" />
+            <p class="text-stone-500">Aucun financement du fondateur</p>
+            <UButton v-if="isDirecteur" label="Ajouter un apport" icon="i-lucide-plus" variant="subtle" size="sm" class="mt-3" @click="openAddFondateur()" />
           </div>
         </div>
 
