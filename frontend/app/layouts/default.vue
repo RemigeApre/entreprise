@@ -108,8 +108,8 @@ const domains = computed<Domain[]>(() => {
     prefixes: ['/wiki', '/finance', '/materiel', '/produits'],
     tabs: [
       { label: 'Wiki', icon: 'i-lucide-book-open', to: '/wiki' },
+      { label: 'Finance', icon: 'i-lucide-landmark', to: '/finance' },
       ...(isDirecteur.value ? [
-        { label: 'Finance', icon: 'i-lucide-landmark', to: '/finance' },
         { label: 'Materiel', icon: 'i-lucide-monitor', to: '/materiel' },
         { label: 'Produits', icon: 'i-lucide-tag', to: '/produits' }
       ] : [])

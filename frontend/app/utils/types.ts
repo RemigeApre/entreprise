@@ -405,7 +405,7 @@ export interface CandidatBookingToken {
 // --- Finance ---
 
 export type TransactionType = 'recette' | 'depense'
-export type TransactionCategorie = 'vente' | 'prestation' | 'abonnement' | 'salaire' | 'freelance' | 'achat_materiel' | 'logiciel' | 'hebergement' | 'marketing' | 'deplacement' | 'administratif' | 'autre'
+export type TransactionCategorie = 'vente' | 'prestation' | 'abonnement' | 'salaire' | 'freelance' | 'achat_materiel' | 'logiciel' | 'hebergement' | 'marketing' | 'deplacement' | 'administratif' | 'financement_fondateur' | 'autre'
 export type TransactionRecurrence = 'unique' | 'mensuel' | 'trimestriel' | 'annuel'
 
 export interface Transaction {
@@ -417,6 +417,7 @@ export interface Transaction {
   date: string
   recurrence: TransactionRecurrence
   notes: string | null
+  projet: Project | string | null
   date_created: string
   user_created: string
 }

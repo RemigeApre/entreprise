@@ -350,6 +350,7 @@ export const TRANSACTION_CATEGORIES = {
   marketing: { label: 'Marketing', icon: 'i-lucide-megaphone' },
   deplacement: { label: 'Deplacement', icon: 'i-lucide-car' },
   administratif: { label: 'Administratif', icon: 'i-lucide-file-text' },
+  financement_fondateur: { label: 'Financement fondateur', icon: 'i-lucide-heart-handshake' },
   autre: { label: 'Autre', icon: 'i-lucide-circle' }
 } as const
 

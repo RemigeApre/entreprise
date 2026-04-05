@@ -6,7 +6,8 @@ export function useFinance() {
 
   const fields = [
     'id', 'libelle', 'montant', 'type', 'categorie', 'date',
-    'recurrence', 'notes', 'date_created', 'user_created'
+    'recurrence', 'notes', 'projet.id', 'projet.nom',
+    'date_created', 'user_created'
   ]
 
   async function getAll() {
