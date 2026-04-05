@@ -186,6 +186,113 @@ const chartZeroY = computed(() => {
 
 const monthlyRecurring = computed(() => getMonthlyRecurringNet())
 
+// --- Sub-tabs with sparklines ---
+interface SubTab {
+  key: TransactionType | 'all'
+  label: string
+  icon: string
+  total: number
+  count: number
+  sparkline: number[]
+  sparklinePath: string
+  activeBg: string
+  activeBorder: string
+  labelColor: string
+  iconColor: string
+  valueColor: string
+  strokeColor: string
+}
+
+function buildSparkline(values: number[]): string {
+  if (values.length < 2) return ''
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const range = max - min || 1
+  const points = values.map((v, i) => {
+    const x = (i / (values.length - 1)) * 100
+    const y = 28 - ((v - min) / range) * 24 - 2
+    return `${x},${y}`
+  })
+  return `M${points.join(' L')}`
+}
+
+function getMonthlyTotals(type: TransactionType | 'all'): number[] {
+  if (!transactions.value) return []
+  const monthly = new Map<string, number>()
+  for (const t of transactions.value) {
+    if (type !== 'all' && t.type !== type) continue
+    const d = new Date(t.date)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    monthly.set(key, (monthly.get(key) || 0) + t.montant)
+  }
+  return [...monthly.entries()].sort((a, b) => a[0].localeCompare(b[0])).slice(-6).map(([, v]) => v)
+}
+
+const subTabs = computed<SubTab[]>(() => {
+  const all = transactions.value || []
+
+  const tabs: SubTab[] = [
+    {
+      key: 'all',
+      label: 'Solde net',
+      icon: 'i-lucide-wallet',
+      total: totals.value.solde,
+      count: all.length,
+      activeBg: 'bg-stone-50', activeBorder: 'border-stone-300',
+      labelColor: 'text-stone-600', iconColor: 'text-stone-400',
+      valueColor: totals.value.solde >= 0 ? 'text-emerald-600' : 'text-red-500',
+      strokeColor: totals.value.solde >= 0 ? '#10b981' : '#ef4444'
+    },
+    {
+      key: 'recette',
+      label: 'Recettes',
+      icon: 'i-lucide-trending-up',
+      total: totals.value.recettes,
+      count: all.filter(t => t.type === 'recette').length,
+      activeBg: 'bg-emerald-50', activeBorder: 'border-emerald-300',
+      labelColor: 'text-emerald-700', iconColor: 'text-emerald-500',
+      valueColor: 'text-emerald-600',
+      strokeColor: '#10b981'
+    },
+    {
+      key: 'depense',
+      label: 'Depenses',
+      icon: 'i-lucide-trending-down',
+      total: totals.value.depenses,
+      count: all.filter(t => t.type === 'depense').length,
+      activeBg: 'bg-red-50', activeBorder: 'border-red-300',
+      labelColor: 'text-red-600', iconColor: 'text-red-400',
+      valueColor: 'text-red-500',
+      strokeColor: '#ef4444'
+    },
+    {
+      key: 'fondateur',
+      label: 'Fondateur',
+      icon: 'i-lucide-heart-handshake',
+      total: totals.value.fondateur,
+      count: all.filter(t => t.type === 'fondateur').length,
+      activeBg: 'bg-amber-50', activeBorder: 'border-amber-300',
+      labelColor: 'text-amber-700', iconColor: 'text-amber-500',
+      valueColor: 'text-amber-600',
+      strokeColor: '#f59e0b'
+    }
+  ]
+
+  for (const tab of tabs) {
+    if (tab.key === 'all') {
+      // For "all" sparkline, use running balance per month
+      const vals = chartData.value.filter(d => !d.forecast).map(d => d.solde)
+      tab.sparkline = vals
+      tab.sparklinePath = buildSparkline(vals)
+    } else {
+      tab.sparkline = getMonthlyTotals(tab.key)
+      tab.sparklinePath = buildSparkline(tab.sparkline)
+    }
+  }
+
+  return tabs
+})
+
 const forecastLabel = computed(() => {
   const net = monthlyRecurring.value
   if (net === 0) return 'stable'
@@ -399,8 +506,8 @@ const TYPE_STYLES = {
 
       <template v-else>
         <!-- Solde hero -->
-        <div class="px-4 sm:px-6 pt-6 pb-2">
-          <div class="max-w-md mx-auto text-center mb-4">
+        <div class="px-4 sm:px-6 pt-6 pb-3">
+          <div class="max-w-md mx-auto text-center">
             <p class="text-[10px] text-stone-400 uppercase tracking-[0.2em] mb-1.5">Solde total</p>
             <p
               class="text-4xl sm:text-5xl font-bold tabular-nums tracking-tight leading-none"
@@ -499,32 +606,42 @@ const TYPE_STYLES = {
           </div>
         </div>
 
-        <!-- Toolbar (no opaque background) -->
+        <!-- Sub-tabs with mini charts -->
+        <div class="px-4 sm:px-6 pb-4">
+          <div class="max-w-2xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <button
+              v-for="tab in subTabs"
+              :key="tab.key"
+              class="rounded-xl border p-3 text-left transition-all"
+              :class="filterType === tab.key
+                ? tab.activeBg + ' ' + tab.activeBorder + ' shadow-sm'
+                : 'bg-white/40 border-white/60 hover:border-stone-200'"
+              @click="filterType = filterType === tab.key ? 'all' : tab.key"
+            >
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[10px] font-semibold uppercase tracking-wider" :class="tab.labelColor">{{ tab.label }}</span>
+                <UIcon :name="tab.icon" class="size-3.5" :class="tab.iconColor" />
+              </div>
+              <!-- Mini sparkline -->
+              <svg v-if="tab.sparkline.length >= 2" viewBox="0 0 100 28" class="w-full h-5 mb-1" preserveAspectRatio="none">
+                <path :d="tab.sparklinePath" fill="none" :stroke="tab.strokeColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <p class="text-sm font-bold tabular-nums" :class="tab.valueColor">
+                {{ tab.key === 'all' ? (tab.total >= 0 ? '+' : '') : '' }}{{ formatMoney(tab.total) }} <span class="text-[10px]">&euro;</span>
+              </p>
+              <p v-if="tab.count" class="text-[10px] text-stone-400 tabular-nums">{{ tab.count }} operation{{ tab.count > 1 ? 's' : '' }}</p>
+            </button>
+          </div>
+        </div>
+
+        <!-- Search + Add -->
         <div class="px-4 sm:px-6 py-2.5 border-b border-stone-200/40">
-          <div class="flex items-center gap-2 overflow-x-auto scrollbar-none">
-            <button
-              class="shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-all"
-              :class="filterType === 'all' ? 'bg-stone-700 text-white' : 'text-stone-500 hover:bg-stone-200/60'"
-              @click="filterType = 'all'"
-            >Tout</button>
-            <button
-              class="shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-all"
-              :class="filterType === 'recette' ? 'bg-emerald-600 text-white' : 'text-emerald-600/60 hover:bg-emerald-50'"
-              @click="filterType = filterType === 'recette' ? 'all' : 'recette'"
-            >Recettes</button>
-            <button
-              class="shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-all"
-              :class="filterType === 'depense' ? 'bg-red-500 text-white' : 'text-red-500/60 hover:bg-red-50'"
-              @click="filterType = filterType === 'depense' ? 'all' : 'depense'"
-            >Depenses</button>
-            <button
-              class="shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-all"
-              :class="filterType === 'fondateur' ? 'bg-amber-500 text-white' : 'text-amber-600/60 hover:bg-amber-50'"
-              @click="filterType = filterType === 'fondateur' ? 'all' : 'fondateur'"
-            >Fondateur</button>
-
+          <div class="flex items-center gap-2">
+            <p v-if="filterType !== 'all'" class="text-xs text-stone-500">
+              Filtre : <strong>{{ { recette: 'Recettes', depense: 'Depenses', fondateur: 'Fondateur' }[filterType] }}</strong>
+              <button class="ml-1 text-stone-400 hover:text-stone-600" @click="filterType = 'all'">&times;</button>
+            </p>
             <UInput v-model="search" placeholder="Rechercher..." icon="i-lucide-search" size="xs" class="ml-auto w-40 shrink-0" />
-
             <UButton
               v-if="isDirecteur"
               label="Ajouter"
