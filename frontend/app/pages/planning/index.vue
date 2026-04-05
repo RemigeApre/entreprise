@@ -183,6 +183,9 @@ async function loadMonthEntries(year: number, month: number) {
   if (!user.value) return
   loading.value = true
   currentMonthLabel.value = new Date(year, month, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
+  // Mettre a jour currentMonday pour PlanningTeamPresence en mode mois
+  currentMonday.value = getMonday(new Date())
+  weekNumber.value = getWeekNumber(new Date())
   try {
     const firstDay = formatDate(new Date(year, month, 1))
     const lastDay = formatDate(new Date(year, month + 1, 0))
@@ -572,6 +575,29 @@ onMounted(() => {
             />
           </div>
         </div>
+
+        <!-- Pills desktop (month view) -->
+        <div class="hidden sm:flex flex-wrap justify-center gap-1.5">
+          <button
+            v-for="action in quickActions"
+            :key="action.key"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-colors cursor-pointer"
+            :class="activeAction === action.key
+              ? (ACTION_PILL_COLORS[action.key] || 'bg-primary/10 border-primary/40 text-primary')
+              : 'bg-stone-100 border-stone-200 text-stone-600 hover:bg-stone-200'"
+            @click="activeAction = action.key"
+          >
+            <UIcon :name="action.icon" class="size-4" />
+            {{ action.label }}
+          </button>
+        </div>
+
+        <!-- Team presence (month view) -->
+        <PlanningTeamPresence
+          :monday="currentMonday"
+          :current-user-id="user?.id"
+          :is-admin="isDirecteur"
+        />
       </template>
     </div>
 

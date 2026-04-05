@@ -7,7 +7,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return
   }
 
-  const { user, fetchCurrentUser, refresh, logout } = useAuth()
+  const { user, fetchCurrentUser, refresh } = useAuth()
 
   if (!user.value) {
     // Le plugin auth.client.ts a deja tente refresh + fetchCurrentUser au demarrage.
@@ -22,10 +22,17 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   const statut = user.value?.statut_emploi
 
-  // Termine : pas de connexion possible — deconnecter immediatement
+  // Termine : rediriger vers la page des anciens (pas de deconnexion)
   if (statut === 'termine') {
-    await logout()
-    return navigateTo('/')
+    if (path !== '/anciens') {
+      return navigateTo('/anciens')
+    }
+    return
+  }
+
+  // Bloquer l'acces a /anciens pour les non-termines
+  if (path === '/anciens') {
+    return navigateTo('/dashboard')
   }
 
   // A venir : uniquement planning (presence)

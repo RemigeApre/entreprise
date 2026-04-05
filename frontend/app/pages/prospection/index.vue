@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { updateMe } from '@directus/sdk'
+import { updateMe, readItems } from '@directus/sdk'
 import type { Prospect, ProspectStatut, NiveauSite, ContactCanal, ContactResultat } from '~/utils/types'
 import { PROSPECT_STATUTS, CONTACT_CANAUX, CONTACT_RESULTATS, MOTIFS_CLOTURE, ORIGINES_PROSPECTION, NIVEAUX_SITE } from '~/utils/constants'
 import { downloadCsv } from '~/utils/csv'
@@ -224,6 +224,86 @@ function exportCsv() {
   downloadCsv(rows, `prospects_${new Date().toISOString().split('T')[0]}.csv`)
 }
 
+// --- Stats panel ---
+const showStats = ref(false)
+const statsPeriod = ref<'week' | 'month' | 'year'>('week')
+const statsLoading = ref(false)
+
+interface StatEntry {
+  userId: string
+  name: string
+  count: number
+}
+
+const statsData = ref<StatEntry[]>([])
+const statsTotal = computed(() => statsData.value.reduce((sum, s) => sum + s.count, 0))
+
+function getStatsBounds(period: 'week' | 'month' | 'year') {
+  const now = new Date()
+  const start = new Date(now)
+  if (period === 'week') {
+    const day = now.getDay()
+    const diffToMonday = day === 0 ? 6 : day - 1
+    start.setDate(now.getDate() - diffToMonday)
+  } else if (period === 'month') {
+    start.setDate(1)
+  } else {
+    start.setMonth(0, 1)
+  }
+  start.setHours(0, 0, 0, 0)
+  return { start: start.toISOString().split('T')[0], end: now.toISOString().split('T')[0] }
+}
+
+async function loadStats() {
+  statsLoading.value = true
+  try {
+    const { start, end } = getStatsBounds(statsPeriod.value)
+    const contacts = await $directus.request(readItems('contacts_history', {
+      filter: {
+        date_contact: { _gte: start, _lte: end }
+      },
+      fields: ['id', 'contacte_par.id', 'contacte_par.first_name', 'contacte_par.last_name'],
+      limit: -1
+    })) as { id: string; contacte_par: { id: string; first_name: string; last_name: string } }[]
+
+    const map = new Map<string, StatEntry>()
+    for (const c of contacts) {
+      if (!c.contacte_par) continue
+      const uid = c.contacte_par.id
+      const existing = map.get(uid)
+      if (existing) {
+        existing.count++
+      } else {
+        map.set(uid, {
+          userId: uid,
+          name: `${c.contacte_par.first_name || ''} ${c.contacte_par.last_name || ''}`.trim() || 'Inconnu',
+          count: 1
+        })
+      }
+    }
+    statsData.value = [...map.values()].sort((a, b) => b.count - a.count)
+  } catch {
+    statsData.value = []
+  } finally {
+    statsLoading.value = false
+  }
+}
+
+async function toggleStats() {
+  showStats.value = !showStats.value
+  if (showStats.value) await loadStats()
+}
+
+watch(statsPeriod, () => {
+  if (showStats.value) loadStats()
+})
+
+const periodLabels: Record<string, string> = {
+  week: 'Cette semaine',
+  month: 'Ce mois',
+  year: 'Cette annee'
+}
+
 if (import.meta.client) {
   onMounted(loadWeekContacts)
 }
@@ -270,10 +350,70 @@ if (import.meta.client) {
           <UButton v-else-if="!hasQuota" label="Objectif" icon="i-lucide-target" size="xs" variant="ghost" color="neutral" @click="openQuotaModal" />
         </template>
         <template #right>
+          <UButton
+            icon="i-lucide-bar-chart-3"
+            color="neutral"
+            :variant="showStats ? 'soft' : 'ghost'"
+            size="sm"
+            @click="toggleStats"
+          />
           <UButton icon="i-lucide-download" color="neutral" variant="ghost" size="sm" :disabled="!filteredProspects.length" @click="exportCsv" />
           <UButton label="Nouveau" icon="i-lucide-plus" size="sm" to="/prospection/nouveau" />
         </template>
       </PageHeader>
+
+      <!-- Stats panel -->
+      <div v-if="showStats" class="border-b border-stone-200/60 bg-white/40 px-4 sm:px-6 py-4">
+        <div class="max-w-2xl mx-auto">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold text-stone-800">Contacts par prospecteur</h3>
+            <div class="flex items-center gap-1 bg-stone-100 rounded-lg p-0.5">
+              <button
+                v-for="(label, key) in periodLabels"
+                :key="key"
+                class="px-2.5 py-1 rounded-md text-xs font-medium transition-all"
+                :class="statsPeriod === key ? 'bg-white text-stone-800 shadow-sm' : 'text-stone-500 hover:text-stone-700'"
+                @click="statsPeriod = key as 'week' | 'month' | 'year'"
+              >
+                {{ label }}
+              </button>
+            </div>
+          </div>
+
+          <div v-if="statsLoading" class="flex justify-center py-4">
+            <UIcon name="i-lucide-loader-2" class="size-5 text-primary animate-spin" />
+          </div>
+
+          <div v-else-if="!statsData.length" class="text-center py-4 text-sm text-stone-400">
+            Aucun contact sur cette periode
+          </div>
+
+          <div v-else class="space-y-2">
+            <!-- Per person -->
+            <div
+              v-for="stat in statsData"
+              :key="stat.userId"
+              class="flex items-center gap-3"
+            >
+              <span class="text-sm font-medium text-stone-700 w-32 truncate">{{ stat.name }}</span>
+              <div class="flex-1 h-6 bg-stone-100 rounded-full overflow-hidden">
+                <div
+                  class="h-full bg-primary/80 rounded-full flex items-center justify-end pr-2 transition-all duration-300"
+                  :style="{ width: `${Math.max((stat.count / (statsData[0]?.count || 1)) * 100, 12)}%` }"
+                >
+                  <span class="text-[11px] font-bold text-white tabular-nums">{{ stat.count }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Total -->
+            <div class="flex items-center gap-3 pt-2 border-t border-stone-200/60">
+              <span class="text-sm font-bold text-stone-800 w-32">Total</span>
+              <span class="text-sm font-bold text-stone-800 tabular-nums">{{ statsTotal }} contacts</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div class="flex-1 overflow-y-auto">
         <div v-if="status === 'pending'" class="flex justify-center py-12">
