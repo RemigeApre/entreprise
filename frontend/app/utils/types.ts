@@ -442,7 +442,7 @@ export type MaterielEtat = 'neuf' | 'bon' | 'use' | 'hs' | 'a_acquerir' | 'vendu
 export type MaterielCategorie = 'informatique' | 'commercial' | 'bureau' | 'admin'
 export type AchatType = 'ponctuel' | 'recurrent'
 export type AchatStatut = 'a_acheter' | 'commande' | 'recu'
-export type ProduitType = 'livre' | 'derive' | 'service' | 'autre'
+export type ProduitType = 'livre' | 'derive' | 'artisanat' | 'service' | 'autre'
 
 export interface Materiel {
   id: string
@@ -464,10 +464,14 @@ export interface Produit {
   id: string
   code: string
   nom: string
+  sous_titre: string | null
   type_produit: ProduitType
   prix_vente: number
   prix_revient: number | null
-  stock: number
+  stock: number | null
+  a_stock: boolean
+  edition: string | null
+  fait_main: boolean
   description: string | null
   notes: string | null
   date_created: string

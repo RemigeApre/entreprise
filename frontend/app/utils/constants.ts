@@ -393,7 +393,8 @@ export const MATERIEL_ETATS = {
 export const PRODUIT_TYPES = {
   livre: { label: 'Livre', prefix: 'LV', icon: 'i-lucide-book-open' },
   derive: { label: 'Produit derive', prefix: 'PD', icon: 'i-lucide-package' },
-  service: { label: 'Service', prefix: 'SV', icon: 'i-lucide-briefcase' },
+  artisanat: { label: 'Artisanat', prefix: 'AR', icon: 'i-lucide-hand' },
+  service: { label: 'Service web', prefix: 'SV', icon: 'i-lucide-globe' },
   autre: { label: 'Autre', prefix: 'PR', icon: 'i-lucide-tag' }
 } as const
 

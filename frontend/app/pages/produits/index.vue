@@ -17,9 +17,23 @@ const filtered = computed(() => {
   return produits.value.filter(p => filterType.value === 'all' || p.type_produit === filterType.value)
 })
 
-const totalStock = computed(() => filtered.value.reduce((s, p) => s + p.stock, 0))
-const totalValeur = computed(() => filtered.value.reduce((s, p) => s + p.prix_vente * p.stock, 0))
-const totalMarge = computed(() => filtered.value.reduce((s, p) => s + (p.prix_vente - (p.prix_revient || 0)) * p.stock, 0))
+// Group by type for display
+const groupedByType = computed(() => {
+  const groups: { type: ProduitType; config: typeof PRODUIT_TYPES[keyof typeof PRODUIT_TYPES]; items: Produit[] }[] = []
+  const types = filterType.value === 'all'
+    ? Object.keys(PRODUIT_TYPES) as ProduitType[]
+    : [filterType.value]
+
+  for (const t of types) {
+    const items = (produits.value || []).filter(p => p.type_produit === t)
+    if (items.length) groups.push({ type: t, config: PRODUIT_TYPES[t], items })
+  }
+  return groups
+})
+
+const stockItems = computed(() => filtered.value.filter(p => p.a_stock))
+const totalStock = computed(() => stockItems.value.reduce((s, p) => s + (p.stock || 0), 0))
+const totalValeur = computed(() => stockItems.value.reduce((s, p) => s + p.prix_vente * (p.stock || 0), 0))
 
 const countByType = computed(() => {
   if (!produits.value) return {} as Record<string, number>
@@ -28,15 +42,20 @@ const countByType = computed(() => {
   return c
 })
 
-// --- Add form ---
+// --- Form ---
 const showForm = ref(false)
+const editingId = ref<string | null>(null)
 const saving = ref(false)
 const form = reactive({
   nom: '',
+  sous_titre: '',
   type_produit: 'livre' as ProduitType,
   prix_vente: null as number | null,
   prix_revient: null as number | null,
+  a_stock: true,
   stock: 0,
+  edition: '',
+  fait_main: false,
   description: '',
   notes: ''
 })
@@ -44,52 +63,71 @@ const form = reactive({
 const typeOptions = Object.entries(PRODUIT_TYPES).map(([value, c]) => ({ label: c.label, value }))
 
 function resetForm() {
-  form.nom = ''
+  form.nom = ''; form.sous_titre = ''
   form.type_produit = filterType.value !== 'all' ? filterType.value : 'livre'
-  form.prix_vente = null
-  form.prix_revient = null
-  form.stock = 0
-  form.description = ''
-  form.notes = ''
+  form.prix_vente = null; form.prix_revient = null
+  form.a_stock = form.type_produit !== 'service'; form.stock = 0
+  form.edition = ''; form.fait_main = false
+  form.description = ''; form.notes = ''
+  editingId.value = null
 }
 
-async function handleAdd() {
+function openAdd() { resetForm(); showForm.value = true }
+
+function openEdit(p: Produit) {
+  editingId.value = p.id; form.nom = p.nom; form.sous_titre = p.sous_titre || ''
+  form.type_produit = p.type_produit; form.prix_vente = p.prix_vente
+  form.prix_revient = p.prix_revient; form.a_stock = p.a_stock
+  form.stock = p.stock || 0; form.edition = p.edition || ''
+  form.fait_main = p.fait_main; form.description = p.description || ''
+  form.notes = p.notes || ''; showForm.value = true
+}
+
+// Auto-toggle stock based on type
+watch(() => form.type_produit, t => {
+  if (t === 'service') { form.a_stock = false; form.fait_main = false }
+  else if (t === 'artisanat') form.fait_main = true
+  else form.fait_main = false
+})
+
+async function handleSubmit() {
   if (!form.nom.trim() || !form.prix_vente) return
   saving.value = true
   try {
-    await createProduit({
+    const data: any = {
       nom: form.nom.trim(),
+      sous_titre: form.sous_titre.trim() || null,
       type_produit: form.type_produit,
       prix_vente: form.prix_vente,
       prix_revient: form.prix_revient,
-      stock: form.stock || 0,
+      a_stock: form.a_stock,
+      stock: form.a_stock ? (form.stock || 0) : null,
+      edition: form.edition.trim() || null,
+      fait_main: form.fait_main,
       description: form.description.trim() || null,
       notes: form.notes.trim() || null
-    })
-    toast.add({ title: 'Produit ajoute', color: 'success' })
-    showForm.value = false
-    resetForm()
-    await refresh()
-  } catch {
-    toast.add({ title: 'Erreur', color: 'error' })
-  } finally {
-    saving.value = false
-  }
+    }
+    if (editingId.value) {
+      await updateProduit(editingId.value, data)
+      toast.add({ title: 'Produit modifie', color: 'success' })
+    } else {
+      await createProduit(data)
+      toast.add({ title: 'Produit ajoute', color: 'success' })
+    }
+    showForm.value = false; resetForm(); await refresh()
+  } catch { toast.add({ title: 'Erreur', color: 'error' }) }
+  finally { saving.value = false }
 }
 
 async function handleDelete(id: string) {
-  try { await removeProduit(id); await refresh() } catch { toast.add({ title: 'Erreur', color: 'error' }) }
+  try { await removeProduit(id); toast.add({ title: 'Supprime', color: 'success' }); await refresh() }
+  catch { toast.add({ title: 'Erreur', color: 'error' }) }
 }
 
-// --- Inline stock edit ---
 async function adjustStock(p: Produit, delta: number) {
-  const newStock = Math.max(0, p.stock + delta)
-  try {
-    await updateProduit(p.id, { stock: newStock })
-    await refresh()
-  } catch {
-    toast.add({ title: 'Erreur', color: 'error' })
-  }
+  const newStock = Math.max(0, (p.stock || 0) + delta)
+  try { await updateProduit(p.id, { stock: newStock }); await refresh() }
+  catch { toast.add({ title: 'Erreur', color: 'error' }) }
 }
 
 function formatMoney(n: number) { return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
@@ -99,7 +137,7 @@ function formatMoney(n: number) { return n.toLocaleString('fr-FR', { minimumFrac
   <div class="flex flex-col h-full">
     <PageHeader title="Produits">
       <template #right>
-        <UButton v-if="!showForm" label="Ajouter" icon="i-lucide-plus" size="sm" @click="showForm = true; resetForm()" />
+        <UButton label="Ajouter" icon="i-lucide-plus" size="sm" @click="openAdd" />
       </template>
     </PageHeader>
 
@@ -111,7 +149,7 @@ function formatMoney(n: number) { return n.toLocaleString('fr-FR', { minimumFrac
       <template v-else>
         <!-- Summary -->
         <div class="px-4 sm:px-6 pt-4 pb-2">
-          <div class="grid grid-cols-3 gap-3">
+          <div class="grid grid-cols-2 gap-3">
             <div class="rounded-xl bg-white/60 shadow-sm border border-white/70 p-3 text-center">
               <p class="text-[11px] text-stone-500 uppercase tracking-wide">Stock total</p>
               <p class="text-lg font-bold text-stone-800 tabular-nums">{{ totalStock }} <span class="text-xs font-normal text-stone-400">unites</span></p>
@@ -120,25 +158,21 @@ function formatMoney(n: number) { return n.toLocaleString('fr-FR', { minimumFrac
               <p class="text-[11px] text-stone-500 uppercase tracking-wide">Valeur stock</p>
               <p class="text-lg font-bold text-stone-800 tabular-nums">{{ formatMoney(totalValeur) }} &euro;</p>
             </div>
-            <div class="rounded-xl bg-white/60 shadow-sm border border-white/70 p-3 text-center">
-              <p class="text-[11px] text-stone-500 uppercase tracking-wide">Marge potentielle</p>
-              <p class="text-lg font-bold tabular-nums" :class="totalMarge >= 0 ? 'text-emerald-600' : 'text-red-500'">{{ formatMoney(totalMarge) }} &euro;</p>
-            </div>
           </div>
         </div>
 
         <!-- Toolbar -->
-        <div class="sticky top-0 z-10 bg-[#E6E2DA]/95 backdrop-blur-sm border-b border-stone-200/40 px-4 sm:px-6 py-2.5">
-          <div class="flex items-center gap-2">
+        <div class="px-4 sm:px-6 py-2.5 border-b border-stone-200/40">
+          <div class="flex items-center gap-2 overflow-x-auto scrollbar-none">
             <button
-              class="px-2.5 py-1 rounded-full text-xs font-medium transition-all"
+              class="shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-all"
               :class="filterType === 'all' ? 'bg-stone-800 text-white' : 'text-stone-500 hover:bg-stone-200/60'"
               @click="filterType = 'all'"
             >Tous <span class="opacity-60 tabular-nums">{{ produits?.length || 0 }}</span></button>
             <button
               v-for="(config, key) in PRODUIT_TYPES"
               :key="key"
-              class="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all"
+              class="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all"
               :class="filterType === key ? 'bg-stone-800 text-white' : 'text-stone-500 hover:bg-stone-200/60'"
               @click="filterType = filterType === key ? 'all' : (key as ProduitType)"
             >
@@ -149,91 +183,198 @@ function formatMoney(n: number) { return n.toLocaleString('fr-FR', { minimumFrac
           </div>
         </div>
 
-        <div class="px-4 sm:px-6 py-4">
-          <!-- Add form -->
-          <div v-if="showForm" class="rounded-xl bg-white/60 shadow-sm border border-white/70 p-4 mb-4">
-            <form class="space-y-2.5" @submit.prevent="handleAdd">
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <UInput v-model="form.nom" placeholder="Nom du produit..." size="sm" class="col-span-2" />
-                <USelect v-model="form.type_produit" :items="typeOptions" value-key="value" size="sm" />
-                <UInput v-model.number="form.stock" type="number" :min="0" placeholder="Stock" size="sm" />
-              </div>
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <UInput v-model.number="form.prix_vente" type="number" :min="0" step="0.01" placeholder="Prix de vente" size="sm" />
-                <UInput v-model.number="form.prix_revient" type="number" :min="0" step="0.01" placeholder="Prix de revient" size="sm" />
-                <UInput v-model="form.description" placeholder="Description..." size="sm" />
-                <UInput v-model="form.notes" placeholder="Notes..." size="sm" />
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-[11px] text-stone-400">
-                  Code auto : {{ PRODUIT_TYPES[form.type_produit]?.prefix || '??' }}-XXXX
-                </span>
-                <div class="flex gap-2">
-                  <UButton label="Annuler" size="xs" variant="ghost" color="neutral" @click="showForm = false" />
-                  <UButton type="submit" label="Ajouter" size="xs" icon="i-lucide-plus" :loading="saving" />
-                </div>
-              </div>
-            </form>
-          </div>
-
+        <div class="px-4 sm:px-6 py-4 max-w-4xl mx-auto">
           <!-- Empty -->
-          <div v-if="!filtered.length && !showForm" class="text-center py-12">
+          <div v-if="!filtered.length" class="text-center py-12">
             <UIcon name="i-lucide-tag" class="size-10 text-stone-300 mx-auto mb-3" />
             <p class="text-stone-500">Aucun produit</p>
-            <UButton label="Ajouter" icon="i-lucide-plus" variant="subtle" class="mt-3" @click="showForm = true; resetForm()" />
+            <UButton label="Ajouter un produit" icon="i-lucide-plus" variant="subtle" class="mt-3" @click="openAdd" />
           </div>
 
-          <!-- List -->
-          <div v-else class="rounded-xl bg-white/50 shadow-sm border border-white/70 overflow-hidden">
-            <div
-              v-for="(p, idx) in filtered"
-              :key="p.id"
-              class="flex items-center gap-3 px-4 py-3 group"
-              :class="[idx > 0 ? 'border-t border-stone-100' : '', p.stock === 0 ? 'opacity-50' : '']"
-            >
-              <!-- Code -->
-              <span class="shrink-0 text-[11px] font-mono text-stone-400 w-16">{{ p.code }}</span>
-
-              <!-- Type icon -->
-              <UIcon :name="PRODUIT_TYPES[p.type_produit]?.icon || 'i-lucide-tag'" class="size-4 text-stone-500 shrink-0" />
-
-              <!-- Info -->
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-stone-800 truncate">{{ p.nom }}</p>
-                <p v-if="p.description || p.notes" class="text-[11px] text-stone-500 truncate">
-                  {{ p.description }}
-                  <span v-if="p.notes" class="text-stone-400">{{ p.description ? ' - ' : '' }}{{ p.notes }}</span>
-                </p>
+          <!-- Groups by type -->
+          <div v-else class="space-y-6">
+            <div v-for="group in groupedByType" :key="group.type">
+              <div class="flex items-center gap-2 mb-3">
+                <UIcon :name="group.config.icon" class="size-4 text-[#AF8F3C]" />
+                <p class="text-xs font-semibold text-stone-600 uppercase tracking-wider">{{ group.config.label }}s</p>
+                <span class="text-xs text-stone-400 tabular-nums">{{ group.items.length }}</span>
+                <div class="flex-1 h-px bg-stone-200/60" />
               </div>
 
-              <!-- Stock controls -->
-              <div class="flex items-center gap-1 shrink-0">
-                <button class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="adjustStock(p, -1)">
-                  <UIcon name="i-lucide-minus" class="size-3" />
-                </button>
-                <span class="text-sm font-bold tabular-nums w-8 text-center" :class="p.stock === 0 ? 'text-red-500' : p.stock <= 5 ? 'text-amber-600' : 'text-stone-800'">
-                  {{ p.stock }}
-                </span>
-                <button class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="adjustStock(p, 1)">
-                  <UIcon name="i-lucide-plus" class="size-3" />
-                </button>
-              </div>
+              <div class="space-y-2">
+                <div
+                  v-for="p in group.items" :key="p.id"
+                  class="group rounded-xl bg-white/60 border border-white/70 hover:border-[rgba(175,143,60,0.15)] hover:shadow-sm transition-all overflow-hidden"
+                >
+                  <div class="flex items-center gap-3 px-4 py-3">
+                    <!-- Type icon -->
+                    <div class="size-10 rounded-lg flex items-center justify-center shrink-0 bg-[rgba(175,143,60,0.06)]">
+                      <UIcon :name="group.config.icon" class="size-5 text-[#AF8F3C]" />
+                    </div>
 
-              <!-- Prices -->
-              <div class="shrink-0 text-right w-20">
-                <p class="text-sm font-bold text-stone-800 tabular-nums">{{ formatMoney(p.prix_vente) }} &euro;</p>
-                <p v-if="p.prix_revient" class="text-[11px] text-stone-400 tabular-nums">
-                  marge {{ formatMoney(p.prix_vente - p.prix_revient) }} &euro;
-                </p>
-              </div>
+                    <!-- Info -->
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2">
+                        <p class="text-sm font-semibold text-stone-800 truncate">{{ p.nom }}</p>
+                        <span v-if="p.edition" class="shrink-0 text-[10px] font-medium text-primary/70 bg-primary/5 px-1.5 py-0.5 rounded-full">{{ p.edition }}</span>
+                        <span v-if="p.fait_main" class="shrink-0 text-[10px] font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                          <UIcon name="i-lucide-hand" class="size-2.5" /> Fait main
+                        </span>
+                      </div>
+                      <p v-if="p.sous_titre" class="text-xs text-stone-500 italic truncate">{{ p.sous_titre }}</p>
+                      <div class="flex items-center gap-2 mt-0.5">
+                        <span class="text-[10px] font-mono text-stone-400">{{ p.code }}</span>
+                        <span v-if="p.description" class="text-[11px] text-stone-400 truncate">{{ p.description }}</span>
+                      </div>
+                    </div>
 
-              <button class="shrink-0 opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity" @click="handleDelete(p.id)">
-                <UIcon name="i-lucide-x" class="size-3.5 text-stone-400" />
-              </button>
+                    <!-- Stock (if applicable) -->
+                    <div v-if="p.a_stock" class="flex items-center gap-1 shrink-0">
+                      <button class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="adjustStock(p, -1)">
+                        <UIcon name="i-lucide-minus" class="size-3" />
+                      </button>
+                      <span
+                        class="text-sm font-bold tabular-nums w-8 text-center"
+                        :class="(p.stock || 0) === 0 ? 'text-red-500' : (p.stock || 0) <= 5 ? 'text-amber-600' : 'text-stone-800'"
+                      >{{ p.stock || 0 }}</span>
+                      <button class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="adjustStock(p, 1)">
+                        <UIcon name="i-lucide-plus" class="size-3" />
+                      </button>
+                    </div>
+                    <span v-else class="shrink-0 text-[10px] text-stone-400 bg-stone-50 px-2 py-1 rounded">Sans stock</span>
+
+                    <!-- Price -->
+                    <div class="shrink-0 text-right w-24">
+                      <p class="text-sm font-bold text-stone-800 tabular-nums">{{ formatMoney(p.prix_vente) }} &euro;</p>
+                      <p v-if="p.prix_revient" class="text-[10px] text-emerald-600 tabular-nums">
+                        +{{ formatMoney(p.prix_vente - p.prix_revient) }} marge
+                      </p>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button class="p-1 rounded hover:bg-stone-100 transition-colors" @click="openEdit(p)">
+                        <UIcon name="i-lucide-pencil" class="size-3.5 text-stone-400" />
+                      </button>
+                      <button class="p-1 rounded hover:bg-red-50 transition-colors" @click="handleDelete(p.id)">
+                        <UIcon name="i-lucide-trash-2" class="size-3.5 text-stone-400 hover:text-red-400" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </template>
     </div>
+
+    <!-- Add/Edit modal -->
+    <UModal :open="showForm" @update:open="val => { if (!val) { showForm = false; resetForm() } }">
+      <template #content>
+        <div class="p-6 max-h-[85vh] overflow-y-auto">
+          <h3 class="text-lg font-semibold text-stone-900 mb-5">
+            {{ editingId ? 'Modifier le produit' : 'Nouveau produit' }}
+          </h3>
+
+          <form class="space-y-4" @submit.prevent="handleSubmit">
+            <!-- Type -->
+            <div class="flex flex-wrap gap-2 justify-center">
+              <button
+                v-for="([key, config]) in Object.entries(PRODUIT_TYPES)"
+                :key="key"
+                type="button"
+                class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium border transition-all"
+                :class="form.type_produit === key
+                  ? 'bg-[#AF8F3C] text-white border-[#AF8F3C]'
+                  : 'bg-white/70 text-stone-600 border-stone-200 hover:border-stone-300'"
+                @click="form.type_produit = key as ProduitType"
+              >
+                <UIcon :name="config.icon" class="size-4" />
+                {{ config.label }}
+              </button>
+            </div>
+
+            <!-- Nom + Sous-titre -->
+            <div class="space-y-3">
+              <UFormField label="Nom" required>
+                <UInput v-model="form.nom" :placeholder="form.type_produit === 'livre' ? 'Titre du livre' : form.type_produit === 'service' ? 'Nom du service' : 'Nom du produit'" icon="i-lucide-text" class="w-full" />
+              </UFormField>
+              <UFormField v-if="form.type_produit === 'livre'" label="Sous-titre">
+                <UInput v-model="form.sous_titre" placeholder="Sous-titre ou description courte" class="w-full" />
+              </UFormField>
+            </div>
+
+            <!-- Edition (livres) -->
+            <UFormField v-if="form.type_produit === 'livre'" label="Edition">
+              <UInput v-model="form.edition" placeholder="Ex: 1ere edition, Edition collector, Poche..." icon="i-lucide-layers" class="w-full" />
+              <template #hint><span class="text-[10px] text-stone-400">Creez une fiche par edition</span></template>
+            </UFormField>
+
+            <!-- Prix -->
+            <div class="grid grid-cols-2 gap-3">
+              <UFormField label="Prix de vente" required>
+                <UInput v-model.number="form.prix_vente" type="number" :min="0" step="0.01" placeholder="0.00" icon="i-lucide-euro" class="w-full" />
+              </UFormField>
+              <UFormField label="Prix de revient">
+                <UInput v-model.number="form.prix_revient" type="number" :min="0" step="0.01" placeholder="Optionnel" icon="i-lucide-receipt" class="w-full" />
+              </UFormField>
+            </div>
+
+            <!-- Stock toggle + value -->
+            <div class="flex items-center gap-4">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <div
+                  class="flex items-center justify-center size-5 rounded border-2 transition-all"
+                  :class="form.a_stock ? 'bg-primary border-primary' : 'border-stone-300'"
+                  @click="form.a_stock = !form.a_stock"
+                >
+                  <UIcon v-if="form.a_stock" name="i-lucide-check" class="size-3 text-white" />
+                </div>
+                <span class="text-sm text-stone-700">Gestion de stock</span>
+              </label>
+              <UInput v-if="form.a_stock" v-model.number="form.stock" type="number" :min="0" placeholder="Quantite" size="sm" class="w-28" />
+            </div>
+
+            <!-- Fait main (artisanat) -->
+            <label v-if="form.type_produit === 'artisanat' || form.type_produit === 'derive'" class="flex items-center gap-2 cursor-pointer">
+              <div
+                class="flex items-center justify-center size-5 rounded border-2 transition-all"
+                :class="form.fait_main ? 'bg-amber-500 border-amber-500' : 'border-stone-300'"
+                @click="form.fait_main = !form.fait_main"
+              >
+                <UIcon v-if="form.fait_main" name="i-lucide-check" class="size-3 text-white" />
+              </div>
+              <span class="text-sm text-stone-700">Fait main / artisanal</span>
+            </label>
+
+            <!-- Description + Notes -->
+            <div class="grid grid-cols-2 gap-3">
+              <UFormField label="Description">
+                <UInput v-model="form.description" placeholder="Description courte..." class="w-full" />
+              </UFormField>
+              <UFormField label="Notes">
+                <UInput v-model="form.notes" placeholder="Notes internes..." class="w-full" />
+              </UFormField>
+            </div>
+
+            <!-- Code preview -->
+            <p v-if="!editingId" class="text-[11px] text-stone-400">
+              Code auto : {{ PRODUIT_TYPES[form.type_produit]?.prefix || '??' }}-XXXX
+            </p>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-between pt-2">
+              <UButton v-if="editingId" label="Supprimer" icon="i-lucide-trash-2" color="error" variant="ghost" size="sm" @click="handleDelete(editingId!); showForm = false; resetForm()" />
+              <div v-else />
+              <div class="flex items-center gap-2">
+                <UButton label="Annuler" color="neutral" variant="ghost" @click="showForm = false; resetForm()" />
+                <UButton type="submit" :label="editingId ? 'Enregistrer' : 'Ajouter'" :icon="editingId ? 'i-lucide-check' : 'i-lucide-plus'" :loading="saving" :disabled="!form.nom.trim() || !form.prix_vente" />
+              </div>
+            </div>
+          </form>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
