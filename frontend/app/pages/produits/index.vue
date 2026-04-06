@@ -334,18 +334,17 @@ function formatMoney(n: number) { return n.toLocaleString('fr-FR', { minimumFrac
 
                     <!-- Actions -->
                     <div class="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button v-if="p.type_produit === 'livre'" class="p-1 rounded hover:bg-emerald-50 transition-colors" title="Ajouter une edition" @click="openAddEdition(p)"><UIcon name="i-lucide-layers" class="size-3.5 text-emerald-500" /></button>
                       <button class="p-1 rounded hover:bg-stone-100 transition-colors" @click="openEdit(p)"><UIcon name="i-lucide-pencil" class="size-3.5 text-stone-400" /></button>
                       <button class="p-1 rounded hover:bg-red-50 transition-colors" @click="handleDelete(p.id)"><UIcon name="i-lucide-trash-2" class="size-3.5 text-stone-400 hover:text-red-400" /></button>
                     </div>
                   </div>
 
                   <!-- Editions (livres) -->
-                  <div v-if="p.editions?.length" class="border-t border-stone-100">
+                  <div v-if="p.type_produit === 'livre'" class="border-t border-stone-100">
+                    <!-- Existing editions -->
                     <div
-                      v-for="e in p.editions" :key="e.id"
-                      class="group/ed flex items-center gap-3 px-4 py-2.5 pl-14 hover:bg-stone-50/50 transition-colors"
-                      :class="p.editions.indexOf(e) < p.editions.length - 1 ? 'border-b border-stone-50' : ''"
+                      v-for="e in (p.editions || [])" :key="e.id"
+                      class="group/ed flex items-center gap-3 px-4 py-2.5 pl-14 hover:bg-stone-50/50 transition-colors border-b border-stone-50"
                     >
                       <div class="size-7 rounded flex items-center justify-center shrink-0 bg-primary/5">
                         <span class="text-[10px] font-bold text-primary/60">{{ e.numero }}</span>
@@ -378,6 +377,15 @@ function formatMoney(n: number) { return n.toLocaleString('fr-FR', { minimumFrac
                         <button class="p-1 rounded hover:bg-red-50 transition-colors" @click="handleDeleteEdition(e.id)"><UIcon name="i-lucide-trash-2" class="size-3 text-stone-400 hover:text-red-400" /></button>
                       </div>
                     </div>
+
+                    <!-- Add edition button -->
+                    <button
+                      class="flex items-center gap-2 w-full px-4 py-2 pl-14 text-xs text-primary/60 hover:text-primary hover:bg-primary/3 transition-colors"
+                      @click="openAddEdition(p)"
+                    >
+                      <UIcon name="i-lucide-plus" class="size-3.5" />
+                      Ajouter une edition
+                    </button>
                   </div>
                 </div>
               </div>
