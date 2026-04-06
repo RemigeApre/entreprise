@@ -418,6 +418,16 @@ function saveHistoriqueGlobal() {
   localStorage.setItem('commerce_historique_global', JSON.stringify(historiqueGlobal.value))
 }
 
+function supprimerJournee(date: string, lieu: string) {
+  historiqueGlobal.value = historiqueGlobal.value.filter(j => !(j.date === date && j.lieu === lieu))
+  saveHistoriqueGlobal()
+}
+
+function viderHistoriqueGlobal() {
+  historiqueGlobal.value = []
+  saveHistoriqueGlobal()
+}
+
 function genererRecapPDF(journee: { date: string; lieu: string; recap: ReturnType<typeof buildRecap>; ventes: VenteJour[]; pertes: PerteJour[] }) {
   const r = journee.recap
   const dateStr = new Date(journee.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
@@ -837,7 +847,10 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
 
         <!-- Historique global (journees validees) -->
         <div v-if="historiqueGlobal.length" class="mt-8 border-t border-stone-800 pt-6">
-          <h3 class="text-sm font-semibold text-stone-400 uppercase tracking-wider mb-3">Journees precedentes</h3>
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold text-stone-400 uppercase tracking-wider">Journees precedentes</h3>
+            <button class="text-[10px] text-red-500 hover:text-red-400" @click="viderHistoriqueGlobal">Tout effacer</button>
+          </div>
           <div class="space-y-2">
             <div v-for="j in historiqueGlobal" :key="j.date + j.lieu" class="px-4 py-3 rounded-xl bg-stone-800/40 border border-stone-800">
               <div class="flex items-center justify-between mb-1">
@@ -849,6 +862,9 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
                   <span class="text-sm font-bold text-[#AF8F3C] tabular-nums">{{ formatMoney(j.recap.totalEncaisse) }} &euro;</span>
                   <button class="size-7 rounded-lg bg-stone-700 flex items-center justify-center text-stone-400 hover:text-stone-200" @click="genererRecapPDF(j)" title="Telecharger le recap">
                     <UIcon name="i-lucide-download" class="size-3.5" />
+                  </button>
+                  <button class="size-7 rounded-lg bg-stone-700 flex items-center justify-center text-stone-400 hover:text-red-400" @click="supprimerJournee(j.date, j.lieu)" title="Supprimer">
+                    <UIcon name="i-lucide-trash-2" class="size-3.5" />
                   </button>
                 </div>
               </div>
