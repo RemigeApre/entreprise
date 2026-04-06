@@ -342,11 +342,15 @@ async function handleAdjustStockLieuForProduct(p: Produit, lieuId: number, delta
   try {
     await adjustStockLieu(Number(p.id), lieuId, delta, editionId || null)
     await refreshStocks()
-    // Update the editing product reference
-    if (editingProduct.value && editingProduct.value.id === p.id) {
-      const updated = produits.value.find(pr => pr.id === p.id)
-      if (updated) editingProduct.value = updated
-    }
+  } catch { toast.add({ title: 'Erreur', color: 'error' }) }
+}
+
+async function handleSetStockLieu(p: Produit, lieuId: number, value: number, editionId?: number) {
+  const qty = Math.max(0, Math.round(value))
+  try {
+    const { upsertStock } = useMateriel()
+    await upsertStock(Number(p.id), lieuId, qty, editionId || null)
+    await refreshStocks()
   } catch { toast.add({ title: 'Erreur', color: 'error' }) }
 }
 </script>
@@ -602,30 +606,35 @@ async function handleAdjustStockLieuForProduct(p: Produit, lieuId: number, delta
               </label>
             </div>
 
-            <!-- Stock par lieu (only when editing an existing product with stock) -->
-            <div v-if="form.a_stock && editingProduct && !isLivre" class="p-3 rounded-lg bg-stone-50/80 border border-stone-200/60 space-y-2">
+            <!-- Stock par lieu (when editing, non-livres or livres sans editions) -->
+            <div v-if="form.a_stock && editingProduct && (!isLivre || !editingProduct.editions?.length)" class="p-3 rounded-lg bg-stone-50/80 border border-stone-200/60 space-y-2">
               <div class="flex items-center justify-between">
                 <p class="text-xs font-semibold text-stone-600">Stock par lieu</p>
                 <span class="text-xs text-stone-400 tabular-nums">Total : {{ getStockTotal(editingProduct) }}</span>
               </div>
               <div v-if="!lieux.length" class="text-center py-3">
                 <p class="text-xs text-stone-400 mb-1">Aucun lieu defini</p>
-                <UButton label="Ajouter un lieu" size="xs" variant="ghost" icon="i-lucide-warehouse" @click="showLieux = true" />
+                <UButton type="button" label="Ajouter un lieu" size="xs" variant="ghost" icon="i-lucide-warehouse" @click="showLieux = true" />
               </div>
               <div v-else class="space-y-1">
                 <div v-for="l in lieux" :key="l.id" class="flex items-center gap-2 px-2 py-1.5 rounded bg-white/80">
                   <UIcon name="i-lucide-warehouse" class="size-3.5 text-stone-400 shrink-0" />
                   <span class="text-xs font-medium text-stone-600 flex-1">{{ l.nom }}</span>
                   <div class="flex items-center gap-0.5">
-                    <button class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="handleAdjustStockLieuForProduct(editingProduct, l.id, -1)"><UIcon name="i-lucide-minus" class="size-3" /></button>
-                    <span class="text-xs font-bold tabular-nums w-7 text-center" :class="getStockByLieu(editingProduct, l.id) === 0 ? 'text-stone-300' : 'text-stone-800'">{{ getStockByLieu(editingProduct, l.id) }}</span>
-                    <button class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="handleAdjustStockLieuForProduct(editingProduct, l.id, 1)"><UIcon name="i-lucide-plus" class="size-3" /></button>
+                    <button type="button" class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="handleAdjustStockLieuForProduct(editingProduct!, l.id, -1)"><UIcon name="i-lucide-minus" class="size-3" /></button>
+                    <input
+                      type="number" :min="0"
+                      :value="getStockByLieu(editingProduct!, l.id)"
+                      class="w-12 text-center text-xs font-bold tabular-nums bg-transparent border-b border-stone-200 focus:border-primary outline-none py-0.5"
+                      @change="handleSetStockLieu(editingProduct!, l.id, Number(($event.target as HTMLInputElement).value))"
+                    />
+                    <button type="button" class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="handleAdjustStockLieuForProduct(editingProduct!, l.id, 1)"><UIcon name="i-lucide-plus" class="size-3" /></button>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Editions stock par lieu (livres) -->
+            <!-- Editions stock par lieu (livres avec editions) -->
             <div v-if="form.a_stock && editingProduct && isLivre && editingProduct.editions?.length" class="space-y-3">
               <div v-for="ed in editingProduct.editions" :key="ed.id" class="p-3 rounded-lg bg-stone-50/80 border border-stone-200/60 space-y-2">
                 <div class="flex items-center justify-between">
@@ -633,16 +642,21 @@ async function handleAdjustStockLieuForProduct(p: Produit, lieuId: number, delta
                   <span class="text-xs text-stone-400 tabular-nums">Total : {{ getEditionStockTotal(editingProduct, ed) }}</span>
                 </div>
                 <div v-if="!lieux.length" class="text-center py-2">
-                  <UButton label="Ajouter un lieu" size="xs" variant="ghost" icon="i-lucide-warehouse" @click="showLieux = true" />
+                  <UButton type="button" label="Ajouter un lieu" size="xs" variant="ghost" icon="i-lucide-warehouse" @click="showLieux = true" />
                 </div>
                 <div v-else class="space-y-1">
                   <div v-for="l in lieux" :key="l.id" class="flex items-center gap-2 px-2 py-1.5 rounded bg-white/80">
                     <UIcon name="i-lucide-warehouse" class="size-3.5 text-stone-400 shrink-0" />
                     <span class="text-xs font-medium text-stone-600 flex-1">{{ l.nom }}</span>
                     <div class="flex items-center gap-0.5">
-                      <button class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="handleAdjustStockLieuForProduct(editingProduct, l.id, -1, Number(ed.id))"><UIcon name="i-lucide-minus" class="size-3" /></button>
-                      <span class="text-xs font-bold tabular-nums w-7 text-center" :class="getStockByLieu(editingProduct, l.id, Number(ed.id)) === 0 ? 'text-stone-300' : 'text-stone-800'">{{ getStockByLieu(editingProduct, l.id, Number(ed.id)) }}</span>
-                      <button class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="handleAdjustStockLieuForProduct(editingProduct, l.id, 1, Number(ed.id))"><UIcon name="i-lucide-plus" class="size-3" /></button>
+                      <button type="button" class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="handleAdjustStockLieuForProduct(editingProduct!, l.id, -1, Number(ed.id))"><UIcon name="i-lucide-minus" class="size-3" /></button>
+                      <input
+                        type="number" :min="0"
+                        :value="getStockByLieu(editingProduct!, l.id, Number(ed.id))"
+                        class="w-12 text-center text-xs font-bold tabular-nums bg-transparent border-b border-stone-200 focus:border-primary outline-none py-0.5"
+                        @change="handleSetStockLieu(editingProduct!, l.id, Number(($event.target as HTMLInputElement).value), Number(ed.id))"
+                      />
+                      <button type="button" class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="handleAdjustStockLieuForProduct(editingProduct!, l.id, 1, Number(ed.id))"><UIcon name="i-lucide-plus" class="size-3" /></button>
                     </div>
                   </div>
                 </div>
@@ -730,7 +744,7 @@ async function handleAdjustStockLieuForProduct(p: Produit, lieuId: number, delta
                   <p v-if="l.adresse" class="text-[11px] text-stone-400 truncate">{{ l.adresse }}</p>
                 </div>
               </div>
-              <button class="p-1 rounded hover:bg-red-50 transition-colors shrink-0" @click="handleRemoveLieu(l.id)">
+              <button type="button" class="p-1 rounded hover:bg-red-50 transition-colors shrink-0" @click="handleRemoveLieu(l.id)">
                 <UIcon name="i-lucide-trash-2" class="size-3.5 text-stone-400 hover:text-red-400" />
               </button>
             </div>
