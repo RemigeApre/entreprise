@@ -276,6 +276,11 @@ async function handleLogin() {
             <span v-else>{{ t.connecter }}</span>
           </button>
         </form>
+
+        <NuxtLink to="/commerce" class="commerce-link">
+          <UIcon name="i-lucide-store" class="size-4" />
+          <span>Mode commerce</span>
+        </NuxtLink>
       </div>
     </div>
   </div>
@@ -856,6 +861,23 @@ async function handleLogin() {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+.commerce-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gold);
+  opacity: 0.5;
+  text-decoration: none;
+  transition: opacity 0.3s;
+}
+.commerce-link:hover { opacity: 0.8; }
 
 /* ============================
    RESPONSIVE

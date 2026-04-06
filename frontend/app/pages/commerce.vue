@@ -1,0 +1,668 @@
+<script setup lang="ts">
+import type { Produit, ProduitEdition, LieuStockage } from '~/utils/types'
+import { PRODUIT_TYPES } from '~/utils/constants'
+
+definePageMeta({ layout: false })
+
+const {
+  authenticated, lieuActuel, online, queue, loading,
+  lieux, stocks,
+  loadSession, authenticate, logout, setLieu,
+  loadData, getProduitsWithEditions, getStockForLieu,
+  enqueue, syncQueue, startConnectivityCheck
+} = useCommerce()
+
+// --- PIN Screen ---
+const pinDigits = ref<string[]>(['', '', '', '', '', ''])
+const pinError = ref(false)
+const pinLoading = ref(false)
+const pinRefs = ref<HTMLInputElement[]>([])
+
+function onPinInput(index: number, event: Event) {
+  const input = event.target as HTMLInputElement
+  const val = input.value.replace(/\D/g, '')
+  pinDigits.value[index] = val.slice(-1)
+  if (val && index < 5) {
+    pinRefs.value[index + 1]?.focus()
+  }
+  pinError.value = false
+}
+
+function onPinKeydown(index: number, event: KeyboardEvent) {
+  if (event.key === 'Backspace' && !pinDigits.value[index] && index > 0) {
+    pinRefs.value[index - 1]?.focus()
+  }
+}
+
+async function submitPin() {
+  const pin = pinDigits.value.join('')
+  if (pin.length !== 6) return
+  pinLoading.value = true
+  const ok = await authenticate(pin)
+  pinLoading.value = false
+  if (ok) {
+    await loadData()
+    startConnectivityCheck()
+  } else {
+    pinError.value = true
+    pinDigits.value = ['', '', '', '', '', '']
+    pinRefs.value[0]?.focus()
+  }
+}
+
+watch(() => pinDigits.value.join(''), v => { if (v.length === 6) submitPin() })
+
+// --- Main interface ---
+const menuOpen = ref(false)
+const view = ref<'vente' | 'inventaire' | 'transfert' | 'pertes' | 'historique'>('vente')
+const showLieuSelect = ref(false)
+
+const produitsAvecEditions = computed(() => getProduitsWithEditions())
+const filterType = ref<string>('all')
+
+const produitsFiltered = computed(() => {
+  const all = produitsAvecEditions.value.filter(p => p.a_stock !== false)
+  if (filterType.value === 'all') return all
+  return all.filter(p => p.type_produit === filterType.value)
+})
+
+const lieuActuelNom = computed(() => {
+  if (!lieuActuel.value) return 'Aucun lieu'
+  return lieux.value.find(l => l.id === lieuActuel.value)?.nom || 'Lieu inconnu'
+})
+
+// --- Panier ---
+interface PanierLigne {
+  id: string
+  produit: Produit
+  edition: ProduitEdition | null
+  quantite: number
+  prixUnitaire: number
+  remisePourcent: number
+  remiseMontant: number
+}
+
+const panier = ref<PanierLigne[]>([])
+const clientLabel = ref('')
+const remiseGlobalePourcent = ref(0)
+
+function ajouterAuPanier(p: Produit, edition?: ProduitEdition) {
+  const existing = panier.value.find(l =>
+    l.produit.id === p.id && (edition ? l.edition?.id === edition.id : !l.edition)
+  )
+  if (existing) {
+    existing.quantite++
+  } else {
+    panier.value.push({
+      id: crypto.randomUUID(),
+      produit: p,
+      edition: edition || null,
+      quantite: 1,
+      prixUnitaire: edition?.prix_vente || p.prix_vente,
+      remisePourcent: 0,
+      remiseMontant: 0
+    })
+  }
+}
+
+function retirerDuPanier(id: string) {
+  panier.value = panier.value.filter(l => l.id !== id)
+}
+
+function ligneTotal(l: PanierLigne): number {
+  let prix = l.prixUnitaire * l.quantite
+  if (l.remisePourcent > 0) prix -= prix * l.remisePourcent / 100
+  if (l.remiseMontant > 0) prix -= l.remiseMontant
+  return Math.max(0, prix)
+}
+
+const sousTotal = computed(() => panier.value.reduce((s, l) => s + ligneTotal(l), 0))
+const totalFinal = computed(() => {
+  let t = sousTotal.value
+  if (remiseGlobalePourcent.value > 0) t -= t * remiseGlobalePourcent.value / 100
+  return Math.max(0, t)
+})
+
+// --- Edition picker ---
+const showEditionPicker = ref(false)
+const editionPickerProduit = ref<(Produit & { editions: ProduitEdition[] }) | null>(null)
+
+function handleProductTap(p: Produit & { editions: ProduitEdition[] }) {
+  if (p.type_produit === 'livre' && p.editions.length > 0) {
+    editionPickerProduit.value = p
+    showEditionPicker.value = true
+  } else {
+    ajouterAuPanier(p)
+  }
+}
+
+function handleEditionSelect(p: Produit, e: ProduitEdition) {
+  ajouterAuPanier(p, e)
+  showEditionPicker.value = false
+}
+
+// --- Encaisser ---
+const encaissementLoading = ref(false)
+
+async function encaisser() {
+  if (!panier.value.length || !lieuActuel.value) return
+  encaissementLoading.value = true
+  try {
+    const venteData = {
+      vente: {
+        date: new Date().toISOString(),
+        client_label: clientLabel.value.trim() || null,
+        lieu: lieuActuel.value,
+        total: totalFinal.value,
+        remise_globale_pourcent: remiseGlobalePourcent.value || null,
+        notes: null
+      },
+      lignes: panier.value.map(l => ({
+        produit: Number(l.produit.id),
+        edition: l.edition ? Number(l.edition.id) : null,
+        quantite: l.quantite,
+        prix_unitaire: l.prixUnitaire,
+        remise_pourcent: l.remisePourcent || null,
+        remise_montant: l.remiseMontant || null
+      })),
+      decrements: panier.value.map(l => ({
+        produit: Number(l.produit.id),
+        lieu: lieuActuel.value!,
+        quantite: l.quantite,
+        edition: l.edition ? Number(l.edition.id) : null
+      }))
+    }
+
+    if (online.value) {
+      const { $directus } = useNuxtApp()
+      const vente = await $directus.request(createItem('ventes', venteData.vente))
+      for (const ligne of venteData.lignes) {
+        await $directus.request(createItem('vente_lignes', { ...ligne, vente: (vente as any).id }))
+      }
+      for (const dec of venteData.decrements) {
+        const { adjustStockLieu } = useMateriel()
+        await adjustStockLieu(dec.produit, dec.lieu, -dec.quantite, dec.edition)
+      }
+      await loadData()
+    } else {
+      enqueue({ type: 'vente', data: venteData })
+      // Update local stocks
+      for (const dec of venteData.decrements) {
+        const idx = stocks.value.findIndex(s => {
+          const pid = typeof s.produit === 'object' ? (s.produit as any).id : s.produit
+          const lid = typeof s.lieu === 'object' ? (s.lieu as any).id : s.lieu
+          return pid === dec.produit && lid === dec.lieu && (dec.edition ? s.edition === dec.edition : !s.edition)
+        })
+        if (idx >= 0) stocks.value[idx].quantite = Math.max(0, stocks.value[idx].quantite - dec.quantite)
+      }
+    }
+
+    // Add to today's history
+    ventesAujourdhui.value.unshift({
+      id: crypto.randomUUID(),
+      heure: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+      client: clientLabel.value.trim() || null,
+      lignes: panier.value.map(l => ({ nom: l.edition ? `${l.produit.nom} (${l.edition.nom_edition})` : l.produit.nom, qty: l.quantite })),
+      total: totalFinal.value
+    })
+
+    panier.value = []
+    clientLabel.value = ''
+    remiseGlobalePourcent.value = 0
+  } catch {
+    // Silently enqueue if error
+  } finally {
+    encaissementLoading.value = false
+  }
+}
+
+// --- Historique du jour ---
+interface VenteJour { id: string; heure: string; client: string | null; lignes: { nom: string; qty: number }[]; total: number }
+const ventesAujourdhui = ref<VenteJour[]>([])
+
+// --- Sync ---
+const syncing = ref(false)
+async function handleSync() {
+  syncing.value = true
+  const count = await syncQueue()
+  syncing.value = false
+}
+
+// --- Inventaire ---
+function getStockLieuActuel(produitId: number, editionId?: number): number {
+  if (!lieuActuel.value) return 0
+  return getStockForLieu(produitId, lieuActuel.value, editionId)
+}
+
+async function handleSetInventaire(produitId: number, quantite: number, editionId?: number) {
+  if (!lieuActuel.value) return
+  if (online.value) {
+    const { upsertStock } = useMateriel()
+    await upsertStock(produitId, lieuActuel.value, Math.max(0, quantite), editionId || null)
+    await loadData()
+  } else {
+    enqueue({ type: 'stock_set', data: { produit: produitId, lieu: lieuActuel.value, quantite: Math.max(0, quantite), edition: editionId || null } })
+    // Update local
+    const idx = stocks.value.findIndex(s => {
+      const pid = typeof s.produit === 'object' ? (s.produit as any).id : s.produit
+      const lid = typeof s.lieu === 'object' ? (s.lieu as any).id : s.lieu
+      return pid === produitId && lid === lieuActuel.value && (editionId ? s.edition === editionId : !s.edition)
+    })
+    if (idx >= 0) stocks.value[idx].quantite = Math.max(0, quantite)
+    else stocks.value.push({ id: 0, produit: produitId, edition: editionId || null, lieu: lieuActuel.value, quantite: Math.max(0, quantite) } as any)
+  }
+}
+
+// --- Transfert ---
+const transfertSource = ref<number | null>(null)
+const transfertDest = ref<number | null>(null)
+const transfertItems = ref<{ produitId: number; editionId: number | null; nom: string; quantite: number }[]>([])
+
+function addTransfertItem(p: Produit, edition?: ProduitEdition) {
+  const existing = transfertItems.value.find(i => i.produitId === Number(p.id) && (edition ? i.editionId === Number(edition.id) : !i.editionId))
+  if (existing) { existing.quantite++; return }
+  transfertItems.value.push({
+    produitId: Number(p.id),
+    editionId: edition ? Number(edition.id) : null,
+    nom: edition ? `${p.nom} (${edition.nom_edition})` : p.nom,
+    quantite: 1
+  })
+}
+
+async function executeTransfert() {
+  if (!transfertSource.value || !transfertDest.value || !transfertItems.value.length) return
+  for (const item of transfertItems.value) {
+    const mvt = {
+      produit: item.produitId,
+      edition: item.editionId,
+      lieu_source: transfertSource.value,
+      lieu_destination: transfertDest.value,
+      quantite: item.quantite,
+      type: 'transfert',
+      notes: null,
+      date: new Date().toISOString()
+    }
+    if (online.value) {
+      const { $directus } = useNuxtApp()
+      await $directus.request(createItem('mouvements_stock', mvt))
+      const { adjustStockLieu } = useMateriel()
+      await adjustStockLieu(item.produitId, transfertSource.value!, -item.quantite, item.editionId)
+      await adjustStockLieu(item.produitId, transfertDest.value!, item.quantite, item.editionId)
+    } else {
+      enqueue({ type: 'mouvement', data: mvt })
+    }
+  }
+  if (online.value) await loadData()
+  transfertItems.value = []
+}
+
+// --- Pertes / Cadeaux ---
+const perteType = ref<'perte' | 'cadeau'>('perte')
+const perteProduit = ref<number | null>(null)
+const perteEdition = ref<number | null>(null)
+const perteQuantite = ref(1)
+const perteNotes = ref('')
+
+async function enregistrerPerte() {
+  if (!perteProduit.value || !lieuActuel.value) return
+  const mvt = {
+    produit: perteProduit.value,
+    edition: perteEdition.value,
+    lieu_source: lieuActuel.value,
+    lieu_destination: null,
+    quantite: perteQuantite.value,
+    type: perteType.value,
+    notes: perteNotes.value.trim() || null,
+    date: new Date().toISOString()
+  }
+  if (online.value) {
+    const { $directus } = useNuxtApp()
+    await $directus.request(createItem('mouvements_stock', mvt))
+    const { adjustStockLieu } = useMateriel()
+    await adjustStockLieu(perteProduit.value, lieuActuel.value, -perteQuantite.value, perteEdition.value)
+    await loadData()
+  } else {
+    enqueue({ type: 'mouvement', data: mvt })
+  }
+  perteProduit.value = null; perteEdition.value = null; perteQuantite.value = 1; perteNotes.value = ''
+}
+
+// --- Init ---
+onMounted(() => {
+  if (loadSession()) {
+    loadData()
+    startConnectivityCheck()
+  }
+})
+
+function formatMoney(n: number) { return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
+</script>
+
+<template>
+  <div class="min-h-dvh bg-[#1a1a1a] text-stone-200" style="font-family: 'Crimson Pro', Georgia, serif;">
+
+    <!-- ==================== PIN SCREEN ==================== -->
+    <div v-if="!authenticated" class="flex items-center justify-center min-h-dvh px-4">
+      <div class="text-center max-w-sm w-full">
+        <p class="text-3xl font-bold text-[#AF8F3C] mb-2" style="font-family: 'UnifrakturCook', cursive;">G</p>
+        <h1 class="text-xl font-semibold text-stone-300 mb-1">Commerce</h1>
+        <p class="text-sm text-stone-500 mb-8">Entrez le code PIN</p>
+
+        <div class="flex justify-center gap-3 mb-6">
+          <input
+            v-for="i in 6" :key="i"
+            :ref="el => { if (el) pinRefs[i-1] = el as HTMLInputElement }"
+            type="tel"
+            inputmode="numeric"
+            maxlength="1"
+            :value="pinDigits[i-1]"
+            class="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 bg-stone-900 outline-none transition-colors"
+            :class="pinError ? 'border-red-500 text-red-400' : 'border-stone-700 text-stone-200 focus:border-[#AF8F3C]'"
+            @input="onPinInput(i-1, $event)"
+            @keydown="onPinKeydown(i-1, $event)"
+          />
+        </div>
+
+        <p v-if="pinError" class="text-sm text-red-400 mb-4">Code incorrect</p>
+        <div v-if="pinLoading" class="flex justify-center">
+          <div class="size-6 border-2 border-[#AF8F3C] border-t-transparent rounded-full animate-spin" />
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MAIN INTERFACE ==================== -->
+    <template v-else>
+      <!-- Top bar -->
+      <header class="sticky top-0 z-50 flex items-center gap-3 px-4 py-3 bg-[#222] border-b border-stone-800">
+        <button class="size-10 rounded-lg flex items-center justify-center bg-stone-800 hover:bg-stone-700 transition-colors" @click="menuOpen = !menuOpen">
+          <UIcon :name="menuOpen ? 'i-lucide-x' : 'i-lucide-menu'" class="size-5 text-stone-400" />
+        </button>
+
+        <button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 transition-colors" @click="showLieuSelect = true">
+          <UIcon name="i-lucide-map-pin" class="size-4 text-[#AF8F3C]" />
+          <span class="text-sm font-medium">{{ lieuActuelNom }}</span>
+        </button>
+
+        <div class="flex-1" />
+
+        <!-- Connection status -->
+        <div class="flex items-center gap-2">
+          <button v-if="queue.length" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-900/40 text-amber-400 text-xs font-medium" @click="handleSync" :disabled="!online || syncing">
+            <UIcon :name="syncing ? 'i-lucide-loader-2' : 'i-lucide-upload'" :class="syncing ? 'animate-spin' : ''" class="size-3.5" />
+            {{ queue.length }} en attente
+          </button>
+          <div class="size-2.5 rounded-full" :class="online ? 'bg-emerald-500' : 'bg-red-500'" />
+        </div>
+      </header>
+
+      <!-- Menu lateral -->
+      <Teleport to="body">
+        <Transition enter-active-class="transition-opacity duration-200" leave-active-class="transition-opacity duration-150" enter-from-class="opacity-0" leave-to-class="opacity-0">
+          <div v-if="menuOpen" class="fixed inset-0 z-[60] bg-black/60" @click="menuOpen = false">
+            <div class="w-72 h-full bg-[#1e1e1e] border-r border-stone-800 p-4 space-y-1" @click.stop>
+              <p class="text-[10px] text-stone-500 uppercase tracking-widest mb-3 px-3">Navigation</p>
+              <button v-for="item in [
+                { key: 'vente', label: 'Vente', icon: 'i-lucide-shopping-cart' },
+                { key: 'inventaire', label: 'Inventaire', icon: 'i-lucide-clipboard-list' },
+                { key: 'transfert', label: 'Preparer un depart', icon: 'i-lucide-truck' },
+                { key: 'pertes', label: 'Pertes & cadeaux', icon: 'i-lucide-package-minus' },
+                { key: 'historique', label: 'Historique du jour', icon: 'i-lucide-clock' }
+              ]" :key="item.key"
+                class="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm font-medium transition-colors"
+                :class="view === item.key ? 'bg-[#AF8F3C]/15 text-[#AF8F3C]' : 'text-stone-400 hover:bg-stone-800'"
+                @click="view = item.key as any; menuOpen = false"
+              >
+                <UIcon :name="item.icon" class="size-5" />
+                {{ item.label }}
+              </button>
+
+              <div class="border-t border-stone-800 my-3" />
+              <button class="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm text-red-400 hover:bg-stone-800 transition-colors" @click="logout(); menuOpen = false">
+                <UIcon name="i-lucide-log-out" class="size-5" />
+                Deconnexion
+              </button>
+            </div>
+          </div>
+        </Transition>
+      </Teleport>
+
+      <!-- Lieu selector modal -->
+      <Teleport to="body">
+        <Transition enter-active-class="transition-opacity duration-200" leave-active-class="transition-opacity duration-150" enter-from-class="opacity-0" leave-to-class="opacity-0">
+          <div v-if="showLieuSelect" class="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center px-4" @click="showLieuSelect = false">
+            <div class="bg-[#222] rounded-2xl p-6 w-full max-w-sm space-y-3" @click.stop>
+              <h3 class="text-lg font-semibold text-stone-200 mb-2">Lieu actuel</h3>
+              <button
+                v-for="l in lieux" :key="l.id"
+                class="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium transition-colors"
+                :class="lieuActuel === l.id ? 'bg-[#AF8F3C]/20 text-[#AF8F3C] border border-[#AF8F3C]/30' : 'bg-stone-800 text-stone-300 hover:bg-stone-700'"
+                @click="setLieu(l.id); showLieuSelect = false"
+              >
+                <UIcon name="i-lucide-map-pin" class="size-4" />
+                {{ l.nom }}
+              </button>
+            </div>
+          </div>
+        </Transition>
+      </Teleport>
+
+      <!-- Loading -->
+      <div v-if="loading" class="flex items-center justify-center py-20">
+        <div class="size-8 border-2 border-[#AF8F3C] border-t-transparent rounded-full animate-spin" />
+      </div>
+
+      <!-- ==================== VENTE ==================== -->
+      <div v-else-if="view === 'vente'" class="flex flex-col lg:flex-row h-[calc(100dvh-57px)]">
+        <!-- Produits grid -->
+        <div class="flex-1 overflow-y-auto p-3">
+          <!-- Type filter -->
+          <div class="flex gap-2 mb-3 overflow-x-auto scrollbar-none">
+            <button class="shrink-0 px-3 py-2 rounded-lg text-xs font-semibold transition-colors" :class="filterType === 'all' ? 'bg-[#AF8F3C] text-white' : 'bg-stone-800 text-stone-400'" @click="filterType = 'all'">Tout</button>
+            <button v-for="(config, key) in PRODUIT_TYPES" :key="key" class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors" :class="filterType === key ? 'bg-[#AF8F3C] text-white' : 'bg-stone-800 text-stone-400'" @click="filterType = key">
+              <UIcon :name="config.icon" class="size-3.5" /> {{ config.label }}
+            </button>
+          </div>
+
+          <!-- Product cards -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+            <button
+              v-for="p in produitsFiltered" :key="p.id"
+              class="flex flex-col items-start p-3 rounded-xl bg-stone-800/80 border border-stone-700/50 hover:border-[#AF8F3C]/40 active:scale-[0.97] transition-all text-left min-h-[80px]"
+              @click="handleProductTap(p)"
+            >
+              <p class="text-sm font-semibold text-stone-200 leading-tight mb-1">{{ p.nom }}</p>
+              <p v-if="p.sous_categorie" class="text-[10px] text-stone-500">{{ p.sous_categorie }}</p>
+              <div class="mt-auto flex items-center justify-between w-full pt-1">
+                <span class="text-sm font-bold text-[#AF8F3C] tabular-nums">{{ formatMoney(p.editions.length ? p.editions[0].prix_vente : p.prix_vente) }} &euro;</span>
+                <span v-if="lieuActuel" class="text-[10px] text-stone-500 tabular-nums">
+                  {{ p.editions.length ? p.editions.reduce((s: number, e: ProduitEdition) => s + getStockForLieu(Number(p.id), lieuActuel!, Number(e.id)), 0) : getStockForLieu(Number(p.id), lieuActuel!) }} dispo
+                </span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Panier -->
+        <div class="w-full lg:w-96 shrink-0 bg-[#222] border-t lg:border-t-0 lg:border-l border-stone-800 flex flex-col max-h-[50vh] lg:max-h-none">
+          <div class="px-4 py-3 border-b border-stone-800">
+            <h2 class="text-sm font-semibold text-stone-400 uppercase tracking-wider">Panier</h2>
+          </div>
+
+          <div class="flex-1 overflow-y-auto px-4 py-2 space-y-2">
+            <p v-if="!panier.length" class="text-sm text-stone-600 text-center py-8">Vide</p>
+            <div v-for="l in panier" :key="l.id" class="flex items-center gap-2 p-2 rounded-lg bg-stone-800/50">
+              <div class="flex-1 min-w-0">
+                <p class="text-sm text-stone-200 truncate">{{ l.produit.nom }}</p>
+                <p v-if="l.edition" class="text-[10px] text-stone-500">{{ l.edition.nom_edition }}</p>
+              </div>
+              <div class="flex items-center gap-1">
+                <button type="button" class="size-7 rounded bg-stone-700 flex items-center justify-center text-stone-400" @click="l.quantite > 1 ? l.quantite-- : retirerDuPanier(l.id)">
+                  <UIcon :name="l.quantite === 1 ? 'i-lucide-trash-2' : 'i-lucide-minus'" class="size-3" />
+                </button>
+                <span class="text-sm font-bold tabular-nums w-6 text-center">{{ l.quantite }}</span>
+                <button type="button" class="size-7 rounded bg-stone-700 flex items-center justify-center text-stone-400" @click="l.quantite++">
+                  <UIcon name="i-lucide-plus" class="size-3" />
+                </button>
+              </div>
+              <span class="text-sm font-bold text-[#AF8F3C] tabular-nums w-16 text-right">{{ formatMoney(ligneTotal(l)) }}</span>
+            </div>
+          </div>
+
+          <!-- Bottom -->
+          <div class="px-4 py-3 border-t border-stone-800 space-y-3">
+            <input v-model="clientLabel" placeholder="Client (optionnel)" class="w-full px-3 py-2 rounded-lg bg-stone-800 border border-stone-700 text-sm text-stone-200 placeholder-stone-600 outline-none focus:border-[#AF8F3C]" />
+
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-stone-500">Remise globale</span>
+              <div class="flex items-center gap-1">
+                <input v-model.number="remiseGlobalePourcent" type="number" min="0" max="100" placeholder="0" class="w-14 px-2 py-1 rounded bg-stone-800 border border-stone-700 text-sm text-center text-stone-200 outline-none focus:border-[#AF8F3C]" />
+                <span class="text-xs text-stone-500">%</span>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between text-lg font-bold">
+              <span class="text-stone-400">Total</span>
+              <span class="text-[#AF8F3C] tabular-nums">{{ formatMoney(totalFinal) }} &euro;</span>
+            </div>
+
+            <button
+              class="w-full py-3.5 rounded-xl text-base font-bold transition-all"
+              :class="panier.length ? 'bg-[#AF8F3C] text-white active:scale-[0.98]' : 'bg-stone-800 text-stone-600 cursor-not-allowed'"
+              :disabled="!panier.length || encaissementLoading"
+              @click="encaisser"
+            >
+              {{ encaissementLoading ? 'Enregistrement...' : 'Encaisser' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== INVENTAIRE ==================== -->
+      <div v-else-if="view === 'inventaire'" class="p-4 max-w-2xl mx-auto">
+        <h2 class="text-lg font-semibold text-stone-300 mb-4">Inventaire - {{ lieuActuelNom }}</h2>
+        <div class="space-y-2">
+          <div v-for="p in produitsAvecEditions.filter(p => p.a_stock !== false)" :key="p.id">
+            <template v-if="p.editions.length">
+              <div v-for="e in p.editions" :key="e.id" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-stone-800/60">
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-stone-200">{{ p.nom }}</p>
+                  <p class="text-[10px] text-stone-500">{{ e.nom_edition }}</p>
+                </div>
+                <input type="number" min="0" :value="getStockLieuActuel(Number(p.id), Number(e.id))" class="w-20 px-3 py-2 rounded-lg bg-stone-900 border border-stone-700 text-sm text-center text-stone-200 font-bold tabular-nums outline-none focus:border-[#AF8F3C]" @change="handleSetInventaire(Number(p.id), Number(($event.target as HTMLInputElement).value), Number(e.id))" />
+              </div>
+            </template>
+            <div v-else class="flex items-center gap-3 px-4 py-3 rounded-xl bg-stone-800/60">
+              <div class="flex-1">
+                <p class="text-sm font-medium text-stone-200">{{ p.nom }}</p>
+                <p v-if="p.sous_categorie" class="text-[10px] text-stone-500">{{ p.sous_categorie }}</p>
+              </div>
+              <input type="number" min="0" :value="getStockLieuActuel(Number(p.id))" class="w-20 px-3 py-2 rounded-lg bg-stone-900 border border-stone-700 text-sm text-center text-stone-200 font-bold tabular-nums outline-none focus:border-[#AF8F3C]" @change="handleSetInventaire(Number(p.id), Number(($event.target as HTMLInputElement).value))" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TRANSFERT ==================== -->
+      <div v-else-if="view === 'transfert'" class="p-4 max-w-2xl mx-auto">
+        <h2 class="text-lg font-semibold text-stone-300 mb-4">Preparer un depart</h2>
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div>
+            <p class="text-xs text-stone-500 mb-1">De</p>
+            <select v-model.number="transfertSource" class="w-full px-3 py-2.5 rounded-lg bg-stone-800 border border-stone-700 text-sm text-stone-200 outline-none">
+              <option :value="null" disabled>Choisir...</option>
+              <option v-for="l in lieux" :key="l.id" :value="l.id">{{ l.nom }}</option>
+            </select>
+          </div>
+          <div>
+            <p class="text-xs text-stone-500 mb-1">Vers</p>
+            <select v-model.number="transfertDest" class="w-full px-3 py-2.5 rounded-lg bg-stone-800 border border-stone-700 text-sm text-stone-200 outline-none">
+              <option :value="null" disabled>Choisir...</option>
+              <option v-for="l in lieux" :key="l.id" :value="l.id">{{ l.nom }}</option>
+            </select>
+          </div>
+        </div>
+
+        <p class="text-xs text-stone-500 mb-2">Produits a transferer :</p>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
+          <button v-for="p in produitsAvecEditions.filter(p => p.a_stock !== false)" :key="p.id" class="p-2 rounded-lg bg-stone-800 text-left text-sm text-stone-300 hover:bg-stone-700 active:scale-[0.97] transition-all" @click="p.editions.length ? null : addTransfertItem(p)">
+            {{ p.nom }}
+          </button>
+        </div>
+
+        <div v-if="transfertItems.length" class="space-y-2 mb-4">
+          <div v-for="(item, idx) in transfertItems" :key="idx" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-stone-800/60">
+            <span class="text-sm text-stone-200 flex-1">{{ item.nom }}</span>
+            <input type="number" min="1" v-model.number="item.quantite" class="w-16 px-2 py-1 rounded bg-stone-900 border border-stone-700 text-sm text-center text-stone-200 outline-none" />
+            <button type="button" class="text-stone-500 hover:text-red-400" @click="transfertItems.splice(idx, 1)"><UIcon name="i-lucide-x" class="size-4" /></button>
+          </div>
+        </div>
+
+        <button class="w-full py-3 rounded-xl font-bold transition-all" :class="transfertItems.length && transfertSource && transfertDest ? 'bg-[#AF8F3C] text-white active:scale-[0.98]' : 'bg-stone-800 text-stone-600 cursor-not-allowed'" :disabled="!transfertItems.length || !transfertSource || !transfertDest" @click="executeTransfert">
+          Valider le transfert
+        </button>
+      </div>
+
+      <!-- ==================== PERTES & CADEAUX ==================== -->
+      <div v-else-if="view === 'pertes'" class="p-4 max-w-lg mx-auto">
+        <h2 class="text-lg font-semibold text-stone-300 mb-4">Pertes & cadeaux</h2>
+
+        <div class="flex gap-2 mb-4">
+          <button class="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors" :class="perteType === 'perte' ? 'bg-red-900/40 text-red-400 border border-red-800' : 'bg-stone-800 text-stone-400'" @click="perteType = 'perte'">Perte</button>
+          <button class="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors" :class="perteType === 'cadeau' ? 'bg-emerald-900/40 text-emerald-400 border border-emerald-800' : 'bg-stone-800 text-stone-400'" @click="perteType = 'cadeau'">Cadeau</button>
+        </div>
+
+        <div class="space-y-3">
+          <select v-model.number="perteProduit" class="w-full px-3 py-2.5 rounded-lg bg-stone-800 border border-stone-700 text-sm text-stone-200 outline-none">
+            <option :value="null" disabled>Choisir un produit...</option>
+            <template v-for="p in produitsAvecEditions.filter(p => p.a_stock !== false)" :key="p.id">
+              <option v-if="!p.editions.length" :value="Number(p.id)">{{ p.nom }}</option>
+              <option v-for="e in p.editions" :key="e.id" :value="Number(p.id)" @click="perteEdition = Number(e.id)">{{ p.nom }} - {{ e.nom_edition }}</option>
+            </template>
+          </select>
+          <input type="number" min="1" v-model.number="perteQuantite" placeholder="Quantite" class="w-full px-3 py-2.5 rounded-lg bg-stone-800 border border-stone-700 text-sm text-stone-200 outline-none focus:border-[#AF8F3C]" />
+          <input v-model="perteNotes" :placeholder="perteType === 'perte' ? 'Raison (abime, casse...)' : 'Note (offert a qui...)'" class="w-full px-3 py-2.5 rounded-lg bg-stone-800 border border-stone-700 text-sm text-stone-200 placeholder-stone-600 outline-none focus:border-[#AF8F3C]" />
+          <button class="w-full py-3 rounded-xl font-bold transition-all" :class="perteProduit ? (perteType === 'perte' ? 'bg-red-600 text-white' : 'bg-emerald-600 text-white') + ' active:scale-[0.98]' : 'bg-stone-800 text-stone-600 cursor-not-allowed'" :disabled="!perteProduit" @click="enregistrerPerte">
+            {{ perteType === 'perte' ? 'Enregistrer la perte' : 'Enregistrer le cadeau' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- ==================== HISTORIQUE ==================== -->
+      <div v-else-if="view === 'historique'" class="p-4 max-w-2xl mx-auto">
+        <h2 class="text-lg font-semibold text-stone-300 mb-4">Ventes du jour</h2>
+        <div v-if="!ventesAujourdhui.length" class="text-center py-12 text-stone-600">Aucune vente aujourd'hui</div>
+        <div v-else class="space-y-2">
+          <div v-for="v in ventesAujourdhui" :key="v.id" class="px-4 py-3 rounded-xl bg-stone-800/60">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs text-stone-500">{{ v.heure }}</span>
+              <span class="text-sm font-bold text-[#AF8F3C] tabular-nums">{{ formatMoney(v.total) }} &euro;</span>
+            </div>
+            <p v-if="v.client" class="text-xs text-stone-400 mb-1">{{ v.client }}</p>
+            <div class="flex flex-wrap gap-1">
+              <span v-for="(l, i) in v.lignes" :key="i" class="text-[10px] text-stone-500 bg-stone-800 px-1.5 py-0.5 rounded">{{ l.qty }}x {{ l.nom }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edition picker modal -->
+      <Teleport to="body">
+        <Transition enter-active-class="transition-opacity duration-200" leave-active-class="transition-opacity duration-150" enter-from-class="opacity-0" leave-to-class="opacity-0">
+          <div v-if="showEditionPicker && editionPickerProduit" class="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center px-4" @click="showEditionPicker = false">
+            <div class="bg-[#222] rounded-2xl p-6 w-full max-w-sm space-y-2" @click.stop>
+              <h3 class="text-base font-semibold text-stone-200 mb-3">{{ editionPickerProduit.nom }}</h3>
+              <button
+                v-for="e in editionPickerProduit.editions" :key="e.id"
+                class="flex items-center justify-between w-full px-4 py-3 rounded-xl bg-stone-800 hover:bg-stone-700 active:scale-[0.97] transition-all"
+                @click="handleEditionSelect(editionPickerProduit!, e)"
+              >
+                <span class="text-sm font-medium text-stone-200">{{ e.nom_edition }}</span>
+                <span class="text-sm font-bold text-[#AF8F3C] tabular-nums">{{ formatMoney(e.prix_vente) }} &euro;</span>
+              </button>
+            </div>
+          </div>
+        </Transition>
+      </Teleport>
+    </template>
+  </div>
+</template>

@@ -147,7 +147,9 @@ export default defineNuxtConfig({
     '/stages': { ssr: false },
     '/stages/**': { ssr: false },
     '/anciens': { ssr: false },
-    '/login': { ssr: false }
+    '/login': { ssr: false },
+    '/commerce': { ssr: false },
+    '/commerce/**': { ssr: false }
   },
 
   app: {
