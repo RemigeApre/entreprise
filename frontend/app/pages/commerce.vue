@@ -375,26 +375,13 @@ const pertesAujourdhui = ref<PerteJour[]>([])
 // --- Recap de fin de journee ---
 const showRecap = ref(false)
 
-const recapJournee = computed(() => {
-  const ventes = ventesAujourdhui.value
-  const pertes = pertesAujourdhui.value
-
+function buildRecap(ventes: VenteJour[], pertes: PerteJour[]) {
   const nbVentes = ventes.filter(v => v.lignes.some(l => l.type === 'vente')).length
-  const totalEspeces = ventes.reduce((s, v) => {
-    if (v.paiement === 'especes') return s + v.total
-    return s
-  }, 0)
-  const totalCarte = ventes.reduce((s, v) => {
-    if (v.paiement === 'carte') return s + v.total
-    return s
-  }, 0)
-  const totalMixte = ventes.reduce((s, v) => {
-    if (v.paiement === 'mixte') return s + v.total
-    return s
-  }, 0)
+  const totalEspeces = ventes.reduce((s, v) => v.paiement === 'especes' ? s + v.total : s, 0)
+  const totalCarte = ventes.reduce((s, v) => v.paiement === 'carte' ? s + v.total : s, 0)
+  const totalMixte = ventes.reduce((s, v) => v.paiement === 'mixte' ? s + v.total : s, 0)
   const totalEncaisse = totalEspeces + totalCarte + totalMixte
 
-  // Cadeaux (dans les lignes des ventes)
   let nbCadeaux = 0
   for (const v of ventes) {
     for (const l of v.lignes) {
@@ -402,24 +389,130 @@ const recapJournee = computed(() => {
     }
   }
 
-  // Pertes
   const nbPertes = pertes.reduce((s, p) => s + p.quantite, 0)
 
-  // Remises : on ne peut pas recalculer le montant exact depuis ventesAujourdhui
-  // mais on peut compter le nombre de ventes avec remise globale
-  // Pour l'instant on affiche le total et les sous-totaux
+  return { nbVentes, totalEncaisse, totalEspeces, totalCarte, totalMixte, nbCadeaux, nbPertes }
+}
 
-  return {
-    nbVentes,
-    totalEncaisse,
-    totalEspeces,
-    totalCarte,
-    totalMixte,
-    nbCadeaux,
-    nbPertes,
-    pertes
+const recapJournee = computed(() => buildRecap(ventesAujourdhui.value, pertesAujourdhui.value))
+
+// --- Historique global (persiste en localStorage) ---
+interface JourneeValidee {
+  date: string // YYYY-MM-DD
+  lieu: string
+  recap: ReturnType<typeof buildRecap>
+  ventes: VenteJour[]
+  pertes: PerteJour[]
+}
+
+const historiqueGlobal = ref<JourneeValidee[]>([])
+
+function loadHistoriqueGlobal() {
+  try {
+    const raw = localStorage.getItem('commerce_historique_global')
+    if (raw) historiqueGlobal.value = JSON.parse(raw)
+  } catch { /* ignore */ }
+}
+
+function saveHistoriqueGlobal() {
+  localStorage.setItem('commerce_historique_global', JSON.stringify(historiqueGlobal.value))
+}
+
+function genererRecapPDF(journee: { date: string; lieu: string; recap: ReturnType<typeof buildRecap>; ventes: VenteJour[]; pertes: PerteJour[] }) {
+  const r = journee.recap
+  const dateStr = new Date(journee.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+
+  const ventesRows = journee.ventes.map(v => {
+    const items = v.lignes.map(l => `${l.qty}x ${l.nom}${l.type !== 'vente' ? ' (Cadeau)' : ''}`).join(', ')
+    return `<tr><td>${v.heure}</td><td>${v.client || '-'}</td><td>${items}</td><td>${v.paiement}</td><td style="text-align:right">${formatMoney(v.total)} &euro;</td></tr>`
+  }).join('')
+
+  const pertesRows = journee.pertes.map(p =>
+    `<tr><td>${p.heure}</td><td>${p.quantite}x ${p.produit}</td><td>${p.note || '-'}</td></tr>`
+  ).join('')
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Recap ${journee.date}</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; padding: 40px; color: #222; max-width: 800px; margin: 0 auto; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .sub { color: #888; font-size: 13px; margin-bottom: 24px; }
+  .section { margin-bottom: 24px; }
+  .section h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 8px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+  .stat { background: #f5f5f5; border-radius: 8px; padding: 12px 16px; }
+  .stat .label { font-size: 12px; color: #888; }
+  .stat .value { font-size: 20px; font-weight: 700; }
+  .stat.gold .value { color: #AF8F3C; }
+  .stat.green .value { color: #16a34a; }
+  .stat.red .value { color: #dc2626; }
+  .detail { font-size: 12px; color: #888; margin-top: 2px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 6px 10px; text-align: left; border-bottom: 1px solid #eee; }
+  th { font-size: 11px; text-transform: uppercase; color: #888; background: #f9f9f9; }
+  @media print { body { padding: 20px; } }
+</style></head><body>
+<h1>Le Geai - Recap de journee</h1>
+<p class="sub">${dateStr} - ${journee.lieu}</p>
+
+<div class="grid">
+  <div class="stat"><div class="label">Ventes</div><div class="value">${r.nbVentes}</div></div>
+  <div class="stat gold"><div class="label">Total encaisse</div><div class="value">${formatMoney(r.totalEncaisse)} &euro;</div>
+    <div class="detail">Especes: ${formatMoney(r.totalEspeces)} &euro; | Carte: ${formatMoney(r.totalCarte)} &euro;${r.totalMixte > 0 ? ` | Mixte: ${formatMoney(r.totalMixte)} &euro;` : ''}</div>
+  </div>
+  <div class="stat green"><div class="label">Cadeaux offerts</div><div class="value">${r.nbCadeaux} article${r.nbCadeaux > 1 ? 's' : ''}</div></div>
+  <div class="stat red"><div class="label">Pertes</div><div class="value">${r.nbPertes} article${r.nbPertes > 1 ? 's' : ''}</div></div>
+</div>
+
+${journee.ventes.length ? `<div class="section"><h2>Detail des ventes</h2>
+<table><thead><tr><th>Heure</th><th>Client</th><th>Articles</th><th>Paiement</th><th style="text-align:right">Total</th></tr></thead>
+<tbody>${ventesRows}</tbody></table></div>` : ''}
+
+${journee.pertes.length ? `<div class="section"><h2>Detail des pertes</h2>
+<table><thead><tr><th>Heure</th><th>Produit</th><th>Raison</th></tr></thead>
+<tbody>${pertesRows}</tbody></table></div>` : ''}
+
+<p style="text-align:center;color:#aaa;font-size:11px;margin-top:32px;">Document genere automatiquement - Le Geai</p>
+</body></html>`
+
+  const win = window.open('', '_blank')
+  if (win) {
+    win.document.write(html)
+    win.document.close()
+    win.focus()
+    setTimeout(() => win.print(), 300)
   }
-})
+}
+
+function telechargerRecapPDF() {
+  const today = new Date().toISOString().slice(0, 10)
+  genererRecapPDF({
+    date: today,
+    lieu: lieuActuelNom.value,
+    recap: recapJournee.value,
+    ventes: ventesAujourdhui.value,
+    pertes: pertesAujourdhui.value
+  })
+}
+
+function validerJournee() {
+  const today = new Date().toISOString().slice(0, 10)
+
+  // Archiver dans l'historique global
+  historiqueGlobal.value.unshift({
+    date: today,
+    lieu: lieuActuelNom.value,
+    recap: { ...recapJournee.value },
+    ventes: [...ventesAujourdhui.value],
+    pertes: [...pertesAujourdhui.value]
+  })
+  saveHistoriqueGlobal()
+
+  // Clear journee
+  ventesAujourdhui.value = []
+  pertesAujourdhui.value = []
+  showRecap.value = false
+}
 
 // --- Sync ---
 const syncing = ref(false)
@@ -455,6 +548,7 @@ async function handleSetInventaire(produitId: number, quantite: number, editionI
 
 // --- Init ---
 onMounted(() => {
+  loadHistoriqueGlobal()
   if (loadSession()) { loadData(); startConnectivityCheck() }
 })
 
@@ -730,7 +824,7 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
         <!-- Pertes -->
         <h3 class="text-sm font-semibold text-stone-400 uppercase tracking-wider mb-2">Pertes</h3>
         <div v-if="!pertesAujourdhui.length" class="text-center py-8 text-stone-600 text-sm">Aucune perte aujourd'hui</div>
-        <div v-else class="space-y-2">
+        <div v-else class="space-y-2 mb-6">
           <div v-for="p in pertesAujourdhui" :key="p.id" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-950/20 border border-red-900/20">
             <UIcon name="i-lucide-alert-triangle" class="size-4 text-red-400 shrink-0" />
             <div class="flex-1 min-w-0">
@@ -738,6 +832,34 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
               <p v-if="p.note" class="text-[10px] text-stone-500">{{ p.note }}</p>
             </div>
             <span class="text-xs text-stone-500 shrink-0">{{ p.heure }}</span>
+          </div>
+        </div>
+
+        <!-- Historique global (journees validees) -->
+        <div v-if="historiqueGlobal.length" class="mt-8 border-t border-stone-800 pt-6">
+          <h3 class="text-sm font-semibold text-stone-400 uppercase tracking-wider mb-3">Journees precedentes</h3>
+          <div class="space-y-2">
+            <div v-for="j in historiqueGlobal" :key="j.date + j.lieu" class="px-4 py-3 rounded-xl bg-stone-800/40 border border-stone-800">
+              <div class="flex items-center justify-between mb-1">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-semibold text-stone-300">{{ new Date(j.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' }) }}</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-stone-700 text-stone-500">{{ j.lieu }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-bold text-[#AF8F3C] tabular-nums">{{ formatMoney(j.recap.totalEncaisse) }} &euro;</span>
+                  <button class="size-7 rounded-lg bg-stone-700 flex items-center justify-center text-stone-400 hover:text-stone-200" @click="genererRecapPDF(j)" title="Telecharger le recap">
+                    <UIcon name="i-lucide-download" class="size-3.5" />
+                  </button>
+                </div>
+              </div>
+              <div class="flex flex-wrap gap-3 text-[10px] text-stone-500">
+                <span>{{ j.recap.nbVentes }} vente{{ j.recap.nbVentes > 1 ? 's' : '' }}</span>
+                <span v-if="j.recap.nbCadeaux">{{ j.recap.nbCadeaux }} cadeau{{ j.recap.nbCadeaux > 1 ? 'x' : '' }}</span>
+                <span v-if="j.recap.nbPertes" class="text-red-500">{{ j.recap.nbPertes }} perte{{ j.recap.nbPertes > 1 ? 's' : '' }}</span>
+                <span>Especes: {{ formatMoney(j.recap.totalEspeces) }} &euro;</span>
+                <span>Carte: {{ formatMoney(j.recap.totalCarte) }} &euro;</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -900,12 +1022,24 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
                 </div>
               </div>
 
-              <p class="text-[10px] text-stone-600 text-center">Recap informatif uniquement. Aucune transaction creee.</p>
+              <p class="text-[10px] text-stone-600 text-center">Recap informatif. Aucune transaction creee dans le solde finance.</p>
 
-              <button
-                class="w-full py-3 rounded-xl text-sm font-bold bg-[#AF8F3C] text-white active:scale-[0.98] transition-all"
-                @click="showRecap = false"
-              >Fermer</button>
+              <div class="space-y-2">
+                <button
+                  class="w-full py-3 rounded-xl text-sm font-bold bg-stone-700 text-stone-200 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                  @click="telechargerRecapPDF"
+                >
+                  <UIcon name="i-lucide-download" class="size-4" /> Telecharger le recap (PDF)
+                </button>
+                <button
+                  class="w-full py-3 rounded-xl text-sm font-bold bg-[#AF8F3C] text-white active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                  @click="validerJournee"
+                >
+                  <UIcon name="i-lucide-check-circle" class="size-4" /> Valider et cloturer la journee
+                </button>
+              </div>
+
+              <button class="w-full py-2 text-sm text-stone-500 hover:text-stone-300" @click="showRecap = false">Annuler</button>
             </div>
           </div>
         </Transition>
