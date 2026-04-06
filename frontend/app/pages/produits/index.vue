@@ -313,14 +313,16 @@ function formatMoney(n: number) { return n.toLocaleString('fr-FR', { minimumFrac
 // --- Lieux management ---
 const showLieux = ref(false)
 const newLieuNom = ref('')
+const newLieuAdresse = ref('')
 const addingLieu = ref(false)
 
 async function handleAddLieu() {
   if (!newLieuNom.value.trim()) return
   addingLieu.value = true
   try {
-    await createLieu(newLieuNom.value.trim())
+    await createLieu(newLieuNom.value.trim(), newLieuAdresse.value.trim() || null)
     newLieuNom.value = ''
+    newLieuAdresse.value = ''
     await refreshLieux()
     toast.add({ title: 'Lieu ajoute', color: 'success' })
   } catch { toast.add({ title: 'Erreur', color: 'error' }) }
@@ -462,9 +464,10 @@ async function handleAdjustStockLieu(lieuId: number, delta: number) {
 
                     <!-- Stock (only if no editions) -->
                     <template v-if="!p.editions?.length">
-                      <button v-if="p.a_stock" class="flex items-center gap-1.5 shrink-0 px-2 py-1 rounded-lg hover:bg-stone-100 transition-colors" @click="openStockDetail(p)">
+                      <button v-if="p.a_stock" class="flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-lg bg-stone-50 border border-stone-200/60 hover:border-stone-300 hover:bg-stone-100 transition-all" @click="openStockDetail(p)">
                         <UIcon name="i-lucide-warehouse" class="size-3.5 text-stone-400" />
                         <span class="text-sm font-bold tabular-nums" :class="getStockTotal(p) === 0 ? 'text-red-500' : getStockTotal(p) <= 5 ? 'text-amber-600' : 'text-stone-800'">{{ getStockTotal(p) }}</span>
+                        <UIcon name="i-lucide-chevron-right" class="size-3 text-stone-300" />
                       </button>
                       <span v-else class="shrink-0 text-[10px] text-stone-400 bg-stone-50 px-2 py-1 rounded">Sans stock</span>
 
@@ -502,9 +505,10 @@ async function handleAdjustStockLieu(lieuId: number, delta: number) {
                       </div>
 
                       <!-- Edition stock -->
-                      <button v-if="p.a_stock" class="flex items-center gap-1 shrink-0 px-1.5 py-0.5 rounded hover:bg-stone-100 transition-colors" @click="openStockDetail(p, e)">
+                      <button v-if="p.a_stock" class="flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded-lg bg-stone-50 border border-stone-200/60 hover:border-stone-300 hover:bg-stone-100 transition-all" @click="openStockDetail(p, e)">
                         <UIcon name="i-lucide-warehouse" class="size-3 text-stone-400" />
                         <span class="text-xs font-bold tabular-nums" :class="getEditionStockTotal(p, e) === 0 ? 'text-red-500' : getEditionStockTotal(p, e) <= 5 ? 'text-amber-600' : 'text-stone-700'">{{ getEditionStockTotal(p, e) }}</span>
+                        <UIcon name="i-lucide-chevron-right" class="size-2.5 text-stone-300" />
                       </button>
 
                       <!-- Edition price -->
@@ -681,21 +685,27 @@ async function handleAdjustStockLieu(lieuId: number, delta: number) {
           <div class="space-y-2 mb-4">
             <div
               v-for="l in lieux" :key="l.id"
-              class="flex items-center justify-between px-3 py-2 rounded-lg bg-stone-50"
+              class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-stone-50"
             >
-              <div class="flex items-center gap-2">
-                <UIcon name="i-lucide-warehouse" class="size-4 text-stone-400" />
-                <span class="text-sm font-medium text-stone-700">{{ l.nom }}</span>
+              <div class="flex items-center gap-2 flex-1 min-w-0">
+                <UIcon name="i-lucide-warehouse" class="size-4 text-stone-400 shrink-0" />
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-stone-700">{{ l.nom }}</p>
+                  <p v-if="l.adresse" class="text-[11px] text-stone-400 truncate">{{ l.adresse }}</p>
+                </div>
               </div>
-              <button class="p-1 rounded hover:bg-red-50 transition-colors" @click="handleRemoveLieu(l.id)">
+              <button class="p-1 rounded hover:bg-red-50 transition-colors shrink-0" @click="handleRemoveLieu(l.id)">
                 <UIcon name="i-lucide-trash-2" class="size-3.5 text-stone-400 hover:text-red-400" />
               </button>
             </div>
             <p v-if="!lieux.length" class="text-sm text-stone-400 text-center py-4">Aucun lieu</p>
           </div>
-          <form class="flex items-center gap-2" @submit.prevent="handleAddLieu">
-            <UInput v-model="newLieuNom" placeholder="Nouveau lieu..." icon="i-lucide-plus" size="sm" class="flex-1" />
-            <UButton type="submit" label="Ajouter" size="sm" :loading="addingLieu" :disabled="!newLieuNom.trim()" />
+          <form class="space-y-2" @submit.prevent="handleAddLieu">
+            <div class="flex items-center gap-2">
+              <UInput v-model="newLieuNom" placeholder="Nom du lieu..." icon="i-lucide-warehouse" size="sm" class="flex-1" />
+              <UButton type="submit" label="Ajouter" size="sm" :loading="addingLieu" :disabled="!newLieuNom.trim()" />
+            </div>
+            <UInput v-model="newLieuAdresse" placeholder="Adresse (optionnel)" icon="i-lucide-map-pin" size="sm" class="w-full" />
           </form>
         </div>
       </template>

@@ -479,6 +479,7 @@ export interface ProduitEdition {
 export interface LieuStockage {
   id: number
   nom: string
+  adresse: string | null
   date_created: string
 }
 

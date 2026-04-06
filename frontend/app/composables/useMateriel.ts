@@ -104,8 +104,8 @@ export function useMateriel() {
     })) as any[]
   }
 
-  async function createLieu(nom: string) {
-    return await $directus.request(createItem('lieux_stockage', { nom }))
+  async function createLieu(nom: string, adresse?: string | null) {
+    return await $directus.request(createItem('lieux_stockage', { nom, adresse: adresse || null }))
   }
 
   async function removeLieu(id: number) {
