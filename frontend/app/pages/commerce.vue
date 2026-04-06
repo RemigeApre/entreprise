@@ -524,6 +524,36 @@ function validerJournee() {
   showRecap.value = false
 }
 
+// --- Modifier / supprimer ventes et pertes du jour ---
+const showEditVente = ref(false)
+const editVenteId = ref<string | null>(null)
+const editClient = ref('')
+const editPaiement = ref<'especes' | 'carte' | 'mixte'>('especes')
+
+function ouvrirEditVente(v: VenteJour) {
+  editVenteId.value = v.id
+  editClient.value = v.client || ''
+  editPaiement.value = v.paiement as 'especes' | 'carte' | 'mixte'
+  showEditVente.value = true
+}
+
+function sauverEditVente() {
+  const v = ventesAujourdhui.value.find(x => x.id === editVenteId.value)
+  if (v) {
+    v.client = editClient.value.trim() || null
+    v.paiement = editPaiement.value
+  }
+  showEditVente.value = false
+}
+
+function supprimerVenteJour(id: string) {
+  ventesAujourdhui.value = ventesAujourdhui.value.filter(v => v.id !== id)
+}
+
+function supprimerPerteJour(id: string) {
+  pertesAujourdhui.value = pertesAujourdhui.value.filter(p => p.id !== id)
+}
+
 // --- Sync ---
 const syncing = ref(false)
 async function handleSync() {
@@ -820,7 +850,15 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
                 <span class="text-xs text-stone-500">{{ v.heure }}</span>
                 <span class="text-[10px] px-1.5 py-0.5 rounded bg-stone-700 text-stone-400">{{ v.paiement }}</span>
               </div>
-              <span class="text-sm font-bold text-[#AF8F3C] tabular-nums">{{ formatMoney(v.total) }} &euro;</span>
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-bold text-[#AF8F3C] tabular-nums">{{ formatMoney(v.total) }} &euro;</span>
+                <button class="size-6 rounded bg-stone-700 flex items-center justify-center text-stone-500 hover:text-stone-200" @click="ouvrirEditVente(v)" title="Modifier">
+                  <UIcon name="i-lucide-pencil" class="size-3" />
+                </button>
+                <button class="size-6 rounded bg-stone-700 flex items-center justify-center text-stone-500 hover:text-red-400" @click="supprimerVenteJour(v.id)" title="Supprimer">
+                  <UIcon name="i-lucide-trash-2" class="size-3" />
+                </button>
+              </div>
             </div>
             <p v-if="v.client" class="text-xs text-stone-400 mb-1">{{ v.client }}</p>
             <div class="flex flex-wrap gap-1">
@@ -842,6 +880,9 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
               <p v-if="p.note" class="text-[10px] text-stone-500">{{ p.note }}</p>
             </div>
             <span class="text-xs text-stone-500 shrink-0">{{ p.heure }}</span>
+            <button class="size-6 rounded bg-stone-700/50 flex items-center justify-center text-stone-500 hover:text-red-400 shrink-0" @click="supprimerPerteJour(p.id)" title="Supprimer">
+              <UIcon name="i-lucide-trash-2" class="size-3" />
+            </button>
           </div>
         </div>
 
@@ -1056,6 +1097,38 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
               </div>
 
               <button class="w-full py-2 text-sm text-stone-500 hover:text-stone-300" @click="showRecap = false">Annuler</button>
+            </div>
+          </div>
+        </Transition>
+      </Teleport>
+
+      <!-- Edit vente modal -->
+      <Teleport to="body">
+        <Transition enter-active-class="transition-opacity duration-200" leave-active-class="transition-opacity duration-150" enter-from-class="opacity-0" leave-to-class="opacity-0">
+          <div v-if="showEditVente" class="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center px-4" @click="showEditVente = false">
+            <div class="bg-[#222] rounded-2xl p-6 w-full max-w-sm space-y-4" @click.stop>
+              <h3 class="text-lg font-semibold text-stone-200">Modifier la vente</h3>
+
+              <div>
+                <label class="text-xs text-stone-500 mb-1.5 block">Client</label>
+                <input v-model="editClient" placeholder="Client (optionnel)" class="w-full px-3 py-2 rounded-lg bg-stone-800 border border-stone-700 text-sm text-stone-200 placeholder-stone-600 outline-none focus:border-[#AF8F3C]" />
+              </div>
+
+              <div>
+                <label class="text-xs text-stone-500 mb-1.5 block">Mode de paiement</label>
+                <div class="flex gap-2">
+                  <button v-for="m in (['especes', 'carte', 'mixte'] as const)" :key="m"
+                    class="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                    :class="editPaiement === m ? 'bg-[#AF8F3C] text-white' : 'bg-stone-800 text-stone-400'"
+                    @click="editPaiement = m"
+                  >{{ m === 'especes' ? 'Especes' : m === 'carte' ? 'Carte' : 'Mixte' }}</button>
+                </div>
+              </div>
+
+              <button class="w-full py-3 rounded-xl text-sm font-bold bg-[#AF8F3C] text-white active:scale-[0.98] transition-all" @click="sauverEditVente">
+                Enregistrer
+              </button>
+              <button class="w-full py-2 text-sm text-stone-500 hover:text-stone-300" @click="showEditVente = false">Annuler</button>
             </div>
           </div>
         </Transition>
