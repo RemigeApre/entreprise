@@ -482,6 +482,7 @@ export interface Produit {
   nom: string
   sous_titre: string | null
   auteur: string | null
+  sous_categorie: string | null
   type_produit: ProduitType
   prix_numerique: number | null
   prix_physique: number | null

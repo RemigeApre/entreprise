@@ -38,12 +38,34 @@ const filtered = computed(() => {
   return produits.value.filter(p => filterType.value === 'all' || p.type_produit === filterType.value)
 })
 
-const groupedByType = computed(() => {
-  const groups: { type: ProduitType; config: typeof PRODUIT_TYPES[keyof typeof PRODUIT_TYPES]; items: Produit[] }[] = []
+interface SubGroup { label: string | null; items: Produit[] }
+interface TypeGroup { type: ProduitType; config: typeof PRODUIT_TYPES[keyof typeof PRODUIT_TYPES]; subGroups: SubGroup[] }
+
+const groupedByType = computed<TypeGroup[]>(() => {
+  const groups: TypeGroup[] = []
   const types = filterType.value === 'all' ? Object.keys(PRODUIT_TYPES) as ProduitType[] : [filterType.value]
   for (const t of types) {
     const items = (produits.value || []).filter(p => p.type_produit === t)
-    if (items.length) groups.push({ type: t, config: PRODUIT_TYPES[t], items })
+    if (!items.length) continue
+
+    // Group by sous_categorie within each type
+    const subMap = new Map<string | null, Produit[]>()
+    for (const p of items) {
+      const key = p.sous_categorie || null
+      const list = subMap.get(key) || []
+      list.push(p)
+      subMap.set(key, list)
+    }
+    // Sort: named categories first (alphabetically), then null
+    const subGroups = [...subMap.entries()]
+      .sort((a, b) => {
+        if (!a[0] && b[0]) return 1
+        if (a[0] && !b[0]) return -1
+        return (a[0] || '').localeCompare(b[0] || '')
+      })
+      .map(([label, items]) => ({ label, items }))
+
+    groups.push({ type: t, config: PRODUIT_TYPES[t], subGroups })
   }
   return groups
 })
@@ -84,7 +106,7 @@ const showForm = ref(false)
 const editingId = ref<string | null>(null)
 const saving = ref(false)
 const form = reactive({
-  nom: '', sous_titre: '', auteur: '',
+  nom: '', sous_titre: '', auteur: '', sous_categorie: '',
   type_produit: 'livre' as ProduitType,
   prix_vente: null as number | null,
   prix_numerique: null as number | null, prix_physique: null as number | null,
@@ -94,8 +116,18 @@ const form = reactive({
   description: '', notes: ''
 })
 
+// Existing sous_categories for autocomplete
+const existingSousCategories = computed(() => {
+  if (!produits.value) return []
+  const set = new Set<string>()
+  for (const p of produits.value) {
+    if (p.sous_categorie && p.type_produit === form.type_produit) set.add(p.sous_categorie)
+  }
+  return [...set].sort()
+})
+
 function resetForm() {
-  form.nom = ''; form.sous_titre = ''; form.auteur = ''
+  form.nom = ''; form.sous_titre = ''; form.auteur = ''; form.sous_categorie = ''
   form.type_produit = filterType.value !== 'all' ? filterType.value : 'livre'
   form.prix_vente = null; form.prix_numerique = null; form.prix_physique = null
   form.cout_impression = null; form.cout_fixe = null; form.prix_revient = null
@@ -106,7 +138,8 @@ function resetForm() {
 function openAdd() { resetForm(); showForm.value = true }
 function openEdit(p: Produit) {
   editingId.value = p.id; form.nom = p.nom; form.sous_titre = p.sous_titre || ''
-  form.auteur = p.auteur || ''; form.type_produit = p.type_produit
+  form.auteur = p.auteur || ''; form.sous_categorie = p.sous_categorie || ''
+  form.type_produit = p.type_produit
   form.prix_vente = p.prix_vente; form.prix_numerique = p.prix_numerique
   form.prix_physique = p.prix_physique; form.cout_impression = p.cout_impression
   form.cout_fixe = p.cout_fixe; form.prix_revient = p.prix_revient
@@ -130,7 +163,8 @@ async function handleSubmit() {
   try {
     const data: any = {
       nom: form.nom.trim(), sous_titre: form.sous_titre.trim() || null,
-      auteur: form.auteur.trim() || null, type_produit: form.type_produit,
+      auteur: form.auteur.trim() || null, sous_categorie: form.sous_categorie.trim() || null,
+      type_produit: form.type_produit,
       prix_vente: form.prix_vente || 0,
       prix_numerique: form.prix_numerique || null, prix_physique: form.prix_physique || null,
       cout_impression: form.cout_impression || null, cout_fixe: form.cout_fixe || null,
@@ -296,18 +330,27 @@ function formatMoney(n: number) { return n.toLocaleString('fr-FR', { minimumFrac
             <UButton label="Ajouter un produit" icon="i-lucide-plus" variant="subtle" class="mt-3" @click="openAdd" />
           </div>
 
-          <div v-else class="space-y-6">
+          <div v-else class="space-y-8">
             <div v-for="group in groupedByType" :key="group.type">
               <div class="flex items-center gap-2 mb-3">
                 <UIcon :name="group.config.icon" class="size-4 text-[#AF8F3C]" />
                 <p class="text-xs font-semibold text-stone-600 uppercase tracking-wider">{{ group.config.label }}s</p>
-                <span class="text-xs text-stone-400 tabular-nums">{{ group.items.length }}</span>
+                <span class="text-xs text-stone-400 tabular-nums">{{ group.subGroups.reduce((s, g) => s + g.items.length, 0) }}</span>
                 <div class="flex-1 h-px bg-stone-200/60" />
               </div>
 
-              <div class="space-y-2">
+              <div class="space-y-4">
+                <div v-for="sub in group.subGroups" :key="sub.label || '_none'">
+                  <!-- Sub-category label -->
+                  <p v-if="sub.label" class="text-[11px] font-medium text-stone-500 mb-1.5 pl-1 flex items-center gap-1.5">
+                    <UIcon name="i-lucide-tag" class="size-3 text-stone-400" />
+                    {{ sub.label }}
+                    <span class="text-stone-400 tabular-nums">{{ sub.items.length }}</span>
+                  </p>
+
+                  <div class="space-y-2">
                 <div
-                  v-for="p in group.items" :key="p.id"
+                  v-for="p in sub.items" :key="p.id"
                   class="rounded-xl bg-white/60 border border-white/70 hover:border-[rgba(175,143,60,0.15)] hover:shadow-sm transition-all overflow-hidden"
                 >
                   <!-- Main product row -->
@@ -329,7 +372,7 @@ function formatMoney(n: number) { return n.toLocaleString('fr-FR', { minimumFrac
                       <p v-if="p.sous_titre" class="text-xs text-stone-500 italic truncate">{{ p.sous_titre }}</p>
                       <div class="flex items-center gap-2 mt-0.5 flex-wrap">
                         <span class="text-[10px] font-mono text-stone-400">{{ p.code }}</span>
-                        <span v-if="p.auteur" class="text-[11px] text-stone-500">par {{ p.auteur }}</span>
+                        <span v-if="p.auteur && p.type_produit === 'livre'" class="text-[11px] text-stone-500">par {{ p.auteur }}</span>
                         <span v-if="p.description" class="text-[11px] text-stone-400 truncate">{{ p.description }}</span>
                       </div>
                     </div>
@@ -409,6 +452,8 @@ function formatMoney(n: number) { return n.toLocaleString('fr-FR', { minimumFrac
                     </button>
                   </div>
                 </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -429,12 +474,23 @@ function formatMoney(n: number) { return n.toLocaleString('fr-FR', { minimumFrac
                 @click="form.type_produit = key as ProduitType"
               ><UIcon :name="config.icon" class="size-4" /> {{ config.label }}</button>
             </div>
+            <!-- Nom + Auteur (livres) or Nom + Categorie (autres) -->
             <div :class="isLivre ? 'grid grid-cols-2 gap-3' : ''">
               <UFormField label="Nom" required><UInput v-model="form.nom" :placeholder="isLivre ? 'Titre du livre' : 'Nom du produit'" icon="i-lucide-text" class="w-full" /></UFormField>
               <UFormField v-if="isLivre" label="Auteur"><UInput v-model="form.auteur" placeholder="Nom de l'auteur" icon="i-lucide-user" class="w-full" /></UFormField>
             </div>
             <UFormField v-if="isLivre" label="Sous-titre"><UInput v-model="form.sous_titre" placeholder="Sous-titre ou accroche" class="w-full" /></UFormField>
-            <UFormField v-if="!isLivre && (form.type_produit === 'artisanat' || form.type_produit === 'derive')" label="Createur"><UInput v-model="form.auteur" placeholder="Optionnel" icon="i-lucide-user" class="w-full" /></UFormField>
+
+            <!-- Categorie (non-livres) -->
+            <UFormField v-if="!isLivre" label="Categorie">
+              <UInput v-model="form.sous_categorie" :placeholder="form.type_produit === 'derive' ? 'Marque-page, Autocollant, Poster...' : form.type_produit === 'artisanat' ? 'Cotte de maille, Linogravure...' : form.type_produit === 'service' ? 'Site vitrine, Application, Maintenance...' : 'Categorie...'" icon="i-lucide-tag" class="w-full" :list="'cat-suggestions-' + form.type_produit" />
+              <datalist :id="'cat-suggestions-' + form.type_produit">
+                <option v-for="c in existingSousCategories" :key="c" :value="c" />
+              </datalist>
+              <template v-if="existingSousCategories.length" #hint>
+                <span class="text-[10px] text-stone-400">Existantes : {{ existingSousCategories.join(', ') }}</span>
+              </template>
+            </UFormField>
 
             <!-- Prix (hidden for books with editions, they use edition prices) -->
             <template v-if="!isLivre">
