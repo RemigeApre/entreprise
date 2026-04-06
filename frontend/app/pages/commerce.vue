@@ -57,6 +57,16 @@ const produitsFiltered = computed(() => {
   return all.filter(p => p.type_produit === filterType.value)
 })
 
+const produitsGrouped = computed(() => {
+  if (filterType.value !== 'all') return null
+  const groups: { key: string; label: string; icon: string; produits: typeof produitsFiltered.value }[] = []
+  for (const [key, config] of Object.entries(PRODUIT_TYPES)) {
+    const items = produitsFiltered.value.filter(p => p.type_produit === key)
+    if (items.length) groups.push({ key, label: config.label, icon: config.icon, produits: items })
+  }
+  return groups
+})
+
 const lieuActuelNom = computed(() => {
   if (!lieuActuel.value) return 'Aucun lieu'
   return lieux.value.find(l => l.id === lieuActuel.value)?.nom || 'Lieu inconnu'
@@ -756,18 +766,51 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
           </div>
 
           <!-- Product cards -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+          <template v-if="produitsGrouped">
+            <div v-for="group in produitsGrouped" :key="group.key" class="mb-4">
+              <div class="flex items-center gap-2 mb-2 px-1">
+                <UIcon :name="group.icon" class="size-4 text-stone-500" />
+                <h3 class="text-xs font-semibold text-stone-500 uppercase tracking-wider">{{ group.label }}</h3>
+                <div class="flex-1 border-t border-stone-800" />
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                <button
+                  v-for="p in group.produits" :key="p.id"
+                  class="flex flex-col items-start p-3 rounded-xl border active:scale-[0.97] transition-all text-left min-h-[80px]"
+                  :class="addMode === 'vente' ? 'bg-stone-800/80 border-stone-700/50 hover:border-[#AF8F3C]/40' : 'bg-emerald-950/30 border-emerald-900/40 hover:border-emerald-700/60'"
+                  @click="handleProductTap(p, addMode)"
+                >
+                  <div class="flex items-center gap-1.5 mb-1">
+                    <UIcon :name="group.icon" class="size-3.5 text-stone-500 shrink-0" />
+                    <p class="text-sm font-semibold text-stone-200 leading-tight">{{ p.nom }}</p>
+                  </div>
+                  <p v-if="p.sous_categorie" class="text-[10px] text-stone-500">{{ p.sous_categorie }}</p>
+                  <div class="mt-auto flex items-center justify-between w-full pt-1">
+                    <span v-if="addMode === 'vente'" class="text-sm font-bold text-[#AF8F3C] tabular-nums">{{ formatMoney(p.editions.length ? p.editions[0].prix_vente : p.prix_vente) }} &euro;</span>
+                    <span v-else class="text-xs text-emerald-400">{{ TYPE_COLORS[addMode].label }}</span>
+                    <span v-if="lieuActuel" class="text-[10px] text-stone-500 tabular-nums">
+                      {{ p.editions.length ? p.editions.reduce((s: number, e: ProduitEdition) => s + getStockForLieu(Number(p.id), lieuActuel!, Number(e.id)), 0) : getStockForLieu(Number(p.id), lieuActuel!) }} dispo
+                    </span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </template>
+          <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
             <button
               v-for="p in produitsFiltered" :key="p.id"
               class="flex flex-col items-start p-3 rounded-xl border active:scale-[0.97] transition-all text-left min-h-[80px]"
-              :class="addMode === 'vente' ? 'bg-stone-800/80 border-stone-700/50 hover:border-[#AF8F3C]/40' : addMode === 'perte' ? 'bg-red-950/30 border-red-900/40 hover:border-red-700/60' : 'bg-emerald-950/30 border-emerald-900/40 hover:border-emerald-700/60'"
+              :class="addMode === 'vente' ? 'bg-stone-800/80 border-stone-700/50 hover:border-[#AF8F3C]/40' : 'bg-emerald-950/30 border-emerald-900/40 hover:border-emerald-700/60'"
               @click="handleProductTap(p, addMode)"
             >
-              <p class="text-sm font-semibold text-stone-200 leading-tight mb-1">{{ p.nom }}</p>
+              <div class="flex items-center gap-1.5 mb-1">
+                <UIcon :name="PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.icon || 'i-lucide-tag'" class="size-3.5 text-stone-500 shrink-0" />
+                <p class="text-sm font-semibold text-stone-200 leading-tight">{{ p.nom }}</p>
+              </div>
               <p v-if="p.sous_categorie" class="text-[10px] text-stone-500">{{ p.sous_categorie }}</p>
               <div class="mt-auto flex items-center justify-between w-full pt-1">
                 <span v-if="addMode === 'vente'" class="text-sm font-bold text-[#AF8F3C] tabular-nums">{{ formatMoney(p.editions.length ? p.editions[0].prix_vente : p.prix_vente) }} &euro;</span>
-                <span v-else class="text-xs" :class="addMode === 'perte' ? 'text-red-400' : 'text-emerald-400'">{{ TYPE_COLORS[addMode].label }}</span>
+                <span v-else class="text-xs text-emerald-400">{{ TYPE_COLORS[addMode].label }}</span>
                 <span v-if="lieuActuel" class="text-[10px] text-stone-500 tabular-nums">
                   {{ p.editions.length ? p.editions.reduce((s: number, e: ProduitEdition) => s + getStockForLieu(Number(p.id), lieuActuel!, Number(e.id)), 0) : getStockForLieu(Number(p.id), lieuActuel!) }} dispo
                 </span>
