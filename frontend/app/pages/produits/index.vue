@@ -5,10 +5,31 @@ import { PRODUIT_TYPES } from '~/utils/constants'
 const { isDirecteur } = useAuth()
 if (!isDirecteur.value) navigateTo('/dashboard')
 
-const { getAllProduits, createProduit, updateProduit, removeProduit, createEdition, updateEdition, removeEdition } = useMateriel()
+const { getAllProduits, createProduit, updateProduit, removeProduit, getAllEditions, createEdition, updateEdition, removeEdition } = useMateriel()
 const toast = useToast()
 
-const { data: produits, status, refresh } = useAsyncData('produits', getAllProduits)
+const { data: rawProduits, status, refresh: refreshProduits } = useAsyncData('produits', getAllProduits)
+const { data: rawEditions, refresh: refreshEditions } = useAsyncData('produit-editions', getAllEditions)
+
+async function refresh() {
+  await Promise.all([refreshProduits(), refreshEditions()])
+}
+
+// Merge editions into products
+const produits = computed<Produit[]>(() => {
+  if (!rawProduits.value) return []
+  const editionsByProduit = new Map<number, ProduitEdition[]>()
+  for (const e of (rawEditions.value || [])) {
+    const pid = typeof e.produit === 'object' ? e.produit.id : e.produit
+    const list = editionsByProduit.get(pid) || []
+    list.push(e as ProduitEdition)
+    editionsByProduit.set(pid, list)
+  }
+  return rawProduits.value.map(p => ({
+    ...p,
+    editions: (editionsByProduit.get(Number(p.id)) || []).sort((a, b) => a.numero - b.numero)
+  }))
+})
 
 const filterType = ref<ProduitType | 'all'>('all')
 
