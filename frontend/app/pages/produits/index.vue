@@ -710,10 +710,40 @@ async function handleSetStockLieu(p: Produit, lieuId: number, value: number, edi
                 <UFormField label="Revient/unite"><UInput v-model.number="editionForm.prix_revient" type="number" :min="0" step="0.01" placeholder="Total/unite" class="w-full" /></UFormField>
               </div>
             </div>
-            <div class="grid grid-cols-2 gap-3">
-              <UFormField label="Stock"><UInput v-model.number="editionForm.stock" type="number" :min="0" placeholder="Quantite" class="w-full" /></UFormField>
-              <UFormField label="Notes"><UInput v-model="editionForm.notes" placeholder="Optionnel..." class="w-full" /></UFormField>
+            <!-- Stock par lieu (edition) -->
+            <div v-if="editingEditionId && editionForProduct" class="p-3 rounded-lg bg-stone-50/80 border border-stone-200/60 space-y-2">
+              <div class="flex items-center justify-between">
+                <p class="text-xs font-semibold text-stone-600">Stock par lieu</p>
+                <span class="text-xs text-stone-400 tabular-nums">Total : {{ getEditionStockTotal(editionForProduct, editionForProduct.editions?.find(e => e.id === editingEditionId)!) }}</span>
+              </div>
+              <div v-if="!lieux.length" class="text-center py-2">
+                <UButton type="button" label="Ajouter un lieu" size="xs" variant="ghost" icon="i-lucide-warehouse" @click="showLieux = true" />
+              </div>
+              <div v-else class="space-y-1">
+                <div v-for="l in lieux" :key="l.id" class="flex items-center gap-2 px-2 py-1.5 rounded bg-white/80">
+                  <UIcon name="i-lucide-warehouse" class="size-3.5 text-stone-400 shrink-0" />
+                  <span class="text-xs font-medium text-stone-600 flex-1">{{ l.nom }}</span>
+                  <div class="flex items-center gap-0.5">
+                    <button type="button" class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="handleAdjustStockLieuForProduct(editionForProduct!, l.id, -1, Number(editingEditionId))"><UIcon name="i-lucide-minus" class="size-3" /></button>
+                    <input
+                      type="number" :min="0"
+                      :value="getStockByLieu(editionForProduct!, l.id, Number(editingEditionId))"
+                      class="w-12 text-center text-xs font-bold tabular-nums bg-transparent border-b border-stone-200 focus:border-primary outline-none py-0.5"
+                      @change="handleSetStockLieu(editionForProduct!, l.id, Number(($event.target as HTMLInputElement).value), Number(editingEditionId))"
+                    />
+                    <button type="button" class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="handleAdjustStockLieuForProduct(editionForProduct!, l.id, 1, Number(editingEditionId))"><UIcon name="i-lucide-plus" class="size-3" /></button>
+                  </div>
+                </div>
+              </div>
             </div>
+            <!-- Stock simple (new edition, not yet saved) -->
+            <UFormField v-else label="Stock initial">
+              <UInput v-model.number="editionForm.stock" type="number" :min="0" placeholder="Quantite" class="w-full" />
+              <template #hint><span class="text-[10px] text-stone-400">Le stock par lieu sera disponible apres creation</span></template>
+            </UFormField>
+
+            <UFormField label="Notes"><UInput v-model="editionForm.notes" placeholder="Optionnel..." class="w-full" /></UFormField>
+
             <div class="flex items-center justify-between pt-2">
               <UButton v-if="editingEditionId" label="Supprimer" icon="i-lucide-trash-2" color="error" variant="ghost" size="sm" @click="handleDeleteEdition(editingEditionId!); showEditionForm = false; resetEditionForm()" />
               <div v-else />
