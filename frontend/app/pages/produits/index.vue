@@ -168,12 +168,15 @@ function resetForm() {
   form.prix_vente = null; form.prix_numerique = null; form.prix_physique = null
   form.cout_impression = null; form.cout_fixe = null; form.prix_revient = null
   form.a_stock = form.type_produit !== 'service'; form.stock = 0; form.fait_main = false
-  form.description = ''; form.notes = ''; editingId.value = null
+  form.description = ''; form.notes = ''; editingId.value = null; editingProduct.value = null
 }
 
 function openAdd() { resetForm(); showForm.value = true }
+const editingProduct = ref<Produit | null>(null)
+
 function openEdit(p: Produit) {
-  editingId.value = p.id; form.nom = p.nom; form.sous_titre = p.sous_titre || ''
+  editingId.value = p.id; editingProduct.value = p
+  form.nom = p.nom; form.sous_titre = p.sous_titre || ''
   form.auteur = p.auteur || ''; form.sous_categorie = p.sous_categorie || ''
   form.type_produit = p.type_produit
   form.prix_vente = p.prix_vente; form.prix_numerique = p.prix_numerique
@@ -334,27 +337,16 @@ async function handleRemoveLieu(id: number) {
   catch { toast.add({ title: 'Erreur', color: 'error' }) }
 }
 
-// --- Stock detail popup ---
-const stockDetailProduct = ref<Produit | null>(null)
-const stockDetailEdition = ref<ProduitEdition | null>(null)
-const showStockDetail = ref(false)
 
-function openStockDetail(p: Produit, edition?: ProduitEdition) {
-  stockDetailProduct.value = p
-  stockDetailEdition.value = edition || null
-  showStockDetail.value = true
-}
-
-async function handleAdjustStockLieu(lieuId: number, delta: number) {
-  if (!stockDetailProduct.value) return
+async function handleAdjustStockLieuForProduct(p: Produit, lieuId: number, delta: number, editionId?: number) {
   try {
-    await adjustStockLieu(
-      Number(stockDetailProduct.value.id),
-      lieuId,
-      delta,
-      stockDetailEdition.value ? Number(stockDetailEdition.value.id) : null
-    )
+    await adjustStockLieu(Number(p.id), lieuId, delta, editionId || null)
     await refreshStocks()
+    // Update the editing product reference
+    if (editingProduct.value && editingProduct.value.id === p.id) {
+      const updated = produits.value.find(pr => pr.id === p.id)
+      if (updated) editingProduct.value = updated
+    }
   } catch { toast.add({ title: 'Erreur', color: 'error' }) }
 }
 </script>
@@ -464,11 +456,10 @@ async function handleAdjustStockLieu(lieuId: number, delta: number) {
 
                     <!-- Stock (only if no editions) -->
                     <template v-if="!p.editions?.length">
-                      <button v-if="p.a_stock" class="flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-lg bg-stone-50 border border-stone-200/60 hover:border-stone-300 hover:bg-stone-100 transition-all" @click="openStockDetail(p)">
+                      <div v-if="p.a_stock" class="flex items-center gap-1.5 shrink-0 px-2 py-1 rounded-lg bg-stone-50">
                         <UIcon name="i-lucide-warehouse" class="size-3.5 text-stone-400" />
                         <span class="text-sm font-bold tabular-nums" :class="getStockTotal(p) === 0 ? 'text-red-500' : getStockTotal(p) <= 5 ? 'text-amber-600' : 'text-stone-800'">{{ getStockTotal(p) }}</span>
-                        <UIcon name="i-lucide-chevron-right" class="size-3 text-stone-300" />
-                      </button>
+                      </div>
                       <span v-else class="shrink-0 text-[10px] text-stone-400 bg-stone-50 px-2 py-1 rounded">Sans stock</span>
 
                       <div class="shrink-0 text-right min-w-[90px]">
@@ -505,11 +496,10 @@ async function handleAdjustStockLieu(lieuId: number, delta: number) {
                       </div>
 
                       <!-- Edition stock -->
-                      <button v-if="p.a_stock" class="flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded-lg bg-stone-50 border border-stone-200/60 hover:border-stone-300 hover:bg-stone-100 transition-all" @click="openStockDetail(p, e)">
+                      <div v-if="p.a_stock" class="flex items-center gap-1 shrink-0 px-2 py-0.5 rounded bg-stone-50">
                         <UIcon name="i-lucide-warehouse" class="size-3 text-stone-400" />
                         <span class="text-xs font-bold tabular-nums" :class="getEditionStockTotal(p, e) === 0 ? 'text-red-500' : getEditionStockTotal(p, e) <= 5 ? 'text-amber-600' : 'text-stone-700'">{{ getEditionStockTotal(p, e) }}</span>
-                        <UIcon name="i-lucide-chevron-right" class="size-2.5 text-stone-300" />
-                      </button>
+                      </div>
 
                       <!-- Edition price -->
                       <div class="shrink-0 text-right min-w-[80px]">
@@ -606,11 +596,57 @@ async function handleAdjustStockLieu(lieuId: number, delta: number) {
                 <div class="flex items-center justify-center size-5 rounded border-2 transition-all" :class="form.a_stock ? 'bg-primary border-primary' : 'border-stone-300'" @click="form.a_stock = !form.a_stock"><UIcon v-if="form.a_stock" name="i-lucide-check" class="size-3 text-white" /></div>
                 <span class="text-sm text-stone-700">Gestion de stock</span>
               </label>
-              <UInput v-if="form.a_stock && !isLivre" v-model.number="form.stock" type="number" :min="0" placeholder="Quantite" size="sm" class="w-28" />
               <label v-if="form.type_produit === 'artisanat' || form.type_produit === 'derive'" class="flex items-center gap-2 cursor-pointer">
                 <div class="flex items-center justify-center size-5 rounded border-2 transition-all" :class="form.fait_main ? 'bg-amber-500 border-amber-500' : 'border-stone-300'" @click="form.fait_main = !form.fait_main"><UIcon v-if="form.fait_main" name="i-lucide-check" class="size-3 text-white" /></div>
                 <span class="text-sm text-stone-700">Fait main</span>
               </label>
+            </div>
+
+            <!-- Stock par lieu (only when editing an existing product with stock) -->
+            <div v-if="form.a_stock && editingProduct && !isLivre" class="p-3 rounded-lg bg-stone-50/80 border border-stone-200/60 space-y-2">
+              <div class="flex items-center justify-between">
+                <p class="text-xs font-semibold text-stone-600">Stock par lieu</p>
+                <span class="text-xs text-stone-400 tabular-nums">Total : {{ getStockTotal(editingProduct) }}</span>
+              </div>
+              <div v-if="!lieux.length" class="text-center py-3">
+                <p class="text-xs text-stone-400 mb-1">Aucun lieu defini</p>
+                <UButton label="Ajouter un lieu" size="xs" variant="ghost" icon="i-lucide-warehouse" @click="showLieux = true" />
+              </div>
+              <div v-else class="space-y-1">
+                <div v-for="l in lieux" :key="l.id" class="flex items-center gap-2 px-2 py-1.5 rounded bg-white/80">
+                  <UIcon name="i-lucide-warehouse" class="size-3.5 text-stone-400 shrink-0" />
+                  <span class="text-xs font-medium text-stone-600 flex-1">{{ l.nom }}</span>
+                  <div class="flex items-center gap-0.5">
+                    <button class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="handleAdjustStockLieuForProduct(editingProduct, l.id, -1)"><UIcon name="i-lucide-minus" class="size-3" /></button>
+                    <span class="text-xs font-bold tabular-nums w-7 text-center" :class="getStockByLieu(editingProduct, l.id) === 0 ? 'text-stone-300' : 'text-stone-800'">{{ getStockByLieu(editingProduct, l.id) }}</span>
+                    <button class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="handleAdjustStockLieuForProduct(editingProduct, l.id, 1)"><UIcon name="i-lucide-plus" class="size-3" /></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Editions stock par lieu (livres) -->
+            <div v-if="form.a_stock && editingProduct && isLivre && editingProduct.editions?.length" class="space-y-3">
+              <div v-for="ed in editingProduct.editions" :key="ed.id" class="p-3 rounded-lg bg-stone-50/80 border border-stone-200/60 space-y-2">
+                <div class="flex items-center justify-between">
+                  <p class="text-xs font-semibold text-stone-600">{{ ed.nom_edition }} <span class="font-mono text-stone-400">{{ editingProduct.code }}-{{ ed.numero }}</span></p>
+                  <span class="text-xs text-stone-400 tabular-nums">Total : {{ getEditionStockTotal(editingProduct, ed) }}</span>
+                </div>
+                <div v-if="!lieux.length" class="text-center py-2">
+                  <UButton label="Ajouter un lieu" size="xs" variant="ghost" icon="i-lucide-warehouse" @click="showLieux = true" />
+                </div>
+                <div v-else class="space-y-1">
+                  <div v-for="l in lieux" :key="l.id" class="flex items-center gap-2 px-2 py-1.5 rounded bg-white/80">
+                    <UIcon name="i-lucide-warehouse" class="size-3.5 text-stone-400 shrink-0" />
+                    <span class="text-xs font-medium text-stone-600 flex-1">{{ l.nom }}</span>
+                    <div class="flex items-center gap-0.5">
+                      <button class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="handleAdjustStockLieuForProduct(editingProduct, l.id, -1, Number(ed.id))"><UIcon name="i-lucide-minus" class="size-3" /></button>
+                      <span class="text-xs font-bold tabular-nums w-7 text-center" :class="getStockByLieu(editingProduct, l.id, Number(ed.id)) === 0 ? 'text-stone-300' : 'text-stone-800'">{{ getStockByLieu(editingProduct, l.id, Number(ed.id)) }}</span>
+                      <button class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="handleAdjustStockLieuForProduct(editingProduct, l.id, 1, Number(ed.id))"><UIcon name="i-lucide-plus" class="size-3" /></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
               <UFormField label="Description"><UInput v-model="form.description" placeholder="Description courte..." class="w-full" /></UFormField>
@@ -711,54 +747,5 @@ async function handleAdjustStockLieu(lieuId: number, delta: number) {
       </template>
     </UModal>
 
-    <!-- Stock detail modal -->
-    <UModal :open="showStockDetail" @update:open="showStockDetail = $event">
-      <template #content>
-        <div v-if="stockDetailProduct" class="p-6">
-          <h3 class="text-lg font-semibold text-stone-900 mb-1">Stock par lieu</h3>
-          <p class="text-sm text-stone-500 mb-4">
-            {{ stockDetailProduct.nom }}
-            <span v-if="stockDetailEdition" class="text-primary/70"> - {{ stockDetailEdition.nom_edition }}</span>
-          </p>
-
-          <div v-if="!lieux.length" class="text-center py-6">
-            <p class="text-sm text-stone-400 mb-2">Aucun lieu de stockage defini</p>
-            <UButton label="Gerer les lieux" size="sm" variant="subtle" @click="showStockDetail = false; showLieux = true" />
-          </div>
-
-          <div v-else class="space-y-2">
-            <div
-              v-for="l in lieux" :key="l.id"
-              class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-stone-50"
-            >
-              <UIcon name="i-lucide-warehouse" class="size-4 text-stone-400 shrink-0" />
-              <span class="text-sm font-medium text-stone-700 flex-1">{{ l.nom }}</span>
-              <div class="flex items-center gap-1">
-                <button
-                  class="size-7 rounded flex items-center justify-center text-stone-400 hover:bg-white hover:text-stone-600 transition-colors"
-                  @click="handleAdjustStockLieu(l.id, -1)"
-                ><UIcon name="i-lucide-minus" class="size-3" /></button>
-                <span
-                  class="text-sm font-bold tabular-nums w-8 text-center"
-                  :class="getStockByLieu(stockDetailProduct, l.id, stockDetailEdition ? Number(stockDetailEdition.id) : undefined) === 0 ? 'text-red-500' : 'text-stone-800'"
-                >{{ getStockByLieu(stockDetailProduct, l.id, stockDetailEdition ? Number(stockDetailEdition.id) : undefined) }}</span>
-                <button
-                  class="size-7 rounded flex items-center justify-center text-stone-400 hover:bg-white hover:text-stone-600 transition-colors"
-                  @click="handleAdjustStockLieu(l.id, 1)"
-                ><UIcon name="i-lucide-plus" class="size-3" /></button>
-              </div>
-            </div>
-
-            <!-- Total -->
-            <div class="flex items-center justify-between px-3 py-2 border-t border-stone-200/60 mt-2">
-              <span class="text-xs font-semibold text-stone-500 uppercase">Total</span>
-              <span class="text-sm font-bold text-stone-800 tabular-nums">
-                {{ stockDetailEdition ? getEditionStockTotal(stockDetailProduct, stockDetailEdition) : getStockTotal(stockDetailProduct) }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </template>
-    </UModal>
   </div>
 </template>
