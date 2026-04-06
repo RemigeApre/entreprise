@@ -81,12 +81,10 @@ const clientLabel = ref('')
 const remiseGlobalePourcent = ref(0)
 
 function ajouterAuPanier(p: Produit, edition?: ProduitEdition, type: LigneType = 'vente') {
-  if (type === 'vente') {
-    const existing = panier.value.find(l =>
-      l.produit.id === p.id && (edition ? l.edition?.id === edition.id : !l.edition) && l.ligneType === 'vente'
-    )
-    if (existing) { existing.quantite++; return }
-  }
+  const existing = panier.value.find(l =>
+    l.produit.id === p.id && (edition ? l.edition?.id === edition.id : !l.edition) && l.ligneType === type
+  )
+  if (existing) { existing.quantite++; return }
   panier.value.push({
     id: crypto.randomUUID(),
     produit: p,
@@ -138,8 +136,103 @@ function handleEditionSelect(p: Produit, e: ProduitEdition) {
   showEditionPicker.value = false
 }
 
-// --- Mode ajout (vente, perte, cadeau) ---
+// --- Mode ajout (vente, cadeau) ---
 const addMode = ref<LigneType>('vente')
+
+// --- Perte independante ---
+const showPerteModal = ref(false)
+const perteSearch = ref('')
+const perteProduit = ref<(Produit & { editions: ProduitEdition[] }) | null>(null)
+const perteEdition = ref<ProduitEdition | null>(null)
+const perteQuantite = ref(1)
+const perteNote = ref('')
+const perteLoading = ref(false)
+
+const perteProduitsFiltres = computed(() => {
+  const q = perteSearch.value.toLowerCase().trim()
+  const all = produitsAvecEditions.value.filter(p => p.a_stock !== false)
+  if (!q) return all
+  return all.filter(p => p.nom.toLowerCase().includes(q))
+})
+
+function openPerteModal() {
+  perteProduit.value = null
+  perteEdition.value = null
+  perteQuantite.value = 1
+  perteNote.value = ''
+  perteSearch.value = ''
+  showPerteModal.value = true
+  menuOpen.value = false
+}
+
+function selectPerteProduit(p: Produit & { editions: ProduitEdition[] }) {
+  perteProduit.value = p
+  perteEdition.value = null
+}
+
+async function enregistrerPerte() {
+  if (!perteProduit.value || !lieuActuel.value || perteQuantite.value < 1) return
+  perteLoading.value = true
+
+  const produitId = Number(perteProduit.value.id)
+  const editionId = perteEdition.value ? Number(perteEdition.value.id) : null
+
+  try {
+    if (online.value) {
+      const { $directus } = useNuxtApp()
+      await $directus.request(createItem('mouvements_stock', {
+        produit: produitId,
+        edition: editionId,
+        lieu_source: lieuActuel.value,
+        lieu_destination: null,
+        quantite: perteQuantite.value,
+        type: 'perte',
+        notes: perteNote.value.trim() || null,
+        date: new Date().toISOString()
+      }))
+
+      const { adjustStockLieu } = useMateriel()
+      await adjustStockLieu(produitId, lieuActuel.value, -perteQuantite.value, editionId)
+      await loadData()
+    } else {
+      enqueue({
+        type: 'mouvement', data: {
+          produit: produitId,
+          edition: editionId,
+          lieu_source: lieuActuel.value,
+          lieu_destination: null,
+          quantite: perteQuantite.value,
+          type: 'perte',
+          notes: perteNote.value.trim() || null,
+          date: new Date().toISOString()
+        }
+      })
+      const idx = stocks.value.findIndex(s => {
+        const pid = typeof s.produit === 'object' ? (s.produit as any).id : s.produit
+        const lid = typeof s.lieu === 'object' ? (s.lieu as any).id : s.lieu
+        return pid === produitId && lid === lieuActuel.value && (editionId ? s.edition === editionId : !s.edition)
+      })
+      if (idx >= 0) stocks.value[idx].quantite = Math.max(0, stocks.value[idx].quantite - perteQuantite.value)
+    }
+
+    // Ajouter a l'historique des pertes du jour
+    pertesAujourdhui.value.unshift({
+      id: crypto.randomUUID(),
+      heure: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+      produit: perteEdition.value
+        ? `${perteProduit.value.nom} (${perteEdition.value.nom_edition})`
+        : perteProduit.value.nom,
+      quantite: perteQuantite.value,
+      note: perteNote.value.trim() || null
+    })
+
+    showPerteModal.value = false
+  } catch {
+    // silent
+  } finally {
+    perteLoading.value = false
+  }
+}
 
 // --- Payment screen ---
 const showPayment = ref(false)
@@ -167,7 +260,7 @@ async function confirmerEncaissement() {
   encaissementLoading.value = true
 
   const venteLignes = panier.value.filter(l => l.ligneType === 'vente')
-  const pertesEtCadeaux = panier.value.filter(l => l.ligneType !== 'vente')
+  const cadeaux = panier.value.filter(l => l.ligneType === 'cadeau')
 
   try {
     const venteData = {
@@ -208,8 +301,8 @@ async function confirmerEncaissement() {
         }
       }
 
-      // Create mouvements for pertes/cadeaux
-      for (const pc of pertesEtCadeaux) {
+      // Create mouvements for cadeaux
+      for (const pc of cadeaux) {
         await $directus.request(createItem('mouvements_stock', {
           produit: Number(pc.produit.id),
           edition: pc.edition ? Number(pc.edition.id) : null,
@@ -273,6 +366,60 @@ interface VenteJour {
   total: number; paiement: string
 }
 const ventesAujourdhui = ref<VenteJour[]>([])
+
+interface PerteJour {
+  id: string; heure: string; produit: string; quantite: number; note: string | null
+}
+const pertesAujourdhui = ref<PerteJour[]>([])
+
+// --- Recap de fin de journee ---
+const showRecap = ref(false)
+
+const recapJournee = computed(() => {
+  const ventes = ventesAujourdhui.value
+  const pertes = pertesAujourdhui.value
+
+  const nbVentes = ventes.filter(v => v.lignes.some(l => l.type === 'vente')).length
+  const totalEspeces = ventes.reduce((s, v) => {
+    if (v.paiement === 'especes') return s + v.total
+    return s
+  }, 0)
+  const totalCarte = ventes.reduce((s, v) => {
+    if (v.paiement === 'carte') return s + v.total
+    return s
+  }, 0)
+  const totalMixte = ventes.reduce((s, v) => {
+    if (v.paiement === 'mixte') return s + v.total
+    return s
+  }, 0)
+  const totalEncaisse = totalEspeces + totalCarte + totalMixte
+
+  // Cadeaux (dans les lignes des ventes)
+  let nbCadeaux = 0
+  for (const v of ventes) {
+    for (const l of v.lignes) {
+      if (l.type === 'cadeau') nbCadeaux += l.qty
+    }
+  }
+
+  // Pertes
+  const nbPertes = pertes.reduce((s, p) => s + p.quantite, 0)
+
+  // Remises : on ne peut pas recalculer le montant exact depuis ventesAujourdhui
+  // mais on peut compter le nombre de ventes avec remise globale
+  // Pour l'instant on affiche le total et les sous-totaux
+
+  return {
+    nbVentes,
+    totalEncaisse,
+    totalEspeces,
+    totalCarte,
+    totalMixte,
+    nbCadeaux,
+    nbPertes,
+    pertes
+  }
+})
 
 // --- Sync ---
 const syncing = ref(false)
@@ -383,6 +530,14 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
                 <UIcon :name="item.icon" class="size-5" /> {{ item.label }}
               </button>
               <div class="border-t border-stone-800 my-3" />
+              <p class="text-[10px] text-stone-500 uppercase tracking-widest mb-3 px-3">Actions</p>
+              <button
+                class="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm font-medium text-red-400 hover:bg-stone-800 transition-colors"
+                @click="openPerteModal"
+              >
+                <UIcon name="i-lucide-alert-triangle" class="size-5" /> Enregistrer une perte
+              </button>
+              <div class="border-t border-stone-800 my-3" />
               <button class="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm text-red-400 hover:bg-stone-800" @click="logout(); menuOpen = false">
                 <UIcon name="i-lucide-log-out" class="size-5" /> Deconnexion
               </button>
@@ -419,7 +574,7 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
           <!-- Mode selector + type filter -->
           <div class="flex items-center gap-2 mb-3">
             <div class="flex rounded-lg overflow-hidden border border-stone-700">
-              <button v-for="m in (['vente', 'perte', 'cadeau'] as LigneType[])" :key="m"
+              <button v-for="m in (['vente', 'cadeau'] as LigneType[])" :key="m"
                 class="px-3 py-1.5 text-xs font-semibold transition-colors"
                 :class="addMode === m ? TYPE_COLORS[m].bg + ' ' + TYPE_COLORS[m].text : 'bg-stone-800 text-stone-500'"
                 @click="addMode = m"
@@ -539,9 +694,22 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
 
       <!-- ==================== HISTORIQUE ==================== -->
       <div v-else-if="view === 'historique'" class="p-4 max-w-2xl mx-auto">
-        <h2 class="text-lg font-semibold text-stone-300 mb-4">Ventes du jour</h2>
-        <div v-if="!ventesAujourdhui.length" class="text-center py-12 text-stone-600">Aucune vente aujourd'hui</div>
-        <div v-else class="space-y-2">
+        <!-- Bouton recap -->
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-stone-300">Historique du jour</h2>
+          <button
+            v-if="ventesAujourdhui.length || pertesAujourdhui.length"
+            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#AF8F3C] text-white text-sm font-semibold active:scale-[0.97] transition-all"
+            @click="showRecap = true"
+          >
+            <UIcon name="i-lucide-check-circle" class="size-4" /> Valider la journee
+          </button>
+        </div>
+
+        <!-- Ventes -->
+        <h3 class="text-sm font-semibold text-stone-400 uppercase tracking-wider mb-2">Ventes</h3>
+        <div v-if="!ventesAujourdhui.length" class="text-center py-8 text-stone-600 text-sm">Aucune vente aujourd'hui</div>
+        <div v-else class="space-y-2 mb-6">
           <div v-for="v in ventesAujourdhui" :key="v.id" class="px-4 py-3 rounded-xl bg-stone-800/60">
             <div class="flex items-center justify-between mb-1">
               <div class="flex items-center gap-2">
@@ -556,6 +724,20 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
                 {{ l.qty }}x {{ l.nom }}{{ l.type !== 'vente' ? ' (' + TYPE_COLORS[l.type].label + ')' : '' }}
               </span>
             </div>
+          </div>
+        </div>
+
+        <!-- Pertes -->
+        <h3 class="text-sm font-semibold text-stone-400 uppercase tracking-wider mb-2">Pertes</h3>
+        <div v-if="!pertesAujourdhui.length" class="text-center py-8 text-stone-600 text-sm">Aucune perte aujourd'hui</div>
+        <div v-else class="space-y-2">
+          <div v-for="p in pertesAujourdhui" :key="p.id" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-950/20 border border-red-900/20">
+            <UIcon name="i-lucide-alert-triangle" class="size-4 text-red-400 shrink-0" />
+            <div class="flex-1 min-w-0">
+              <p class="text-sm text-stone-200">{{ p.quantite }}x {{ p.produit }}</p>
+              <p v-if="p.note" class="text-[10px] text-stone-500">{{ p.note }}</p>
+            </div>
+            <span class="text-xs text-stone-500 shrink-0">{{ p.heure }}</span>
           </div>
         </div>
       </div>
@@ -574,6 +756,156 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
                 <span v-if="editionPickerType === 'vente'" class="text-sm font-bold text-[#AF8F3C] tabular-nums">{{ formatMoney(e.prix_vente) }} &euro;</span>
                 <span v-else class="text-xs" :class="TYPE_COLORS[editionPickerType].text">{{ TYPE_COLORS[editionPickerType].label }}</span>
               </button>
+            </div>
+          </div>
+        </Transition>
+      </Teleport>
+
+      <!-- Perte modal -->
+      <Teleport to="body">
+        <Transition enter-active-class="transition-opacity duration-200" leave-active-class="transition-opacity duration-150" enter-from-class="opacity-0" leave-to-class="opacity-0">
+          <div v-if="showPerteModal" class="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center px-4" @click="showPerteModal = false">
+            <div class="bg-[#222] rounded-2xl p-6 w-full max-w-md max-h-[90vh] flex flex-col" @click.stop>
+              <h3 class="text-lg font-semibold text-red-400 mb-4 flex items-center gap-2">
+                <UIcon name="i-lucide-alert-triangle" class="size-5" /> Enregistrer une perte
+              </h3>
+
+              <!-- Etape 1 : choix produit -->
+              <template v-if="!perteProduit">
+                <input
+                  v-model="perteSearch" placeholder="Rechercher un produit..."
+                  class="w-full px-3 py-2 rounded-lg bg-stone-800 border border-stone-700 text-sm text-stone-200 placeholder-stone-600 outline-none focus:border-red-500 mb-3"
+                />
+                <div class="flex-1 overflow-y-auto space-y-1 min-h-0">
+                  <button
+                    v-for="p in perteProduitsFiltres" :key="p.id"
+                    class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg bg-stone-800/60 hover:bg-stone-700 text-left transition-colors"
+                    @click="selectPerteProduit(p)"
+                  >
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm text-stone-200 truncate">{{ p.nom }}</p>
+                      <p v-if="p.sous_categorie" class="text-[10px] text-stone-500">{{ p.sous_categorie }}</p>
+                    </div>
+                    <span v-if="lieuActuel" class="text-[10px] text-stone-500 tabular-nums shrink-0">
+                      {{ p.editions.length ? p.editions.reduce((s: number, e: ProduitEdition) => s + getStockForLieu(Number(p.id), lieuActuel!, Number(e.id)), 0) : getStockForLieu(Number(p.id), lieuActuel!) }} dispo
+                    </span>
+                  </button>
+                </div>
+              </template>
+
+              <!-- Etape 2 : details perte -->
+              <template v-else>
+                <button class="flex items-center gap-1 text-xs text-stone-500 hover:text-stone-300 mb-3" @click="perteProduit = null">
+                  <UIcon name="i-lucide-arrow-left" class="size-3" /> Changer de produit
+                </button>
+
+                <div class="px-3 py-2.5 rounded-lg bg-stone-800/60 mb-4">
+                  <p class="text-sm font-medium text-stone-200">{{ perteProduit.nom }}</p>
+                </div>
+
+                <!-- Edition si livre -->
+                <div v-if="perteProduit.type_produit === 'livre' && perteProduit.editions.length" class="mb-4">
+                  <label class="text-xs text-stone-500 mb-1.5 block">Edition</label>
+                  <div class="flex flex-wrap gap-2">
+                    <button
+                      v-for="e in perteProduit.editions" :key="e.id"
+                      class="px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                      :class="perteEdition?.id === e.id ? 'bg-red-900/40 text-red-400 border border-red-700/50' : 'bg-stone-800 text-stone-400 hover:bg-stone-700'"
+                      @click="perteEdition = e"
+                    >{{ e.nom_edition }}</button>
+                  </div>
+                </div>
+
+                <!-- Quantite -->
+                <div class="mb-4">
+                  <label class="text-xs text-stone-500 mb-1.5 block">Quantite</label>
+                  <div class="flex items-center gap-2">
+                    <button class="size-9 rounded-lg bg-stone-700 flex items-center justify-center text-stone-400" @click="perteQuantite = Math.max(1, perteQuantite - 1)">
+                      <UIcon name="i-lucide-minus" class="size-4" />
+                    </button>
+                    <input v-model.number="perteQuantite" type="number" min="1" class="w-16 px-3 py-2 rounded-lg bg-stone-800 border border-stone-700 text-sm text-center text-stone-200 font-bold tabular-nums outline-none focus:border-red-500" />
+                    <button class="size-9 rounded-lg bg-stone-700 flex items-center justify-center text-stone-400" @click="perteQuantite++">
+                      <UIcon name="i-lucide-plus" class="size-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Note -->
+                <div class="mb-4">
+                  <label class="text-xs text-stone-500 mb-1.5 block">Raison</label>
+                  <input
+                    v-model="perteNote" placeholder="Ex: abime, casse, mouille..."
+                    class="w-full px-3 py-2 rounded-lg bg-stone-800 border border-stone-700 text-sm text-stone-200 placeholder-stone-600 outline-none focus:border-red-500"
+                  />
+                </div>
+
+                <button
+                  class="w-full py-3 rounded-xl text-sm font-bold transition-all"
+                  :class="perteProduit && perteQuantite > 0 && (perteProduit.type_produit !== 'livre' || !perteProduit.editions.length || perteEdition) ? 'bg-red-600 text-white active:scale-[0.98]' : 'bg-stone-800 text-stone-600 cursor-not-allowed'"
+                  :disabled="!perteProduit || perteQuantite < 1 || (perteProduit.type_produit === 'livre' && perteProduit.editions.length > 0 && !perteEdition) || perteLoading"
+                  @click="enregistrerPerte"
+                >{{ perteLoading ? 'Enregistrement...' : 'Enregistrer la perte' }}</button>
+              </template>
+
+              <button class="w-full py-2 mt-2 text-sm text-stone-500 hover:text-stone-300" @click="showPerteModal = false">Annuler</button>
+            </div>
+          </div>
+        </Transition>
+      </Teleport>
+
+      <!-- Recap de fin de journee -->
+      <Teleport to="body">
+        <Transition enter-active-class="transition-opacity duration-200" leave-active-class="transition-opacity duration-150" enter-from-class="opacity-0" leave-to-class="opacity-0">
+          <div v-if="showRecap" class="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center px-4" @click="showRecap = false">
+            <div class="bg-[#222] rounded-2xl p-6 w-full max-w-sm space-y-4" @click.stop>
+              <h3 class="text-lg font-semibold text-[#AF8F3C] text-center">Recap de la journee</h3>
+
+              <div class="space-y-3">
+                <!-- Nombre de ventes -->
+                <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-stone-800/60">
+                  <span class="text-sm text-stone-400">Nombre de ventes</span>
+                  <span class="text-sm font-bold text-stone-200 tabular-nums">{{ recapJournee.nbVentes }}</span>
+                </div>
+
+                <!-- Total encaisse -->
+                <div class="px-3 py-2.5 rounded-lg bg-[#AF8F3C]/10 border border-[#AF8F3C]/20">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold text-[#AF8F3C]">Total encaisse</span>
+                    <span class="text-lg font-bold text-[#AF8F3C] tabular-nums">{{ formatMoney(recapJournee.totalEncaisse) }} &euro;</span>
+                  </div>
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-stone-500">Especes</span>
+                    <span class="text-stone-400 tabular-nums">{{ formatMoney(recapJournee.totalEspeces) }} &euro;</span>
+                  </div>
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-stone-500">Carte</span>
+                    <span class="text-stone-400 tabular-nums">{{ formatMoney(recapJournee.totalCarte) }} &euro;</span>
+                  </div>
+                  <div v-if="recapJournee.totalMixte > 0" class="flex items-center justify-between text-xs">
+                    <span class="text-stone-500">Mixte</span>
+                    <span class="text-stone-400 tabular-nums">{{ formatMoney(recapJournee.totalMixte) }} &euro;</span>
+                  </div>
+                </div>
+
+                <!-- Cadeaux -->
+                <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-emerald-950/20 border border-emerald-900/20">
+                  <span class="text-sm text-emerald-400">Cadeaux offerts</span>
+                  <span class="text-sm font-bold text-emerald-400 tabular-nums">{{ recapJournee.nbCadeaux }} article{{ recapJournee.nbCadeaux > 1 ? 's' : '' }}</span>
+                </div>
+
+                <!-- Pertes -->
+                <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-red-950/20 border border-red-900/20">
+                  <span class="text-sm text-red-400">Pertes</span>
+                  <span class="text-sm font-bold text-red-400 tabular-nums">{{ recapJournee.nbPertes }} article{{ recapJournee.nbPertes > 1 ? 's' : '' }}</span>
+                </div>
+              </div>
+
+              <p class="text-[10px] text-stone-600 text-center">Recap informatif uniquement. Aucune transaction creee.</p>
+
+              <button
+                class="w-full py-3 rounded-xl text-sm font-bold bg-[#AF8F3C] text-white active:scale-[0.98] transition-all"
+                @click="showRecap = false"
+              >Fermer</button>
             </div>
           </div>
         </Transition>
