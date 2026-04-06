@@ -483,13 +483,23 @@ function formatMoney(n: number) { return n.toLocaleString('fr-FR', { minimumFrac
 
             <!-- Categorie (non-livres) -->
             <UFormField v-if="!isLivre" label="Categorie">
-              <UInput v-model="form.sous_categorie" :placeholder="form.type_produit === 'derive' ? 'Marque-page, Autocollant, Poster...' : form.type_produit === 'artisanat' ? 'Cotte de maille, Linogravure...' : form.type_produit === 'service' ? 'Site vitrine, Application, Maintenance...' : 'Categorie...'" icon="i-lucide-tag" class="w-full" :list="'cat-suggestions-' + form.type_produit" />
-              <datalist :id="'cat-suggestions-' + form.type_produit">
-                <option v-for="c in existingSousCategories" :key="c" :value="c" />
-              </datalist>
-              <template v-if="existingSousCategories.length" #hint>
-                <span class="text-[10px] text-stone-400">Existantes : {{ existingSousCategories.join(', ') }}</span>
-              </template>
+              <UInput
+                v-model="form.sous_categorie"
+                :placeholder="form.type_produit === 'derive' ? 'Marque-page, Autocollant, Poster...' : form.type_produit === 'artisanat' ? 'Cotte de maille, Linogravure...' : form.type_produit === 'service' ? 'Site vitrine, Application, Maintenance...' : 'Categorie...'"
+                icon="i-lucide-tag"
+                class="w-full"
+              />
+              <div v-if="existingSousCategories.length" class="flex flex-wrap gap-1 mt-1.5">
+                <button
+                  v-for="c in existingSousCategories" :key="c"
+                  type="button"
+                  class="px-2 py-0.5 rounded-full text-[11px] transition-all border"
+                  :class="form.sous_categorie === c
+                    ? 'bg-[#AF8F3C] text-white border-[#AF8F3C]'
+                    : 'bg-stone-50 text-stone-500 border-stone-200 hover:border-stone-300'"
+                  @click="form.sous_categorie = form.sous_categorie === c ? '' : c"
+                >{{ c }}</button>
+              </div>
             </UFormField>
 
             <!-- Prix (hidden for books with editions, they use edition prices) -->
