@@ -97,6 +97,64 @@ export function useMateriel() {
     await $directus.request(deleteItem('produits', id))
   }
 
+  // --- Lieux de stockage ---
+  async function getAllLieux() {
+    return await $directus.request(readItems('lieux_stockage', {
+      fields: ['*'], sort: ['nom'], limit: -1
+    })) as any[]
+  }
+
+  async function createLieu(nom: string) {
+    return await $directus.request(createItem('lieux_stockage', { nom }))
+  }
+
+  async function removeLieu(id: number) {
+    await $directus.request(deleteItem('lieux_stockage', id as any))
+  }
+
+  // --- Stocks par lieu ---
+  async function getAllStocks() {
+    return await $directus.request(readItems('stocks_lieux', {
+      fields: ['*', 'lieu.id', 'lieu.nom'],
+      sort: ['produit', 'lieu'],
+      limit: -1
+    })) as any[]
+  }
+
+  async function upsertStock(produit: number, lieu: number, quantite: number, edition?: number | null) {
+    // Check if entry exists
+    const filter: any = { produit: { _eq: produit }, lieu: { _eq: lieu } }
+    if (edition) filter.edition = { _eq: edition }
+    else filter.edition = { _null: true }
+
+    const existing = await $directus.request(readItems('stocks_lieux', {
+      filter, fields: ['id'], limit: 1
+    })) as any[]
+
+    if (existing.length) {
+      return await $directus.request(updateItem('stocks_lieux', existing[0].id, { quantite }))
+    } else {
+      return await $directus.request(createItem('stocks_lieux', { produit, lieu, edition: edition || null, quantite }))
+    }
+  }
+
+  async function adjustStockLieu(produit: number, lieu: number, delta: number, edition?: number | null) {
+    const filter: any = { produit: { _eq: produit }, lieu: { _eq: lieu } }
+    if (edition) filter.edition = { _eq: edition }
+    else filter.edition = { _null: true }
+
+    const existing = await $directus.request(readItems('stocks_lieux', {
+      filter, fields: ['id', 'quantite'], limit: 1
+    })) as any[]
+
+    if (existing.length) {
+      const newQty = Math.max(0, (existing[0].quantite || 0) + delta)
+      return await $directus.request(updateItem('stocks_lieux', existing[0].id, { quantite: newQty }))
+    } else if (delta > 0) {
+      return await $directus.request(createItem('stocks_lieux', { produit, lieu, edition: edition || null, quantite: delta }))
+    }
+  }
+
   // --- Editions ---
   async function getAllEditions() {
     return await $directus.request(readItems('produit_editions', {
@@ -142,6 +200,8 @@ export function useMateriel() {
     getAllMateriels, createMateriel, updateMateriel, removeMateriel,
     getAllProduits, createProduit, updateProduit, removeProduit,
     getAllEditions, createEdition, updateEdition, removeEdition,
+    getAllLieux, createLieu, removeLieu,
+    getAllStocks, upsertStock, adjustStockLieu,
     getAllAchats, createAchat, updateAchat, removeAchat
   }
 }

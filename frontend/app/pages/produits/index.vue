@@ -1,21 +1,25 @@
 <script setup lang="ts">
-import type { Produit, ProduitType, ProduitEdition } from '~/utils/types'
+import type { Produit, ProduitType, ProduitEdition, LieuStockage, StockLieu } from '~/utils/types'
 import { PRODUIT_TYPES } from '~/utils/constants'
 
 const { isDirecteur } = useAuth()
 if (!isDirecteur.value) navigateTo('/dashboard')
 
-const { getAllProduits, createProduit, updateProduit, removeProduit, getAllEditions, createEdition, updateEdition, removeEdition } = useMateriel()
+const { getAllProduits, createProduit, updateProduit, removeProduit, getAllEditions, createEdition, updateEdition, removeEdition, getAllLieux, createLieu, removeLieu, getAllStocks, adjustStockLieu } = useMateriel()
 const toast = useToast()
 
 const { data: rawProduits, status, refresh: refreshProduits } = useAsyncData('produits', getAllProduits)
 const { data: rawEditions, refresh: refreshEditions } = useAsyncData('produit-editions', getAllEditions)
+const { data: rawLieux, refresh: refreshLieux } = useAsyncData('lieux-stockage', getAllLieux)
+const { data: rawStocks, refresh: refreshStocks } = useAsyncData('stocks-lieux', getAllStocks)
 
 async function refresh() {
-  await Promise.all([refreshProduits(), refreshEditions()])
+  await Promise.all([refreshProduits(), refreshEditions(), refreshStocks()])
 }
 
-// Merge editions into products
+const lieux = computed<LieuStockage[]>(() => (rawLieux.value || []) as LieuStockage[])
+
+// Merge editions + stocks into products
 const produits = computed<Produit[]>(() => {
   if (!rawProduits.value) return []
   const editionsByProduit = new Map<number, ProduitEdition[]>()
@@ -25,11 +29,43 @@ const produits = computed<Produit[]>(() => {
     list.push(e as ProduitEdition)
     editionsByProduit.set(pid, list)
   }
+  const stocksByProduit = new Map<number, StockLieu[]>()
+  for (const s of (rawStocks.value || [])) {
+    const pid = typeof s.produit === 'object' ? s.produit.id : s.produit
+    const list = stocksByProduit.get(pid) || []
+    list.push(s as StockLieu)
+    stocksByProduit.set(pid, list)
+  }
   return rawProduits.value.map(p => ({
     ...p,
-    editions: (editionsByProduit.get(Number(p.id)) || []).sort((a, b) => a.numero - b.numero)
+    editions: (editionsByProduit.get(Number(p.id)) || []).sort((a, b) => a.numero - b.numero),
+    stocks_lieux: stocksByProduit.get(Number(p.id)) || []
   }))
 })
+
+function getStockTotal(p: Produit): number {
+  if (p.stocks_lieux?.length) return p.stocks_lieux.filter(s => !s.edition).reduce((sum, s) => sum + s.quantite, 0)
+  return p.stock || 0
+}
+
+function getEditionStockTotal(p: Produit, e: ProduitEdition): number {
+  if (p.stocks_lieux?.length) return p.stocks_lieux.filter(s => s.edition === Number(e.id)).reduce((sum, s) => sum + s.quantite, 0)
+  return e.stock || 0
+}
+
+function getStockByLieu(p: Produit, lieuId: number, editionId?: number): number {
+  const s = p.stocks_lieux?.find(s => {
+    const lid = typeof s.lieu === 'object' ? s.lieu.id : s.lieu
+    return lid === lieuId && (editionId ? s.edition === editionId : !s.edition)
+  })
+  return s?.quantite || 0
+}
+
+function getLieuName(s: StockLieu): string {
+  if (typeof s.lieu === 'object') return s.lieu.nom
+  const l = lieux.value.find(l => l.id === s.lieu)
+  return l?.nom || '?'
+}
 
 const filterType = ref<ProduitType | 'all'>('all')
 
@@ -75,9 +111,9 @@ const totalStock = computed(() => {
   let total = 0
   for (const p of stockItems.value) {
     if (p.editions?.length) {
-      for (const e of p.editions) total += e.stock || 0
+      for (const e of p.editions) total += getEditionStockTotal(p, e)
     } else {
-      total += p.stock || 0
+      total += getStockTotal(p)
     }
   }
   return total
@@ -86,9 +122,9 @@ const totalValeur = computed(() => {
   let total = 0
   for (const p of stockItems.value) {
     if (p.editions?.length) {
-      for (const e of p.editions) total += e.prix_vente * (e.stock || 0)
+      for (const e of p.editions) total += e.prix_vente * getEditionStockTotal(p, e)
     } else {
-      total += p.prix_vente * (p.stock || 0)
+      total += p.prix_vente * getStockTotal(p)
     }
   }
   return total
@@ -273,12 +309,59 @@ function getEditionCode(p: Produit, e: ProduitEdition): string {
 }
 
 function formatMoney(n: number) { return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
+
+// --- Lieux management ---
+const showLieux = ref(false)
+const newLieuNom = ref('')
+const addingLieu = ref(false)
+
+async function handleAddLieu() {
+  if (!newLieuNom.value.trim()) return
+  addingLieu.value = true
+  try {
+    await createLieu(newLieuNom.value.trim())
+    newLieuNom.value = ''
+    await refreshLieux()
+    toast.add({ title: 'Lieu ajoute', color: 'success' })
+  } catch { toast.add({ title: 'Erreur', color: 'error' }) }
+  finally { addingLieu.value = false }
+}
+
+async function handleRemoveLieu(id: number) {
+  try { await removeLieu(id); await refreshLieux(); toast.add({ title: 'Lieu supprime', color: 'success' }) }
+  catch { toast.add({ title: 'Erreur', color: 'error' }) }
+}
+
+// --- Stock detail popup ---
+const stockDetailProduct = ref<Produit | null>(null)
+const stockDetailEdition = ref<ProduitEdition | null>(null)
+const showStockDetail = ref(false)
+
+function openStockDetail(p: Produit, edition?: ProduitEdition) {
+  stockDetailProduct.value = p
+  stockDetailEdition.value = edition || null
+  showStockDetail.value = true
+}
+
+async function handleAdjustStockLieu(lieuId: number, delta: number) {
+  if (!stockDetailProduct.value) return
+  try {
+    await adjustStockLieu(
+      Number(stockDetailProduct.value.id),
+      lieuId,
+      delta,
+      stockDetailEdition.value ? Number(stockDetailEdition.value.id) : null
+    )
+    await refreshStocks()
+  } catch { toast.add({ title: 'Erreur', color: 'error' }) }
+}
 </script>
 
 <template>
   <div class="flex flex-col h-full">
     <PageHeader title="Produits">
       <template #right>
+        <UButton icon="i-lucide-warehouse" color="neutral" variant="ghost" size="sm" @click="showLieux = true" />
         <UButton label="Ajouter" icon="i-lucide-plus" size="sm" @click="openAdd" />
       </template>
     </PageHeader>
@@ -379,11 +462,10 @@ function formatMoney(n: number) { return n.toLocaleString('fr-FR', { minimumFrac
 
                     <!-- Stock (only if no editions) -->
                     <template v-if="!p.editions?.length">
-                      <div v-if="p.a_stock" class="flex items-center gap-1 shrink-0">
-                        <button class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="adjustStock(p, -1)"><UIcon name="i-lucide-minus" class="size-3" /></button>
-                        <span class="text-sm font-bold tabular-nums w-8 text-center" :class="(p.stock || 0) === 0 ? 'text-red-500' : (p.stock || 0) <= 5 ? 'text-amber-600' : 'text-stone-800'">{{ p.stock || 0 }}</span>
-                        <button class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="adjustStock(p, 1)"><UIcon name="i-lucide-plus" class="size-3" /></button>
-                      </div>
+                      <button v-if="p.a_stock" class="flex items-center gap-1.5 shrink-0 px-2 py-1 rounded-lg hover:bg-stone-100 transition-colors" @click="openStockDetail(p)">
+                        <UIcon name="i-lucide-warehouse" class="size-3.5 text-stone-400" />
+                        <span class="text-sm font-bold tabular-nums" :class="getStockTotal(p) === 0 ? 'text-red-500' : getStockTotal(p) <= 5 ? 'text-amber-600' : 'text-stone-800'">{{ getStockTotal(p) }}</span>
+                      </button>
                       <span v-else class="shrink-0 text-[10px] text-stone-400 bg-stone-50 px-2 py-1 rounded">Sans stock</span>
 
                       <div class="shrink-0 text-right min-w-[90px]">
@@ -420,11 +502,10 @@ function formatMoney(n: number) { return n.toLocaleString('fr-FR', { minimumFrac
                       </div>
 
                       <!-- Edition stock -->
-                      <div v-if="p.a_stock" class="flex items-center gap-1 shrink-0">
-                        <button class="size-5 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="adjustEditionStock(e, -1)"><UIcon name="i-lucide-minus" class="size-2.5" /></button>
-                        <span class="text-xs font-bold tabular-nums w-6 text-center" :class="(e.stock || 0) === 0 ? 'text-red-500' : (e.stock || 0) <= 5 ? 'text-amber-600' : 'text-stone-700'">{{ e.stock || 0 }}</span>
-                        <button class="size-5 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="adjustEditionStock(e, 1)"><UIcon name="i-lucide-plus" class="size-2.5" /></button>
-                      </div>
+                      <button v-if="p.a_stock" class="flex items-center gap-1 shrink-0 px-1.5 py-0.5 rounded hover:bg-stone-100 transition-colors" @click="openStockDetail(p, e)">
+                        <UIcon name="i-lucide-warehouse" class="size-3 text-stone-400" />
+                        <span class="text-xs font-bold tabular-nums" :class="getEditionStockTotal(p, e) === 0 ? 'text-red-500' : getEditionStockTotal(p, e) <= 5 ? 'text-amber-600' : 'text-stone-700'">{{ getEditionStockTotal(p, e) }}</span>
+                      </button>
 
                       <!-- Edition price -->
                       <div class="shrink-0 text-right min-w-[80px]">
@@ -588,6 +669,84 @@ function formatMoney(n: number) { return n.toLocaleString('fr-FR', { minimumFrac
               </div>
             </div>
           </form>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Lieux modal -->
+    <UModal :open="showLieux" @update:open="showLieux = $event">
+      <template #content>
+        <div class="p-6">
+          <h3 class="text-lg font-semibold text-stone-900 mb-4">Lieux de stockage</h3>
+          <div class="space-y-2 mb-4">
+            <div
+              v-for="l in lieux" :key="l.id"
+              class="flex items-center justify-between px-3 py-2 rounded-lg bg-stone-50"
+            >
+              <div class="flex items-center gap-2">
+                <UIcon name="i-lucide-warehouse" class="size-4 text-stone-400" />
+                <span class="text-sm font-medium text-stone-700">{{ l.nom }}</span>
+              </div>
+              <button class="p-1 rounded hover:bg-red-50 transition-colors" @click="handleRemoveLieu(l.id)">
+                <UIcon name="i-lucide-trash-2" class="size-3.5 text-stone-400 hover:text-red-400" />
+              </button>
+            </div>
+            <p v-if="!lieux.length" class="text-sm text-stone-400 text-center py-4">Aucun lieu</p>
+          </div>
+          <form class="flex items-center gap-2" @submit.prevent="handleAddLieu">
+            <UInput v-model="newLieuNom" placeholder="Nouveau lieu..." icon="i-lucide-plus" size="sm" class="flex-1" />
+            <UButton type="submit" label="Ajouter" size="sm" :loading="addingLieu" :disabled="!newLieuNom.trim()" />
+          </form>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Stock detail modal -->
+    <UModal :open="showStockDetail" @update:open="showStockDetail = $event">
+      <template #content>
+        <div v-if="stockDetailProduct" class="p-6">
+          <h3 class="text-lg font-semibold text-stone-900 mb-1">Stock par lieu</h3>
+          <p class="text-sm text-stone-500 mb-4">
+            {{ stockDetailProduct.nom }}
+            <span v-if="stockDetailEdition" class="text-primary/70"> - {{ stockDetailEdition.nom_edition }}</span>
+          </p>
+
+          <div v-if="!lieux.length" class="text-center py-6">
+            <p class="text-sm text-stone-400 mb-2">Aucun lieu de stockage defini</p>
+            <UButton label="Gerer les lieux" size="sm" variant="subtle" @click="showStockDetail = false; showLieux = true" />
+          </div>
+
+          <div v-else class="space-y-2">
+            <div
+              v-for="l in lieux" :key="l.id"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-stone-50"
+            >
+              <UIcon name="i-lucide-warehouse" class="size-4 text-stone-400 shrink-0" />
+              <span class="text-sm font-medium text-stone-700 flex-1">{{ l.nom }}</span>
+              <div class="flex items-center gap-1">
+                <button
+                  class="size-7 rounded flex items-center justify-center text-stone-400 hover:bg-white hover:text-stone-600 transition-colors"
+                  @click="handleAdjustStockLieu(l.id, -1)"
+                ><UIcon name="i-lucide-minus" class="size-3" /></button>
+                <span
+                  class="text-sm font-bold tabular-nums w-8 text-center"
+                  :class="getStockByLieu(stockDetailProduct, l.id, stockDetailEdition ? Number(stockDetailEdition.id) : undefined) === 0 ? 'text-red-500' : 'text-stone-800'"
+                >{{ getStockByLieu(stockDetailProduct, l.id, stockDetailEdition ? Number(stockDetailEdition.id) : undefined) }}</span>
+                <button
+                  class="size-7 rounded flex items-center justify-center text-stone-400 hover:bg-white hover:text-stone-600 transition-colors"
+                  @click="handleAdjustStockLieu(l.id, 1)"
+                ><UIcon name="i-lucide-plus" class="size-3" /></button>
+              </div>
+            </div>
+
+            <!-- Total -->
+            <div class="flex items-center justify-between px-3 py-2 border-t border-stone-200/60 mt-2">
+              <span class="text-xs font-semibold text-stone-500 uppercase">Total</span>
+              <span class="text-sm font-bold text-stone-800 tabular-nums">
+                {{ stockDetailEdition ? getEditionStockTotal(stockDetailProduct, stockDetailEdition) : getStockTotal(stockDetailProduct) }}
+              </span>
+            </div>
+          </div>
         </div>
       </template>
     </UModal>

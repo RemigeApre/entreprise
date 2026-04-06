@@ -476,6 +476,20 @@ export interface ProduitEdition {
   date_created: string
 }
 
+export interface LieuStockage {
+  id: number
+  nom: string
+  date_created: string
+}
+
+export interface StockLieu {
+  id: number
+  produit: number
+  edition: number | null
+  lieu: LieuStockage | number
+  quantite: number
+}
+
 export interface Produit {
   id: string
   code: string
@@ -494,6 +508,7 @@ export interface Produit {
   a_stock: boolean
   fait_main: boolean
   editions: ProduitEdition[]
+  stocks_lieux: StockLieu[]
   description: string | null
   notes: string | null
   date_created: string
