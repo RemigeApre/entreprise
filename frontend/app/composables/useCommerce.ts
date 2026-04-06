@@ -55,7 +55,7 @@ export function useCommerce() {
 
   async function authenticate(pin: string): Promise<boolean> {
     try {
-      const res = await $fetch<{ token: string; lieu_defaut: number | null }>('/api/_commerce/auth', {
+      const res = await $fetch<{ token: string; lieu_defaut: number | null }>('/_commerce/auth', {
         method: 'POST',
         body: { pin }
       })
@@ -256,7 +256,7 @@ export function useCommerce() {
     if (!import.meta.client) return
     setInterval(async () => {
       try {
-        const r = await fetch('/api/_commerce/auth', { method: 'HEAD' }).catch(() => null)
+        const r = await fetch('/_commerce/auth', { method: 'HEAD' }).catch(() => null)
         online.value = !!r
       } catch { online.value = false }
     }, 15000)
