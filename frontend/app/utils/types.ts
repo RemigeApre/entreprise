@@ -465,8 +465,13 @@ export interface Produit {
   code: string
   nom: string
   sous_titre: string | null
+  auteur: string | null
   type_produit: ProduitType
+  prix_numerique: number | null
+  prix_physique: number | null
   prix_vente: number
+  cout_impression: number | null
+  cout_fixe: number | null
   prix_revient: number | null
   stock: number | null
   a_stock: boolean

@@ -11,10 +11,7 @@ export function useMateriel() {
     'cout', 'notes', 'date_created'
   ]
 
-  const produitFields = [
-    'id', 'code', 'nom', 'type_produit', 'prix_vente', 'prix_revient',
-    'stock', 'description', 'notes', 'date_created'
-  ]
+  const produitFields = ['*']
 
   const achatFields = [
     'id', 'nom', 'categorie', 'prix_estime', 'quantite', 'type', 'statut',
@@ -40,7 +37,7 @@ export function useMateriel() {
   }
 
   async function generateProduitCode(typeProduit: string): Promise<string> {
-    const prefixMap: Record<string, string> = { livre: 'LV', derive: 'PD', service: 'SV', autre: 'PR' }
+    const prefixMap: Record<string, string> = { livre: 'LV', derive: 'PD', artisanat: 'AR', service: 'SV', autre: 'PR' }
     const prefix = prefixMap[typeProduit] || 'PR'
     const existing = await $directus.request(readItems('produits', {
       filter: { type_produit: { _eq: typeProduit } },
