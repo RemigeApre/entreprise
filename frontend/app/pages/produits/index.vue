@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { Produit, ProduitType } from '~/utils/types'
+import type { Produit, ProduitType, ProduitEdition } from '~/utils/types'
 import { PRODUIT_TYPES } from '~/utils/constants'
 
 const { isDirecteur } = useAuth()
 if (!isDirecteur.value) navigateTo('/dashboard')
 
-const { getAllProduits, createProduit, updateProduit, removeProduit } = useMateriel()
+const { getAllProduits, createProduit, updateProduit, removeProduit, createEdition, updateEdition, removeEdition } = useMateriel()
 const toast = useToast()
 
 const { data: produits, status, refresh } = useAsyncData('produits', getAllProduits)
@@ -19,9 +19,7 @@ const filtered = computed(() => {
 
 const groupedByType = computed(() => {
   const groups: { type: ProduitType; config: typeof PRODUIT_TYPES[keyof typeof PRODUIT_TYPES]; items: Produit[] }[] = []
-  const types = filterType.value === 'all'
-    ? Object.keys(PRODUIT_TYPES) as ProduitType[]
-    : [filterType.value]
+  const types = filterType.value === 'all' ? Object.keys(PRODUIT_TYPES) as ProduitType[] : [filterType.value]
   for (const t of types) {
     const items = (produits.value || []).filter(p => p.type_produit === t)
     if (items.length) groups.push({ type: t, config: PRODUIT_TYPES[t], items })
@@ -30,8 +28,28 @@ const groupedByType = computed(() => {
 })
 
 const stockItems = computed(() => filtered.value.filter(p => p.a_stock))
-const totalStock = computed(() => stockItems.value.reduce((s, p) => s + (p.stock || 0), 0))
-const totalValeur = computed(() => stockItems.value.reduce((s, p) => s + p.prix_vente * (p.stock || 0), 0))
+const totalStock = computed(() => {
+  let total = 0
+  for (const p of stockItems.value) {
+    if (p.editions?.length) {
+      for (const e of p.editions) total += e.stock || 0
+    } else {
+      total += p.stock || 0
+    }
+  }
+  return total
+})
+const totalValeur = computed(() => {
+  let total = 0
+  for (const p of stockItems.value) {
+    if (p.editions?.length) {
+      for (const e of p.editions) total += e.prix_vente * (e.stock || 0)
+    } else {
+      total += p.prix_vente * (p.stock || 0)
+    }
+  }
+  return total
+})
 
 const countByType = computed(() => {
   if (!produits.value) return {} as Record<string, number>
@@ -40,27 +58,19 @@ const countByType = computed(() => {
   return c
 })
 
-// --- Form ---
+// --- Product Form ---
 const showForm = ref(false)
 const editingId = ref<string | null>(null)
 const saving = ref(false)
 const form = reactive({
-  nom: '',
-  sous_titre: '',
-  auteur: '',
+  nom: '', sous_titre: '', auteur: '',
   type_produit: 'livre' as ProduitType,
   prix_vente: null as number | null,
-  prix_numerique: null as number | null,
-  prix_physique: null as number | null,
-  cout_impression: null as number | null,
-  cout_fixe: null as number | null,
+  prix_numerique: null as number | null, prix_physique: null as number | null,
+  cout_impression: null as number | null, cout_fixe: null as number | null,
   prix_revient: null as number | null,
-  a_stock: true,
-  stock: 0,
-  edition: '',
-  fait_main: false,
-  description: '',
-  notes: ''
+  a_stock: true, stock: 0, fait_main: false,
+  description: '', notes: ''
 })
 
 function resetForm() {
@@ -68,22 +78,18 @@ function resetForm() {
   form.type_produit = filterType.value !== 'all' ? filterType.value : 'livre'
   form.prix_vente = null; form.prix_numerique = null; form.prix_physique = null
   form.cout_impression = null; form.cout_fixe = null; form.prix_revient = null
-  form.a_stock = form.type_produit !== 'service'; form.stock = 0
-  form.edition = ''; form.fait_main = false
-  form.description = ''; form.notes = ''
-  editingId.value = null
+  form.a_stock = form.type_produit !== 'service'; form.stock = 0; form.fait_main = false
+  form.description = ''; form.notes = ''; editingId.value = null
 }
 
 function openAdd() { resetForm(); showForm.value = true }
-
 function openEdit(p: Produit) {
   editingId.value = p.id; form.nom = p.nom; form.sous_titre = p.sous_titre || ''
   form.auteur = p.auteur || ''; form.type_produit = p.type_produit
   form.prix_vente = p.prix_vente; form.prix_numerique = p.prix_numerique
   form.prix_physique = p.prix_physique; form.cout_impression = p.cout_impression
   form.cout_fixe = p.cout_fixe; form.prix_revient = p.prix_revient
-  form.a_stock = p.a_stock; form.stock = p.stock || 0
-  form.edition = p.edition || ''; form.fait_main = p.fait_main
+  form.a_stock = p.a_stock; form.stock = p.stock || 0; form.fait_main = p.fait_main
   form.description = p.description || ''; form.notes = p.notes || ''
   showForm.value = true
 }
@@ -97,26 +103,20 @@ watch(() => form.type_produit, t => {
 const isLivre = computed(() => form.type_produit === 'livre')
 
 async function handleSubmit() {
-  if (!form.nom.trim() || !form.prix_vente) return
+  if (!form.nom.trim() || (!isLivre.value && !form.prix_vente)) return
+  // Livres avec editions : prix_vente peut etre 0 (les editions ont leur propre prix)
   saving.value = true
   try {
     const data: any = {
-      nom: form.nom.trim(),
-      sous_titre: form.sous_titre.trim() || null,
-      auteur: form.auteur.trim() || null,
-      type_produit: form.type_produit,
-      prix_vente: form.prix_vente,
-      prix_numerique: form.prix_numerique || null,
-      prix_physique: form.prix_physique || null,
-      cout_impression: form.cout_impression || null,
-      cout_fixe: form.cout_fixe || null,
+      nom: form.nom.trim(), sous_titre: form.sous_titre.trim() || null,
+      auteur: form.auteur.trim() || null, type_produit: form.type_produit,
+      prix_vente: form.prix_vente || 0,
+      prix_numerique: form.prix_numerique || null, prix_physique: form.prix_physique || null,
+      cout_impression: form.cout_impression || null, cout_fixe: form.cout_fixe || null,
       prix_revient: form.prix_revient || null,
-      a_stock: form.a_stock,
-      stock: form.a_stock ? (form.stock || 0) : null,
-      edition: form.edition.trim() || null,
+      a_stock: form.a_stock, stock: form.a_stock ? (form.stock || 0) : null,
       fait_main: form.fait_main,
-      description: form.description.trim() || null,
-      notes: form.notes.trim() || null
+      description: form.description.trim() || null, notes: form.notes.trim() || null
     }
     if (editingId.value) {
       await updateProduit(editingId.value, data)
@@ -136,20 +136,88 @@ async function handleDelete(id: string) {
 }
 
 async function adjustStock(p: Produit, delta: number) {
-  const newStock = Math.max(0, (p.stock || 0) + delta)
-  try { await updateProduit(p.id, { stock: newStock }); await refresh() }
+  try { await updateProduit(p.id, { stock: Math.max(0, (p.stock || 0) + delta) }); await refresh() }
   catch { toast.add({ title: 'Erreur', color: 'error' }) }
 }
 
-function formatMoney(n: number) { return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
-
-function getDisplayPrice(p: Produit): string {
-  const parts: string[] = []
-  if (p.prix_physique) parts.push(`${formatMoney(p.prix_physique)} phys.`)
-  if (p.prix_numerique) parts.push(`${formatMoney(p.prix_numerique)} num.`)
-  if (!parts.length) return `${formatMoney(p.prix_vente)} \u20ac`
-  return parts.join(' / ')
+async function adjustEditionStock(e: ProduitEdition, delta: number) {
+  try { await updateEdition(e.id, { stock: Math.max(0, (e.stock || 0) + delta) }); await refresh() }
+  catch { toast.add({ title: 'Erreur', color: 'error' }) }
 }
+
+// --- Edition Form ---
+const showEditionForm = ref(false)
+const editionForProduct = ref<Produit | null>(null)
+const editingEditionId = ref<string | null>(null)
+const savingEdition = ref(false)
+const editionForm = reactive({
+  nom_edition: '', prix_vente: null as number | null,
+  prix_numerique: null as number | null, prix_physique: null as number | null,
+  cout_impression: null as number | null, cout_fixe: null as number | null,
+  prix_revient: null as number | null, stock: 0, notes: ''
+})
+
+function resetEditionForm() {
+  editionForm.nom_edition = ''; editionForm.prix_vente = null
+  editionForm.prix_numerique = null; editionForm.prix_physique = null
+  editionForm.cout_impression = null; editionForm.cout_fixe = null
+  editionForm.prix_revient = null; editionForm.stock = 0; editionForm.notes = ''
+  editingEditionId.value = null
+}
+
+function openAddEdition(p: Produit) {
+  editionForProduct.value = p; resetEditionForm(); showEditionForm.value = true
+}
+
+function openEditEdition(p: Produit, e: ProduitEdition) {
+  editionForProduct.value = p; editingEditionId.value = e.id
+  editionForm.nom_edition = e.nom_edition; editionForm.prix_vente = e.prix_vente
+  editionForm.prix_numerique = e.prix_numerique; editionForm.prix_physique = e.prix_physique
+  editionForm.cout_impression = e.cout_impression; editionForm.cout_fixe = e.cout_fixe
+  editionForm.prix_revient = e.prix_revient; editionForm.stock = e.stock || 0
+  editionForm.notes = e.notes || ''; showEditionForm.value = true
+}
+
+async function handleEditionSubmit() {
+  if (!editionForm.nom_edition.trim() || !editionForm.prix_vente || !editionForProduct.value) return
+  savingEdition.value = true
+  try {
+    const data: any = {
+      produit: editionForProduct.value.id,
+      nom_edition: editionForm.nom_edition.trim(),
+      prix_vente: editionForm.prix_vente,
+      prix_numerique: editionForm.prix_numerique || null,
+      prix_physique: editionForm.prix_physique || null,
+      cout_impression: editionForm.cout_impression || null,
+      cout_fixe: editionForm.cout_fixe || null,
+      prix_revient: editionForm.prix_revient || null,
+      stock: editionForm.stock || 0,
+      notes: editionForm.notes.trim() || null
+    }
+    if (editingEditionId.value) {
+      await updateEdition(editingEditionId.value, data)
+      toast.add({ title: 'Edition modifiee', color: 'success' })
+    } else {
+      const nextNum = (editionForProduct.value.editions?.length || 0) + 1
+      data.numero = nextNum
+      await createEdition(data)
+      toast.add({ title: 'Edition ajoutee', color: 'success' })
+    }
+    showEditionForm.value = false; resetEditionForm(); await refresh()
+  } catch { toast.add({ title: 'Erreur', color: 'error' }) }
+  finally { savingEdition.value = false }
+}
+
+async function handleDeleteEdition(id: string) {
+  try { await removeEdition(id); toast.add({ title: 'Edition supprimee', color: 'success' }); await refresh() }
+  catch { toast.add({ title: 'Erreur', color: 'error' }) }
+}
+
+function getEditionCode(p: Produit, e: ProduitEdition): string {
+  return `${p.code}-${e.numero}`
+}
+
+function formatMoney(n: number) { return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
 </script>
 
 <template>
@@ -194,8 +262,7 @@ function getDisplayPrice(p: Produit): string {
               :class="filterType === key ? 'bg-stone-800 text-white' : 'text-stone-500 hover:bg-stone-200/60'"
               @click="filterType = filterType === key ? 'all' : (key as ProduitType)"
             >
-              <UIcon :name="config.icon" class="size-3" />
-              {{ config.label }}
+              <UIcon :name="config.icon" class="size-3" /> {{ config.label }}
               <span v-if="countByType[key]" class="opacity-60 tabular-nums">{{ countByType[key] }}</span>
             </button>
           </div>
@@ -220,9 +287,10 @@ function getDisplayPrice(p: Produit): string {
               <div class="space-y-2">
                 <div
                   v-for="p in group.items" :key="p.id"
-                  class="group rounded-xl bg-white/60 border border-white/70 hover:border-[rgba(175,143,60,0.15)] hover:shadow-sm transition-all"
+                  class="rounded-xl bg-white/60 border border-white/70 hover:border-[rgba(175,143,60,0.15)] hover:shadow-sm transition-all overflow-hidden"
                 >
-                  <div class="flex items-center gap-3 px-4 py-3">
+                  <!-- Main product row -->
+                  <div class="group flex items-center gap-3 px-4 py-3">
                     <div class="size-10 rounded-lg flex items-center justify-center shrink-0 bg-[rgba(175,143,60,0.06)]">
                       <UIcon :name="group.config.icon" class="size-5 text-[#AF8F3C]" />
                     </div>
@@ -230,9 +298,11 @@ function getDisplayPrice(p: Produit): string {
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 flex-wrap">
                         <p class="text-sm font-semibold text-stone-800 truncate">{{ p.nom }}</p>
-                        <span v-if="p.edition" class="shrink-0 text-[10px] font-medium text-primary/70 bg-primary/5 px-1.5 py-0.5 rounded-full">{{ p.edition }}</span>
                         <span v-if="p.fait_main" class="shrink-0 text-[10px] font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
                           <UIcon name="i-lucide-hand" class="size-2.5" /> Fait main
+                        </span>
+                        <span v-if="p.editions?.length" class="shrink-0 text-[10px] font-medium text-primary/60 bg-primary/5 px-1.5 py-0.5 rounded-full">
+                          {{ p.editions.length }} edition{{ p.editions.length > 1 ? 's' : '' }}
                         </span>
                       </div>
                       <p v-if="p.sous_titre" class="text-xs text-stone-500 italic truncate">{{ p.sous_titre }}</p>
@@ -243,37 +313,70 @@ function getDisplayPrice(p: Produit): string {
                       </div>
                     </div>
 
-                    <!-- Stock -->
-                    <div v-if="p.a_stock" class="flex items-center gap-1 shrink-0">
-                      <button class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="adjustStock(p, -1)">
-                        <UIcon name="i-lucide-minus" class="size-3" />
-                      </button>
-                      <span class="text-sm font-bold tabular-nums w-8 text-center" :class="(p.stock || 0) === 0 ? 'text-red-500' : (p.stock || 0) <= 5 ? 'text-amber-600' : 'text-stone-800'">{{ p.stock || 0 }}</span>
-                      <button class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="adjustStock(p, 1)">
-                        <UIcon name="i-lucide-plus" class="size-3" />
-                      </button>
-                    </div>
-                    <span v-else class="shrink-0 text-[10px] text-stone-400 bg-stone-50 px-2 py-1 rounded">Sans stock</span>
-
-                    <!-- Prices -->
-                    <div class="shrink-0 text-right min-w-[90px]">
-                      <p class="text-sm font-bold text-stone-800 tabular-nums">{{ formatMoney(p.prix_vente) }} &euro;</p>
-                      <div v-if="p.prix_numerique || p.prix_physique" class="text-[10px] text-stone-400 tabular-nums">
-                        <span v-if="p.prix_physique">{{ formatMoney(p.prix_physique) }} phys.</span>
-                        <span v-if="p.prix_physique && p.prix_numerique"> / </span>
-                        <span v-if="p.prix_numerique">{{ formatMoney(p.prix_numerique) }} num.</span>
+                    <!-- Stock (only if no editions) -->
+                    <template v-if="!p.editions?.length">
+                      <div v-if="p.a_stock" class="flex items-center gap-1 shrink-0">
+                        <button class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="adjustStock(p, -1)"><UIcon name="i-lucide-minus" class="size-3" /></button>
+                        <span class="text-sm font-bold tabular-nums w-8 text-center" :class="(p.stock || 0) === 0 ? 'text-red-500' : (p.stock || 0) <= 5 ? 'text-amber-600' : 'text-stone-800'">{{ p.stock || 0 }}</span>
+                        <button class="size-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="adjustStock(p, 1)"><UIcon name="i-lucide-plus" class="size-3" /></button>
                       </div>
-                      <p v-if="p.cout_impression || p.cout_fixe" class="text-[10px] text-stone-400 tabular-nums">
-                        <span v-if="p.cout_impression">impr. {{ formatMoney(p.cout_impression) }}</span>
-                        <span v-if="p.cout_impression && p.cout_fixe"> + </span>
-                        <span v-if="p.cout_fixe">fixe {{ formatMoney(p.cout_fixe) }}</span>
-                      </p>
-                    </div>
+                      <span v-else class="shrink-0 text-[10px] text-stone-400 bg-stone-50 px-2 py-1 rounded">Sans stock</span>
+
+                      <div class="shrink-0 text-right min-w-[90px]">
+                        <p class="text-sm font-bold text-stone-800 tabular-nums">{{ formatMoney(p.prix_vente) }} &euro;</p>
+                        <div v-if="p.prix_numerique || p.prix_physique" class="text-[10px] text-stone-400 tabular-nums">
+                          <span v-if="p.prix_physique">{{ formatMoney(p.prix_physique) }} phys.</span>
+                          <span v-if="p.prix_physique && p.prix_numerique"> / </span>
+                          <span v-if="p.prix_numerique">{{ formatMoney(p.prix_numerique) }} num.</span>
+                        </div>
+                      </div>
+                    </template>
 
                     <!-- Actions -->
                     <div class="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button v-if="p.type_produit === 'livre'" class="p-1 rounded hover:bg-emerald-50 transition-colors" title="Ajouter une edition" @click="openAddEdition(p)"><UIcon name="i-lucide-layers" class="size-3.5 text-emerald-500" /></button>
                       <button class="p-1 rounded hover:bg-stone-100 transition-colors" @click="openEdit(p)"><UIcon name="i-lucide-pencil" class="size-3.5 text-stone-400" /></button>
                       <button class="p-1 rounded hover:bg-red-50 transition-colors" @click="handleDelete(p.id)"><UIcon name="i-lucide-trash-2" class="size-3.5 text-stone-400 hover:text-red-400" /></button>
+                    </div>
+                  </div>
+
+                  <!-- Editions (livres) -->
+                  <div v-if="p.editions?.length" class="border-t border-stone-100">
+                    <div
+                      v-for="e in p.editions" :key="e.id"
+                      class="group/ed flex items-center gap-3 px-4 py-2.5 pl-14 hover:bg-stone-50/50 transition-colors"
+                      :class="p.editions.indexOf(e) < p.editions.length - 1 ? 'border-b border-stone-50' : ''"
+                    >
+                      <div class="size-7 rounded flex items-center justify-center shrink-0 bg-primary/5">
+                        <span class="text-[10px] font-bold text-primary/60">{{ e.numero }}</span>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-stone-700">{{ e.nom_edition }}</p>
+                        <span class="text-[10px] font-mono text-stone-400">{{ getEditionCode(p, e) }}</span>
+                        <span v-if="e.notes" class="text-[11px] text-stone-400 ml-2">{{ e.notes }}</span>
+                      </div>
+
+                      <!-- Edition stock -->
+                      <div v-if="p.a_stock" class="flex items-center gap-1 shrink-0">
+                        <button class="size-5 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="adjustEditionStock(e, -1)"><UIcon name="i-lucide-minus" class="size-2.5" /></button>
+                        <span class="text-xs font-bold tabular-nums w-6 text-center" :class="(e.stock || 0) === 0 ? 'text-red-500' : (e.stock || 0) <= 5 ? 'text-amber-600' : 'text-stone-700'">{{ e.stock || 0 }}</span>
+                        <button class="size-5 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors" @click="adjustEditionStock(e, 1)"><UIcon name="i-lucide-plus" class="size-2.5" /></button>
+                      </div>
+
+                      <!-- Edition price -->
+                      <div class="shrink-0 text-right min-w-[80px]">
+                        <p class="text-sm font-bold text-stone-700 tabular-nums">{{ formatMoney(e.prix_vente) }} &euro;</p>
+                        <div v-if="e.prix_numerique || e.prix_physique" class="text-[10px] text-stone-400 tabular-nums">
+                          <span v-if="e.prix_physique">{{ formatMoney(e.prix_physique) }} phys.</span>
+                          <span v-if="e.prix_physique && e.prix_numerique"> / </span>
+                          <span v-if="e.prix_numerique">{{ formatMoney(e.prix_numerique) }} num.</span>
+                        </div>
+                      </div>
+
+                      <div class="flex items-center gap-0.5 shrink-0 opacity-0 group-hover/ed:opacity-100 transition-opacity">
+                        <button class="p-1 rounded hover:bg-stone-100 transition-colors" @click="openEditEdition(p, e)"><UIcon name="i-lucide-pencil" class="size-3 text-stone-400" /></button>
+                        <button class="p-1 rounded hover:bg-red-50 transition-colors" @click="handleDeleteEdition(e.id)"><UIcon name="i-lucide-trash-2" class="size-3 text-stone-400 hover:text-red-400" /></button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -284,119 +387,109 @@ function getDisplayPrice(p: Produit): string {
       </template>
     </div>
 
-    <!-- Add/Edit modal -->
+    <!-- Product modal -->
     <UModal :open="showForm" @update:open="val => { if (!val) { showForm = false; resetForm() } }">
       <template #content>
         <div class="p-6 max-h-[85vh] overflow-y-auto">
           <h3 class="text-lg font-semibold text-stone-900 mb-5">{{ editingId ? 'Modifier le produit' : 'Nouveau produit' }}</h3>
-
           <form class="space-y-4" @submit.prevent="handleSubmit">
-            <!-- Type selector -->
             <div class="flex flex-wrap gap-2 justify-center">
-              <button
-                v-for="([key, config]) in Object.entries(PRODUIT_TYPES)" :key="key"
-                type="button"
+              <button v-for="([key, config]) in Object.entries(PRODUIT_TYPES)" :key="key" type="button"
                 class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium border transition-all"
                 :class="form.type_produit === key ? 'bg-[#AF8F3C] text-white border-[#AF8F3C]' : 'bg-white/70 text-stone-600 border-stone-200 hover:border-stone-300'"
                 @click="form.type_produit = key as ProduitType"
-              >
-                <UIcon :name="config.icon" class="size-4" /> {{ config.label }}
-              </button>
+              ><UIcon :name="config.icon" class="size-4" /> {{ config.label }}</button>
             </div>
-
-            <!-- Nom + Auteur -->
             <div :class="isLivre ? 'grid grid-cols-2 gap-3' : ''">
-              <UFormField label="Nom" required>
-                <UInput v-model="form.nom" :placeholder="isLivre ? 'Titre du livre' : 'Nom du produit'" icon="i-lucide-text" class="w-full" />
-              </UFormField>
-              <UFormField v-if="isLivre" label="Auteur">
-                <UInput v-model="form.auteur" placeholder="Nom de l'auteur" icon="i-lucide-user" class="w-full" />
-              </UFormField>
+              <UFormField label="Nom" required><UInput v-model="form.nom" :placeholder="isLivre ? 'Titre du livre' : 'Nom du produit'" icon="i-lucide-text" class="w-full" /></UFormField>
+              <UFormField v-if="isLivre" label="Auteur"><UInput v-model="form.auteur" placeholder="Nom de l'auteur" icon="i-lucide-user" class="w-full" /></UFormField>
             </div>
+            <UFormField v-if="isLivre" label="Sous-titre"><UInput v-model="form.sous_titre" placeholder="Sous-titre ou accroche" class="w-full" /></UFormField>
+            <UFormField v-if="!isLivre && (form.type_produit === 'artisanat' || form.type_produit === 'derive')" label="Createur"><UInput v-model="form.auteur" placeholder="Optionnel" icon="i-lucide-user" class="w-full" /></UFormField>
 
-            <!-- Sous-titre + Edition (livres) -->
-            <div v-if="isLivre" class="grid grid-cols-2 gap-3">
-              <UFormField label="Sous-titre">
-                <UInput v-model="form.sous_titre" placeholder="Sous-titre ou accroche" class="w-full" />
-              </UFormField>
-              <UFormField label="Edition">
-                <UInput v-model="form.edition" placeholder="1ere edition, collector, poche..." icon="i-lucide-layers" class="w-full" />
-                <template #hint><span class="text-[10px] text-stone-400">Une fiche par edition</span></template>
-              </UFormField>
-            </div>
-
-            <!-- Auteur (non-livres, optionnel) -->
-            <UFormField v-if="!isLivre && (form.type_produit === 'artisanat' || form.type_produit === 'derive')" label="Createur / Artisan">
-              <UInput v-model="form.auteur" placeholder="Optionnel" icon="i-lucide-user" class="w-full" />
-            </UFormField>
-
-            <!-- Prix de vente -->
-            <div class="space-y-1">
-              <p class="text-xs font-semibold text-stone-600">Prix de vente</p>
-              <div class="grid grid-cols-3 gap-3">
-                <UFormField label="Prix principal" required>
-                  <UInput v-model.number="form.prix_vente" type="number" :min="0" step="0.01" placeholder="0.00" icon="i-lucide-euro" class="w-full" />
-                </UFormField>
-                <UFormField v-if="isLivre || form.type_produit === 'derive'" label="Prix numerique">
-                  <UInput v-model.number="form.prix_numerique" type="number" :min="0" step="0.01" placeholder="Optionnel" class="w-full" />
-                </UFormField>
-                <UFormField v-if="isLivre || form.type_produit === 'derive'" label="Prix physique">
-                  <UInput v-model.number="form.prix_physique" type="number" :min="0" step="0.01" placeholder="Optionnel" class="w-full" />
-                </UFormField>
+            <!-- Prix (hidden for books with editions, they use edition prices) -->
+            <template v-if="!isLivre">
+              <div class="space-y-1">
+                <p class="text-xs font-semibold text-stone-600">Prix</p>
+                <div class="grid grid-cols-2 gap-3">
+                  <UFormField label="Prix de vente" required><UInput v-model.number="form.prix_vente" type="number" :min="0" step="0.01" placeholder="0.00" icon="i-lucide-euro" class="w-full" /></UFormField>
+                  <UFormField label="Prix de revient"><UInput v-model.number="form.prix_revient" type="number" :min="0" step="0.01" placeholder="Optionnel" class="w-full" /></UFormField>
+                </div>
               </div>
-            </div>
+            </template>
+            <template v-else>
+              <p class="text-xs text-stone-400 italic">Les prix et stocks se gerent par edition. Creez le livre puis ajoutez des editions.</p>
+            </template>
 
-            <!-- Couts de production -->
-            <div class="space-y-1">
-              <p class="text-xs font-semibold text-stone-600">Couts de production</p>
-              <div class="grid grid-cols-3 gap-3">
-                <UFormField v-if="isLivre" label="Cout impression/unite">
-                  <UInput v-model.number="form.cout_impression" type="number" :min="0" step="0.01" placeholder="Par exemplaire" icon="i-lucide-printer" class="w-full" />
-                </UFormField>
-                <UFormField label="Cout fixe">
-                  <UInput v-model.number="form.cout_fixe" type="number" :min="0" step="0.01" :placeholder="isLivre ? 'Illustrations, maquette...' : 'Couts ponctuels'" icon="i-lucide-receipt" class="w-full" />
-                </UFormField>
-                <UFormField label="Prix de revient">
-                  <UInput v-model.number="form.prix_revient" type="number" :min="0" step="0.01" placeholder="Cout total/unite" class="w-full" />
-                  <template #hint><span class="text-[10px] text-stone-400">Pour calcul de marge</span></template>
-                </UFormField>
-              </div>
-            </div>
-
-            <!-- Stock + Fait main -->
             <div class="flex items-center gap-6 flex-wrap">
               <label class="flex items-center gap-2 cursor-pointer">
-                <div class="flex items-center justify-center size-5 rounded border-2 transition-all" :class="form.a_stock ? 'bg-primary border-primary' : 'border-stone-300'" @click="form.a_stock = !form.a_stock">
-                  <UIcon v-if="form.a_stock" name="i-lucide-check" class="size-3 text-white" />
-                </div>
+                <div class="flex items-center justify-center size-5 rounded border-2 transition-all" :class="form.a_stock ? 'bg-primary border-primary' : 'border-stone-300'" @click="form.a_stock = !form.a_stock"><UIcon v-if="form.a_stock" name="i-lucide-check" class="size-3 text-white" /></div>
                 <span class="text-sm text-stone-700">Gestion de stock</span>
               </label>
-              <UInput v-if="form.a_stock" v-model.number="form.stock" type="number" :min="0" placeholder="Quantite" size="sm" class="w-28" />
-
+              <UInput v-if="form.a_stock && !isLivre" v-model.number="form.stock" type="number" :min="0" placeholder="Quantite" size="sm" class="w-28" />
               <label v-if="form.type_produit === 'artisanat' || form.type_produit === 'derive'" class="flex items-center gap-2 cursor-pointer">
-                <div class="flex items-center justify-center size-5 rounded border-2 transition-all" :class="form.fait_main ? 'bg-amber-500 border-amber-500' : 'border-stone-300'" @click="form.fait_main = !form.fait_main">
-                  <UIcon v-if="form.fait_main" name="i-lucide-check" class="size-3 text-white" />
-                </div>
+                <div class="flex items-center justify-center size-5 rounded border-2 transition-all" :class="form.fait_main ? 'bg-amber-500 border-amber-500' : 'border-stone-300'" @click="form.fait_main = !form.fait_main"><UIcon v-if="form.fait_main" name="i-lucide-check" class="size-3 text-white" /></div>
                 <span class="text-sm text-stone-700">Fait main</span>
               </label>
             </div>
-
-            <!-- Description + Notes -->
             <div class="grid grid-cols-2 gap-3">
               <UFormField label="Description"><UInput v-model="form.description" placeholder="Description courte..." class="w-full" /></UFormField>
               <UFormField label="Notes"><UInput v-model="form.notes" placeholder="Notes internes..." class="w-full" /></UFormField>
             </div>
-
-            <!-- Code preview -->
             <p v-if="!editingId" class="text-[11px] text-stone-400">Code auto : {{ PRODUIT_TYPES[form.type_produit]?.prefix || '??' }}-XXXX</p>
-
-            <!-- Actions -->
             <div class="flex items-center justify-between pt-2">
               <UButton v-if="editingId" label="Supprimer" icon="i-lucide-trash-2" color="error" variant="ghost" size="sm" @click="handleDelete(editingId!); showForm = false; resetForm()" />
               <div v-else />
               <div class="flex items-center gap-2">
                 <UButton label="Annuler" color="neutral" variant="ghost" @click="showForm = false; resetForm()" />
-                <UButton type="submit" :label="editingId ? 'Enregistrer' : 'Ajouter'" :icon="editingId ? 'i-lucide-check' : 'i-lucide-plus'" :loading="saving" :disabled="!form.nom.trim() || !form.prix_vente" />
+                <UButton type="submit" :label="editingId ? 'Enregistrer' : 'Ajouter'" :icon="editingId ? 'i-lucide-check' : 'i-lucide-plus'" :loading="saving" :disabled="!form.nom.trim()" />
+              </div>
+            </div>
+          </form>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Edition modal -->
+    <UModal :open="showEditionForm" @update:open="val => { if (!val) { showEditionForm = false; resetEditionForm() } }">
+      <template #content>
+        <div class="p-6">
+          <h3 class="text-lg font-semibold text-stone-900 mb-1">
+            {{ editingEditionId ? 'Modifier l\'edition' : 'Nouvelle edition' }}
+          </h3>
+          <p v-if="editionForProduct" class="text-sm text-stone-500 mb-5">
+            {{ editionForProduct.nom }} <span class="font-mono text-xs text-stone-400">{{ editionForProduct.code }}-{{ (editionForProduct.editions?.length || 0) + (editingEditionId ? 0 : 1) }}</span>
+          </p>
+          <form class="space-y-4" @submit.prevent="handleEditionSubmit">
+            <UFormField label="Nom de l'edition" required>
+              <UInput v-model="editionForm.nom_edition" placeholder="Ex: 1ere edition, Edition collector, Poche..." icon="i-lucide-layers" class="w-full" />
+            </UFormField>
+            <div class="space-y-1">
+              <p class="text-xs font-semibold text-stone-600">Prix</p>
+              <div class="grid grid-cols-3 gap-3">
+                <UFormField label="Prix principal" required><UInput v-model.number="editionForm.prix_vente" type="number" :min="0" step="0.01" placeholder="0.00" icon="i-lucide-euro" class="w-full" /></UFormField>
+                <UFormField label="Prix numerique"><UInput v-model.number="editionForm.prix_numerique" type="number" :min="0" step="0.01" placeholder="Optionnel" class="w-full" /></UFormField>
+                <UFormField label="Prix physique"><UInput v-model.number="editionForm.prix_physique" type="number" :min="0" step="0.01" placeholder="Optionnel" class="w-full" /></UFormField>
+              </div>
+            </div>
+            <div class="space-y-1">
+              <p class="text-xs font-semibold text-stone-600">Couts</p>
+              <div class="grid grid-cols-3 gap-3">
+                <UFormField label="Impression/unite"><UInput v-model.number="editionForm.cout_impression" type="number" :min="0" step="0.01" placeholder="Par ex." icon="i-lucide-printer" class="w-full" /></UFormField>
+                <UFormField label="Cout fixe"><UInput v-model.number="editionForm.cout_fixe" type="number" :min="0" step="0.01" placeholder="Illus, maquette..." icon="i-lucide-receipt" class="w-full" /></UFormField>
+                <UFormField label="Revient/unite"><UInput v-model.number="editionForm.prix_revient" type="number" :min="0" step="0.01" placeholder="Total/unite" class="w-full" /></UFormField>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <UFormField label="Stock"><UInput v-model.number="editionForm.stock" type="number" :min="0" placeholder="Quantite" class="w-full" /></UFormField>
+              <UFormField label="Notes"><UInput v-model="editionForm.notes" placeholder="Optionnel..." class="w-full" /></UFormField>
+            </div>
+            <div class="flex items-center justify-between pt-2">
+              <UButton v-if="editingEditionId" label="Supprimer" icon="i-lucide-trash-2" color="error" variant="ghost" size="sm" @click="handleDeleteEdition(editingEditionId!); showEditionForm = false; resetEditionForm()" />
+              <div v-else />
+              <div class="flex items-center gap-2">
+                <UButton label="Annuler" color="neutral" variant="ghost" @click="showEditionForm = false; resetEditionForm()" />
+                <UButton type="submit" :label="editingEditionId ? 'Enregistrer' : 'Ajouter'" :icon="editingEditionId ? 'i-lucide-check' : 'i-lucide-plus'" :loading="savingEdition" :disabled="!editionForm.nom_edition.trim() || !editionForm.prix_vente" />
               </div>
             </div>
           </form>

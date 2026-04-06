@@ -11,7 +11,13 @@ export function useMateriel() {
     'cout', 'notes', 'date_created'
   ]
 
-  const produitFields = ['*']
+  const produitFields = [
+    '*',
+    'editions.id', 'editions.numero', 'editions.nom_edition',
+    'editions.prix_vente', 'editions.prix_numerique', 'editions.prix_physique',
+    'editions.cout_impression', 'editions.cout_fixe', 'editions.prix_revient',
+    'editions.stock', 'editions.notes', 'editions.date_created'
+  ]
 
   const achatFields = [
     'id', 'nom', 'categorie', 'prix_estime', 'quantite', 'type', 'statut',
@@ -97,6 +103,19 @@ export function useMateriel() {
     await $directus.request(deleteItem('produits', id))
   }
 
+  // --- Editions ---
+  async function createEdition(data: { produit: string; nom_edition: string; numero: number; prix_vente: number; prix_numerique?: number | null; prix_physique?: number | null; cout_impression?: number | null; cout_fixe?: number | null; prix_revient?: number | null; stock?: number | null; notes?: string | null }) {
+    return await $directus.request(createItem('produit_editions', data))
+  }
+
+  async function updateEdition(id: string, data: any) {
+    return await $directus.request(updateItem('produit_editions', id, data))
+  }
+
+  async function removeEdition(id: string) {
+    await $directus.request(deleteItem('produit_editions', id))
+  }
+
   // --- Achats ---
   async function getAllAchats() {
     return await $directus.request(readItems('achats_prevus', {
@@ -120,6 +139,7 @@ export function useMateriel() {
     generateCode, generateProduitCode,
     getAllMateriels, createMateriel, updateMateriel, removeMateriel,
     getAllProduits, createProduit, updateProduit, removeProduit,
+    createEdition, updateEdition, removeEdition,
     getAllAchats, createAchat, updateAchat, removeAchat
   }
 }

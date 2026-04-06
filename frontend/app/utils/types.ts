@@ -460,6 +460,22 @@ export interface Materiel {
   user_created: string
 }
 
+export interface ProduitEdition {
+  id: string
+  produit: Produit | string
+  numero: number
+  nom_edition: string
+  prix_vente: number
+  prix_numerique: number | null
+  prix_physique: number | null
+  cout_impression: number | null
+  cout_fixe: number | null
+  prix_revient: number | null
+  stock: number | null
+  notes: string | null
+  date_created: string
+}
+
 export interface Produit {
   id: string
   code: string
@@ -475,8 +491,8 @@ export interface Produit {
   prix_revient: number | null
   stock: number | null
   a_stock: boolean
-  edition: string | null
   fait_main: boolean
+  editions: ProduitEdition[]
   description: string | null
   notes: string | null
   date_created: string
