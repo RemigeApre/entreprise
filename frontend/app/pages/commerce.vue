@@ -372,6 +372,37 @@ interface PerteJour {
 }
 const pertesAujourdhui = ref<PerteJour[]>([])
 
+const STORAGE_KEY_VENTES = 'commerce_ventes_jour'
+const STORAGE_KEY_PERTES = 'commerce_pertes_jour'
+const STORAGE_KEY_DATE = 'commerce_jour_date'
+
+function saveJourData() {
+  localStorage.setItem(STORAGE_KEY_VENTES, JSON.stringify(ventesAujourdhui.value))
+  localStorage.setItem(STORAGE_KEY_PERTES, JSON.stringify(pertesAujourdhui.value))
+  localStorage.setItem(STORAGE_KEY_DATE, new Date().toISOString().slice(0, 10))
+}
+
+function loadJourData() {
+  try {
+    const savedDate = localStorage.getItem(STORAGE_KEY_DATE)
+    const today = new Date().toISOString().slice(0, 10)
+    // Si la date sauvegardee n'est pas aujourd'hui, on repart a zero
+    if (savedDate !== today) {
+      localStorage.removeItem(STORAGE_KEY_VENTES)
+      localStorage.removeItem(STORAGE_KEY_PERTES)
+      localStorage.removeItem(STORAGE_KEY_DATE)
+      return
+    }
+    const rawV = localStorage.getItem(STORAGE_KEY_VENTES)
+    const rawP = localStorage.getItem(STORAGE_KEY_PERTES)
+    if (rawV) ventesAujourdhui.value = JSON.parse(rawV)
+    if (rawP) pertesAujourdhui.value = JSON.parse(rawP)
+  } catch { /* ignore */ }
+}
+
+watch(ventesAujourdhui, saveJourData, { deep: true })
+watch(pertesAujourdhui, saveJourData, { deep: true })
+
 // --- Recap de fin de journee ---
 const showRecap = ref(false)
 
@@ -589,6 +620,7 @@ async function handleSetInventaire(produitId: number, quantite: number, editionI
 // --- Init ---
 onMounted(() => {
   loadHistoriqueGlobal()
+  loadJourData()
   if (loadSession()) { loadData(); startConnectivityCheck() }
 })
 
