@@ -104,6 +104,7 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
+    '/api/commerce/**': {},
     '/api/**': { proxy: 'http://directus:8055/**' },
     '/': { prerender: true },
     '/le-geai': { prerender: true },
