@@ -156,6 +156,13 @@ export default defineNuxtConfig({
     pageTransition: { name: 'page', mode: 'out-in' }
   },
 
+  colorMode: {
+    preference: 'light',
+    fallback: 'light',
+    classPrefix: '',
+    classSuffix: ''
+  },
+
   compatibilityDate: '2025-01-15',
 
   eslint: {

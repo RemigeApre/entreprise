@@ -1,7 +1,8 @@
 <script setup>
 useHead({
   meta: [
-    { name: 'viewport', content: 'width=device-width, initial-scale=1' }
+    { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+    { name: 'color-scheme', content: 'light only' }
   ],
   link: [
     { rel: 'icon', href: '/favicon.ico' }
