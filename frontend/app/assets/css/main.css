@@ -1,6 +1,13 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
+/* Force light mode only — never apply dark variant */
+@custom-variant dark (&:is(.dark *));
+
+html {
+  color-scheme: light only;
+}
+
 @theme static {
   --font-sans: 'Crimson Pro', Georgia, serif;
   --font-serif: 'IM Fell DW Pica', Georgia, serif;
