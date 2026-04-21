@@ -1,11 +1,11 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
-/* Force light mode only — never apply dark variant */
-@custom-variant dark (&:is(.dark *));
+/* Force light mode only — dark variant never matches */
+@custom-variant dark (&:is(.force-dark-never *));
 
 html {
-  color-scheme: light only;
+  color-scheme: light only !important;
 }
 
 @theme static {

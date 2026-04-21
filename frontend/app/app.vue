@@ -8,8 +8,12 @@ useHead({
     { rel: 'icon', href: '/favicon.ico' }
   ],
   htmlAttrs: {
-    lang: 'fr'
+    lang: 'fr',
+    class: 'light'
   },
+  script: [
+    { innerHTML: "document.documentElement.classList.remove('dark');document.documentElement.classList.add('light');document.documentElement.style.colorScheme='light';", tagPosition: 'head' }
+  ],
   // Fond crème par défaut pour éviter le flash blanc au démarrage SPA
   style: [
     { children: 'html, body { background-color: #E6E2DA; }' }
