@@ -1,3 +1,5 @@
+import { getEffectiveStatutEmploi } from '~/utils/dates'
+
 export default defineNuxtRouteMiddleware(async (to) => {
   const publicPaths = ['/', '/recrutement', '/le-geai', '/poles', '/soutenir', '/articles', '/rdv', '/commerce']
   const publicPrefixes = ['/le-geai/', '/rdv/', '/commerce/']
@@ -20,7 +22,9 @@ export default defineNuxtRouteMiddleware(async (to) => {
     }
   }
 
-  const statut = user.value?.statut_emploi
+  // Statut effectif : un 'a_venir' dont la date de debut de contrat est atteinte
+  // est traite comme 'actif' (le champ DB peut ne pas avoir ete mis a jour).
+  const statut = getEffectiveStatutEmploi(user.value)
 
   // Termine : rediriger vers la page des anciens (pas de deconnexion)
   if (statut === 'termine') {
@@ -35,15 +39,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return navigateTo('/dashboard')
   }
 
-  // A venir : uniquement planning (presence)
-  if (statut === 'a_venir') {
-    const allowed = ['/dashboard', '/planning', '/profil']
-    const isAllowed = allowed.some(p => path === p || path.startsWith(p + '/'))
-    if (!isAllowed) {
-      return navigateTo('/dashboard')
-    }
-  }
-
-  // Test : connexion possible, acces complet (pour tester l'interface)
-  // Pas de restriction supplementaire
+  // a_venir / test : pas de restriction de routing globale.
+  // Les pages admin restent protegees par le middleware `directeur.ts`,
+  // et les creneaux planning hors contrat restent verrouilles par PlanningWeekView.
 })

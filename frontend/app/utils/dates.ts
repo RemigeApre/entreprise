@@ -61,6 +61,24 @@ export function isDateInContractPeriod(
   return { valid: true }
 }
 
+// Bascule auto 'a_venir' -> 'actif' quand la date de debut de contrat est passee.
+// Volontairement non-symetrique : on ne degrade jamais un statut stocke 'actif'/'test'
+// vers 'a_venir' meme si le contrat est dans le futur (sinon les comptes crees
+// manuellement avec une date de debut future seraient restreints sans raison).
+export function getEffectiveStatutEmploi(user: {
+  statut_emploi?: string | null
+  date_debut_contrat?: string | null
+} | null | undefined): string | null {
+  if (!user) return null
+  if (user.statut_emploi === 'a_venir' && user.date_debut_contrat) {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const debut = new Date(user.date_debut_contrat + 'T00:00:00')
+    if (debut <= today) return 'actif'
+  }
+  return user.statut_emploi || 'actif'
+}
+
 export function getWeekNumber(date: Date): number {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
   d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7))
