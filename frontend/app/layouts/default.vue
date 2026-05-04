@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { DASHBOARD_MODULES, PLANNING_DISPLAY_OPTIONS, PRESENCE_DISPLAY_OPTIONS } from '~/composables/useDashboardPreferences'
 
-const { user, logout, isDirecteur, roleName, isProspecteur } = useAuth()
+const { user, logout, isDirecteur, isProspecteur } = useAuth()
+
+// Libelle affiche dans le drawer mobile : type de contrat si present
+// (Stage, CDI, Freelance...), sinon "Administrateur" pour les directeurs.
+const drawerSubLabel = computed(() => {
+  if (user.value?.type_contrat) return user.value.type_contrat
+  return isDirecteur.value ? 'Administrateur' : 'Membre'
+})
 const config = useRuntimeConfig()
 const cmsUrl = config.public.cmsUrl as string
 const route = useRoute()
@@ -382,7 +389,7 @@ const userMenuItems = computed(() => [
               <span class="drawer-logo-glyph">G</span>
               <div class="drawer-logo-text">
                 <span class="drawer-logo-name">Le Geai</span>
-                <span class="drawer-logo-role">{{ roleName }}</span>
+                <span class="drawer-logo-role">{{ drawerSubLabel }}</span>
               </div>
             </NuxtLink>
             <button class="drawer-close" @click="mobileOpen = false">

@@ -191,12 +191,12 @@ async function handleCreateUserAndSign() {
   try {
     const { $directus } = useNuxtApp()
     const roles = await $directus.request(readRoles({
-      filter: { name: { _eq: 'Stagiaire' } },
+      filter: { name: { _eq: 'Membre' } },
       fields: ['id'],
       limit: 1
     })) as { id: string }[]
     const roleId = roles[0]?.id
-    if (!roleId) throw new Error('Role Stagiaire introuvable')
+    if (!roleId) throw new Error('Role Membre introuvable — relance setup-directus.mjs')
 
     const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
     const pwd = Array.from({ length: 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')

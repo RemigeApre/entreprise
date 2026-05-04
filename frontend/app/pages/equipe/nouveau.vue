@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { readItems } from '@directus/sdk'
+import { readItems, readRoles } from '@directus/sdk'
 
 definePageMeta({
   middleware: ['directeur']
@@ -9,12 +9,17 @@ const { $directus } = useNuxtApp()
 const { createNewUser } = useUsers()
 const toast = useToast()
 
+// 2 roles seulement : Directeur (admin) et Membre. Le formulaire choisit
+// l'un ou l'autre via le toggle "Administrateur".
 const { data: roles } = useAsyncData('roles-equipe-nouveau', async () => {
-  return await $directus.request(readItems('directus_roles', {
+  return await $directus.request(readRoles({
     fields: ['id', 'name'],
     limit: -1
   })) as { id: string; name: string }[]
 })
+
+const directeurRoleId = computed(() => roles.value?.find(r => r.name === 'Directeur')?.id || '')
+const membreRoleId = computed(() => roles.value?.find(r => r.name === 'Membre')?.id || '')
 
 const { data: categories } = useAsyncData('categories-equipe-nouveau', async () => {
   return await $directus.request(readItems('categories', {
@@ -39,7 +44,7 @@ const form = reactive({
   last_name: '',
   email: '',
   password: '',
-  role: '' as string,
+  isAdmin: false,
   categorie: null as string | null,
   type_contrat: null as string | null,
   date_debut_contrat: '',
@@ -49,12 +54,16 @@ const form = reactive({
 })
 
 const hasTrialPeriod = computed(() => form.type_contrat !== 'Stage' && form.type_contrat !== 'Freelance')
-const roleOptions = computed(() => roles.value?.map(r => ({ label: r.name, value: r.id })) || [])
 const categoryOptions = computed(() => categories.value?.map(c => ({ label: c.nom, value: c.id })) || [])
 
 async function handleSubmit() {
   if (!form.email || !form.password) {
     toast.add({ title: 'Veuillez remplir les champs obligatoires (email et mot de passe)', color: 'warning' })
+    return
+  }
+  const roleId = form.isAdmin ? directeurRoleId.value : membreRoleId.value
+  if (!roleId) {
+    toast.add({ title: 'Roles Directus introuvables — relance setup-directus.mjs', color: 'error' })
     return
   }
   submitting.value = true
@@ -64,7 +73,7 @@ async function handleSubmit() {
       password: form.password,
       first_name: form.first_name || undefined,
       last_name: form.last_name || undefined,
-      role: form.role || undefined,
+      role: roleId,
       categorie: form.categorie || null,
       type_contrat: form.type_contrat || null,
       date_debut_contrat: form.date_debut_contrat || null,
@@ -120,14 +129,9 @@ async function handleSubmit() {
             <UFormField label="Mot de passe *">
               <UInput v-model="form.password" type="password" placeholder="Mot de passe" />
             </UFormField>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <UFormField label="Role">
-                <USelectMenu v-model="form.role" :items="roleOptions" value-key="value" placeholder="Selectionner un role" />
-              </UFormField>
-              <UFormField label="Categorie / Pole">
-                <USelectMenu v-model="form.categorie" :items="categoryOptions" value-key="value" placeholder="Selectionner un pole" />
-              </UFormField>
-            </div>
+            <UFormField label="Categorie / Pole">
+              <USelectMenu v-model="form.categorie" :items="categoryOptions" value-key="value" placeholder="Selectionner un pole" />
+            </UFormField>
           </div>
         </UCard>
 
@@ -155,13 +159,23 @@ async function handleSubmit() {
 
         <UCard>
           <template #header>
-            <h3 class="text-sm font-semibold text-stone-900">Statut</h3>
+            <h3 class="text-sm font-semibold text-stone-900">Acces</h3>
           </template>
-          <div class="flex items-center gap-3">
-            <USwitch v-model="form.actif" />
-            <span class="text-sm text-stone-700">
-              {{ form.actif ? 'Utilisateur actif' : 'Utilisateur inactif' }}
-            </span>
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-stone-800">Administrateur</p>
+                <p class="text-xs text-stone-500">Acces complet (gestion equipe, candidats, finance, parametres)</p>
+              </div>
+              <USwitch v-model="form.isAdmin" />
+            </div>
+            <div class="flex items-center justify-between pt-2 border-t border-stone-100">
+              <div>
+                <p class="text-sm font-medium text-stone-800">Compte actif</p>
+                <p class="text-xs text-stone-500">Permet la connexion</p>
+              </div>
+              <USwitch v-model="form.actif" />
+            </div>
           </div>
         </UCard>
       </div>

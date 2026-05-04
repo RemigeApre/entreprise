@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { readItems, updateMe } from '@directus/sdk'
+import { readItems, readRoles, updateMe } from '@directus/sdk'
 import type { UserProfile, UserDocument, VisibiliteNiveau, VisibiliteProfil } from '~/utils/types'
 
 const route = useRoute()
@@ -153,7 +153,7 @@ const form = reactive({
   last_name: '',
   email: '',
   date_naissance: '',
-  role: '' as string,
+  isAdmin: false,
   categorie: null as string | null,
   type_contrat: null as string | null,
   ecole: '',
@@ -184,7 +184,7 @@ const passwordSaving = ref(false)
 
 const { data: roles } = useAsyncData('roles-equipe-edit', async () => {
   if (!isDirecteur.value) return []
-  return await $directus.request(readItems('directus_roles', {
+  return await $directus.request(readRoles({
     fields: ['id', 'name'], limit: -1
   })) as { id: string; name: string }[]
 })
@@ -204,7 +204,8 @@ const contractTypeOptions = [
   { label: 'Stage', value: 'Stage' }
 ]
 
-const roleOptions = computed(() => roles.value?.map(r => ({ label: r.name, value: r.id })) || [])
+const directeurRoleId = computed(() => roles.value?.find(r => r.name === 'Directeur')?.id || '')
+const membreRoleId = computed(() => roles.value?.find(r => r.name === 'Membre')?.id || '')
 const categoryOptions = computed(() => categories.value?.map(c => ({ label: c.nom, value: c.id })) || [])
 
 const editHasTrialPeriod = computed(() => form.type_contrat !== 'Stage' && form.type_contrat !== 'Freelance')
@@ -216,7 +217,8 @@ function startEditing() {
   form.last_name = m.last_name || ''
   form.email = m.email || ''
   form.date_naissance = m.date_naissance ? m.date_naissance.split('T')[0] : ''
-  form.role = typeof m.role === 'string' ? m.role : m.role?.id || ''
+  const currentRoleName = typeof m.role === 'string' ? null : m.role?.name
+  form.isAdmin = currentRoleName === 'Directeur' || currentRoleName === 'Administrator'
   form.categorie = !m.categorie ? null : typeof m.categorie === 'string' ? m.categorie : m.categorie.id
   form.type_contrat = m.type_contrat || null
   form.ecole = m.ecole || ''
@@ -244,12 +246,20 @@ async function handleSave() {
     const visibilite_profil: VisibiliteProfil = { ...form.visibilite }
 
     if (isDirecteur.value) {
+      // Resoud l'isAdmin en role id ; on garde l'ancien si la liste des roles
+      // n'a pas encore charge plutot que d'envoyer null (qui supprimerait le role)
+      const currentRoleId = typeof member.value?.role === 'string'
+        ? member.value.role
+        : member.value?.role?.id
+      const desiredRoleId = form.isAdmin ? directeurRoleId.value : membreRoleId.value
+      const roleId = desiredRoleId || currentRoleId || null
+
       const payload: Record<string, any> = {
         first_name: form.first_name || null,
         last_name: form.last_name || null,
         email: form.email || undefined,
         date_naissance: form.date_naissance || null,
-        role: form.role || null,
+        role: roleId,
         categorie: form.categorie || null,
         type_contrat: form.type_contrat || null,
         ecole: form.ecole || null,
@@ -859,13 +869,15 @@ function pct(value: number, max: number) {
               <h3 class="text-sm font-semibold text-stone-900">Administration</h3>
             </template>
             <div class="space-y-4">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <UFormField label="Role">
-                  <USelectMenu v-model="form.role" :items="roleOptions" value-key="value" placeholder="Selectionner un role" />
-                </UFormField>
-                <UFormField label="Categorie / Pole">
-                  <USelectMenu v-model="form.categorie" :items="categoryOptions" value-key="value" placeholder="Selectionner un pole" />
-                </UFormField>
+              <UFormField label="Categorie / Pole">
+                <USelectMenu v-model="form.categorie" :items="categoryOptions" value-key="value" placeholder="Selectionner un pole" />
+              </UFormField>
+              <div class="flex items-center justify-between pt-2 border-t border-stone-100">
+                <div>
+                  <p class="text-sm font-medium text-stone-800">Administrateur</p>
+                  <p class="text-xs text-stone-500">Acces complet (gestion equipe, candidats, finance, parametres)</p>
+                </div>
+                <USwitch v-model="form.isAdmin" />
               </div>
             </div>
           </UCard>

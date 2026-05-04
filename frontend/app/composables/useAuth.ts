@@ -1,5 +1,6 @@
 import { readMe } from '@directus/sdk'
 import type { UserProfile } from '~/utils/types'
+import { CONTRACTS_WITH_SCHOOL_DAYS, CONTRACTS_WITH_HOUR_TRACKING } from '~/utils/constants'
 
 export function useAuth() {
   const { $directus } = useNuxtApp()
@@ -49,21 +50,16 @@ export function useAuth() {
     return role.name === 'Directeur' || role.name === 'Administrator'
   })
 
-  const roleName = computed(() => {
-    if (!user.value) return null
-    const role = user.value.role
-    if (!role || typeof role === 'string') return null
-    return role.name
-  })
-
+  // Les caracteristiques metier sont derivees du `type_contrat` (et non du role).
+  // Les listes de reference sont dans `~/utils/constants`.
   const hasSchoolDays = computed(() => {
-    const name = roleName.value
-    return name === 'Alternant' || name === 'Stagiaire'
+    const c = user.value?.type_contrat
+    return !!c && CONTRACTS_WITH_SCHOOL_DAYS.includes(c)
   })
 
   const hasHourTracking = computed(() => {
-    const name = roleName.value
-    return name === 'Freelance' || name === 'Alternant' || name === 'Stagiaire'
+    const c = user.value?.type_contrat
+    return !!c && CONTRACTS_WITH_HOUR_TRACKING.includes(c)
   })
 
   const isProspecteur = computed(() => {
@@ -79,7 +75,6 @@ export function useAuth() {
     refresh,
     fetchCurrentUser,
     isDirecteur,
-    roleName,
     hasSchoolDays,
     hasHourTracking,
     isProspecteur

@@ -3,17 +3,12 @@ import { updateMe } from '@directus/sdk'
 import type { UserProfile } from '~/utils/types'
 
 const { $directus } = useNuxtApp()
-const { user, logout, roleName } = useAuth()
+const { user, logout, isDirecteur } = useAuth()
 const { login: authLogin } = useDirectusAuth()
 const toast = useToast()
 
 function getUserName(u: UserProfile) {
   return [u.first_name, u.last_name].filter(Boolean).join(' ') || u.email
-}
-
-function getRoleName(u: UserProfile) {
-  if (typeof u.role === 'string') return u.role
-  return u.role.name
 }
 
 function getCategoryName(u: UserProfile) {
@@ -28,17 +23,6 @@ function formatDateFr(date: string | null) {
     month: 'long',
     year: 'numeric'
   })
-}
-
-function getRoleColor(name: string) {
-  const colors: Record<string, string> = {
-    Directeur: 'red',
-    Employe: 'blue',
-    Freelance: 'orange',
-    Alternant: 'purple',
-    Stagiaire: 'yellow'
-  }
-  return colors[name] || 'neutral'
 }
 
 // Edition des infos perso
@@ -156,14 +140,14 @@ async function handleLogout() {
               </h2>
               <p class="text-gray-500">{{ user.email }}</p>
               <div class="flex flex-wrap items-center gap-2 mt-2">
-                <UBadge :color="getRoleColor(getRoleName(user))" variant="subtle">
-                  {{ getRoleName(user) }}
+                <UBadge v-if="isDirecteur" color="red" variant="subtle">
+                  Administrateur
+                </UBadge>
+                <UBadge v-if="user.type_contrat" variant="subtle" color="neutral">
+                  {{ user.type_contrat }}
                 </UBadge>
                 <UBadge v-if="getCategoryName(user)" variant="outline" color="neutral">
                   {{ getCategoryName(user) }}
-                </UBadge>
-                <UBadge v-if="user.type_contrat" variant="outline" color="neutral">
-                  {{ user.type_contrat }}
                 </UBadge>
               </div>
               <div v-if="user.bio" class="mt-2 text-sm text-stone-600 italic">
@@ -268,9 +252,9 @@ async function handleLogout() {
               <span class="text-gray-500">Nom</span>
               <p class="font-medium text-gray-900">{{ user.last_name || '-' }}</p>
             </div>
-            <div>
-              <span class="text-gray-500">Role</span>
-              <p class="font-medium text-gray-900">{{ getRoleName(user) }}</p>
+            <div v-if="isDirecteur">
+              <span class="text-gray-500">Acces</span>
+              <p class="font-medium text-gray-900">Administrateur</p>
             </div>
             <div v-if="getCategoryName(user)">
               <span class="text-gray-500">Categorie</span>

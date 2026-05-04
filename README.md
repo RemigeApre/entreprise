@@ -68,6 +68,21 @@ NUXT_PUBLIC_DIRECTUS_URL=http://localhost:8055
 
 ---
 
+## Rôles & permissions
+
+**2 rôles seulement** dans Directus :
+
+| Rôle | Description |
+|---|---|
+| `Directeur` | Accès complet (gestion équipe, candidats, finance, etc.) — `admin_access: true` |
+| `Membre` | Tout le reste. La distinction stagiaire / alternant / freelance / employé est portée par le champ `type_contrat` du user, pas par le rôle. |
+
+Tous les rôles sont liés à la même policy **`Base Authentifié`** qui contient les permissions CRUD sur les collections métier (`planning_entries`, `schedule_entries`, `prospects`, etc.).
+
+Côté code, `useAuth` expose `isDirecteur`, `hasSchoolDays`, `hasHourTracking` — ces deux derniers se basent désormais sur `type_contrat` (`Stage`/`Alternance` pour l'école, `Freelance`/`Stage`/`Alternance` pour le suivi horaire).
+
+---
+
 ## Migrations Directus
 
 Les migrations sont dans `scripts/migrations/` et exécutées dans l'ordre alphabétique par `scripts/setup-directus.mjs`.

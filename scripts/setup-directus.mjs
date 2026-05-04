@@ -83,12 +83,12 @@ async function authenticate() {
 async function createRoles() {
   console.log('👥 Creation des roles...')
 
+  // 2 roles uniquement : Directeur (admin) et Membre (tout le reste).
+  // La distinction stagiaire/alternant/freelance/employe est portee par
+  // le champ `type_contrat` du user, pas par le role.
   const roleDefs = [
     { name: 'Directeur', icon: 'shield', admin_access: true, app_access: true, description: 'Directeur - Acces total' },
-    { name: 'Employe', icon: 'person', admin_access: false, app_access: true, description: 'Employe standard' },
-    { name: 'Freelance', icon: 'work', admin_access: false, app_access: true, description: 'Freelance externe' },
-    { name: 'Alternant', icon: 'school', admin_access: false, app_access: true, description: 'Alternant' },
-    { name: 'Stagiaire', icon: 'pending_actions', admin_access: false, app_access: true, description: 'Stagiaire' }
+    { name: 'Membre', icon: 'person', admin_access: false, app_access: true, description: 'Membre de l\'equipe (distinction par type_contrat)' }
   ]
 
   const roleIds = {}
@@ -101,6 +101,30 @@ async function createRoles() {
   const allRoles = await api('GET', '/roles')
   for (const role of allRoles) {
     if (!roleIds[role.name]) roleIds[role.name] = role.id
+  }
+
+  // Migration : reattribue les users des anciens roles (Employe/Freelance/
+  // Alternant/Stagiaire) vers Membre puis supprime ces anciens roles.
+  // Idempotent : ne fait rien si les anciens roles n'existent plus.
+  const OLD_ROLES = ['Employe', 'Freelance', 'Alternant', 'Stagiaire']
+  const membreId = roleIds['Membre']
+  if (membreId) {
+    for (const oldName of OLD_ROLES) {
+      const oldId = roleIds[oldName]
+      if (!oldId) continue
+      const usersToMove = await api(
+        'GET',
+        `/users?filter[role][_eq]=${oldId}&fields=id,email&limit=-1`
+      ).catch(() => [])
+      if (usersToMove && usersToMove.length > 0) {
+        console.log(`  → Migration: ${usersToMove.length} user(s) "${oldName}" -> Membre`)
+        for (const u of usersToMove) {
+          await safeApi('PATCH', `/users/${u.id}`, { role: membreId }, `  ${u.email}`)
+        }
+      }
+      await safeApi('DELETE', `/roles/${oldId}`, null, `Suppression role "${oldName}"`)
+      delete roleIds[oldName]
+    }
   }
 
   console.log('')
@@ -1138,8 +1162,8 @@ async function setupPermissions(roleIds) {
   }, 'Policy "Base Authentifie"')
 
   if (authPolicy) {
-    // Link to all roles (including admin roles as fallback for explicit permissions)
-    for (const roleName of ['Administrator', 'Directeur', 'Employe', 'Freelance', 'Alternant', 'Stagiaire']) {
+    // Link to all roles (Administrator est le role admin Directus interne)
+    for (const roleName of ['Administrator', 'Directeur', 'Membre']) {
       if (roleIds[roleName]) {
         await ensureAccess(roleIds[roleName], authPolicy.id, `Access "${roleName}" → base policy`)
       }
@@ -1571,7 +1595,7 @@ async function createTestUsers(roleIds) {
       password: 'Test1234!',
       first_name: 'Marie',
       last_name: 'Dupont',
-      role: roleIds.Employe,
+      role: roleIds.Membre,
       actif: true,
       statut_emploi: 'test',
       type_contrat: 'CDI',
@@ -1582,7 +1606,7 @@ async function createTestUsers(roleIds) {
       password: 'Test1234!',
       first_name: 'Thomas',
       last_name: 'Martin',
-      role: roleIds.Freelance,
+      role: roleIds.Membre,
       actif: true,
       statut_emploi: 'test',
       type_contrat: 'Freelance',
@@ -1594,7 +1618,7 @@ async function createTestUsers(roleIds) {
       password: 'Test1234!',
       first_name: 'Lucas',
       last_name: 'Bernard',
-      role: roleIds.Alternant,
+      role: roleIds.Membre,
       actif: true,
       statut_emploi: 'test',
       type_contrat: 'Alternance',
@@ -1606,7 +1630,7 @@ async function createTestUsers(roleIds) {
       password: 'Test1234!',
       first_name: 'Emma',
       last_name: 'Petit',
-      role: roleIds.Stagiaire,
+      role: roleIds.Membre,
       actif: true,
       statut_emploi: 'test',
       type_contrat: 'Stage',
@@ -1759,17 +1783,15 @@ async function assignMissingRoles() {
     const roleMap = {}
     for (const r of (roles || [])) roleMap[r.name] = r.id
 
-    // Mapping type_contrat → role name
-    const contractToRole = {
-      'Stage': 'Stagiaire',
-      'Alternance': 'Alternant',
-      'Freelance': 'Freelance',
-      'CDI': 'Employe',
-      'CDD': 'Employe'
+    // Tous les utilisateurs sans role recoivent "Membre" (la distinction
+    // stagiaire/alternant/freelance/employe est portee par type_contrat).
+    const membreId = roleMap['Membre']
+    if (!membreId) {
+      console.log('  ⚠ Role "Membre" introuvable — assignation skippee')
+      console.log('')
+      return
     }
-    const defaultRole = 'Employe'
 
-    // Fetch all users without a role
     const users = await api('GET', '/users?filter[role][_null]=true&limit=-1&fields=id,email,type_contrat,first_name,last_name')
     if (!users || users.length === 0) {
       console.log('  ✓ Tous les utilisateurs ont un role')
@@ -1778,13 +1800,7 @@ async function assignMissingRoles() {
     }
 
     for (const u of users) {
-      const roleName = contractToRole[u.type_contrat] || defaultRole
-      const roleId = roleMap[roleName]
-      if (!roleId) {
-        console.log(`  ⚠ Role "${roleName}" introuvable pour ${u.email}`)
-        continue
-      }
-      await safeApi('PATCH', `/users/${u.id}`, { role: roleId }, `Role "${roleName}" assigne a ${u.first_name || ''} ${u.last_name || ''} (${u.email})`)
+      await safeApi('PATCH', `/users/${u.id}`, { role: membreId }, `Role "Membre" assigne a ${u.first_name || ''} ${u.last_name || ''} (${u.email})`)
     }
   } catch (e) {
     console.log(`  ⚠ Impossible d'assigner les roles: ${e.message.substring(0, 150)}`)
@@ -1819,12 +1835,12 @@ async function main() {
   console.log('╔══════════════════════════════════════════╗')
   console.log('║   ✅ Setup termine avec succes !          ║')
   console.log('╚══════════════════════════════════════════╝\n')
-  console.log('Comptes de test :')
-  console.log('  Directeur  : admin@legeai.fr / Admin2026LeGeai')
-  console.log('  Employe    : employe@legeai.fr / Test1234!')
-  console.log('  Freelance  : freelance@legeai.fr / Test1234!')
-  console.log('  Alternant  : alternant@legeai.fr / Test1234!')
-  console.log('  Stagiaire  : stagiaire@legeai.fr / Test1234!')
+  console.log('Comptes de test (role Membre + type_contrat distinctif) :')
+  console.log('  Directeur                   : admin@legeai.fr / Admin2026LeGeai')
+  console.log('  Membre / type_contrat=CDI   : employe@legeai.fr / Test1234!')
+  console.log('  Membre / type_contrat=Freelance  : freelance@legeai.fr / Test1234!')
+  console.log('  Membre / type_contrat=Alternance : alternant@legeai.fr / Test1234!')
+  console.log('  Membre / type_contrat=Stage      : stagiaire@legeai.fr / Test1234!')
   console.log('')
   console.log(`Directus admin : ${BASE_URL}/admin`)
 }

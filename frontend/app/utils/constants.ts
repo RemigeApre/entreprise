@@ -1,27 +1,14 @@
-export const ROLE_NAMES = {
-  DIRECTEUR: 'Directeur',
-  EMPLOYE: 'Employe',
-  FREELANCE: 'Freelance',
-  ALTERNANT: 'Alternant',
-  STAGIAIRE: 'Stagiaire'
-} as const
+import type { TypeContrat } from '~/utils/types'
 
-export const ROLES_WITH_END_DATE_REQUIRED = [
-  ROLE_NAMES.FREELANCE,
-  ROLE_NAMES.ALTERNANT,
-  ROLE_NAMES.STAGIAIRE
-]
+// 2 roles Directus existent : "Directeur" (admin) et "Membre" (tout le reste).
+// La distinction metier (stagiaire, alternant, freelance, employe) est portee
+// par `user.type_contrat`, pas par le role.
+//
+// Types de contrat avec demi-journees ecole (ajoute le pill "Ecole" sur le planning).
+export const CONTRACTS_WITH_SCHOOL_DAYS: TypeContrat[] = ['Alternance', 'Stage']
 
-export const ROLES_WITH_SCHOOL_DAYS = [
-  ROLE_NAMES.ALTERNANT,
-  ROLE_NAMES.STAGIAIRE
-]
-
-export const ROLES_WITH_HOUR_TRACKING = [
-  ROLE_NAMES.FREELANCE,
-  ROLE_NAMES.ALTERNANT,
-  ROLE_NAMES.STAGIAIRE
-]
+// Types de contrat avec suivi des heures (affiche le bloc heures cumulees).
+export const CONTRACTS_WITH_HOUR_TRACKING: TypeContrat[] = ['Freelance', 'Alternance', 'Stage']
 
 export const PLANNING_TYPES = {
   travail: { label: 'Travail', color: 'green', icon: 'i-lucide-briefcase' },

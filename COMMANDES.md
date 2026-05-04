@@ -89,13 +89,16 @@ Necessite que Directus tourne deja (via Docker ou distant).
 
 ## Comptes de test
 
-| Role       | Email                     | Mot de passe |
-|------------|---------------------------|--------------|
-| Directeur  | admin@legeai-editions.com | (voir .env)  |
-| Employe    | employe@legeai.fr         | Test1234!    |
-| Freelance  | freelance@legeai.fr       | Test1234!    |
-| Alternant  | alternant@legeai.fr       | Test1234!    |
-| Stagiaire  | stagiaire@legeai.fr       | Test1234!    |
+Roles Directus : `Directeur` (admin) et `Membre` (tout le reste).
+La distinction stagiaire / alternant / freelance / employe est portee par le champ `type_contrat`.
+
+| Role      | type_contrat | Email                     | Mot de passe |
+|-----------|--------------|---------------------------|--------------|
+| Directeur | -            | admin@legeai-editions.com | (voir .env)  |
+| Membre    | CDI          | employe@legeai.fr         | Test1234!    |
+| Membre    | Freelance    | freelance@legeai.fr       | Test1234!    |
+| Membre    | Alternance   | alternant@legeai.fr       | Test1234!    |
+| Membre    | Stage        | stagiaire@legeai.fr       | Test1234!    |
 
 ---
 
