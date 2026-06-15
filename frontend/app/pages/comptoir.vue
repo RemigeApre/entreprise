@@ -631,22 +631,34 @@ async function handleSetInventaire(produitId: number, quantite: number, editionI
 const { createLieu, updateLieu, removeLieu } = useMateriel()
 const lieuFormOpen = ref(false)
 const lieuEditingId = ref<number | null>(null)
-const lieuForm = reactive({ nom: '', adresse: '' })
+const lieuForm = reactive({ nom: '', adresse: '', statut: 'vente' as 'stockage' | 'vente' | 'futur' })
 const lieuSaving = ref(false)
 const lieuError = ref('')
+
+const LIEU_STATUTS = [
+  { value: 'vente', label: 'Lieu de vente', icon: 'i-lucide-store', cls: 'bg-[#AF8F3C]/15 text-[#AF8F3C]' },
+  { value: 'stockage', label: 'Lieu de stockage', icon: 'i-lucide-package', cls: 'bg-sky-900/30 text-sky-400' },
+  { value: 'futur', label: 'Futur lieu', icon: 'i-lucide-clock', cls: 'bg-stone-700/50 text-stone-400' }
+] as const
+
+function lieuStatutMeta(s?: string) {
+  return LIEU_STATUTS.find(x => x.value === s) || LIEU_STATUTS[1]
+}
 
 function openLieuCreate() {
   lieuEditingId.value = null
   lieuForm.nom = ''
   lieuForm.adresse = ''
+  lieuForm.statut = 'vente'
   lieuError.value = ''
   lieuFormOpen.value = true
 }
 
-function openLieuEdit(l: { id: number; nom: string; adresse: string | null }) {
+function openLieuEdit(l: { id: number; nom: string; adresse: string | null; statut?: string }) {
   lieuEditingId.value = l.id
   lieuForm.nom = l.nom
   lieuForm.adresse = l.adresse || ''
+  lieuForm.statut = (l.statut as 'stockage' | 'vente' | 'futur') || 'stockage'
   lieuError.value = ''
   lieuFormOpen.value = true
 }
@@ -657,9 +669,9 @@ async function saveLieu() {
   lieuError.value = ''
   try {
     if (lieuEditingId.value) {
-      await updateLieu(lieuEditingId.value, { nom: lieuForm.nom.trim(), adresse: lieuForm.adresse.trim() || null })
+      await updateLieu(lieuEditingId.value, { nom: lieuForm.nom.trim(), adresse: lieuForm.adresse.trim() || null, statut: lieuForm.statut })
     } else {
-      await createLieu(lieuForm.nom.trim(), lieuForm.adresse.trim() || null)
+      await createLieu(lieuForm.nom.trim(), lieuForm.adresse.trim() || null, lieuForm.statut)
     }
     await loadData()
     lieuFormOpen.value = false
@@ -1081,6 +1093,18 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
             <label class="text-xs text-stone-500 mb-1.5 block">Adresse</label>
             <textarea v-model="lieuForm.adresse" rows="2" placeholder="Adresse complete (optionnel)" class="w-full px-3 py-2 rounded-lg bg-stone-900 border border-stone-700 text-sm text-stone-200 placeholder-stone-600 outline-none focus:border-[#AF8F3C] resize-y" />
           </div>
+          <div>
+            <label class="text-xs text-stone-500 mb-1.5 block">Type de lieu</label>
+            <div class="flex flex-wrap gap-2">
+              <button v-for="s in LIEU_STATUTS" :key="s.value" type="button"
+                class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                :class="lieuForm.statut === s.value ? s.cls : 'bg-stone-800 text-stone-400 hover:bg-stone-700'"
+                @click="lieuForm.statut = s.value"
+              >
+                <UIcon :name="s.icon" class="size-4" /> {{ s.label }}
+              </button>
+            </div>
+          </div>
           <p v-if="lieuError" class="text-xs text-red-400">{{ lieuError }}</p>
           <div class="flex gap-2">
             <button class="flex-1 py-2.5 rounded-xl text-sm font-bold bg-[#AF8F3C] text-white active:scale-[0.98] transition-all disabled:opacity-50" :disabled="lieuSaving" @click="saveLieu">
@@ -1096,9 +1120,14 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
           <div v-for="l in lieux" :key="l.id" class="flex items-start gap-3 px-4 py-3 rounded-xl bg-stone-800/60">
             <UIcon name="i-lucide-map-pin" class="size-4 mt-0.5 shrink-0" :class="lieuActuel === l.id ? 'text-[#AF8F3C]' : 'text-stone-500'" />
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-stone-200">{{ l.nom }}</p>
-              <p v-if="l.adresse" class="text-xs text-stone-500 whitespace-pre-line">{{ l.adresse }}</p>
-              <p v-else class="text-xs text-stone-600 italic">Pas d'adresse</p>
+              <div class="flex items-center gap-2 flex-wrap">
+                <p class="text-sm font-medium text-stone-200">{{ l.nom }}</p>
+                <span class="text-[10px] px-1.5 py-0.5 rounded inline-flex items-center gap-1" :class="lieuStatutMeta(l.statut).cls">
+                  <UIcon :name="lieuStatutMeta(l.statut).icon" class="size-3" /> {{ lieuStatutMeta(l.statut).label }}
+                </span>
+              </div>
+              <p v-if="l.adresse" class="text-xs text-stone-500 whitespace-pre-line mt-0.5">{{ l.adresse }}</p>
+              <p v-else class="text-xs text-stone-600 italic mt-0.5">Pas d'adresse</p>
             </div>
             <div class="flex items-center gap-1 shrink-0">
               <button class="size-8 rounded-lg bg-stone-700 flex items-center justify-center text-stone-400 hover:text-stone-200" title="Modifier" @click="openLieuEdit(l)">

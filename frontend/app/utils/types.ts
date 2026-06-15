@@ -480,6 +480,7 @@ export interface LieuStockage {
   id: number
   nom: string
   adresse: string | null
+  statut: 'stockage' | 'vente' | 'futur'
   date_created: string
 }
 
