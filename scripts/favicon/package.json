@@ -1,0 +1,10 @@
+{
+  "name": "favicon-gen",
+  "private": true,
+  "type": "module",
+  "description": "Génère favicon.ico + PNG à partir de frontend/public/logo.svg",
+  "dependencies": {
+    "png-to-ico": "^2.1.8",
+    "sharp": "^0.33.5"
+  }
+}
