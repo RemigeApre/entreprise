@@ -631,7 +631,7 @@ async function handleSetInventaire(produitId: number, quantite: number, editionI
 const { createLieu, updateLieu, removeLieu } = useMateriel()
 const lieuFormOpen = ref(false)
 const lieuEditingId = ref<number | null>(null)
-const lieuForm = reactive({ nom: '', adresse: '', statut: 'vente' as 'stockage' | 'vente' | 'futur' })
+const lieuForm = reactive({ nom: '', adresse: '', statut: 'vente' as 'stockage' | 'vente' | 'futur', parent: null as number | null })
 const lieuSaving = ref(false)
 const lieuError = ref('')
 
@@ -645,20 +645,50 @@ function lieuStatutMeta(s?: string) {
   return LIEU_STATUTS.find(x => x.value === s) || LIEU_STATUTS[1]
 }
 
+// Hierarchie : un lieu sans parent est principal ; les autres sont ses locaux.
+function parentId(l: any): number | null {
+  const p = l?.parent
+  if (p == null) return null
+  return typeof p === 'object' ? p.id : p
+}
+const lieuxPrincipaux = computed(() => lieux.value.filter(l => parentId(l) === null))
+function locauxDe(id: number) { return lieux.value.filter(l => parentId(l) === id) }
+
+const lieuFormTitle = computed(() => {
+  if (lieuEditingId.value) return 'Modifier'
+  if (lieuForm.parent != null) {
+    const pn = lieux.value.find(x => x.id === lieuForm.parent)?.nom
+    return pn ? `Nouveau local de « ${pn} »` : 'Nouveau local'
+  }
+  return 'Nouveau lieu'
+})
+
 function openLieuCreate() {
   lieuEditingId.value = null
   lieuForm.nom = ''
   lieuForm.adresse = ''
   lieuForm.statut = 'vente'
+  lieuForm.parent = null
   lieuError.value = ''
   lieuFormOpen.value = true
 }
 
-function openLieuEdit(l: { id: number; nom: string; adresse: string | null; statut?: string }) {
+function openLocalCreate(parent: number) {
+  lieuEditingId.value = null
+  lieuForm.nom = ''
+  lieuForm.adresse = ''
+  lieuForm.statut = 'stockage'
+  lieuForm.parent = parent
+  lieuError.value = ''
+  lieuFormOpen.value = true
+}
+
+function openLieuEdit(l: any) {
   lieuEditingId.value = l.id
   lieuForm.nom = l.nom
   lieuForm.adresse = l.adresse || ''
   lieuForm.statut = (l.statut as 'stockage' | 'vente' | 'futur') || 'stockage'
+  lieuForm.parent = parentId(l)
   lieuError.value = ''
   lieuFormOpen.value = true
 }
@@ -669,9 +699,9 @@ async function saveLieu() {
   lieuError.value = ''
   try {
     if (lieuEditingId.value) {
-      await updateLieu(lieuEditingId.value, { nom: lieuForm.nom.trim(), adresse: lieuForm.adresse.trim() || null, statut: lieuForm.statut })
+      await updateLieu(lieuEditingId.value, { nom: lieuForm.nom.trim(), adresse: lieuForm.adresse.trim() || null, statut: lieuForm.statut, parent: lieuForm.parent })
     } else {
-      await createLieu(lieuForm.nom.trim(), lieuForm.adresse.trim() || null, lieuForm.statut)
+      await createLieu(lieuForm.nom.trim(), lieuForm.adresse.trim() || null, lieuForm.statut, lieuForm.parent)
     }
     await loadData()
     lieuFormOpen.value = false
@@ -683,6 +713,8 @@ async function saveLieu() {
 }
 
 async function deleteLieu(l: { id: number; nom: string }) {
+  const sous = locauxDe(l.id)
+  if (sous.length) { alert(`« ${l.nom} » contient ${sous.length} local(aux). Supprime-les d'abord.`); return }
   if (!confirm(`Supprimer le lieu « ${l.nom} » ?`)) return
   try {
     await removeLieu(l.id)
@@ -1083,10 +1115,10 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
 
         <!-- Formulaire ajout / edition -->
         <div v-if="lieuFormOpen" class="mb-4 p-4 rounded-xl bg-stone-800/60 border border-stone-700 space-y-3">
-          <p class="text-sm font-semibold text-stone-300">{{ lieuEditingId ? 'Modifier le lieu' : 'Nouveau lieu' }}</p>
+          <p class="text-sm font-semibold text-stone-200">{{ lieuFormTitle }}</p>
           <div>
             <label class="text-xs text-stone-500 mb-1.5 block">Nom</label>
-            <input v-model="lieuForm.nom" placeholder="Ex: Boutique, Marche de Noel..." class="w-full px-3 py-2 rounded-lg bg-stone-900 border border-stone-700 text-sm text-stone-200 placeholder-stone-600 outline-none focus:border-[#AF8F3C]" />
+            <input v-model="lieuForm.nom" :placeholder="lieuForm.parent != null ? 'Ex: Reserve, Cave...' : 'Ex: Boutique, Marche de Noel...'" class="w-full px-3 py-2 rounded-lg bg-stone-900 border border-stone-700 text-sm text-stone-200 placeholder-stone-600 outline-none focus:border-[#AF8F3C]" />
           </div>
           <div>
             <label class="text-xs text-stone-500 mb-1.5 block">Adresse</label>
@@ -1113,33 +1145,62 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
           </div>
         </div>
 
-        <!-- Liste des lieux -->
-        <div v-if="!lieux.length" class="text-center py-8 text-stone-600 text-sm">Aucun lieu pour l'instant</div>
-        <div v-else class="space-y-2 pb-4">
-          <div v-for="l in lieux" :key="l.id"
-            role="button" tabindex="0"
-            class="flex items-stretch rounded-xl overflow-hidden bg-stone-800/60 hover:bg-stone-800 cursor-pointer transition-colors"
-            :class="lieuActuel === l.id ? 'ring-1 ring-[#AF8F3C]/60' : ''"
-            @click="openLieuEdit(l)"
-            @keydown.enter="openLieuEdit(l)"
-          >
-            <!-- Bandeau couleur pleine (statut) -->
-            <div class="flex items-center justify-center w-12 shrink-0" :class="lieuStatutMeta(l.statut).band">
-              <UIcon :name="lieuStatutMeta(l.statut).icon" class="size-5 text-white" />
-            </div>
-            <!-- Contenu -->
-            <div class="flex-1 min-w-0 px-4 py-3">
-              <div class="flex items-center gap-2 flex-wrap">
-                <p class="text-sm font-medium text-stone-200">{{ l.nom }}</p>
-                <span class="text-[10px] text-stone-500">{{ lieuStatutMeta(l.statut).label }}</span>
+        <!-- Liste hierarchique : lieux principaux + leurs locaux -->
+        <div v-if="!lieuxPrincipaux.length" class="text-center py-10 text-stone-600 text-sm">Aucun lieu pour l'instant</div>
+        <div v-else class="space-y-3 pb-4">
+          <div v-for="p in lieuxPrincipaux" :key="p.id">
+            <!-- Carte lieu principal -->
+            <div
+              role="button" tabindex="0"
+              class="flex items-stretch rounded-2xl overflow-hidden bg-stone-800/70 hover:bg-stone-800 cursor-pointer transition-colors"
+              :class="lieuActuel === p.id ? 'ring-1 ring-[#AF8F3C]/60' : ''"
+              @click="openLieuEdit(p)" @keydown.enter="openLieuEdit(p)"
+            >
+              <div class="flex items-center justify-center w-14 shrink-0" :class="lieuStatutMeta(p.statut).band">
+                <UIcon :name="lieuStatutMeta(p.statut).icon" class="size-5 text-white" />
               </div>
-              <p v-if="l.adresse" class="text-xs text-stone-500 whitespace-pre-line mt-0.5">{{ l.adresse }}</p>
-              <p v-else class="text-xs text-stone-600 italic mt-0.5">Pas d'adresse</p>
+              <div class="flex-1 min-w-0 px-4 py-3">
+                <p class="text-sm font-semibold text-stone-100 truncate">{{ p.nom }}</p>
+                <p v-if="p.adresse" class="flex items-start gap-1.5 text-xs text-stone-500 mt-1">
+                  <UIcon name="i-lucide-map-pin" class="size-3 mt-0.5 shrink-0 text-stone-600" />
+                  <span class="whitespace-pre-line">{{ p.adresse }}</span>
+                </p>
+              </div>
+              <div class="flex items-center pl-2 pr-3">
+                <button type="button" class="size-8 rounded-lg bg-red-600 hover:bg-red-500 flex items-center justify-center text-white transition-colors" title="Supprimer" @click.stop="deleteLieu(p)">
+                  <UIcon name="i-lucide-trash-2" class="size-3.5" />
+                </button>
+              </div>
             </div>
-            <!-- Supprimer (rouge plein) -->
-            <div class="flex items-center pl-2 pr-3">
-              <button type="button" class="size-8 rounded-lg bg-red-600 hover:bg-red-500 flex items-center justify-center text-white transition-colors" title="Supprimer" @click.stop="deleteLieu(l)">
-                <UIcon name="i-lucide-trash-2" class="size-3.5" />
+
+            <!-- Locaux rattaches -->
+            <div class="ml-6 mt-1.5 pl-3 border-l border-stone-700/70 space-y-1.5">
+              <div
+                v-for="loc in locauxDe(p.id)" :key="loc.id"
+                role="button" tabindex="0"
+                class="flex items-stretch rounded-xl overflow-hidden bg-stone-800/40 hover:bg-stone-800 cursor-pointer transition-colors"
+                :class="lieuActuel === loc.id ? 'ring-1 ring-[#AF8F3C]/60' : ''"
+                @click="openLieuEdit(loc)" @keydown.enter="openLieuEdit(loc)"
+              >
+                <div class="flex items-center justify-center w-10 shrink-0" :class="lieuStatutMeta(loc.statut).band">
+                  <UIcon :name="lieuStatutMeta(loc.statut).icon" class="size-4 text-white" />
+                </div>
+                <div class="flex-1 min-w-0 px-3 py-2.5">
+                  <p class="text-sm text-stone-200 truncate">{{ loc.nom }}</p>
+                  <p v-if="loc.adresse" class="flex items-start gap-1.5 text-[11px] text-stone-500 mt-0.5">
+                    <UIcon name="i-lucide-map-pin" class="size-3 mt-0.5 shrink-0 text-stone-600" />
+                    <span class="whitespace-pre-line">{{ loc.adresse }}</span>
+                  </p>
+                </div>
+                <div class="flex items-center pl-1 pr-2.5">
+                  <button type="button" class="size-7 rounded-lg bg-red-600 hover:bg-red-500 flex items-center justify-center text-white transition-colors" title="Supprimer" @click.stop="deleteLieu(loc)">
+                    <UIcon name="i-lucide-trash-2" class="size-3" />
+                  </button>
+                </div>
+              </div>
+
+              <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-stone-500 hover:text-[#AF8F3C] transition-colors" @click="openLocalCreate(p.id)">
+                <UIcon name="i-lucide-plus" class="size-3.5" /> Ajouter un local
               </button>
             </div>
           </div>

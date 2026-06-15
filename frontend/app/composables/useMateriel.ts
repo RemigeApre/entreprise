@@ -104,11 +104,11 @@ export function useMateriel() {
     })) as any[]
   }
 
-  async function createLieu(nom: string, adresse?: string | null, statut?: string) {
-    return await $directus.request(createItem('lieux_stockage', { nom, adresse: adresse || null, ...(statut ? { statut } : {}) }))
+  async function createLieu(nom: string, adresse?: string | null, statut?: string, parent?: number | null) {
+    return await $directus.request(createItem('lieux_stockage', { nom, adresse: adresse || null, ...(statut ? { statut } : {}), parent: parent ?? null }))
   }
 
-  async function updateLieu(id: number, data: { nom?: string; adresse?: string | null; statut?: string }) {
+  async function updateLieu(id: number, data: { nom?: string; adresse?: string | null; statut?: string; parent?: number | null }) {
     return await $directus.request(updateItem('lieux_stockage', id as any, data))
   }
 
