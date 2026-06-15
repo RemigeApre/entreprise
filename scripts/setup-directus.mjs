@@ -954,6 +954,28 @@ async function createCollections() {
     ]
   }, 'Collection "contact_messages"')
 
+  // ── realisations (portfolio Le Geai Informatique) ──
+  await safeApi('POST', '/collections', {
+    collection: 'realisations',
+    schema: {},
+    meta: { icon: 'web', note: 'Realisations / portfolio Le Geai Informatique', sort: 21 },
+    fields: [
+      uuidPK(),
+      { field: 'titre', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, sort: 1 } },
+      { field: 'client', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 2 } },
+      { field: 'lien', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 3, note: 'URL publique du projet' } },
+      { field: 'description', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 4 } },
+      { field: 'tags', type: 'json', schema: { is_nullable: true }, meta: { interface: 'tags', special: ['cast-json'], sort: 5 } },
+      { field: 'ordre', type: 'integer', schema: { is_nullable: true, default_value: 0 }, meta: { interface: 'input', width: 'half', sort: 6, note: 'Ordre d\'affichage croissant' } },
+      dropdown('statut', [
+        { text: 'Brouillon', value: 'brouillon' },
+        { text: 'Publie', value: 'publie' },
+        { text: 'Archive', value: 'archive' }
+      ], { default_value: 'brouillon', width: 'half' }),
+      ...systemFields()
+    ]
+  }, 'Collection "realisations"')
+
   console.log('')
 }
 
@@ -1036,7 +1058,10 @@ async function createRelations() {
     { coll: 'materiels', field: 'affecte_a', related: 'directus_users', template: '{{first_name}} {{last_name}}' },
 
     // directus_users -> categories
-    { coll: 'directus_users', field: 'categorie', related: 'categories', template: '{{nom}}', one_field: 'membres' }
+    { coll: 'directus_users', field: 'categorie', related: 'categories', template: '{{nom}}', one_field: 'membres' },
+
+    // realisations -> cover (image)
+    { coll: 'realisations', field: 'cover', related: 'directus_files' }
   ]
 
   for (const rel of relations) {
@@ -1179,6 +1204,35 @@ async function setupPermissions(roleIds) {
       collection: 'offres_emploi_categories', action: 'read',
       fields: ['*'], permissions: {}
     }, 'Permission: public read offres_emploi_categories')
+
+    // Portfolio Le Geai Informatique : lecture publique des realisations publiees
+    await ensurePermission(publicPolicy.id, {
+      collection: 'realisations', action: 'read',
+      fields: ['*'], permissions: { statut: { _eq: 'publie' } }
+    }, 'Permission: public read realisations publiees')
+
+    // Lecture publique des images, STRICTEMENT limitee au dossier "realisations".
+    // Les autres fichiers (CV candidats, documents) restent prives.
+    let realisationsFolderId = null
+    try {
+      const existingFolders = await api('GET', '/folders?filter[name][_eq]=realisations&limit=1')
+      if (existingFolders && existingFolders.length > 0) {
+        realisationsFolderId = existingFolders[0].id
+        console.log(`  ✓ Dossier "realisations" (existant: ${realisationsFolderId})`)
+      } else {
+        const created = await safeApi('POST', '/folders', { name: 'realisations' }, 'Dossier "realisations"')
+        realisationsFolderId = created?.id ?? null
+      }
+    } catch (e) {
+      console.log(`  ✗ Dossier "realisations": ${String(e.message).substring(0, 120)}`)
+    }
+
+    if (realisationsFolderId) {
+      await ensurePermission(publicPolicy.id, {
+        collection: 'directus_files', action: 'read',
+        fields: ['*'], permissions: { folder: { _eq: realisationsFolderId } }
+      }, 'Permission: public read fichiers du dossier realisations')
+    }
   }
 
   // ── Authenticated base policy ──

@@ -25,6 +25,7 @@ export default defineNuxtConfig({
       { loc: '/informatique', priority: 0.9, changefreq: 'weekly' },
       { loc: '/informatique/creation-web', priority: 0.85, changefreq: 'monthly' },
       { loc: '/informatique/maintenance-web', priority: 0.85, changefreq: 'monthly' },
+      { loc: '/informatique/portfolio', priority: 0.8, changefreq: 'weekly' },
       { loc: '/informatique/contact', priority: 0.7, changefreq: 'monthly' }
     ],
     exclude: [

@@ -532,8 +532,21 @@ export interface AchatPrevu {
 }
 
 // Directus schema type for SDK
+export interface Realisation {
+  id: string
+  statut: 'brouillon' | 'publie' | 'archive'
+  titre: string
+  client?: string | null
+  lien?: string | null
+  description?: string | null
+  tags?: string[] | null
+  cover?: string | null
+  ordre?: number | null
+}
+
 export interface DirectusSchema {
   categories: Category[]
+  realisations: Realisation[]
   planning_entries: PlanningEntry[]
   conges_requests: CongeRequest[]
   prospects: Prospect[]

@@ -15,6 +15,7 @@ useHead({
 const navLinks = [
   { label: 'Création web', to: '/informatique/creation-web' },
   { label: 'Maintenance', to: '/informatique/maintenance-web' },
+  { label: 'Portfolio', to: '/informatique/portfolio' },
   { label: 'Contact', to: '/informatique/contact' },
 ]
 
