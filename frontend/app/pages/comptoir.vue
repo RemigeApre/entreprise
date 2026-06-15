@@ -1173,33 +1173,28 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
               </div>
             </div>
 
-            <!-- Locaux rattaches -->
-            <div class="ml-6 mt-1.5 pl-3 border-l border-stone-700/70 space-y-1.5">
+            <!-- Locaux rattaches (reduits). Bouton d'ajout uniquement en edition du lieu. -->
+            <div v-if="locauxDe(p.id).length || lieuEditingId === p.id" class="ml-6 mt-1.5 pl-3 border-l border-stone-700/70 space-y-1.5">
               <div
                 v-for="loc in locauxDe(p.id)" :key="loc.id"
                 role="button" tabindex="0"
-                class="flex items-stretch rounded-xl overflow-hidden bg-stone-800/40 hover:bg-stone-800 cursor-pointer transition-colors"
+                class="flex items-center rounded-lg overflow-hidden bg-stone-800/40 hover:bg-stone-800 cursor-pointer transition-colors"
                 :class="lieuActuel === loc.id ? 'ring-1 ring-[#AF8F3C]/60' : ''"
-                @click="openLieuEdit(loc)" @keydown.enter="openLieuEdit(loc)"
+                @click.stop="openLieuEdit(loc)" @keydown.enter="openLieuEdit(loc)"
               >
-                <div class="flex items-center justify-center w-10 shrink-0" :class="lieuStatutMeta(loc.statut).band">
-                  <UIcon :name="lieuStatutMeta(loc.statut).icon" class="size-4 text-white" />
+                <div class="flex items-center justify-center w-9 self-stretch shrink-0" :class="lieuStatutMeta(loc.statut).band">
+                  <UIcon :name="lieuStatutMeta(loc.statut).icon" class="size-3.5 text-white" />
                 </div>
-                <div class="flex-1 min-w-0 px-3 py-2.5">
-                  <p class="text-sm text-stone-200 truncate">{{ loc.nom }}</p>
-                  <p v-if="loc.adresse" class="flex items-start gap-1.5 text-[11px] text-stone-500 mt-0.5">
-                    <UIcon name="i-lucide-map-pin" class="size-3 mt-0.5 shrink-0 text-stone-600" />
-                    <span class="whitespace-pre-line">{{ loc.adresse }}</span>
-                  </p>
+                <div class="flex-1 min-w-0 px-3 py-1.5">
+                  <p class="text-[13px] text-stone-200 truncate">{{ loc.nom }}</p>
+                  <p v-if="loc.adresse" class="text-[10px] text-stone-500 truncate">{{ loc.adresse }}</p>
                 </div>
-                <div class="flex items-center pl-1 pr-2.5">
-                  <button type="button" class="size-7 rounded-lg bg-red-600 hover:bg-red-500 flex items-center justify-center text-white transition-colors" title="Supprimer" @click.stop="deleteLieu(loc)">
-                    <UIcon name="i-lucide-trash-2" class="size-3" />
-                  </button>
-                </div>
+                <button type="button" class="size-7 mr-2 rounded-lg bg-red-600 hover:bg-red-500 flex items-center justify-center text-white shrink-0 transition-colors" title="Supprimer" @click.stop="deleteLieu(loc)">
+                  <UIcon name="i-lucide-trash-2" class="size-3" />
+                </button>
               </div>
 
-              <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-stone-500 hover:text-[#AF8F3C] transition-colors" @click="openLocalCreate(p.id)">
+              <button v-if="lieuEditingId === p.id" type="button" class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-stone-500 hover:text-[#AF8F3C] transition-colors" @click="openLocalCreate(p.id)">
                 <UIcon name="i-lucide-plus" class="size-3.5" /> Ajouter un local
               </button>
             </div>
