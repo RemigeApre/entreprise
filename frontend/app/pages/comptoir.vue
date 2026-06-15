@@ -44,7 +44,7 @@ async function submitPin() {
 watch(() => pinDigits.value.join(''), v => { if (v.length === 6) submitPin() })
 
 // --- Main interface ---
-const menuOpen = ref(false)
+const navOpen = ref(false)
 const view = ref<'vente' | 'inventaire' | 'historique'>('vente')
 const showLieuSelect = ref(false)
 
@@ -172,7 +172,7 @@ function openPerteModal() {
   perteNote.value = ''
   perteSearch.value = ''
   showPerteModal.value = true
-  menuOpen.value = false
+  navOpen.value = false
 }
 
 function selectPerteProduit(p: Produit & { editions: ProduitEdition[] }) {
@@ -671,29 +671,60 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
 
     <!-- ==================== MAIN INTERFACE ==================== -->
     <template v-else>
-      <!-- Top bar -->
-      <header class="sticky top-0 z-50 flex items-center gap-3 px-4 py-3 bg-[#222] border-b border-stone-800">
-        <button class="size-10 rounded-lg flex items-center justify-center bg-stone-800 hover:bg-stone-700" @click="menuOpen = !menuOpen">
-          <UIcon :name="menuOpen ? 'i-lucide-x' : 'i-lucide-menu'" class="size-5 text-stone-400" />
-        </button>
-        <button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700" @click="showLieuSelect = true">
-          <UIcon name="i-lucide-map-pin" class="size-4 text-[#AF8F3C]" />
-          <span class="text-sm font-medium">{{ lieuActuelNom }}</span>
-        </button>
-        <div class="flex-1" />
-        <button v-if="queue.length" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-900/40 text-amber-400 text-xs font-medium" :disabled="!online || syncing" @click="handleSync">
-          <UIcon :name="syncing ? 'i-lucide-loader-2' : 'i-lucide-upload'" :class="syncing ? 'animate-spin' : ''" class="size-3.5" />
-          {{ queue.length }} en attente
-        </button>
-        <div class="size-2.5 rounded-full" :class="online ? 'bg-emerald-500' : 'bg-red-500'" />
-      </header>
+      <div class="flex flex-col h-dvh">
+        <!-- ===== Header fixe ===== -->
+        <header class="relative shrink-0 h-14 flex items-center px-3 bg-[#222] border-b border-stone-800">
+          <!-- Gauche : toggle navbar -->
+          <button class="size-10 rounded-lg flex items-center justify-center bg-stone-800 hover:bg-stone-700" :aria-expanded="navOpen" aria-label="Navigation" @click="navOpen = !navOpen">
+            <UIcon :name="navOpen ? 'i-lucide-panel-left-close' : 'i-lucide-panel-left-open'" class="size-5 text-stone-400" />
+          </button>
 
-      <!-- Menu lateral -->
-      <Teleport to="body">
-        <Transition enter-active-class="transition-opacity duration-200" leave-active-class="transition-opacity duration-150" enter-from-class="opacity-0" leave-to-class="opacity-0">
-          <div v-if="menuOpen" class="fixed inset-0 z-[60] bg-black/60" @click="menuOpen = false">
-            <div class="w-72 h-full bg-[#1e1e1e] border-r border-stone-800 p-4 space-y-1" @click.stop>
-              <p class="text-[10px] text-stone-500 uppercase tracking-widest mb-3 px-3">Navigation</p>
+          <!-- Centre : nom de la partie -->
+          <div class="pointer-events-none absolute left-1/2 -translate-x-1/2 flex items-center">
+            <span class="text-sm font-semibold uppercase tracking-[0.3em] text-white select-none">Comptoir</span>
+          </div>
+
+          <div class="flex-1" />
+
+          <!-- Droite : sync + statut + lieu -->
+          <div class="flex items-center gap-2">
+            <button v-if="queue.length" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-900/40 text-amber-400 text-xs font-medium" :disabled="!online || syncing" @click="handleSync">
+              <UIcon :name="syncing ? 'i-lucide-loader-2' : 'i-lucide-upload'" :class="syncing ? 'animate-spin' : ''" class="size-3.5" />
+              {{ queue.length }}
+            </button>
+            <div class="size-2.5 rounded-full" :class="online ? 'bg-emerald-500' : 'bg-red-500'" :title="online ? 'En ligne' : 'Hors ligne'" />
+
+            <!-- Selecteur de lieu (menu deroulant) -->
+            <div class="relative">
+              <button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700" @click="showLieuSelect = !showLieuSelect">
+                <UIcon name="i-lucide-map-pin" class="size-4 text-[#AF8F3C]" />
+                <span class="text-sm font-medium max-w-[35vw] truncate">{{ lieuActuelNom }}</span>
+                <UIcon name="i-lucide-chevron-down" class="size-3.5 text-stone-500 transition-transform" :class="showLieuSelect ? 'rotate-180' : ''" />
+              </button>
+              <div v-if="showLieuSelect" class="fixed inset-0 z-40" @click="showLieuSelect = false" />
+              <Transition enter-active-class="transition duration-150 ease-out" leave-active-class="transition duration-100 ease-in" enter-from-class="opacity-0 -translate-y-1" leave-to-class="opacity-0 -translate-y-1">
+                <div v-if="showLieuSelect" class="absolute right-0 mt-2 w-56 z-50 bg-[#222] border border-stone-800 rounded-xl p-2 shadow-xl shadow-black/40 space-y-1">
+                  <p class="text-[10px] text-stone-500 uppercase tracking-widest px-2 pt-1 pb-1.5">Lieu</p>
+                  <button v-for="l in lieux" :key="l.id"
+                    class="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                    :class="lieuActuel === l.id ? 'bg-[#AF8F3C]/20 text-[#AF8F3C]' : 'text-stone-300 hover:bg-stone-800'"
+                    @click="setLieu(l.id); showLieuSelect = false"
+                  >
+                    <UIcon name="i-lucide-map-pin" class="size-4 shrink-0" /> {{ l.nom }}
+                  </button>
+                  <p v-if="!lieux.length" class="text-xs text-stone-600 px-3 py-2">Aucun lieu configure</p>
+                </div>
+              </Transition>
+            </div>
+          </div>
+        </header>
+
+        <!-- ===== Corps : la navbar pousse le contenu ===== -->
+        <div class="flex flex-1 min-h-0">
+          <!-- Navbar retractable -->
+          <aside class="shrink-0 overflow-hidden border-r border-stone-800 bg-[#1e1e1e] transition-[width] duration-200 ease-out" :class="navOpen ? 'w-60' : 'w-0'">
+            <div class="w-60 h-full flex flex-col p-3">
+              <p class="text-[10px] text-stone-500 uppercase tracking-widest mb-2 px-3">Navigation</p>
               <button v-for="item in [
                 { key: 'vente', label: 'Vente', icon: 'i-lucide-shopping-cart' },
                 { key: 'inventaire', label: 'Inventaire', icon: 'i-lucide-clipboard-list' },
@@ -701,42 +732,27 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
               ]" :key="item.key"
                 class="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm font-medium transition-colors"
                 :class="view === item.key ? 'bg-[#AF8F3C]/15 text-[#AF8F3C]' : 'text-stone-400 hover:bg-stone-800'"
-                @click="view = item.key as any; menuOpen = false"
+                @click="view = item.key as any"
               >
                 <UIcon :name="item.icon" class="size-5" /> {{ item.label }}
               </button>
+
               <div class="border-t border-stone-800 my-3" />
-              <p class="text-[10px] text-stone-500 uppercase tracking-widest mb-3 px-3">Actions</p>
-              <button
-                class="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm font-medium text-red-400 hover:bg-stone-800 transition-colors"
-                @click="openPerteModal"
-              >
+              <p class="text-[10px] text-stone-500 uppercase tracking-widest mb-2 px-3">Actions</p>
+              <button class="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm font-medium text-red-400 hover:bg-stone-800 transition-colors" @click="openPerteModal">
                 <UIcon name="i-lucide-alert-triangle" class="size-5" /> Enregistrer une perte
               </button>
-              <div class="border-t border-stone-800 my-3" />
-              <button class="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm text-red-400 hover:bg-stone-800" @click="logout(); menuOpen = false">
-                <UIcon name="i-lucide-log-out" class="size-5" /> Deconnexion
-              </button>
-            </div>
-          </div>
-        </Transition>
-      </Teleport>
 
-      <!-- Lieu selector -->
-      <Teleport to="body">
-        <Transition enter-active-class="transition-opacity duration-200" leave-active-class="transition-opacity duration-150" enter-from-class="opacity-0" leave-to-class="opacity-0">
-          <div v-if="showLieuSelect" class="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center px-4" @click="showLieuSelect = false">
-            <div class="bg-[#222] rounded-2xl p-6 w-full max-w-sm space-y-3" @click.stop>
-              <h3 class="text-lg font-semibold text-stone-200 mb-2">Lieu actuel</h3>
-              <button v-for="l in lieux" :key="l.id"
-                class="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium transition-colors"
-                :class="lieuActuel === l.id ? 'bg-[#AF8F3C]/20 text-[#AF8F3C] border border-[#AF8F3C]/30' : 'bg-stone-800 text-stone-300 hover:bg-stone-700'"
-                @click="setLieu(l.id); showLieuSelect = false"
-              ><UIcon name="i-lucide-map-pin" class="size-4" /> {{ l.nom }}</button>
+              <div class="mt-auto pt-3 border-t border-stone-800">
+                <button class="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm text-red-400 hover:bg-stone-800" @click="logout()">
+                  <UIcon name="i-lucide-log-out" class="size-5" /> Deconnexion
+                </button>
+              </div>
             </div>
-          </div>
-        </Transition>
-      </Teleport>
+          </aside>
+
+          <!-- Contenu (sous-pages) -->
+          <main class="flex-1 min-h-0 overflow-y-auto">
 
       <!-- Loading -->
       <div v-if="loading" class="flex items-center justify-center py-20">
@@ -744,7 +760,7 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
       </div>
 
       <!-- ==================== VENTE ==================== -->
-      <div v-else-if="view === 'vente'" class="flex flex-col lg:flex-row h-[calc(100dvh-57px)]">
+      <div v-else-if="view === 'vente'" class="flex flex-col lg:flex-row h-full">
         <!-- Produits grid -->
         <div class="flex-1 overflow-y-auto p-3">
           <!-- Mode selector + type filter -->
@@ -993,6 +1009,9 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
               </div>
             </div>
           </div>
+        </div>
+      </div>
+          </main>
         </div>
       </div>
 
