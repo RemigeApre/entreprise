@@ -149,6 +149,38 @@ onMounted(scanDuplicates)
           </div>
         </UCard>
 
+        <!-- Realisations (portfolio Informatique) -->
+        <UCard>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="size-10 rounded-lg bg-[rgba(175,143,60,0.08)] flex items-center justify-center">
+                <UIcon name="i-lucide-layout-grid" class="size-5 text-[#af8f3c]" />
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-stone-900">Réalisations</p>
+                <p class="text-xs text-stone-400">Portfolio Le Geai Informatique</p>
+              </div>
+            </div>
+            <UButton label="Gerer" icon="i-lucide-arrow-right" variant="subtle" size="sm" to="/admin/realisations" />
+          </div>
+        </UCard>
+
+        <!-- Messages de contact -->
+        <UCard>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="size-10 rounded-lg bg-[rgba(175,143,60,0.08)] flex items-center justify-center">
+                <UIcon name="i-lucide-mail" class="size-5 text-[#af8f3c]" />
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-stone-900">Messages de contact</p>
+                <p class="text-xs text-stone-400">Demandes reçues via le formulaire</p>
+              </div>
+            </div>
+            <UButton label="Voir" icon="i-lucide-arrow-right" variant="subtle" size="sm" to="/admin/messages" />
+          </div>
+        </UCard>
+
         <!-- Doublons -->
         <UCard>
           <template #header>

@@ -544,9 +544,24 @@ export interface Realisation {
   ordre?: number | null
 }
 
+export interface ContactMessage {
+  id: string
+  last_name: string
+  first_name?: string | null
+  contact_email?: string | null
+  contact_phone?: string | null
+  contact_postal?: string | null
+  subject: 'service' | 'divers'
+  service_interest?: string | null
+  message?: string | null
+  statut: 'nouveau' | 'lu' | 'traite' | 'archive'
+  date_created?: string
+}
+
 export interface DirectusSchema {
   categories: Category[]
   realisations: Realisation[]
+  contact_messages: ContactMessage[]
   planning_entries: PlanningEntry[]
   conges_requests: CongeRequest[]
   prospects: Prospect[]
