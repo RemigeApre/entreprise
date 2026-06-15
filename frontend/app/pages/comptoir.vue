@@ -2,13 +2,13 @@
 import { createItem } from '@directus/sdk'
 import type { Produit, ProduitEdition } from '~/utils/types'
 import { PRODUIT_TYPES } from '~/utils/constants'
-import { lieuStatutMeta, lieuParentId } from '~/utils/comptoir'
+import { lieuStatutMeta, lieuParentId, vendeurIcone, vendeurCouleur } from '~/utils/comptoir'
 
 definePageMeta({ layout: false })
 
 const {
   authenticated, lieuActuel, vendeurActuel, online, queue, loading,
-  lieux, stocks, vendeurs, isDirecteur,
+  lieux, stocks, vendeurs, isDirecteur, vendeurActuelObj,
   loadSession, authenticate, logout, setLieu, setVendeur,
   loadData, getProduitsWithEditions, getStockForLieu,
   enqueue, syncQueue, startConnectivityCheck
@@ -718,8 +718,8 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
                 class="flex flex-col items-center gap-3 group"
                 @click="gestionAutorisee = true"
               >
-                <div class="size-20 rounded-2xl bg-stone-800 border border-stone-700 group-hover:border-[#AF8F3C] flex items-center justify-center transition-colors">
-                  <UIcon name="i-lucide-user" class="size-9 text-stone-400 group-hover:text-[#AF8F3C] transition-colors" />
+                <div class="size-20 rounded-2xl flex items-center justify-center ring-2 ring-transparent group-hover:ring-white/60 transition-all" :style="{ backgroundColor: vendeurCouleur(v) }">
+                  <UIcon :name="vendeurIcone(v)" class="size-9 text-white" />
                 </div>
                 <span class="text-sm font-medium text-stone-300 truncate max-w-[8rem]">{{ v.nom }}</span>
               </button>
@@ -738,15 +738,15 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
       <!-- Selection du profil vendeur -->
       <div v-else class="min-h-dvh flex flex-col p-6">
         <div class="flex-1 flex flex-col items-center justify-center">
-          <h2 class="text-stone-300 text-xl sm:text-2xl font-semibold mb-10">Qui vend ?</h2>
-          <p v-if="!vendeursActifs.length" class="text-stone-500 text-sm">Aucun vendeur. Touchez la roue pour en créer.</p>
+          <h2 class="text-stone-300 text-xl sm:text-2xl font-semibold mb-10">Qui est-ce ?</h2>
+          <p v-if="!vendeursActifs.length" class="text-stone-500 text-sm">Aucun profil. Touchez la roue pour en créer.</p>
           <div v-else class="flex flex-wrap justify-center gap-6 max-w-3xl">
             <button v-for="v in vendeursActifs" :key="v.id"
               class="flex flex-col items-center gap-3 group"
               @click="setVendeur(v.id)"
             >
-              <div class="size-24 rounded-2xl bg-stone-800 border-2 border-transparent group-hover:border-[#AF8F3C] group-active:scale-95 flex items-center justify-center transition-all">
-                <UIcon name="i-lucide-user" class="size-11 text-stone-400 group-hover:text-[#AF8F3C] transition-colors" />
+              <div class="size-24 rounded-2xl flex items-center justify-center ring-2 ring-transparent group-hover:ring-white/70 group-active:scale-95 transition-all" :style="{ backgroundColor: vendeurCouleur(v) }">
+                <UIcon :name="vendeurIcone(v)" class="size-11 text-white" />
               </div>
               <span class="text-sm font-medium text-stone-300 group-hover:text-stone-100 truncate max-w-[6.5rem] transition-colors">{{ v.nom }}</span>
             </button>
@@ -836,8 +836,10 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
 
           <!-- Droite : vendeur + sync + statut + lieu -->
           <div class="flex items-center gap-2">
-            <button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700" title="Changer de vendeur" @click="setVendeur(null)">
-              <UIcon name="i-lucide-user" class="size-4 text-stone-400" />
+            <button class="flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-lg bg-stone-800 hover:bg-stone-700" title="Changer de profil" @click="setVendeur(null)">
+              <span class="size-6 rounded-md flex items-center justify-center shrink-0" :style="{ backgroundColor: vendeurCouleur(vendeurActuelObj) }">
+                <UIcon :name="vendeurIcone(vendeurActuelObj)" class="size-3.5 text-white" />
+              </span>
               <span class="text-sm font-medium max-w-[22vw] truncate">{{ vendeurActuelNom }}</span>
             </button>
             <button v-if="queue.length" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-900/40 text-amber-400 text-xs font-medium" :disabled="!online || syncing" @click="handleSync">

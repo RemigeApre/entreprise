@@ -498,6 +498,8 @@ export interface Vendeur {
   nom: string
   actif: boolean
   role: 'directeur' | 'employe' | 'stagiaire' | 'autre'
+  icone: string | null
+  couleur: string | null
 }
 
 export interface Produit {

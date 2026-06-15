@@ -21,10 +21,29 @@ export function lieuParentId(l: unknown): number | null {
 export const VENDEUR_ROLES = [
   { value: 'directeur', label: 'Directeur' },
   { value: 'employe', label: 'Employé' },
-  { value: 'stagiaire', label: 'Stagiaire' },
-  { value: 'autre', label: 'Autre' }
+  { value: 'stagiaire', label: 'Stagiaire' }
 ] as const
 
 export function vendeurRoleLabel(r?: string): string {
   return VENDEUR_ROLES.find(x => x.value === r)?.label || 'Employé'
+}
+
+// ── Personnalisation des profils ──
+export const VENDEUR_ICONES = [
+  'i-lucide-user', 'i-lucide-crown', 'i-lucide-star', 'i-lucide-heart',
+  'i-lucide-sparkles', 'i-lucide-smile', 'i-lucide-glasses', 'i-lucide-cat',
+  'i-lucide-bird', 'i-lucide-feather', 'i-lucide-coffee', 'i-lucide-rocket',
+  'i-lucide-ghost', 'i-lucide-flower-2', 'i-lucide-gem', 'i-lucide-music'
+] as const
+
+export const VENDEUR_COULEURS = [
+  '#AF8F3C', '#b74d34', '#6B8F71', '#7A6A8A', '#4f7da3',
+  '#c2710c', '#8B6F4E', '#9d4f6c', '#3f8f7a', '#5a6b8c'
+] as const
+
+export function vendeurIcone(v?: { icone?: string | null } | null): string {
+  return v?.icone || 'i-lucide-user'
+}
+export function vendeurCouleur(v?: { couleur?: string | null } | null): string {
+  return v?.couleur || '#AF8F3C'
 }

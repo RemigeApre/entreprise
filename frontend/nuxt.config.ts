@@ -92,7 +92,24 @@ export default defineNuxtConfig({
         'lucide:map',
         'lucide:copy',
         'simple-icons:googlemaps',
-        'simple-icons:linkedin'
+        'simple-icons:linkedin',
+        // Comptoir : icones dynamiques (statuts de lieu + profils vendeurs) a bundler pour le hors-ligne
+        'lucide:store',
+        'lucide:package',
+        'lucide:clock',
+        'lucide:star',
+        'lucide:sparkles',
+        'lucide:smile',
+        'lucide:glasses',
+        'lucide:cat',
+        'lucide:bird',
+        'lucide:coffee',
+        'lucide:rocket',
+        'lucide:ghost',
+        'lucide:flower-2',
+        'lucide:gem',
+        'lucide:music',
+        'lucide:settings'
       ],
       sizeLimitKb: 0
     }
