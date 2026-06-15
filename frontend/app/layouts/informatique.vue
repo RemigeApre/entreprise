@@ -12,8 +12,9 @@ useHead({
   ],
 })
 
-// Phase 1 : seul Contact existe. Les pages offres/portfolio arrivent en phase 2.
 const navLinks = [
+  { label: 'Création web', to: '/informatique/creation-web' },
+  { label: 'Maintenance', to: '/informatique/maintenance-web' },
   { label: 'Contact', to: '/informatique/contact' },
 ]
 

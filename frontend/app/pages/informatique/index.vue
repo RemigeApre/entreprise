@@ -94,7 +94,10 @@ const piliers = [
           <span class="gi-tarif-value">{{ t.value }}</span>
         </li>
       </ul>
-      <p class="gi-soon">Le détail des formules de création et de maintenance arrive bientôt.</p>
+      <div class="gi-offres-links">
+        <NuxtLink to="/informatique/creation-web" class="gi-btn-ghost">Détail création web</NuxtLink>
+        <NuxtLink to="/informatique/maintenance-web" class="gi-btn-ghost">Détail maintenance</NuxtLink>
+      </div>
     </section>
 
     <!-- CTA final -->
@@ -167,7 +170,7 @@ const piliers = [
 .gi-tarif-label { color: var(--gi-text); }
 .gi-tarif-dots { flex: 1; border-bottom: 1px dotted var(--gi-border-hover); transform: translateY(-4px); }
 .gi-tarif-value { color: var(--gi-dore); font-weight: 700; white-space: nowrap; }
-.gi-soon { text-align: center; margin-top: 2rem; color: var(--gi-text-dim); font-style: italic; font-size: 0.9rem; }
+.gi-offres-links { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2.5rem; }
 
 .gi-cta { padding: 5rem 1.5rem; text-align: center; background: var(--gi-surface-raised); border-top: 1px solid var(--gi-border); }
 .gi-cta h2 { margin-bottom: 1rem; }
