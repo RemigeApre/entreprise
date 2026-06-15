@@ -636,9 +636,9 @@ const lieuSaving = ref(false)
 const lieuError = ref('')
 
 const LIEU_STATUTS = [
-  { value: 'vente', label: 'Lieu de vente', icon: 'i-lucide-store', cls: 'bg-[#AF8F3C]/15 text-[#AF8F3C]' },
-  { value: 'stockage', label: 'Lieu de stockage', icon: 'i-lucide-package', cls: 'bg-sky-900/30 text-sky-400' },
-  { value: 'futur', label: 'Futur lieu', icon: 'i-lucide-clock', cls: 'bg-stone-700/50 text-stone-400' }
+  { value: 'vente', label: 'Lieu de vente', icon: 'i-lucide-store', cls: 'bg-[#AF8F3C]/15 text-[#AF8F3C]', band: 'bg-[#AF8F3C]' },
+  { value: 'stockage', label: 'Lieu de stockage', icon: 'i-lucide-package', cls: 'bg-sky-900/30 text-sky-400', band: 'bg-sky-600' },
+  { value: 'futur', label: 'Futur lieu', icon: 'i-lucide-clock', cls: 'bg-stone-700/50 text-stone-400', band: 'bg-stone-500' }
 ] as const
 
 function lieuStatutMeta(s?: string) {
@@ -1075,9 +1075,8 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
       </div>
       <!-- ==================== LIEUX ==================== -->
       <div v-else-if="view === 'lieux'" class="p-4 max-w-2xl mx-auto">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-lg font-semibold text-stone-300">Lieux</h2>
-          <button class="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#AF8F3C] text-white text-sm font-semibold active:scale-[0.97] transition-all" @click="openLieuCreate">
+        <div class="flex justify-center mb-4">
+          <button class="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#AF8F3C] text-white text-sm font-semibold active:scale-[0.97] transition-all" @click="openLieuCreate">
             <UIcon name="i-lucide-plus" class="size-4" /> Nouveau lieu
           </button>
         </div>
@@ -1116,24 +1115,30 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
 
         <!-- Liste des lieux -->
         <div v-if="!lieux.length" class="text-center py-8 text-stone-600 text-sm">Aucun lieu pour l'instant</div>
-        <div v-else class="space-y-2">
-          <div v-for="l in lieux" :key="l.id" class="flex items-start gap-3 px-4 py-3 rounded-xl bg-stone-800/60">
-            <UIcon name="i-lucide-map-pin" class="size-4 mt-0.5 shrink-0" :class="lieuActuel === l.id ? 'text-[#AF8F3C]' : 'text-stone-500'" />
-            <div class="flex-1 min-w-0">
+        <div v-else class="space-y-2 pb-4">
+          <div v-for="l in lieux" :key="l.id"
+            role="button" tabindex="0"
+            class="flex items-stretch rounded-xl overflow-hidden bg-stone-800/60 hover:bg-stone-800 cursor-pointer transition-colors"
+            :class="lieuActuel === l.id ? 'ring-1 ring-[#AF8F3C]/60' : ''"
+            @click="openLieuEdit(l)"
+            @keydown.enter="openLieuEdit(l)"
+          >
+            <!-- Bandeau couleur pleine (statut) -->
+            <div class="flex items-center justify-center w-12 shrink-0" :class="lieuStatutMeta(l.statut).band">
+              <UIcon :name="lieuStatutMeta(l.statut).icon" class="size-5 text-white" />
+            </div>
+            <!-- Contenu -->
+            <div class="flex-1 min-w-0 px-4 py-3">
               <div class="flex items-center gap-2 flex-wrap">
                 <p class="text-sm font-medium text-stone-200">{{ l.nom }}</p>
-                <span class="text-[10px] px-1.5 py-0.5 rounded inline-flex items-center gap-1" :class="lieuStatutMeta(l.statut).cls">
-                  <UIcon :name="lieuStatutMeta(l.statut).icon" class="size-3" /> {{ lieuStatutMeta(l.statut).label }}
-                </span>
+                <span class="text-[10px] text-stone-500">{{ lieuStatutMeta(l.statut).label }}</span>
               </div>
               <p v-if="l.adresse" class="text-xs text-stone-500 whitespace-pre-line mt-0.5">{{ l.adresse }}</p>
               <p v-else class="text-xs text-stone-600 italic mt-0.5">Pas d'adresse</p>
             </div>
-            <div class="flex items-center gap-1 shrink-0">
-              <button class="size-8 rounded-lg bg-stone-700 flex items-center justify-center text-stone-400 hover:text-stone-200" title="Modifier" @click="openLieuEdit(l)">
-                <UIcon name="i-lucide-pencil" class="size-3.5" />
-              </button>
-              <button class="size-8 rounded-lg bg-stone-700 flex items-center justify-center text-stone-400 hover:text-red-400" title="Supprimer" @click="deleteLieu(l)">
+            <!-- Supprimer (rouge plein) -->
+            <div class="flex items-center pl-2 pr-3">
+              <button type="button" class="size-8 rounded-lg bg-red-600 hover:bg-red-500 flex items-center justify-center text-white transition-colors" title="Supprimer" @click.stop="deleteLieu(l)">
                 <UIcon name="i-lucide-trash-2" class="size-3.5" />
               </button>
             </div>
