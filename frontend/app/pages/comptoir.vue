@@ -11,7 +11,7 @@ const {
   loadSession, authenticate, logout, setLieu,
   loadData, getProduitsWithEditions, getStockForLieu,
   enqueue, syncQueue, startConnectivityCheck
-} = useCommerce()
+} = useComptoir()
 
 // --- PIN Screen ---
 const pinDigits = ref<string[]>(['', '', '', '', '', ''])
@@ -382,9 +382,9 @@ interface PerteJour {
 }
 const pertesAujourdhui = ref<PerteJour[]>([])
 
-const STORAGE_KEY_VENTES = 'commerce_ventes_jour'
-const STORAGE_KEY_PERTES = 'commerce_pertes_jour'
-const STORAGE_KEY_DATE = 'commerce_jour_date'
+const STORAGE_KEY_VENTES = 'comptoir_ventes_jour'
+const STORAGE_KEY_PERTES = 'comptoir_pertes_jour'
+const STORAGE_KEY_DATE = 'comptoir_jour_date'
 
 function saveJourData() {
   localStorage.setItem(STORAGE_KEY_VENTES, JSON.stringify(ventesAujourdhui.value))
@@ -450,13 +450,13 @@ const historiqueGlobal = ref<JourneeValidee[]>([])
 
 function loadHistoriqueGlobal() {
   try {
-    const raw = localStorage.getItem('commerce_historique_global')
+    const raw = localStorage.getItem('comptoir_historique_global')
     if (raw) historiqueGlobal.value = JSON.parse(raw)
   } catch { /* ignore */ }
 }
 
 function saveHistoriqueGlobal() {
-  localStorage.setItem('commerce_historique_global', JSON.stringify(historiqueGlobal.value))
+  localStorage.setItem('comptoir_historique_global', JSON.stringify(historiqueGlobal.value))
 }
 
 function supprimerJournee(date: string, lieu: string) {
@@ -650,7 +650,7 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
     <div v-if="!authenticated" class="flex items-center justify-center min-h-dvh px-4">
       <div class="text-center max-w-sm w-full">
         <p class="text-3xl font-bold text-[#AF8F3C] mb-2" style="font-family: 'UnifrakturCook', cursive;">G</p>
-        <h1 class="text-xl font-semibold text-stone-300 mb-1">Commerce</h1>
+        <h1 class="text-xl font-semibold text-stone-300 mb-1">Comptoir</h1>
         <p class="text-sm text-stone-500 mb-8">Entrez le code PIN</p>
         <div class="flex justify-center gap-3 mb-6">
           <input

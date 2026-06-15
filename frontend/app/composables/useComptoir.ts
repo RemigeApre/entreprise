@@ -1,10 +1,10 @@
 import { readItems, createItem, updateItem } from '@directus/sdk'
 import type { Produit, ProduitEdition, LieuStockage, StockLieu } from '~/utils/types'
 
-const STORAGE_KEY = '_commerce'
-const QUEUE_KEY = '_commerce_queue'
+const STORAGE_KEY = '_comptoir'
+const QUEUE_KEY = '_comptoir_queue'
 
-interface CommerceState {
+interface ComptoirState {
   token: string
   lieuActuel: number | null
   authenticatedAt: number
@@ -17,21 +17,21 @@ interface QueuedAction {
   createdAt: number
 }
 
-export function useCommerce() {
+export function useComptoir() {
   const { $directus } = useNuxtApp()
 
-  const authenticated = useState<boolean>('commerce-auth', () => false)
-  const token = useState<string | null>('commerce-token', () => null)
-  const lieuActuel = useState<number | null>('commerce-lieu', () => null)
-  const online = useState<boolean>('commerce-online', () => true)
-  const queue = useState<QueuedAction[]>('commerce-queue', () => [])
+  const authenticated = useState<boolean>('comptoir-auth', () => false)
+  const token = useState<string | null>('comptoir-token', () => null)
+  const lieuActuel = useState<number | null>('comptoir-lieu', () => null)
+  const online = useState<boolean>('comptoir-online', () => true)
+  const queue = useState<QueuedAction[]>('comptoir-queue', () => [])
 
   // Products cache
-  const produits = useState<Produit[]>('commerce-produits', () => [])
-  const editions = useState<ProduitEdition[]>('commerce-editions', () => [])
-  const lieux = useState<LieuStockage[]>('commerce-lieux', () => [])
-  const stocks = useState<StockLieu[]>('commerce-stocks', () => [])
-  const loading = useState<boolean>('commerce-loading', () => false)
+  const produits = useState<Produit[]>('comptoir-produits', () => [])
+  const editions = useState<ProduitEdition[]>('comptoir-editions', () => [])
+  const lieux = useState<LieuStockage[]>('comptoir-lieux', () => [])
+  const stocks = useState<StockLieu[]>('comptoir-stocks', () => [])
+  const loading = useState<boolean>('comptoir-loading', () => false)
 
   // --- Auth ---
   function loadSession() {
@@ -39,7 +39,7 @@ export function useCommerce() {
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
       if (!stored) return false
-      const state: CommerceState = JSON.parse(stored)
+      const state: ComptoirState = JSON.parse(stored)
       // Expire after 12h
       if (Date.now() - state.authenticatedAt > 12 * 60 * 60 * 1000) {
         localStorage.removeItem(STORAGE_KEY)
@@ -55,7 +55,7 @@ export function useCommerce() {
 
   async function authenticate(pin: string): Promise<boolean> {
     try {
-      const res = await $fetch<{ token: string; lieu_defaut: number | null }>('/_commerce/auth', {
+      const res = await $fetch<{ token: string; lieu_defaut: number | null }>('/_comptoir/auth', {
         method: 'POST',
         body: { pin }
       })
@@ -67,7 +67,7 @@ export function useCommerce() {
           token: res.token,
           lieuActuel: res.lieu_defaut,
           authenticatedAt: Date.now()
-        } as CommerceState))
+        } as ComptoirState))
       }
       return true
     } catch { return false }
@@ -108,7 +108,7 @@ export function useCommerce() {
 
       // Cache for offline
       if (import.meta.client) {
-        localStorage.setItem('_commerce_cache', JSON.stringify({
+        localStorage.setItem('_comptoir_cache', JSON.stringify({
           produits: produits.value,
           editions: editions.value,
           lieux: lieux.value,
@@ -129,7 +129,7 @@ export function useCommerce() {
   function loadFromCache() {
     if (!import.meta.client) return
     try {
-      const cached = localStorage.getItem('_commerce_cache')
+      const cached = localStorage.getItem('_comptoir_cache')
       if (cached) {
         const data = JSON.parse(cached)
         produits.value = data.produits || []
@@ -256,7 +256,7 @@ export function useCommerce() {
     if (!import.meta.client) return
     setInterval(async () => {
       try {
-        const r = await fetch('/_commerce/auth', { method: 'HEAD' }).catch(() => null)
+        const r = await fetch('/_comptoir/auth', { method: 'HEAD' }).catch(() => null)
         online.value = !!r
       } catch { online.value = false }
     }, 15000)

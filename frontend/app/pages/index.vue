@@ -277,9 +277,9 @@ async function handleLogin() {
           </button>
         </form>
 
-        <NuxtLink to="/commerce" class="commerce-link">
+        <NuxtLink to="/comptoir" class="comptoir-link">
           <UIcon name="i-lucide-store" class="size-4" />
-          <span>Mode commerce</span>
+          <span>Comptoir</span>
         </NuxtLink>
       </div>
     </div>
@@ -862,7 +862,7 @@ async function handleLogin() {
   to { transform: rotate(360deg); }
 }
 
-.commerce-link {
+.comptoir-link {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -877,7 +877,7 @@ async function handleLogin() {
   text-decoration: none;
   transition: opacity 0.3s;
 }
-.commerce-link:hover { opacity: 0.8; }
+.comptoir-link:hover { opacity: 0.8; }
 
 /* ============================
    RESPONSIVE

@@ -31,18 +31,18 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, message: 'Token admin invalide' })
   }
 
-  // Get PIN from commerce_settings
-  const settingsRes = await globalThis.fetch(`${directusUrl}/items/commerce_settings?limit=1`, {
+  // Get PIN from comptoir_settings
+  const settingsRes = await globalThis.fetch(`${directusUrl}/items/comptoir_settings?limit=1`, {
     headers: { Authorization: `Bearer ${adminToken}` }
   }).catch(() => null)
 
   if (!settingsRes || !settingsRes.ok) {
-    throw createError({ statusCode: 500, message: 'Impossible de lire les parametres commerce' })
+    throw createError({ statusCode: 500, message: 'Impossible de lire les parametres comptoir' })
   }
 
   const settingsData = await settingsRes.json()
   const settings = settingsData?.data
-  // commerce_settings is a singleton, data can be an object or array
+  // comptoir_settings is a singleton, data can be an object or array
   const settingsObj = Array.isArray(settings) ? settings[0] : settings
   const storedPin = settingsObj?.pin_code
 
