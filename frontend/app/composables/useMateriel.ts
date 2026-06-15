@@ -108,6 +108,10 @@ export function useMateriel() {
     return await $directus.request(createItem('lieux_stockage', { nom, adresse: adresse || null }))
   }
 
+  async function updateLieu(id: number, data: { nom?: string; adresse?: string | null }) {
+    return await $directus.request(updateItem('lieux_stockage', id as any, data))
+  }
+
   async function removeLieu(id: number) {
     await $directus.request(deleteItem('lieux_stockage', id as any))
   }
@@ -200,7 +204,7 @@ export function useMateriel() {
     getAllMateriels, createMateriel, updateMateriel, removeMateriel,
     getAllProduits, createProduit, updateProduit, removeProduit,
     getAllEditions, createEdition, updateEdition, removeEdition,
-    getAllLieux, createLieu, removeLieu,
+    getAllLieux, createLieu, updateLieu, removeLieu,
     getAllStocks, upsertStock, adjustStockLieu,
     getAllAchats, createAchat, updateAchat, removeAchat
   }

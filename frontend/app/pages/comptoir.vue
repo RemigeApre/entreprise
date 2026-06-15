@@ -45,7 +45,7 @@ watch(() => pinDigits.value.join(''), v => { if (v.length === 6) submitPin() })
 
 // --- Main interface ---
 const navOpen = ref(false)
-const view = ref<'vente' | 'inventaire' | 'historique'>('vente')
+const view = ref<'vente' | 'inventaire' | 'historique' | 'lieux'>('vente')
 const showLieuSelect = ref(false)
 
 const produitsAvecEditions = computed(() => getProduitsWithEditions())
@@ -627,6 +627,59 @@ async function handleSetInventaire(produitId: number, quantite: number, editionI
   }
 }
 
+// --- Lieux ---
+const { createLieu, updateLieu, removeLieu } = useMateriel()
+const lieuFormOpen = ref(false)
+const lieuEditingId = ref<number | null>(null)
+const lieuForm = reactive({ nom: '', adresse: '' })
+const lieuSaving = ref(false)
+const lieuError = ref('')
+
+function openLieuCreate() {
+  lieuEditingId.value = null
+  lieuForm.nom = ''
+  lieuForm.adresse = ''
+  lieuError.value = ''
+  lieuFormOpen.value = true
+}
+
+function openLieuEdit(l: { id: number; nom: string; adresse: string | null }) {
+  lieuEditingId.value = l.id
+  lieuForm.nom = l.nom
+  lieuForm.adresse = l.adresse || ''
+  lieuError.value = ''
+  lieuFormOpen.value = true
+}
+
+async function saveLieu() {
+  if (!lieuForm.nom.trim()) { lieuError.value = 'Le nom est requis'; return }
+  lieuSaving.value = true
+  lieuError.value = ''
+  try {
+    if (lieuEditingId.value) {
+      await updateLieu(lieuEditingId.value, { nom: lieuForm.nom.trim(), adresse: lieuForm.adresse.trim() || null })
+    } else {
+      await createLieu(lieuForm.nom.trim(), lieuForm.adresse.trim() || null)
+    }
+    await loadData()
+    lieuFormOpen.value = false
+  } catch {
+    lieuError.value = 'Enregistrement impossible'
+  } finally {
+    lieuSaving.value = false
+  }
+}
+
+async function deleteLieu(l: { id: number; nom: string }) {
+  if (!confirm(`Supprimer le lieu « ${l.nom} » ?`)) return
+  try {
+    await removeLieu(l.id)
+    await loadData()
+  } catch {
+    alert('Impossible de supprimer ce lieu : il est utilise par des ventes ou du stock.')
+  }
+}
+
 // --- Init ---
 onMounted(() => {
   loadHistoriqueGlobal()
@@ -724,6 +777,7 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
               <button v-for="item in [
                 { key: 'vente', label: 'Vente', icon: 'i-lucide-shopping-cart' },
                 { key: 'inventaire', label: 'Inventaire', icon: 'i-lucide-clipboard-list' },
+                { key: 'lieux', label: 'Lieux', icon: 'i-lucide-map-pin' },
                 { key: 'historique', label: 'Historique du jour', icon: 'i-lucide-clock' }
               ]" :key="item.key"
                 class="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm font-medium transition-colors"
@@ -1007,6 +1061,57 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
           </div>
         </div>
       </div>
+      <!-- ==================== LIEUX ==================== -->
+      <div v-else-if="view === 'lieux'" class="p-4 max-w-2xl mx-auto">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-stone-300">Lieux</h2>
+          <button class="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#AF8F3C] text-white text-sm font-semibold active:scale-[0.97] transition-all" @click="openLieuCreate">
+            <UIcon name="i-lucide-plus" class="size-4" /> Nouveau lieu
+          </button>
+        </div>
+
+        <!-- Formulaire ajout / edition -->
+        <div v-if="lieuFormOpen" class="mb-4 p-4 rounded-xl bg-stone-800/60 border border-stone-700 space-y-3">
+          <p class="text-sm font-semibold text-stone-300">{{ lieuEditingId ? 'Modifier le lieu' : 'Nouveau lieu' }}</p>
+          <div>
+            <label class="text-xs text-stone-500 mb-1.5 block">Nom</label>
+            <input v-model="lieuForm.nom" placeholder="Ex: Boutique, Marche de Noel..." class="w-full px-3 py-2 rounded-lg bg-stone-900 border border-stone-700 text-sm text-stone-200 placeholder-stone-600 outline-none focus:border-[#AF8F3C]" />
+          </div>
+          <div>
+            <label class="text-xs text-stone-500 mb-1.5 block">Adresse</label>
+            <textarea v-model="lieuForm.adresse" rows="2" placeholder="Adresse complete (optionnel)" class="w-full px-3 py-2 rounded-lg bg-stone-900 border border-stone-700 text-sm text-stone-200 placeholder-stone-600 outline-none focus:border-[#AF8F3C] resize-y" />
+          </div>
+          <p v-if="lieuError" class="text-xs text-red-400">{{ lieuError }}</p>
+          <div class="flex gap-2">
+            <button class="flex-1 py-2.5 rounded-xl text-sm font-bold bg-[#AF8F3C] text-white active:scale-[0.98] transition-all disabled:opacity-50" :disabled="lieuSaving" @click="saveLieu">
+              {{ lieuSaving ? 'Enregistrement...' : 'Enregistrer' }}
+            </button>
+            <button class="px-4 py-2.5 rounded-xl text-sm text-stone-400 hover:text-stone-200" @click="lieuFormOpen = false">Annuler</button>
+          </div>
+        </div>
+
+        <!-- Liste des lieux -->
+        <div v-if="!lieux.length" class="text-center py-8 text-stone-600 text-sm">Aucun lieu pour l'instant</div>
+        <div v-else class="space-y-2">
+          <div v-for="l in lieux" :key="l.id" class="flex items-start gap-3 px-4 py-3 rounded-xl bg-stone-800/60">
+            <UIcon name="i-lucide-map-pin" class="size-4 mt-0.5 shrink-0" :class="lieuActuel === l.id ? 'text-[#AF8F3C]' : 'text-stone-500'" />
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-stone-200">{{ l.nom }}</p>
+              <p v-if="l.adresse" class="text-xs text-stone-500 whitespace-pre-line">{{ l.adresse }}</p>
+              <p v-else class="text-xs text-stone-600 italic">Pas d'adresse</p>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+              <button class="size-8 rounded-lg bg-stone-700 flex items-center justify-center text-stone-400 hover:text-stone-200" title="Modifier" @click="openLieuEdit(l)">
+                <UIcon name="i-lucide-pencil" class="size-3.5" />
+              </button>
+              <button class="size-8 rounded-lg bg-stone-700 flex items-center justify-center text-stone-400 hover:text-red-400" title="Supprimer" @click="deleteLieu(l)">
+                <UIcon name="i-lucide-trash-2" class="size-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
           </main>
         </div>
       </div>
