@@ -926,6 +926,34 @@ async function createCollections() {
     ]
   }, 'Collection "candidat_commentaires"')
 
+  // ── contact_messages (formulaire public Le Geai Informatique) ──
+  await safeApi('POST', '/collections', {
+    collection: 'contact_messages',
+    schema: {},
+    meta: { icon: 'mail', note: 'Messages recus via le formulaire de contact Le Geai Informatique', sort: 20 },
+    fields: [
+      uuidPK(),
+      { field: 'last_name', type: 'string', schema: { is_nullable: false }, meta: { interface: 'input', required: true, width: 'half', sort: 1, note: 'Nom' } },
+      { field: 'first_name', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 2, note: 'Prenom' } },
+      { field: 'contact_email', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 3 } },
+      { field: 'contact_phone', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 4 } },
+      { field: 'contact_postal', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 5, note: 'Adresse postale' } },
+      dropdown('subject', [
+        { text: 'Demande sur un service', value: 'service' },
+        { text: 'Sujet divers', value: 'divers' }
+      ], { width: 'half' }),
+      { field: 'service_interest', type: 'string', schema: { is_nullable: true }, meta: { interface: 'input', width: 'half', sort: 7, note: 'Service concerne (si sujet = service)' } },
+      { field: 'message', type: 'text', schema: { is_nullable: true }, meta: { interface: 'input-multiline', sort: 8 } },
+      dropdown('statut', [
+        { text: 'Nouveau', value: 'nouveau' },
+        { text: 'Lu', value: 'lu' },
+        { text: 'Traite', value: 'traite' },
+        { text: 'Archive', value: 'archive' }
+      ], { default_value: 'nouveau', width: 'half' }),
+      ...systemFields()
+    ]
+  }, 'Collection "contact_messages"')
+
   console.log('')
 }
 

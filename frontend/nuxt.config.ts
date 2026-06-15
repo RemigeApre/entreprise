@@ -21,7 +21,9 @@ export default defineNuxtConfig({
       { loc: '/le-geai/transparence', priority: 0.6, changefreq: 'monthly' },
       { loc: '/soutenir', priority: 0.7, changefreq: 'monthly' },
       { loc: '/recrutement', priority: 0.9, changefreq: 'weekly' },
-      { loc: '/articles', priority: 0.8, changefreq: 'daily' }
+      { loc: '/articles', priority: 0.8, changefreq: 'daily' },
+      { loc: '/informatique', priority: 0.9, changefreq: 'weekly' },
+      { loc: '/informatique/contact', priority: 0.7, changefreq: 'monthly' }
     ],
     exclude: [
       '/admin/**', '/dashboard/**', '/planning/**', '/equipe/**',
@@ -112,6 +114,9 @@ export default defineNuxtConfig({
     '/recrutement': { prerender: false, headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60' } },
     '/articles': { prerender: false, headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60' } },
     '/articles/**': { prerender: false, headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60' } },
+    // Le Geai Informatique — pages publiques SSR (contenu dynamique, SEO)
+    '/informatique': { prerender: false, headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60' } },
+    '/informatique/**': { prerender: false, headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60' } },
     '/rdv/**': { ssr: true },
     // Intranet routes — SPA only (no SSR, auth is client-side)
     '/admin': { ssr: false },

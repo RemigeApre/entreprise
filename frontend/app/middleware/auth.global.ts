@@ -1,8 +1,8 @@
 import { getEffectiveStatutEmploi } from '~/utils/dates'
 
 export default defineNuxtRouteMiddleware(async (to) => {
-  const publicPaths = ['/', '/recrutement', '/le-geai', '/poles', '/soutenir', '/articles', '/rdv', '/commerce']
-  const publicPrefixes = ['/le-geai/', '/rdv/', '/commerce/']
+  const publicPaths = ['/', '/recrutement', '/le-geai', '/poles', '/soutenir', '/articles', '/rdv', '/commerce', '/informatique']
+  const publicPrefixes = ['/le-geai/', '/rdv/', '/commerce/', '/informatique/']
 
   const path = to.path.replace(/\/+$/, '') || '/'
   if (publicPaths.some(route => path === route) || publicPrefixes.some(prefix => to.path.startsWith(prefix))) {

@@ -63,7 +63,7 @@ const t = computed(() => lang.value === 'fr' ? {
   copyright: `\u00A9 ${new Date().getFullYear()} Le Geai`,
   entreprise: 'Entreprise',
   recrutement: 'Recrutement',
-  poles: 'Pôles',
+  informatique: 'Informatique',
   connecter: 'Se connecter',
   email: 'Email',
   motdepasse: 'Mot de passe',
@@ -74,7 +74,7 @@ const t = computed(() => lang.value === 'fr' ? {
   copyright: `\u00A9 ${new Date().getFullYear()} Le Geai`,
   entreprise: 'Company',
   recrutement: 'Careers',
-  poles: 'Branches',
+  informatique: 'IT Services',
   connecter: 'Sign in',
   email: 'Email',
   motdepasse: 'Password',
@@ -207,9 +207,9 @@ async function handleLogin() {
 
           <div class="nav-divider" aria-hidden="true" />
 
-          <NuxtLink to="/poles" class="nav-item">
+          <NuxtLink to="/informatique" class="nav-item">
             <span class="nav-numeral" aria-hidden="true">III</span>
-            <span class="nav-label" v-html="bx(t.poles)" />
+            <span class="nav-label" v-html="bx(t.informatique)" />
           </NuxtLink>
         </nav>
       </div>
