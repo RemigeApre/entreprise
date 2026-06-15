@@ -692,19 +692,16 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
               <UIcon :name="syncing ? 'i-lucide-loader-2' : 'i-lucide-upload'" :class="syncing ? 'animate-spin' : ''" class="size-3.5" />
               {{ queue.length }}
             </button>
-            <div class="size-2.5 rounded-full" :class="online ? 'bg-emerald-500' : 'bg-red-500'" :title="online ? 'En ligne' : 'Hors ligne'" />
-
-            <!-- Selecteur de lieu (menu deroulant) -->
+            <!-- Selecteur de lieu (menu deroulant) - l'icone passe au vert quand connecte -->
             <div class="relative">
               <button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700" @click="showLieuSelect = !showLieuSelect">
-                <UIcon name="i-lucide-map-pin" class="size-4 text-[#AF8F3C]" />
+                <UIcon name="i-lucide-map-pin" class="size-4" :class="online ? 'text-emerald-500' : 'text-red-500'" :title="online ? 'En ligne' : 'Hors ligne'" />
                 <span class="text-sm font-medium max-w-[35vw] truncate">{{ lieuActuelNom }}</span>
                 <UIcon name="i-lucide-chevron-down" class="size-3.5 text-stone-500 transition-transform" :class="showLieuSelect ? 'rotate-180' : ''" />
               </button>
               <div v-if="showLieuSelect" class="fixed inset-0 z-40" @click="showLieuSelect = false" />
               <Transition enter-active-class="transition duration-150 ease-out" leave-active-class="transition duration-100 ease-in" enter-from-class="opacity-0 -translate-y-1" leave-to-class="opacity-0 -translate-y-1">
                 <div v-if="showLieuSelect" class="absolute right-0 mt-2 w-56 z-50 bg-[#222] border border-stone-800 rounded-xl p-2 shadow-xl shadow-black/40 space-y-1">
-                  <p class="text-[10px] text-stone-500 uppercase tracking-widest px-2 pt-1 pb-1.5">Lieu</p>
                   <button v-for="l in lieux" :key="l.id"
                     class="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
                     :class="lieuActuel === l.id ? 'bg-[#AF8F3C]/20 text-[#AF8F3C]' : 'text-stone-300 hover:bg-stone-800'"
@@ -724,7 +721,6 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
           <!-- Navbar retractable -->
           <aside class="shrink-0 overflow-hidden border-r border-stone-800 bg-[#1e1e1e] transition-[width] duration-200 ease-out" :class="navOpen ? 'w-60' : 'w-0'">
             <div class="w-60 h-full flex flex-col p-3">
-              <p class="text-[10px] text-stone-500 uppercase tracking-widest mb-2 px-3">Navigation</p>
               <button v-for="item in [
                 { key: 'vente', label: 'Vente', icon: 'i-lucide-shopping-cart' },
                 { key: 'inventaire', label: 'Inventaire', icon: 'i-lucide-clipboard-list' },
