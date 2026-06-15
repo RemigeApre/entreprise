@@ -493,6 +493,12 @@ export interface StockLieu {
   quantite: number
 }
 
+export interface Vendeur {
+  id: number
+  nom: string
+  actif: boolean
+}
+
 export interface Produit {
   id: string
   code: string
@@ -564,6 +570,7 @@ export interface DirectusSchema {
   categories: Category[]
   realisations: Realisation[]
   contact_messages: ContactMessage[]
+  vendeurs: Vendeur[]
   planning_entries: PlanningEntry[]
   conges_requests: CongeRequest[]
   prospects: Prospect[]

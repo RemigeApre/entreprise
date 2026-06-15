@@ -1,5 +1,5 @@
-import { readItems, createItem, updateItem } from '@directus/sdk'
-import type { Produit, ProduitEdition, LieuStockage, StockLieu } from '~/utils/types'
+import { readItems, createItem, updateItem, deleteItem } from '@directus/sdk'
+import type { Produit, ProduitEdition, LieuStockage, StockLieu, Vendeur } from '~/utils/types'
 
 const STORAGE_KEY = '_comptoir'
 const QUEUE_KEY = '_comptoir_queue'
@@ -7,6 +7,7 @@ const QUEUE_KEY = '_comptoir_queue'
 interface ComptoirState {
   token: string
   lieuActuel: number | null
+  vendeurActuel: number | null
   authenticatedAt: number
 }
 
@@ -23,6 +24,7 @@ export function useComptoir() {
   const authenticated = useState<boolean>('comptoir-auth', () => false)
   const token = useState<string | null>('comptoir-token', () => null)
   const lieuActuel = useState<number | null>('comptoir-lieu', () => null)
+  const vendeurActuel = useState<number | null>('comptoir-vendeur', () => null)
   const online = useState<boolean>('comptoir-online', () => true)
   const queue = useState<QueuedAction[]>('comptoir-queue', () => [])
 
@@ -31,6 +33,7 @@ export function useComptoir() {
   const editions = useState<ProduitEdition[]>('comptoir-editions', () => [])
   const lieux = useState<LieuStockage[]>('comptoir-lieux', () => [])
   const stocks = useState<StockLieu[]>('comptoir-stocks', () => [])
+  const vendeurs = useState<Vendeur[]>('comptoir-vendeurs', () => [])
   const loading = useState<boolean>('comptoir-loading', () => false)
 
   // --- Auth ---
@@ -47,6 +50,7 @@ export function useComptoir() {
       }
       token.value = state.token
       lieuActuel.value = state.lieuActuel
+      vendeurActuel.value = state.vendeurActuel ?? null
       authenticated.value = true
       loadQueue()
       return true
@@ -60,12 +64,15 @@ export function useComptoir() {
         body: { pin }
       })
       token.value = res.token
-      lieuActuel.value = res.lieu_defaut
+      // Nouvelle connexion : on force le choix vendeur puis lieu.
+      vendeurActuel.value = null
+      lieuActuel.value = null
       authenticated.value = true
       if (import.meta.client) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           token: res.token,
-          lieuActuel: res.lieu_defaut,
+          lieuActuel: null,
+          vendeurActuel: null,
           authenticatedAt: Date.now()
         } as ComptoirState))
       }
@@ -79,32 +86,54 @@ export function useComptoir() {
     if (import.meta.client) localStorage.removeItem(STORAGE_KEY)
   }
 
+  function persistSession(patch: Record<string, unknown>) {
+    if (!import.meta.client) return
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (!stored) return
+    try {
+      const state = JSON.parse(stored)
+      Object.assign(state, patch)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    } catch { /* ignore */ }
+  }
+
   function setLieu(id: number) {
     lieuActuel.value = id
-    if (import.meta.client) {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        const state = JSON.parse(stored)
-        state.lieuActuel = id
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-      }
-    }
+    persistSession({ lieuActuel: id })
+  }
+
+  function setVendeur(id: number | null) {
+    vendeurActuel.value = id
+    persistSession({ vendeurActuel: id })
+  }
+
+  // --- CRUD vendeurs ---
+  async function createVendeur(nom: string) {
+    return await $directus.request(createItem('vendeurs', { nom, actif: true }))
+  }
+  async function updateVendeur(id: number, data: { nom?: string; actif?: boolean }) {
+    return await $directus.request(updateItem('vendeurs', id as any, data))
+  }
+  async function removeVendeur(id: number) {
+    await $directus.request(deleteItem('vendeurs', id as any))
   }
 
   // --- Data loading ---
   async function loadData() {
     loading.value = true
     try {
-      const [p, e, l, s] = await Promise.all([
+      const [p, e, l, s, v] = await Promise.all([
         $directus.request(readItems('produits', { fields: ['*'], sort: ['type_produit', 'nom'], limit: -1 })),
         $directus.request(readItems('produit_editions', { fields: ['*'], sort: ['produit', 'numero'], limit: -1 })),
         $directus.request(readItems('lieux_stockage', { fields: ['*'], sort: ['nom'], limit: -1 })),
-        $directus.request(readItems('stocks_lieux', { fields: ['*', 'lieu.id', 'lieu.nom'], sort: ['produit'], limit: -1 }))
+        $directus.request(readItems('stocks_lieux', { fields: ['*', 'lieu.id', 'lieu.nom'], sort: ['produit'], limit: -1 })),
+        $directus.request(readItems('vendeurs', { fields: ['*'], sort: ['nom'], limit: -1 }))
       ])
       produits.value = p as Produit[]
       editions.value = e as ProduitEdition[]
       lieux.value = l as LieuStockage[]
       stocks.value = s as StockLieu[]
+      vendeurs.value = v as Vendeur[]
 
       // Cache for offline
       if (import.meta.client) {
@@ -113,6 +142,7 @@ export function useComptoir() {
           editions: editions.value,
           lieux: lieux.value,
           stocks: stocks.value,
+          vendeurs: vendeurs.value,
           cachedAt: Date.now()
         }))
       }
@@ -136,6 +166,7 @@ export function useComptoir() {
         editions.value = data.editions || []
         lieux.value = data.lieux || []
         stocks.value = data.stocks || []
+        vendeurs.value = data.vendeurs || []
       }
     } catch {}
   }
@@ -263,9 +294,10 @@ export function useComptoir() {
   }
 
   return {
-    authenticated, token, lieuActuel, online, queue, loading,
-    produits, editions, lieux, stocks,
-    loadSession, authenticate, logout, setLieu,
+    authenticated, token, lieuActuel, vendeurActuel, online, queue, loading,
+    produits, editions, lieux, stocks, vendeurs,
+    loadSession, authenticate, logout, setLieu, setVendeur,
+    createVendeur, updateVendeur, removeVendeur,
     loadData, getProduitsWithEditions, getStockForLieu,
     enqueue, syncQueue, startConnectivityCheck
   }
