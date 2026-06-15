@@ -2,7 +2,7 @@
 import { createItem } from '@directus/sdk'
 import type { Produit, ProduitEdition } from '~/utils/types'
 import { PRODUIT_TYPES } from '~/utils/constants'
-import { lieuStatutMeta, lieuParentId, vendeurIcone, vendeurCouleur } from '~/utils/comptoir'
+import { lieuParentId, lieuIconeAffichee, lieuCouleurAffichee, vendeurIcone, vendeurCouleur } from '~/utils/comptoir'
 
 definePageMeta({ layout: false })
 
@@ -787,8 +787,8 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
                     class="w-full flex items-stretch rounded-2xl overflow-hidden bg-stone-800/70 hover:bg-stone-800 border border-stone-700 hover:border-[#AF8F3C]/50 active:scale-[0.99] transition-all text-left"
                     @click="setLieu(p.id)"
                   >
-                    <div class="flex items-center justify-center w-14 shrink-0" :class="lieuStatutMeta(p.statut).band">
-                      <UIcon :name="lieuStatutMeta(p.statut).icon" class="size-5 text-white" />
+                    <div class="flex items-center justify-center w-14 shrink-0" :style="{ backgroundColor: lieuCouleurAffichee(p) }">
+                      <UIcon :name="lieuIconeAffichee(p)" class="size-5 text-white" />
                     </div>
                     <div class="flex-1 min-w-0 px-4 py-3">
                       <p class="text-sm font-semibold text-stone-100 truncate">{{ p.nom }}</p>
@@ -801,8 +801,8 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
                       class="w-full flex items-center rounded-lg overflow-hidden bg-stone-800/40 hover:bg-stone-800 border border-stone-700/50 active:scale-[0.99] transition-all text-left"
                       @click="setLieu(loc.id)"
                     >
-                      <div class="flex items-center justify-center w-9 self-stretch shrink-0" :class="lieuStatutMeta(loc.statut).band">
-                        <UIcon :name="lieuStatutMeta(loc.statut).icon" class="size-3.5 text-white" />
+                      <div class="flex items-center justify-center w-9 self-stretch shrink-0" :style="{ backgroundColor: lieuCouleurAffichee(loc) }">
+                        <UIcon :name="lieuIconeAffichee(loc)" class="size-3.5 text-white" />
                       </div>
                       <div class="flex-1 min-w-0 px-3 py-2">
                         <p class="text-[13px] text-stone-200 truncate">{{ loc.nom }}</p>
@@ -861,7 +861,10 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
                     :class="lieuActuel === l.id ? 'bg-[#AF8F3C]/20 text-[#AF8F3C]' : 'text-stone-300 hover:bg-stone-800'"
                     @click="setLieu(l.id); showLieuSelect = false"
                   >
-                    <UIcon name="i-lucide-map-pin" class="size-4 shrink-0" /> {{ l.nom }}
+                    <span class="size-5 rounded-md flex items-center justify-center shrink-0" :style="{ backgroundColor: lieuCouleurAffichee(l) }">
+                      <UIcon :name="lieuIconeAffichee(l)" class="size-3 text-white" />
+                    </span>
+                    <span class="truncate">{{ l.nom }}</span>
                   </button>
                   <p v-if="!lieux.length" class="text-xs text-stone-600 px-3 py-2">Aucun lieu configure</p>
                 </div>

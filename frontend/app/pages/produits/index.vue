@@ -323,7 +323,7 @@ async function handleAddLieu() {
   if (!newLieuNom.value.trim()) return
   addingLieu.value = true
   try {
-    await createLieu(newLieuNom.value.trim(), newLieuAdresse.value.trim() || null)
+    await createLieu({ nom: newLieuNom.value.trim(), adresse: newLieuAdresse.value.trim() || null })
     newLieuNom.value = ''
     newLieuAdresse.value = ''
     await refreshLieux()

@@ -482,6 +482,8 @@ export interface LieuStockage {
   adresse: string | null
   statut: 'stockage' | 'vente' | 'futur'
   parent: number | LieuStockage | null
+  icone: string | null
+  couleur: string | null
   date_created: string
 }
 

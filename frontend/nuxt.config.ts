@@ -109,7 +109,16 @@ export default defineNuxtConfig({
         'lucide:flower-2',
         'lucide:gem',
         'lucide:music',
-        'lucide:settings'
+        'lucide:settings',
+        'lucide:house',
+        'lucide:warehouse',
+        'lucide:building',
+        'lucide:tent',
+        'lucide:archive',
+        'lucide:box',
+        'lucide:shopping-bag',
+        'lucide:truck',
+        'lucide:landmark'
       ],
       sizeLimitKb: 0
     }
