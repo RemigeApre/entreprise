@@ -5,7 +5,9 @@ useHead({
     { name: 'color-scheme', content: 'light only' }
   ],
   link: [
-    { rel: 'icon', href: '/favicon.ico' }
+    { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' },
+    { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+    { rel: 'apple-touch-icon', href: '/logo.svg' }
   ],
   htmlAttrs: {
     lang: 'fr',

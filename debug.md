@@ -28,10 +28,10 @@ Le site fonctionne sur le PC de voyage mais affiche un ecran blanc sur le PC fix
 - Certaines extensions bloquent les requetes vers `/api/`
 
 ### 6. DNS / Reseau
-- Verifier que `entreprise.legeai-editions.com` est accessible : ouvrir l'URL dans le navigateur
-- Tester `ping entreprise.legeai-editions.com` dans un terminal
+- Verifier que `legeai-editions.com` est accessible : ouvrir l'URL dans le navigateur
+- Tester `ping legeai-editions.com` dans un terminal
 - Verifier qu'il n'y a pas de proxy ou VPN actif
 
 ### 7. Si rien ne marche
-- Ouvrir `https://entreprise.legeai-editions.com` > F12 > Console > copier TOUTE la sortie
+- Ouvrir `https://legeai-editions.com` > F12 > Console > copier TOUTE la sortie
 - Partager le resultat pour diagnostic

@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   ],
 
   site: {
-    url: 'https://entreprise.legeai-editions.com',
+    url: 'https://legeai-editions.com',
     name: 'Groupe Le Geai'
   },
 

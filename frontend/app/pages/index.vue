@@ -10,7 +10,7 @@ useHead({
     { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
     { rel: 'preload', as: 'style', href: fontsUrl },
     { rel: 'stylesheet', href: fontsUrl },
-    { rel: 'canonical', href: 'https://entreprise.legeai-editions.com' }
+    { rel: 'canonical', href: 'https://legeai-editions.com' }
   ]
 })
 
@@ -21,9 +21,9 @@ useSeoMeta({
   ogDescription: 'Édition · Informatique · Médias. Groupe culturel pluridisciplinaire basé à Lyon.',
   ogType: 'website',
   ogSiteName: 'Le Geai',
-  ogImage: 'https://entreprise.legeai-editions.com/og.svg',
+  ogImage: 'https://legeai-editions.com/og.svg',
   twitterCard: 'summary_large_image',
-  twitterImage: 'https://entreprise.legeai-editions.com/og.svg'
+  twitterImage: 'https://legeai-editions.com/og.svg'
 })
 
 useHead({
@@ -33,8 +33,8 @@ useHead({
       '@context': 'https://schema.org',
       '@type': 'Organization',
       name: 'Groupe Le Geai',
-      url: 'https://entreprise.legeai-editions.com',
-      logo: 'https://entreprise.legeai-editions.com/logo.svg',
+      url: 'https://legeai-editions.com',
+      logo: 'https://legeai-editions.com/logo.svg',
       description: 'Groupe culturel pluridisciplinaire. Édition de livres, services informatiques et production médiatique.',
       address: {
         '@type': 'PostalAddress',

@@ -76,7 +76,7 @@ watchEffect(() => {
   })
   useHead({
     link: [
-      { rel: 'canonical', href: `https://entreprise.legeai-editions.com/articles/${article.value.id}` }
+      { rel: 'canonical', href: `https://legeai-editions.com/articles/${article.value.id}` }
     ],
     script: [{
       type: 'application/ld+json',
@@ -95,9 +95,9 @@ watchEffect(() => {
         publisher: {
           '@type': 'Organization',
           name: 'Groupe Le Geai',
-          url: 'https://entreprise.legeai-editions.com'
+          url: 'https://legeai-editions.com'
         },
-        url: `https://entreprise.legeai-editions.com/articles/${article.value.id}`
+        url: `https://legeai-editions.com/articles/${article.value.id}`
       })
     }]
   })
