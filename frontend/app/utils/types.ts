@@ -497,6 +497,7 @@ export interface Vendeur {
   id: number
   nom: string
   actif: boolean
+  role: 'directeur' | 'employe' | 'stagiaire' | 'autre'
 }
 
 export interface Produit {

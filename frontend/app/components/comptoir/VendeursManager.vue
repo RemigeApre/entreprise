@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { Vendeur } from '~/utils/types'
+import { VENDEUR_ROLES, vendeurRoleLabel } from '~/utils/comptoir'
 
 const { vendeurs, loadData, createVendeur, updateVendeur, removeVendeur } = useComptoir()
 
 const formOpen = ref(false)
 const editingId = ref<number | null>(null)
-const form = reactive({ nom: '', actif: true })
+const form = reactive({ nom: '', actif: true, role: 'employe' as string })
 const saving = ref(false)
 const error = ref('')
 
@@ -13,6 +14,7 @@ function openCreate() {
   editingId.value = null
   form.nom = ''
   form.actif = true
+  form.role = 'employe'
   error.value = ''
   formOpen.value = true
 }
@@ -20,6 +22,7 @@ function openEdit(v: Vendeur) {
   editingId.value = v.id
   form.nom = v.nom
   form.actif = v.actif !== false
+  form.role = v.role || 'employe'
   error.value = ''
   formOpen.value = true
 }
@@ -29,8 +32,8 @@ async function save() {
   saving.value = true
   error.value = ''
   try {
-    if (editingId.value) await updateVendeur(editingId.value, { nom: form.nom.trim(), actif: form.actif })
-    else await createVendeur(form.nom.trim())
+    if (editingId.value) await updateVendeur(editingId.value, { nom: form.nom.trim(), actif: form.actif, role: form.role })
+    else await createVendeur(form.nom.trim(), form.role)
     await loadData()
     formOpen.value = false
   } catch {
@@ -62,8 +65,19 @@ async function remove(v: Vendeur) {
     <div v-if="formOpen" class="mb-5 p-4 rounded-2xl bg-stone-800/70 border border-stone-700 space-y-3">
       <p class="text-sm font-semibold text-stone-200">{{ editingId ? 'Modifier' : 'Nouveau vendeur' }}</p>
       <div>
-        <label class="text-xs text-stone-500 mb-1.5 block">Nom</label>
+        <label class="text-xs text-stone-500 mb-1.5 block">Nom / pseudo</label>
         <input v-model="form.nom" placeholder="Prenom ou pseudo" class="w-full px-3 py-2 rounded-lg bg-stone-900 border border-stone-700 text-sm text-stone-200 placeholder-stone-600 outline-none focus:border-[#AF8F3C]" />
+      </div>
+      <div>
+        <label class="text-xs text-stone-500 mb-1.5 block">Rôle</label>
+        <div class="flex flex-wrap gap-2">
+          <button v-for="r in VENDEUR_ROLES" :key="r.value" type="button"
+            class="px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+            :class="form.role === r.value ? 'bg-[#AF8F3C]/15 text-[#AF8F3C]' : 'bg-stone-900 text-stone-400 hover:bg-stone-700'"
+            @click="form.role = r.value"
+          >{{ r.label }}</button>
+        </div>
+        <p class="text-[11px] text-stone-600 mt-1.5">Seul un directeur peut gérer les lieux et les vendeurs.</p>
       </div>
       <label v-if="editingId" class="flex items-center gap-2 text-sm text-stone-300 cursor-pointer">
         <input v-model="form.actif" type="checkbox" class="accent-[#AF8F3C]" /> Actif
@@ -89,8 +103,11 @@ async function remove(v: Vendeur) {
           <UIcon name="i-lucide-user" class="size-5 text-white" />
         </div>
         <div class="flex-1 min-w-0 px-4 py-3">
-          <p class="text-sm font-medium text-stone-100 truncate">{{ v.nom }}</p>
-          <p v-if="v.actif === false" class="text-[10px] text-stone-500">Inactif</p>
+          <div class="flex items-center gap-2 flex-wrap">
+            <p class="text-sm font-medium text-stone-100 truncate">{{ v.nom }}</p>
+            <span class="text-[10px] text-stone-500">{{ vendeurRoleLabel(v.role) }}</span>
+            <span v-if="v.actif === false" class="text-[10px] text-stone-600">· inactif</span>
+          </div>
         </div>
         <button type="button" class="size-8 mr-3 rounded-lg bg-red-600 hover:bg-red-500 flex items-center justify-center text-white shrink-0 transition-colors" title="Supprimer" @click.stop="remove(v)">
           <UIcon name="i-lucide-trash-2" class="size-3.5" />

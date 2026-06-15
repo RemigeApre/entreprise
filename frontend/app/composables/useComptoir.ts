@@ -107,11 +107,15 @@ export function useComptoir() {
     persistSession({ vendeurActuel: id })
   }
 
+  // --- Droits ---
+  const vendeurActuelObj = computed(() => vendeurs.value.find(v => v.id === vendeurActuel.value) || null)
+  const isDirecteur = computed(() => vendeurActuelObj.value?.role === 'directeur')
+
   // --- CRUD vendeurs ---
-  async function createVendeur(nom: string) {
-    return await $directus.request(createItem('vendeurs', { nom, actif: true }))
+  async function createVendeur(nom: string, role: string = 'employe') {
+    return await $directus.request(createItem('vendeurs', { nom, actif: true, role }))
   }
-  async function updateVendeur(id: number, data: { nom?: string; actif?: boolean }) {
+  async function updateVendeur(id: number, data: { nom?: string; actif?: boolean; role?: string }) {
     return await $directus.request(updateItem('vendeurs', id as any, data))
   }
   async function removeVendeur(id: number) {
@@ -296,6 +300,7 @@ export function useComptoir() {
   return {
     authenticated, token, lieuActuel, vendeurActuel, online, queue, loading,
     produits, editions, lieux, stocks, vendeurs,
+    vendeurActuelObj, isDirecteur,
     loadSession, authenticate, logout, setLieu, setVendeur,
     createVendeur, updateVendeur, removeVendeur,
     loadData, getProduitsWithEditions, getStockForLieu,

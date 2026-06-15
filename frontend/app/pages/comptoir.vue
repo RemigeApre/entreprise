@@ -8,19 +8,43 @@ definePageMeta({ layout: false })
 
 const {
   authenticated, lieuActuel, vendeurActuel, online, queue, loading,
-  lieux, stocks, vendeurs,
+  lieux, stocks, vendeurs, isDirecteur,
   loadSession, authenticate, logout, setLieu, setVendeur,
   loadData, getProduitsWithEditions, getStockForLieu,
   enqueue, syncQueue, startConnectivityCheck
 } = useComptoir()
 
 // Selection vendeur / lieu (ecrans de connexion)
-const manageVendeurs = ref(false)
 const manageLieux = ref(false)
 const vendeursActifs = computed(() => vendeurs.value.filter(v => v.actif !== false))
+const vendeursDirecteurs = computed(() => vendeursActifs.value.filter(v => v.role === 'directeur'))
 const vendeurActuelNom = computed(() => vendeurs.value.find(v => v.id === vendeurActuel.value)?.nom || 'Vendeur')
 const lieuxPrincipaux = computed(() => lieux.value.filter(l => lieuParentId(l) === null))
 function locauxDe(id: number) { return lieux.value.filter(l => lieuParentId(l) === id) }
+
+// Gestion des vendeurs (reservee aux directeurs ; deverrouillage par identification)
+const gestionVendeurs = ref(false)
+const gestionAutorisee = ref(false)
+function ouvrirGestionVendeurs() {
+  // Bootstrap : si aucun directeur n'existe encore, on autorise directement.
+  gestionAutorisee.value = vendeursDirecteurs.value.length === 0
+  gestionVendeurs.value = true
+}
+function fermerGestionVendeurs() {
+  gestionVendeurs.value = false
+  gestionAutorisee.value = false
+}
+
+// Navbar principale : "Lieux" reserve au directeur
+const navItems = computed(() => {
+  const items: { key: string; label: string; icon: string }[] = [
+    { key: 'vente', label: 'Vente', icon: 'i-lucide-shopping-cart' },
+    { key: 'inventaire', label: 'Inventaire', icon: 'i-lucide-clipboard-list' }
+  ]
+  if (isDirecteur.value) items.push({ key: 'lieux', label: 'Lieux', icon: 'i-lucide-map-pin' })
+  items.push({ key: 'historique', label: 'Historique du jour', icon: 'i-lucide-clock' })
+  return items
+})
 
 // --- PIN Screen ---
 const pinDigits = ref<string[]>(['', '', '', '', '', ''])
@@ -680,37 +704,59 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
       </div>
     </div>
 
-    <!-- ==================== CHOIX DU VENDEUR ==================== -->
+    <!-- ==================== CHOIX DU VENDEUR (style profils) ==================== -->
     <template v-else-if="!vendeurActuel">
-      <div class="min-h-dvh flex flex-col">
-        <header class="relative shrink-0 h-14 flex items-center px-3 bg-[#222] border-b border-stone-800">
-          <span class="absolute left-1/2 -translate-x-1/2 text-sm font-semibold uppercase tracking-[0.3em] text-white">Comptoir</span>
-          <div class="flex-1" />
-          <button class="size-10 rounded-lg flex items-center justify-center bg-stone-800 hover:bg-stone-700" :title="manageVendeurs ? 'Terminer' : 'Gerer les vendeurs'" @click="manageVendeurs = !manageVendeurs">
-            <UIcon :name="manageVendeurs ? 'i-lucide-check' : 'i-lucide-settings'" class="size-5 text-stone-400" />
+      <!-- Mode gestion (directeur uniquement) -->
+      <div v-if="gestionVendeurs" class="min-h-dvh flex flex-col p-6">
+        <div class="flex-1 w-full max-w-2xl mx-auto">
+          <!-- Verrou : identification directeur requise -->
+          <template v-if="!gestionAutorisee">
+            <h2 class="text-center text-lg font-semibold text-stone-300 mb-1">Gestion des vendeurs</h2>
+            <p class="text-center text-xs text-stone-500 mb-8">Réservée aux directeurs. Identifie-toi pour continuer.</p>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-5 justify-items-center">
+              <button v-for="v in vendeursDirecteurs" :key="v.id"
+                class="flex flex-col items-center gap-3 group"
+                @click="gestionAutorisee = true"
+              >
+                <div class="size-20 rounded-2xl bg-stone-800 border border-stone-700 group-hover:border-[#AF8F3C] flex items-center justify-center transition-colors">
+                  <UIcon name="i-lucide-user" class="size-9 text-stone-400 group-hover:text-[#AF8F3C] transition-colors" />
+                </div>
+                <span class="text-sm font-medium text-stone-300 truncate max-w-[8rem]">{{ v.nom }}</span>
+              </button>
+            </div>
+          </template>
+          <!-- Gestion effective -->
+          <ComptoirVendeursManager v-else />
+        </div>
+        <div class="shrink-0 flex justify-center pt-4">
+          <button class="flex items-center gap-2 px-4 py-2 rounded-full text-sm text-stone-400 hover:text-stone-200 transition-colors" @click="fermerGestionVendeurs">
+            <UIcon name="i-lucide-arrow-left" class="size-4" /> Retour
           </button>
-        </header>
-        <div class="flex-1 overflow-y-auto p-4">
-          <div class="max-w-2xl mx-auto">
-            <ComptoirVendeursManager v-if="manageVendeurs" />
-            <template v-else>
-              <h2 class="text-center text-lg font-semibold text-stone-300 mb-6">Qui vend aujourd'hui ?</h2>
-              <div v-if="!vendeursActifs.length" class="text-center text-stone-500 text-sm">
-                Aucun vendeur. Touchez la roue pour en ajouter.
+        </div>
+      </div>
+
+      <!-- Selection du profil vendeur -->
+      <div v-else class="min-h-dvh flex flex-col p-6">
+        <div class="flex-1 flex flex-col items-center justify-center">
+          <h2 class="text-stone-300 text-xl sm:text-2xl font-semibold mb-10">Qui vend ?</h2>
+          <p v-if="!vendeursActifs.length" class="text-stone-500 text-sm">Aucun vendeur. Touchez la roue pour en créer.</p>
+          <div v-else class="flex flex-wrap justify-center gap-6 max-w-3xl">
+            <button v-for="v in vendeursActifs" :key="v.id"
+              class="flex flex-col items-center gap-3 group"
+              @click="setVendeur(v.id)"
+            >
+              <div class="size-24 rounded-2xl bg-stone-800 border-2 border-transparent group-hover:border-[#AF8F3C] group-active:scale-95 flex items-center justify-center transition-all">
+                <UIcon name="i-lucide-user" class="size-11 text-stone-400 group-hover:text-[#AF8F3C] transition-colors" />
               </div>
-              <div v-else class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <button v-for="v in vendeursActifs" :key="v.id"
-                  class="flex flex-col items-center gap-2 p-5 rounded-2xl bg-stone-800/70 hover:bg-stone-800 border border-stone-700 hover:border-[#AF8F3C]/50 active:scale-[0.97] transition-all"
-                  @click="setVendeur(v.id)"
-                >
-                  <div class="size-12 rounded-full bg-[#AF8F3C]/15 flex items-center justify-center">
-                    <span class="text-lg font-bold text-[#AF8F3C]">{{ v.nom.charAt(0).toUpperCase() }}</span>
-                  </div>
-                  <span class="text-sm font-medium text-stone-200 text-center truncate w-full">{{ v.nom }}</span>
-                </button>
-              </div>
-            </template>
+              <span class="text-sm font-medium text-stone-300 group-hover:text-stone-100 truncate max-w-[6.5rem] transition-colors">{{ v.nom }}</span>
+            </button>
           </div>
+        </div>
+        <!-- Roue parametres : en bas, centree -->
+        <div class="shrink-0 flex justify-center pt-6">
+          <button class="size-12 rounded-full bg-stone-800/70 hover:bg-stone-800 border border-stone-700 flex items-center justify-center text-stone-400 hover:text-stone-200 transition-colors" title="Paramètres" @click="ouvrirGestionVendeurs">
+            <UIcon name="i-lucide-settings" class="size-5" />
+          </button>
         </div>
       </div>
     </template>
@@ -724,17 +770,17 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
           </button>
           <span class="absolute left-1/2 -translate-x-1/2 text-sm font-semibold uppercase tracking-[0.3em] text-white">Comptoir</span>
           <div class="flex-1" />
-          <button class="size-10 rounded-lg flex items-center justify-center bg-stone-800 hover:bg-stone-700" :title="manageLieux ? 'Terminer' : 'Gerer les lieux'" @click="manageLieux = !manageLieux">
+          <button v-if="isDirecteur" class="size-10 rounded-lg flex items-center justify-center bg-stone-800 hover:bg-stone-700" :title="manageLieux ? 'Terminer' : 'Gerer les lieux'" @click="manageLieux = !manageLieux">
             <UIcon :name="manageLieux ? 'i-lucide-check' : 'i-lucide-settings'" class="size-5 text-stone-400" />
           </button>
         </header>
         <div class="flex-1 overflow-y-auto p-4">
           <div class="max-w-2xl mx-auto">
-            <ComptoirLieuxManager v-if="manageLieux" />
+            <ComptoirLieuxManager v-if="manageLieux && isDirecteur" />
             <template v-else>
               <h2 class="text-center text-lg font-semibold text-stone-300 mb-1">Ou vends-tu, {{ vendeurActuelNom }} ?</h2>
               <p class="text-center text-xs text-stone-500 mb-6">Choisis le lieu de vente</p>
-              <div v-if="!lieuxPrincipaux.length" class="text-center text-stone-500 text-sm">Aucun lieu. Touchez la roue pour en ajouter.</div>
+              <div v-if="!lieuxPrincipaux.length" class="text-center text-stone-500 text-sm">{{ isDirecteur ? 'Aucun lieu. Touchez la roue pour en ajouter.' : 'Aucun lieu disponible. Demande à un directeur de le configurer.' }}</div>
               <div v-else class="space-y-2.5">
                 <div v-for="p in lieuxPrincipaux" :key="p.id" class="space-y-1.5">
                   <button
@@ -827,12 +873,7 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
           <!-- Navbar retractable -->
           <aside class="shrink-0 overflow-hidden border-r border-stone-800 bg-[#1e1e1e] transition-[width] duration-200 ease-out" :class="navOpen ? 'w-60' : 'w-0'">
             <div class="w-60 h-full flex flex-col p-3">
-              <button v-for="item in [
-                { key: 'vente', label: 'Vente', icon: 'i-lucide-shopping-cart' },
-                { key: 'inventaire', label: 'Inventaire', icon: 'i-lucide-clipboard-list' },
-                { key: 'lieux', label: 'Lieux', icon: 'i-lucide-map-pin' },
-                { key: 'historique', label: 'Historique du jour', icon: 'i-lucide-clock' }
-              ]" :key="item.key"
+              <button v-for="item in navItems" :key="item.key"
                 class="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm font-medium transition-colors"
                 :class="view === item.key ? 'bg-[#AF8F3C]/15 text-[#AF8F3C]' : 'text-stone-400 hover:bg-stone-800'"
                 @click="view = item.key as any"

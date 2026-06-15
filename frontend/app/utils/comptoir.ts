@@ -16,3 +16,15 @@ export function lieuParentId(l: unknown): number | null {
   if (p == null) return null
   return typeof p === 'object' ? (p as { id: number }).id : (p as number)
 }
+
+// ── Roles vendeurs ──
+export const VENDEUR_ROLES = [
+  { value: 'directeur', label: 'Directeur' },
+  { value: 'employe', label: 'Employé' },
+  { value: 'stagiaire', label: 'Stagiaire' },
+  { value: 'autre', label: 'Autre' }
+] as const
+
+export function vendeurRoleLabel(r?: string): string {
+  return VENDEUR_ROLES.find(x => x.value === r)?.label || 'Employé'
+}
