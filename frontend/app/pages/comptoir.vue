@@ -912,13 +912,10 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
           <!-- Gauche : sous-onglets -->
           <nav class="flex items-center gap-1 rounded-xl bg-stone-900/60 p-1">
             <button v-for="t in tabs" :key="t.key"
-              class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+              class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors"
               :class="viewEffectif === t.key ? 'bg-[#AF8F3C] text-white' : 'text-stone-400 hover:text-stone-200'"
               @click="view = t.key"
-            >
-              <UIcon :name="t.icon" class="size-4" />
-              <span class="hidden sm:inline">{{ t.label }}</span>
-            </button>
+            >{{ t.label }}</button>
             <button
               class="size-9 rounded-lg flex items-center justify-center transition-colors"
               :class="viewEffectif === 'historique' ? 'bg-[#AF8F3C] text-white' : 'text-stone-400 hover:text-stone-200'"
@@ -933,27 +930,33 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
 
           <!-- Droite : parametres + profil + lieu + statut + deconnexion -->
           <div class="flex items-center gap-2">
-            <button v-if="peutGerer" class="size-9 rounded-lg flex items-center justify-center transition-colors" :class="view === 'parametres' ? 'bg-[#AF8F3C]/20 text-[#AF8F3C]' : 'bg-stone-800 hover:bg-stone-700 text-stone-400'" title="Paramètres (lieux & profils)" @click="view = view === 'parametres' ? 'vente' : 'parametres'">
-              <UIcon name="i-lucide-settings" class="size-5" />
-            </button>
-            <button class="flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-lg bg-stone-800 hover:bg-stone-700" title="Changer de profil" @click="setVendeur(null)">
-              <span class="size-6 rounded-md flex items-center justify-center shrink-0" :style="{ backgroundColor: vendeurCouleur(vendeurActuelObj) }">
-                <UIcon :name="vendeurIcone(vendeurActuelObj)" class="size-3.5 text-white" />
+            <!-- Identite : profil (icone seule, unique) + lieu (avec nom) -->
+            <button class="p-1 rounded-lg bg-stone-800 hover:bg-stone-700 transition-colors" :title="`Profil : ${vendeurActuelNom}`" @click="setVendeur(null)">
+              <span class="size-7 rounded-md flex items-center justify-center" :style="{ backgroundColor: vendeurCouleur(vendeurActuelObj) }">
+                <UIcon :name="vendeurIcone(vendeurActuelObj)" class="size-4 text-white" />
               </span>
-              <span class="hidden md:inline text-sm font-medium max-w-[18vw] truncate">{{ vendeurActuelNom }}</span>
             </button>
-            <button class="flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-lg bg-stone-800 hover:bg-stone-700" title="Changer de lieu" @click="setLieu(null)">
+            <button class="flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 transition-colors" title="Changer de lieu" @click="setLieu(null)">
               <span class="size-6 rounded-md flex items-center justify-center shrink-0" :style="{ backgroundColor: lieuCouleurAffichee(lieuActuelObj) }">
                 <UIcon :name="lieuIconeAffichee(lieuActuelObj)" class="size-3.5 text-white" />
               </span>
-              <span class="hidden md:inline text-sm font-medium max-w-[18vw] truncate">{{ lieuActuelNom }}</span>
+              <span class="text-sm font-medium max-w-[28vw] truncate">{{ lieuActuelNom }}</span>
             </button>
+
             <span v-if="!online" title="Hors ligne" class="size-7 rounded-lg bg-red-900/40 flex items-center justify-center">
               <UIcon name="i-lucide-wifi-off" class="size-3.5 text-red-400" />
             </span>
             <button v-if="queue.length" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-900/40 text-amber-400 text-xs font-medium" :disabled="!online || syncing" @click="handleSync">
               <UIcon :name="syncing ? 'i-lucide-loader-2' : 'i-lucide-upload'" :class="syncing ? 'animate-spin' : ''" class="size-3.5" />
               {{ queue.length }}
+            </button>
+
+            <!-- Separateur : identite | actions -->
+            <div class="w-px h-6 bg-stone-700 mx-1" />
+
+            <!-- Actions : parametres + deconnexion -->
+            <button v-if="peutGerer" class="size-9 rounded-lg flex items-center justify-center transition-colors" :class="view === 'parametres' ? 'bg-[#AF8F3C]/20 text-[#AF8F3C]' : 'bg-stone-800 hover:bg-stone-700 text-stone-400'" title="Paramètres (lieux & profils)" @click="view = view === 'parametres' ? 'vente' : 'parametres'">
+              <UIcon name="i-lucide-settings" class="size-5" />
             </button>
             <button class="size-9 rounded-lg flex items-center justify-center bg-stone-800 hover:bg-stone-700 text-stone-400 hover:text-stone-200 transition-colors" title="Déconnexion" @click="logout()">
               <UIcon name="i-lucide-log-out" class="size-5" />
