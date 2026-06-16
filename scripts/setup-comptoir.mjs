@@ -70,11 +70,11 @@ async function run() {
 
   // Utilisateur comptoir avec token statique (cree ou mis a jour)
   if (role) {
-    const existing = await api('GET', '/users?filter[email][_eq]=comptoir@legeai.local&limit=1')
+    const existing = await api('GET', '/users?filter[email][_eq]=comptoir@legeai-editions.com&limit=1')
     if (existing?.length) {
       await safeApi('PATCH', `/users/${existing[0].id}`, { role: role.id, token: TOKEN, status: 'active' }, 'Utilisateur comptoir (token mis a jour)')
     } else {
-      await safeApi('POST', '/users', { email: 'comptoir@legeai.local', password: TOKEN, token: TOKEN, status: 'active', role: role.id, first_name: 'Comptoir' }, 'Utilisateur comptoir cree')
+      await safeApi('POST', '/users', { email: 'comptoir@legeai-editions.com', password: TOKEN, token: TOKEN, status: 'active', role: role.id, first_name: 'Comptoir' }, 'Utilisateur comptoir cree')
     }
   }
 
