@@ -71,12 +71,12 @@ const isResponsable = computed(() => vendeurActuelObj.value?.role === 'responsab
 const aucunDirecteur = computed(() => !vendeurs.value.some(v => v.role === 'directeur'))
 const peutGerer = computed(() => isDirecteur.value || isResponsable.value || aucunDirecteur.value)
 
-// Navbar principale (la gestion lieux/profils est dans la roue du header)
-const navItems = computed(() => [
+// Sous-onglets du header (Historique a son propre bouton icone ; gestion via la roue)
+const tabs = [
   { key: 'vente', label: 'Vente', icon: 'i-lucide-shopping-cart' },
   { key: 'inventaire', label: 'Inventaire', icon: 'i-lucide-clipboard-list' },
-  { key: 'historique', label: 'Historique du jour', icon: 'i-lucide-clock' }
-])
+  { key: 'pertes', label: 'Pertes', icon: 'i-lucide-alert-triangle' }
+] as const
 
 // Onglet actif dans la page Parametres
 const settingsTab = ref<'lieux' | 'vendeurs'>('lieux')
@@ -112,37 +112,35 @@ async function submitPin() {
 watch(() => pinDigits.value.join(''), v => { if (v.length === 6) submitPin() })
 
 // --- Main interface ---
-const navOpen = ref(false)
-const view = ref<'vente' | 'inventaire' | 'historique' | 'parametres'>('vente')
+const view = ref<'vente' | 'inventaire' | 'pertes' | 'historique' | 'parametres'>('vente')
 
 const produitsAvecEditions = computed(() => getProduitsWithEditions())
 const filterType = ref<string>('all')
 
 // Sous-page reellement affichee : Parametres reserve aux gestionnaires ;
-// toute valeur inconnue (anciennes 'lieux'/'vendeurs') retombe sur "vente".
+// toute valeur inconnue retombe sur "vente".
 const viewEffectif = computed(() => {
   if (view.value === 'parametres') return peutGerer.value ? 'parametres' : 'vente'
-  if (view.value === 'inventaire' || view.value === 'historique') return view.value
+  if (['inventaire', 'pertes', 'historique'].includes(view.value)) return view.value
   return 'vente'
 })
 
-// --- Persistance de l'etat UI (sous-page, navbar, filtre, onglet parametres) ---
+// --- Persistance de l'etat UI (sous-page, filtre, onglet parametres) ---
 const UI_KEY = '_comptoir_ui'
 function persistUi() {
   if (!import.meta.client) return
-  localStorage.setItem(UI_KEY, JSON.stringify({ view: view.value, navOpen: navOpen.value, filterType: filterType.value, settingsTab: settingsTab.value }))
+  localStorage.setItem(UI_KEY, JSON.stringify({ view: view.value, filterType: filterType.value, settingsTab: settingsTab.value }))
 }
 function restoreUi() {
   if (!import.meta.client) return
   try {
     const s = JSON.parse(localStorage.getItem(UI_KEY) || '{}')
     if (s.view) view.value = s.view
-    if (typeof s.navOpen === 'boolean') navOpen.value = s.navOpen
     if (s.filterType) filterType.value = s.filterType
     if (s.settingsTab) settingsTab.value = s.settingsTab
   } catch { /* ignore */ }
 }
-watch([view, navOpen, filterType, settingsTab], persistUi)
+watch([view, filterType, settingsTab], persistUi)
 
 const produitsFiltered = computed(() => {
   const all = produitsAvecEditions.value.filter(p => p.a_stock !== false)
@@ -263,7 +261,6 @@ function openPerteModal() {
   perteNote.value = ''
   perteSearch.value = ''
   showPerteModal.value = true
-  navOpen.value = false
 }
 
 function selectPerteProduit(p: Produit & { editions: ProduitEdition[] }) {
@@ -910,39 +907,46 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
 
       <!-- Interface caisse -->
       <div v-else class="flex flex-col h-dvh">
-        <!-- ===== Header fixe ===== -->
-        <header class="relative shrink-0 h-14 flex items-center px-3 bg-[#222] border-b border-stone-800">
-          <!-- Gauche : toggle navbar -->
-          <button class="size-10 rounded-lg flex items-center justify-center bg-stone-800 hover:bg-stone-700" :aria-expanded="navOpen" aria-label="Navigation" @click="navOpen = !navOpen">
-            <UIcon :name="navOpen ? 'i-lucide-panel-left-close' : 'i-lucide-panel-left-open'" class="size-5 text-stone-400" />
-          </button>
-
-          <!-- Centre : nom de la partie -->
-          <div class="pointer-events-none absolute left-1/2 -translate-x-1/2 flex items-center">
-            <span class="text-sm font-semibold uppercase tracking-[0.3em] text-white select-none">Comptoir</span>
-          </div>
+        <!-- ===== Header : onglets a gauche, actions a droite ===== -->
+        <header class="shrink-0 h-14 flex items-center gap-2 px-3 bg-[#222] border-b border-stone-800">
+          <!-- Gauche : sous-onglets -->
+          <nav class="flex items-center gap-1 rounded-xl bg-stone-900/60 p-1">
+            <button v-for="t in tabs" :key="t.key"
+              class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+              :class="viewEffectif === t.key ? 'bg-[#AF8F3C] text-white' : 'text-stone-400 hover:text-stone-200'"
+              @click="view = t.key"
+            >
+              <UIcon :name="t.icon" class="size-4" />
+              <span class="hidden sm:inline">{{ t.label }}</span>
+            </button>
+            <button
+              class="size-9 rounded-lg flex items-center justify-center transition-colors"
+              :class="viewEffectif === 'historique' ? 'bg-[#AF8F3C] text-white' : 'text-stone-400 hover:text-stone-200'"
+              title="Historique du jour"
+              @click="view = 'historique'"
+            >
+              <UIcon name="i-lucide-clock" class="size-4" />
+            </button>
+          </nav>
 
           <div class="flex-1" />
 
-          <!-- Droite : parametres + profil + lieu + statut -->
+          <!-- Droite : parametres + profil + lieu + statut + deconnexion -->
           <div class="flex items-center gap-2">
             <button v-if="peutGerer" class="size-9 rounded-lg flex items-center justify-center transition-colors" :class="view === 'parametres' ? 'bg-[#AF8F3C]/20 text-[#AF8F3C]' : 'bg-stone-800 hover:bg-stone-700 text-stone-400'" title="Paramètres (lieux & profils)" @click="view = view === 'parametres' ? 'vente' : 'parametres'">
               <UIcon name="i-lucide-settings" class="size-5" />
-            </button>
-            <button class="size-9 rounded-lg flex items-center justify-center bg-stone-800 hover:bg-stone-700 text-stone-400 hover:text-stone-200 transition-colors" title="Déconnexion" @click="logout()">
-              <UIcon name="i-lucide-log-out" class="size-5" />
             </button>
             <button class="flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-lg bg-stone-800 hover:bg-stone-700" title="Changer de profil" @click="setVendeur(null)">
               <span class="size-6 rounded-md flex items-center justify-center shrink-0" :style="{ backgroundColor: vendeurCouleur(vendeurActuelObj) }">
                 <UIcon :name="vendeurIcone(vendeurActuelObj)" class="size-3.5 text-white" />
               </span>
-              <span class="text-sm font-medium max-w-[22vw] truncate">{{ vendeurActuelNom }}</span>
+              <span class="hidden md:inline text-sm font-medium max-w-[18vw] truncate">{{ vendeurActuelNom }}</span>
             </button>
             <button class="flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-lg bg-stone-800 hover:bg-stone-700" title="Changer de lieu" @click="setLieu(null)">
               <span class="size-6 rounded-md flex items-center justify-center shrink-0" :style="{ backgroundColor: lieuCouleurAffichee(lieuActuelObj) }">
                 <UIcon :name="lieuIconeAffichee(lieuActuelObj)" class="size-3.5 text-white" />
               </span>
-              <span class="text-sm font-medium max-w-[22vw] truncate">{{ lieuActuelNom }}</span>
+              <span class="hidden md:inline text-sm font-medium max-w-[18vw] truncate">{{ lieuActuelNom }}</span>
             </button>
             <span v-if="!online" title="Hors ligne" class="size-7 rounded-lg bg-red-900/40 flex items-center justify-center">
               <UIcon name="i-lucide-wifi-off" class="size-3.5 text-red-400" />
@@ -951,32 +955,14 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
               <UIcon :name="syncing ? 'i-lucide-loader-2' : 'i-lucide-upload'" :class="syncing ? 'animate-spin' : ''" class="size-3.5" />
               {{ queue.length }}
             </button>
+            <button class="size-9 rounded-lg flex items-center justify-center bg-stone-800 hover:bg-stone-700 text-stone-400 hover:text-stone-200 transition-colors" title="Déconnexion" @click="logout()">
+              <UIcon name="i-lucide-log-out" class="size-5" />
+            </button>
           </div>
         </header>
 
-        <!-- ===== Corps : la navbar pousse le contenu ===== -->
-        <div class="flex flex-1 min-h-0">
-          <!-- Navbar retractable -->
-          <aside class="shrink-0 overflow-hidden border-r border-stone-800 bg-[#1e1e1e] transition-[width] duration-200 ease-out" :class="navOpen ? 'w-60' : 'w-0'">
-            <div class="w-60 h-full flex flex-col p-3">
-              <button v-for="item in navItems" :key="item.key"
-                class="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm font-medium transition-colors"
-                :class="viewEffectif === item.key ? 'bg-[#AF8F3C]/15 text-[#AF8F3C]' : 'text-stone-400 hover:bg-stone-800'"
-                @click="view = item.key as any"
-              >
-                <UIcon :name="item.icon" class="size-5" /> {{ item.label }}
-              </button>
-
-              <div class="border-t border-stone-800 my-3" />
-              <p class="text-[10px] text-stone-500 uppercase tracking-widest mb-2 px-3">Actions</p>
-              <button class="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm font-medium text-red-400 hover:bg-stone-800 transition-colors" @click="openPerteModal">
-                <UIcon name="i-lucide-alert-triangle" class="size-5" /> Enregistrer une perte
-              </button>
-            </div>
-          </aside>
-
-          <!-- Contenu (sous-pages) -->
-          <main class="flex-1 min-h-0 overflow-y-auto">
+        <!-- ===== Contenu (sous-pages) ===== -->
+        <main class="flex-1 min-h-0 overflow-y-auto">
 
       <!-- Loading -->
       <div v-if="loading" class="flex items-center justify-center py-20">
@@ -1141,6 +1127,30 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
         </div>
       </div>
 
+      <!-- ==================== PERTES ==================== -->
+      <div v-else-if="viewEffectif === 'pertes'" class="p-4 max-w-2xl mx-auto">
+        <div class="flex justify-center mb-5">
+          <button class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-red-600 hover:bg-red-500 text-white text-sm font-semibold active:scale-[0.97] transition-all" @click="openPerteModal">
+            <UIcon name="i-lucide-alert-triangle" class="size-4" /> Enregistrer une perte
+          </button>
+        </div>
+        <h3 class="text-sm font-semibold text-stone-400 uppercase tracking-wider mb-2">Pertes du jour</h3>
+        <div v-if="!pertesAujourdhui.length" class="text-center py-8 text-stone-600 text-sm">Aucune perte aujourd'hui</div>
+        <div v-else class="space-y-2">
+          <div v-for="p in pertesAujourdhui" :key="p.id" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-950/20 border border-red-900/20">
+            <UIcon name="i-lucide-alert-triangle" class="size-4 text-red-400 shrink-0" />
+            <div class="flex-1 min-w-0">
+              <p class="text-sm text-stone-200">{{ p.quantite }}x {{ p.produit }}</p>
+              <p v-if="p.note" class="text-[10px] text-stone-500">{{ p.note }}</p>
+            </div>
+            <span class="text-xs text-stone-500 shrink-0">{{ p.heure }}</span>
+            <button class="size-7 rounded-lg bg-stone-700/50 flex items-center justify-center text-stone-500 hover:text-red-400 shrink-0" @click="supprimerPerteJour(p.id)" title="Supprimer">
+              <UIcon name="i-lucide-trash-2" class="size-3" />
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- ==================== HISTORIQUE ==================== -->
       <div v-else-if="viewEffectif === 'historique'" class="p-4 max-w-2xl mx-auto">
         <!-- Bouton recap -->
@@ -1184,23 +1194,6 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
           </div>
         </div>
 
-        <!-- Pertes -->
-        <h3 class="text-sm font-semibold text-stone-400 uppercase tracking-wider mb-2">Pertes</h3>
-        <div v-if="!pertesAujourdhui.length" class="text-center py-8 text-stone-600 text-sm">Aucune perte aujourd'hui</div>
-        <div v-else class="space-y-2 mb-6">
-          <div v-for="p in pertesAujourdhui" :key="p.id" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-950/20 border border-red-900/20">
-            <UIcon name="i-lucide-alert-triangle" class="size-4 text-red-400 shrink-0" />
-            <div class="flex-1 min-w-0">
-              <p class="text-sm text-stone-200">{{ p.quantite }}x {{ p.produit }}</p>
-              <p v-if="p.note" class="text-[10px] text-stone-500">{{ p.note }}</p>
-            </div>
-            <span class="text-xs text-stone-500 shrink-0">{{ p.heure }}</span>
-            <button class="size-6 rounded bg-stone-700/50 flex items-center justify-center text-stone-500 hover:text-red-400 shrink-0" @click="supprimerPerteJour(p.id)" title="Supprimer">
-              <UIcon name="i-lucide-trash-2" class="size-3" />
-            </button>
-          </div>
-        </div>
-
         <!-- Historique global (journees validees) -->
         <div v-if="historiqueGlobal.length" class="mt-8 border-t border-stone-800 pt-6">
           <div class="flex items-center justify-between mb-3">
@@ -1236,8 +1229,7 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
         </div>
       </div>
 
-          </main>
-        </div>
+        </main>
       </div>
 
       <!-- Edition picker modal -->
