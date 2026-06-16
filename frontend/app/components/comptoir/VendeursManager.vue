@@ -2,7 +2,8 @@
 import type { Vendeur } from '~/utils/types'
 import { VENDEUR_ROLES, vendeurRoleLabel, VENDEUR_ICONES, VENDEUR_COULEURS, vendeurIcone, vendeurCouleur } from '~/utils/comptoir'
 
-const props = withDefaults(defineProps<{ defaultRole?: string }>(), { defaultRole: 'employe' })
+const props = withDefaults(defineProps<{ defaultRole?: string; showCreateButton?: boolean }>(), { defaultRole: 'employe', showCreateButton: true })
+defineExpose({ openCreate: () => openCreate() })
 
 const { vendeurs, loadData, createVendeur, updateVendeur, removeVendeur } = useComptoir()
 
@@ -66,7 +67,7 @@ async function remove(v: Vendeur) {
 
 <template>
   <div>
-    <div v-if="!formOpen" class="flex justify-center mb-5">
+    <div v-if="!formOpen && showCreateButton" class="flex justify-center mb-5">
       <button class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#AF8F3C] text-white text-sm font-semibold active:scale-[0.97] transition-all" @click="openCreate">
         <UIcon name="i-lucide-user-plus" class="size-4" /> Nouveau profil
       </button>

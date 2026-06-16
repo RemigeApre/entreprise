@@ -2,6 +2,9 @@
 import { LIEU_STATUTS, lieuStatutMeta, lieuParentId, LIEU_ICONES, lieuIconeAffichee, lieuCouleurAffichee, VENDEUR_COULEURS } from '~/utils/comptoir'
 import type { LieuStockage } from '~/utils/types'
 
+withDefaults(defineProps<{ showCreateButton?: boolean }>(), { showCreateButton: true })
+defineExpose({ openCreate: () => openCreate() })
+
 const { lieux, lieuActuel, loadData } = useComptoir()
 const { createLieu, updateLieu, removeLieu } = useMateriel()
 
@@ -90,7 +93,7 @@ async function remove(l: LieuStockage) {
 
 <template>
   <div>
-    <div v-if="!formOpen" class="flex justify-center mb-5">
+    <div v-if="!formOpen && showCreateButton" class="flex justify-center mb-5">
       <button class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#AF8F3C] text-white text-sm font-semibold active:scale-[0.97] transition-all" @click="openCreate">
         <UIcon name="i-lucide-plus" class="size-4" /> Nouveau lieu
       </button>
