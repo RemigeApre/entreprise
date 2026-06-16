@@ -139,6 +139,13 @@ async function submitPin() {
 
 watch(() => pinDigits.value.join(''), v => { if (v.length === 6) submitPin() })
 
+// Deconnexion : on vide le PIN global pour ne pas laisser l'ancienne saisie.
+function handleLogout() {
+  pinDigits.value = ['', '', '', '', '', '']
+  pinError.value = false
+  logout()
+}
+
 // --- Main interface ---
 const view = ref<'vente' | 'inventaire' | 'pertes' | 'historique' | 'parametres'>('vente')
 
@@ -779,7 +786,7 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
           <input
             v-for="i in 6" :key="i"
             :ref="el => { if (el) pinRefs[i-1] = el as HTMLInputElement }"
-            type="tel" inputmode="numeric" maxlength="1" :value="pinDigits[i-1]"
+            type="password" inputmode="numeric" autocomplete="off" maxlength="1" :value="pinDigits[i-1]"
             class="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 bg-stone-900 outline-none transition-colors"
             :class="pinError ? 'border-red-500 text-red-400' : 'border-stone-700 text-stone-200 focus:border-[#AF8F3C]'"
             @input="onPinInput(i-1, $event)" @keydown="onPinKeydown(i-1, $event)"
@@ -835,7 +842,7 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
             <div class="flex justify-center gap-3 mb-4">
               <input v-for="i in 4" :key="i"
                 :ref="el => { if (el) pin4Refs[i-1] = el as HTMLInputElement }"
-                type="tel" inputmode="numeric" maxlength="1" :value="pin4[i-1]"
+                type="password" inputmode="numeric" autocomplete="off" maxlength="1" :value="pin4[i-1]"
                 class="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 bg-stone-900 outline-none transition-colors"
                 :class="pin4Error ? 'border-red-500 text-red-400' : 'border-stone-700 text-stone-200 focus:border-[#AF8F3C]'"
                 @input="onPin4Input(i-1, $event)" @keydown="onPin4Key(i-1, $event)"
@@ -1008,7 +1015,7 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
             <button v-if="peutGerer" class="size-9 rounded-lg flex items-center justify-center transition-colors" :class="view === 'parametres' ? 'bg-[#AF8F3C]/20 text-[#AF8F3C]' : 'bg-stone-800 hover:bg-stone-700 text-stone-400'" title="Paramètres (lieux & profils)" @click="view = view === 'parametres' ? 'vente' : 'parametres'">
               <UIcon name="i-lucide-settings" class="size-5" />
             </button>
-            <button class="size-9 rounded-lg flex items-center justify-center bg-stone-800 hover:bg-stone-700 text-stone-400 hover:text-stone-200 transition-colors" title="Déconnexion" @click="logout()">
+            <button class="size-9 rounded-lg flex items-center justify-center bg-stone-800 hover:bg-stone-700 text-stone-400 hover:text-stone-200 transition-colors" title="Déconnexion" @click="handleLogout()">
               <UIcon name="i-lucide-log-out" class="size-5" />
             </button>
           </div>
