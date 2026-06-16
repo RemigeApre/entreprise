@@ -190,13 +190,19 @@ export function useComptoir() {
     }))
   }
 
-  function getStockForLieu(produitId: number, lieuId: number, editionId?: number): number {
-    const s = stocks.value.find(s => {
+  // Index O(1) du stock par cle "produit|lieu|edition" (recalcule quand stocks change).
+  const stockIndex = computed(() => {
+    const m = new Map<string, number>()
+    for (const s of stocks.value) {
       const pid = typeof s.produit === 'object' ? (s.produit as any).id : s.produit
       const lid = typeof s.lieu === 'object' ? (s.lieu as any).id : s.lieu
-      return pid === produitId && lid === lieuId && (editionId ? s.edition === editionId : !s.edition)
-    })
-    return s?.quantite || 0
+      m.set(`${pid}|${lid}|${s.edition || 0}`, s.quantite || 0)
+    }
+    return m
+  })
+
+  function getStockForLieu(produitId: number, lieuId: number, editionId?: number): number {
+    return stockIndex.value.get(`${produitId}|${lieuId}|${editionId || 0}`) || 0
   }
 
   // --- Queue (offline) ---

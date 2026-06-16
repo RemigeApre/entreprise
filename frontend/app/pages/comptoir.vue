@@ -563,15 +563,19 @@ function viderHistoriqueGlobal() {
 
 function genererRecapPDF(journee: { date: string; lieu: string; recap: ReturnType<typeof buildRecap>; ventes: VenteJour[]; pertes: PerteJour[] }) {
   const r = journee.recap
+  // Echappement HTML : les noms de produits/clients/notes sont des donnees libres.
+  const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string
+  ))
   const dateStr = new Date(journee.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
   const ventesRows = journee.ventes.map(v => {
-    const items = v.lignes.map(l => `${l.qty}x ${l.nom}${l.type !== 'vente' ? ' (Cadeau)' : ''}`).join(', ')
-    return `<tr><td>${v.heure}</td><td>${v.client || '-'}</td><td>${items}</td><td>${v.paiement}</td><td style="text-align:right">${formatMoney(v.total)} &euro;</td></tr>`
+    const items = v.lignes.map(l => `${l.qty}x ${esc(l.nom)}${l.type !== 'vente' ? ' (Cadeau)' : ''}`).join(', ')
+    return `<tr><td>${esc(v.heure)}</td><td>${esc(v.client || '-')}</td><td>${items}</td><td>${esc(v.paiement)}</td><td style="text-align:right">${formatMoney(v.total)} &euro;</td></tr>`
   }).join('')
 
   const pertesRows = journee.pertes.map(p =>
-    `<tr><td>${p.heure}</td><td>${p.quantite}x ${p.produit}</td><td>${p.note || '-'}</td></tr>`
+    `<tr><td>${esc(p.heure)}</td><td>${esc(p.quantite)}x ${esc(p.produit)}</td><td>${esc(p.note || '-')}</td></tr>`
   ).join('')
 
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Recap ${journee.date}</title>
@@ -596,7 +600,7 @@ function genererRecapPDF(journee: { date: string; lieu: string; recap: ReturnTyp
   @media print { body { padding: 20px; } }
 </style></head><body>
 <h1>Le Geai - Recap de journee</h1>
-<p class="sub">${dateStr} - ${journee.lieu}</p>
+<p class="sub">${dateStr} - ${esc(journee.lieu)}</p>
 
 <div class="grid">
   <div class="stat"><div class="label">Ventes</div><div class="value">${r.nbVentes}</div></div>
