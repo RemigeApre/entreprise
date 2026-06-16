@@ -21,6 +21,12 @@ const vendeursDirecteurs = computed(() => vendeursActifs.value.filter(v => v.rol
 const vendeurActuelNom = computed(() => vendeurs.value.find(v => v.id === vendeurActuel.value)?.nom || 'Vendeur')
 const lieuxPrincipaux = computed(() => lieux.value.filter(l => lieuParentId(l) === null))
 function locauxDe(id: number) { return lieux.value.filter(l => lieuParentId(l) === id) }
+// Liste a plat pour l'ecran de selection : chaque principal suivi de ses locaux
+const lieuxOrdonnes = computed(() => lieuxPrincipaux.value.flatMap(p => [p, ...locauxDe(p.id)]))
+function nomParent(l: { parent?: unknown }): string {
+  const pid = lieuParentId(l)
+  return pid ? (lieux.value.find(x => x.id === pid)?.nom || '') : ''
+}
 
 // Gestion des vendeurs (reservee aux directeurs ; deverrouillage par identification)
 const gestionVendeurs = ref(false)
@@ -79,7 +85,6 @@ watch(() => pinDigits.value.join(''), v => { if (v.length === 6) submitPin() })
 // --- Main interface ---
 const navOpen = ref(false)
 const view = ref<'vente' | 'inventaire' | 'historique' | 'lieux'>('vente')
-const showLieuSelect = ref(false)
 
 const produitsAvecEditions = computed(() => getProduitsWithEditions())
 const filterType = ref<string>('all')
@@ -100,10 +105,8 @@ const produitsGrouped = computed(() => {
   return groups
 })
 
-const lieuActuelNom = computed(() => {
-  if (!lieuActuel.value) return 'Aucun lieu'
-  return lieux.value.find(l => l.id === lieuActuel.value)?.nom || 'Lieu inconnu'
-})
+const lieuActuelObj = computed(() => lieux.value.find(l => l.id === lieuActuel.value) || null)
+const lieuActuelNom = computed(() => lieuActuelObj.value?.nom || 'Aucun lieu')
 
 // --- Panier ---
 type LigneType = 'vente' | 'perte' | 'cadeau'
@@ -763,56 +766,48 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
 
     <!-- ==================== CHOIX DU LIEU ==================== -->
     <template v-else-if="!lieuActuel">
-      <div class="min-h-dvh flex flex-col">
-        <header class="relative shrink-0 h-14 flex items-center px-3 bg-[#222] border-b border-stone-800">
-          <button class="size-10 rounded-lg flex items-center justify-center bg-stone-800 hover:bg-stone-700" title="Changer de vendeur" @click="setVendeur(null)">
-            <UIcon name="i-lucide-arrow-left" class="size-5 text-stone-400" />
+      <!-- Mode gestion (directeur uniquement) -->
+      <div v-if="manageLieux && isDirecteur" class="min-h-dvh flex flex-col p-6">
+        <div class="flex-1 w-full max-w-2xl mx-auto">
+          <ComptoirLieuxManager />
+        </div>
+        <div class="shrink-0 flex justify-center pt-4">
+          <button class="flex items-center gap-2 px-4 py-2 rounded-full text-sm text-stone-400 hover:text-stone-200 transition-colors" @click="manageLieux = false">
+            <UIcon name="i-lucide-arrow-left" class="size-4" /> Retour
           </button>
-          <span class="absolute left-1/2 -translate-x-1/2 text-sm font-semibold uppercase tracking-[0.3em] text-white">Comptoir</span>
-          <div class="flex-1" />
-          <button v-if="isDirecteur" class="size-10 rounded-lg flex items-center justify-center bg-stone-800 hover:bg-stone-700" :title="manageLieux ? 'Terminer' : 'Gerer les lieux'" @click="manageLieux = !manageLieux">
-            <UIcon :name="manageLieux ? 'i-lucide-check' : 'i-lucide-settings'" class="size-5 text-stone-400" />
+        </div>
+      </div>
+
+      <!-- Selection du lieu (style tuiles) -->
+      <div v-else class="min-h-dvh flex flex-col p-6">
+        <div class="shrink-0">
+          <button class="size-10 rounded-lg flex items-center justify-center bg-stone-800/70 hover:bg-stone-800 text-stone-400 hover:text-stone-200 transition-colors" title="Changer de profil" @click="setVendeur(null)">
+            <UIcon name="i-lucide-arrow-left" class="size-5" />
           </button>
-        </header>
-        <div class="flex-1 overflow-y-auto p-4">
-          <div class="max-w-2xl mx-auto">
-            <ComptoirLieuxManager v-if="manageLieux && isDirecteur" />
-            <template v-else>
-              <h2 class="text-center text-lg font-semibold text-stone-300 mb-1">Ou vends-tu, {{ vendeurActuelNom }} ?</h2>
-              <p class="text-center text-xs text-stone-500 mb-6">Choisis le lieu de vente</p>
-              <div v-if="!lieuxPrincipaux.length" class="text-center text-stone-500 text-sm">{{ isDirecteur ? 'Aucun lieu. Touchez la roue pour en ajouter.' : 'Aucun lieu disponible. Demande à un directeur de le configurer.' }}</div>
-              <div v-else class="space-y-2.5">
-                <div v-for="p in lieuxPrincipaux" :key="p.id" class="space-y-1.5">
-                  <button
-                    class="w-full flex items-stretch rounded-2xl overflow-hidden bg-stone-800/70 hover:bg-stone-800 border border-stone-700 hover:border-[#AF8F3C]/50 active:scale-[0.99] transition-all text-left"
-                    @click="setLieu(p.id)"
-                  >
-                    <div class="flex items-center justify-center w-14 shrink-0" :style="{ backgroundColor: lieuCouleurAffichee(p) }">
-                      <UIcon :name="lieuIconeAffichee(p)" class="size-5 text-white" />
-                    </div>
-                    <div class="flex-1 min-w-0 px-4 py-3">
-                      <p class="text-sm font-semibold text-stone-100 truncate">{{ p.nom }}</p>
-                      <p v-if="p.adresse" class="text-xs text-stone-500 truncate mt-0.5">{{ p.adresse }}</p>
-                    </div>
-                  </button>
-                  <div v-if="locauxDe(p.id).length" class="ml-6 pl-3 border-l border-stone-700/70 space-y-1.5">
-                    <button
-                      v-for="loc in locauxDe(p.id)" :key="loc.id"
-                      class="w-full flex items-center rounded-lg overflow-hidden bg-stone-800/40 hover:bg-stone-800 border border-stone-700/50 active:scale-[0.99] transition-all text-left"
-                      @click="setLieu(loc.id)"
-                    >
-                      <div class="flex items-center justify-center w-9 self-stretch shrink-0" :style="{ backgroundColor: lieuCouleurAffichee(loc) }">
-                        <UIcon :name="lieuIconeAffichee(loc)" class="size-3.5 text-white" />
-                      </div>
-                      <div class="flex-1 min-w-0 px-3 py-2">
-                        <p class="text-[13px] text-stone-200 truncate">{{ loc.nom }}</p>
-                      </div>
-                    </button>
-                  </div>
-                </div>
+        </div>
+        <div class="flex-1 flex flex-col items-center justify-center">
+          <h2 class="text-stone-300 text-xl sm:text-2xl font-semibold mb-10">Quel lieu ?</h2>
+          <p v-if="!lieuxOrdonnes.length" class="text-stone-500 text-sm">{{ isDirecteur ? 'Aucun lieu. Touchez la roue pour en créer.' : 'Aucun lieu disponible. Demande à un directeur.' }}</p>
+          <div v-else class="flex flex-wrap justify-center gap-6 max-w-3xl">
+            <button v-for="l in lieuxOrdonnes" :key="l.id"
+              class="flex flex-col items-center gap-3 group w-28"
+              @click="setLieu(l.id)"
+            >
+              <div class="size-24 rounded-2xl flex items-center justify-center ring-2 ring-transparent group-hover:ring-white/70 group-active:scale-95 transition-all" :style="{ backgroundColor: lieuCouleurAffichee(l) }">
+                <UIcon :name="lieuIconeAffichee(l)" class="size-11 text-white" />
               </div>
-            </template>
+              <div class="text-center w-full">
+                <span class="block text-sm font-medium text-stone-300 group-hover:text-stone-100 truncate transition-colors">{{ l.nom }}</span>
+                <span v-if="nomParent(l)" class="block text-[11px] text-stone-500 truncate">{{ nomParent(l) }}</span>
+              </div>
+            </button>
           </div>
+        </div>
+        <!-- Roue parametres : en bas, centree (directeur) -->
+        <div class="shrink-0 flex justify-center pt-6">
+          <button v-if="isDirecteur" class="size-12 rounded-full bg-stone-800/70 hover:bg-stone-800 border border-stone-700 flex items-center justify-center text-stone-400 hover:text-stone-200 transition-colors" title="Paramètres" @click="manageLieux = true">
+            <UIcon name="i-lucide-settings" class="size-5" />
+          </button>
         </div>
       </div>
     </template>
@@ -834,7 +829,7 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
 
           <div class="flex-1" />
 
-          <!-- Droite : vendeur + sync + statut + lieu -->
+          <!-- Droite : profil + lieu + statut -->
           <div class="flex items-center gap-2">
             <button class="flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-lg bg-stone-800 hover:bg-stone-700" title="Changer de profil" @click="setVendeur(null)">
               <span class="size-6 rounded-md flex items-center justify-center shrink-0" :style="{ backgroundColor: vendeurCouleur(vendeurActuelObj) }">
@@ -842,34 +837,19 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
               </span>
               <span class="text-sm font-medium max-w-[22vw] truncate">{{ vendeurActuelNom }}</span>
             </button>
+            <button class="flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-lg bg-stone-800 hover:bg-stone-700" title="Changer de lieu" @click="setLieu(null)">
+              <span class="size-6 rounded-md flex items-center justify-center shrink-0" :style="{ backgroundColor: lieuCouleurAffichee(lieuActuelObj) }">
+                <UIcon :name="lieuIconeAffichee(lieuActuelObj)" class="size-3.5 text-white" />
+              </span>
+              <span class="text-sm font-medium max-w-[22vw] truncate">{{ lieuActuelNom }}</span>
+            </button>
+            <span v-if="!online" title="Hors ligne" class="size-7 rounded-lg bg-red-900/40 flex items-center justify-center">
+              <UIcon name="i-lucide-wifi-off" class="size-3.5 text-red-400" />
+            </span>
             <button v-if="queue.length" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-900/40 text-amber-400 text-xs font-medium" :disabled="!online || syncing" @click="handleSync">
               <UIcon :name="syncing ? 'i-lucide-loader-2' : 'i-lucide-upload'" :class="syncing ? 'animate-spin' : ''" class="size-3.5" />
               {{ queue.length }}
             </button>
-            <!-- Selecteur de lieu (menu deroulant) - l'icone passe au vert quand connecte -->
-            <div class="relative">
-              <button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700" @click="showLieuSelect = !showLieuSelect">
-                <UIcon name="i-lucide-map-pin" class="size-4" :class="online ? 'text-emerald-500' : 'text-red-500'" :title="online ? 'En ligne' : 'Hors ligne'" />
-                <span class="text-sm font-medium max-w-[35vw] truncate">{{ lieuActuelNom }}</span>
-                <UIcon name="i-lucide-chevron-down" class="size-3.5 text-stone-500 transition-transform" :class="showLieuSelect ? 'rotate-180' : ''" />
-              </button>
-              <div v-if="showLieuSelect" class="fixed inset-0 z-40" @click="showLieuSelect = false" />
-              <Transition enter-active-class="transition duration-150 ease-out" leave-active-class="transition duration-100 ease-in" enter-from-class="opacity-0 -translate-y-1" leave-to-class="opacity-0 -translate-y-1">
-                <div v-if="showLieuSelect" class="absolute right-0 mt-2 w-56 z-50 bg-[#222] border border-stone-800 rounded-xl p-2 shadow-xl shadow-black/40 space-y-1">
-                  <button v-for="l in lieux" :key="l.id"
-                    class="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
-                    :class="lieuActuel === l.id ? 'bg-[#AF8F3C]/20 text-[#AF8F3C]' : 'text-stone-300 hover:bg-stone-800'"
-                    @click="setLieu(l.id); showLieuSelect = false"
-                  >
-                    <span class="size-5 rounded-md flex items-center justify-center shrink-0" :style="{ backgroundColor: lieuCouleurAffichee(l) }">
-                      <UIcon :name="lieuIconeAffichee(l)" class="size-3 text-white" />
-                    </span>
-                    <span class="truncate">{{ l.nom }}</span>
-                  </button>
-                  <p v-if="!lieux.length" class="text-xs text-stone-600 px-3 py-2">Aucun lieu configure</p>
-                </div>
-              </Transition>
-            </div>
           </div>
         </header>
 
