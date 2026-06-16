@@ -119,7 +119,9 @@ export default defineNuxtConfig({
         'lucide:shopping-bag',
         'lucide:truck',
         'lucide:landmark',
-        'lucide:wifi-off'
+        'lucide:wifi-off',
+        'lucide:users',
+        'lucide:lock'
       ],
       sizeLimitKb: 0
     }

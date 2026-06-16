@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { createItem } from '@directus/sdk'
-import type { Produit, ProduitEdition } from '~/utils/types'
+import type { Produit, ProduitEdition, Vendeur } from '~/utils/types'
 import { PRODUIT_TYPES } from '~/utils/constants'
 import { lieuParentId, lieuIconeAffichee, lieuCouleurAffichee, vendeurIcone, vendeurCouleur } from '~/utils/comptoir'
 
@@ -15,39 +15,67 @@ const {
 } = useComptoir()
 
 // Selection vendeur / lieu (ecrans de connexion)
-const manageLieux = ref(false)
 const vendeursActifs = computed(() => vendeurs.value.filter(v => v.actif !== false))
-const vendeursDirecteurs = computed(() => vendeursActifs.value.filter(v => v.role === 'directeur'))
 const vendeurActuelNom = computed(() => vendeurs.value.find(v => v.id === vendeurActuel.value)?.nom || 'Vendeur')
 const lieuxPrincipaux = computed(() => lieux.value.filter(l => lieuParentId(l) === null))
 function locauxDe(id: number) { return lieux.value.filter(l => lieuParentId(l) === id) }
-// Liste a plat pour l'ecran de selection : chaque principal suivi de ses locaux
-const lieuxOrdonnes = computed(() => lieuxPrincipaux.value.flatMap(p => [p, ...locauxDe(p.id)]))
-function nomParent(l: { parent?: unknown }): string {
-  const pid = lieuParentId(l)
-  return pid ? (lieux.value.find(x => x.id === pid)?.nom || '') : ''
+
+// --- PIN profil (4 chiffres) ---
+const pinVendeur = ref<Vendeur | null>(null)
+const pin4 = ref<string[]>(['', '', '', ''])
+const pin4Error = ref(false)
+const pin4Refs = ref<HTMLInputElement[]>([])
+
+function choisirVendeur(v: Vendeur) {
+  if (v.pin && String(v.pin).length === 4) {
+    pinVendeur.value = v
+    pin4.value = ['', '', '', '']
+    pin4Error.value = false
+    nextTick(() => pin4Refs.value[0]?.focus())
+  } else {
+    setVendeur(v.id)
+  }
+}
+function onPin4Input(i: number, e: Event) {
+  const el = e.target as HTMLInputElement
+  pin4.value[i] = el.value.replace(/\D/g, '').slice(-1)
+  if (pin4.value[i] && i < 3) pin4Refs.value[i + 1]?.focus()
+  pin4Error.value = false
+}
+function onPin4Key(i: number, e: KeyboardEvent) {
+  if (e.key === 'Backspace' && !pin4.value[i] && i > 0) pin4Refs.value[i - 1]?.focus()
+}
+watch(() => pin4.value.join(''), v => {
+  if (v.length !== 4 || !pinVendeur.value) return
+  if (v === String(pinVendeur.value.pin)) {
+    const id = pinVendeur.value.id
+    pinVendeur.value = null
+    setVendeur(id)
+  } else {
+    pin4Error.value = true
+    pin4.value = ['', '', '', '']
+    pin4Refs.value[0]?.focus()
+  }
+})
+
+// --- Selection du lieu : on entre dans un principal pour choisir un sous-lieu ---
+const lieuPrincipalOuvert = ref<number | null>(null)
+const lieuPrincipalObj = computed(() => lieux.value.find(l => l.id === lieuPrincipalOuvert.value) || null)
+function choisirLieuPrincipal(p: { id: number }) {
+  if (locauxDe(p.id).length) lieuPrincipalOuvert.value = p.id
+  else setLieu(p.id)
 }
 
-// Gestion des vendeurs (reservee aux directeurs ; deverrouillage par identification)
-const gestionVendeurs = ref(false)
-const gestionAutorisee = ref(false)
-function ouvrirGestionVendeurs() {
-  // Bootstrap : si aucun directeur n'existe encore, on autorise directement.
-  gestionAutorisee.value = vendeursDirecteurs.value.length === 0
-  gestionVendeurs.value = true
-}
-function fermerGestionVendeurs() {
-  gestionVendeurs.value = false
-  gestionAutorisee.value = false
-}
-
-// Navbar principale : "Lieux" reserve au directeur
+// Navbar principale : gestion (lieux + profils) reservee au directeur
 const navItems = computed(() => {
   const items: { key: string; label: string; icon: string }[] = [
     { key: 'vente', label: 'Vente', icon: 'i-lucide-shopping-cart' },
     { key: 'inventaire', label: 'Inventaire', icon: 'i-lucide-clipboard-list' }
   ]
-  if (isDirecteur.value) items.push({ key: 'lieux', label: 'Lieux', icon: 'i-lucide-map-pin' })
+  if (isDirecteur.value) {
+    items.push({ key: 'lieux', label: 'Lieux', icon: 'i-lucide-map-pin' })
+    items.push({ key: 'vendeurs', label: 'Profils', icon: 'i-lucide-users' })
+  }
   items.push({ key: 'historique', label: 'Historique du jour', icon: 'i-lucide-clock' })
   return items
 })
@@ -84,7 +112,7 @@ watch(() => pinDigits.value.join(''), v => { if (v.length === 6) submitPin() })
 
 // --- Main interface ---
 const navOpen = ref(false)
-const view = ref<'vente' | 'inventaire' | 'historique' | 'lieux'>('vente')
+const view = ref<'vente' | 'inventaire' | 'historique' | 'lieux' | 'vendeurs'>('vente')
 
 const produitsAvecEditions = computed(() => getProduitsWithEditions())
 const filterType = ref<string>('all')
@@ -707,107 +735,119 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
       </div>
     </div>
 
-    <!-- ==================== CHOIX DU VENDEUR (style profils) ==================== -->
+    <!-- ==================== CHOIX DU PROFIL (style profils) ==================== -->
     <template v-else-if="!vendeurActuel">
-      <!-- Mode gestion (directeur uniquement) -->
-      <div v-if="gestionVendeurs" class="min-h-dvh flex flex-col p-6">
+      <!-- Bootstrap : aucun profil -> creation directe -->
+      <div v-if="!vendeurs.length" class="min-h-dvh flex flex-col p-6">
         <div class="flex-1 w-full max-w-2xl mx-auto">
-          <!-- Verrou : identification directeur requise -->
-          <template v-if="!gestionAutorisee">
-            <h2 class="text-center text-lg font-semibold text-stone-300 mb-1">Gestion des vendeurs</h2>
-            <p class="text-center text-xs text-stone-500 mb-8">Réservée aux directeurs. Identifie-toi pour continuer.</p>
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-5 justify-items-center">
-              <button v-for="v in vendeursDirecteurs" :key="v.id"
-                class="flex flex-col items-center gap-3 group"
-                @click="gestionAutorisee = true"
-              >
-                <div class="size-20 rounded-2xl flex items-center justify-center ring-2 ring-transparent group-hover:ring-white/60 transition-all" :style="{ backgroundColor: vendeurCouleur(v) }">
-                  <UIcon :name="vendeurIcone(v)" class="size-9 text-white" />
-                </div>
-                <span class="text-sm font-medium text-stone-300 truncate max-w-[8rem]">{{ v.nom }}</span>
-              </button>
-            </div>
-          </template>
-          <!-- Gestion effective -->
-          <ComptoirVendeursManager v-else />
+          <h2 class="text-center text-lg font-semibold text-stone-300 mb-1">Premier profil</h2>
+          <p class="text-center text-xs text-stone-500 mb-6">Crée un profil directeur pour démarrer.</p>
+          <ComptoirVendeursManager />
         </div>
-        <div class="shrink-0 flex justify-center pt-4">
-          <button class="flex items-center gap-2 px-4 py-2 rounded-full text-sm text-stone-400 hover:text-stone-200 transition-colors" @click="fermerGestionVendeurs">
-            <UIcon name="i-lucide-arrow-left" class="size-4" /> Retour
+      </div>
+
+      <!-- Selection du profil -->
+      <div v-else class="min-h-dvh flex flex-col items-center justify-center p-6">
+        <h2 class="text-stone-300 text-xl sm:text-2xl font-semibold mb-10">Qui est-ce ?</h2>
+        <p v-if="!vendeursActifs.length" class="text-stone-500 text-sm">Aucun profil actif.</p>
+        <div v-else class="flex flex-wrap justify-center gap-6 max-w-3xl">
+          <button v-for="v in vendeursActifs" :key="v.id"
+            class="flex flex-col items-center gap-3 group w-28"
+            @click="choisirVendeur(v)"
+          >
+            <div class="relative size-24 rounded-2xl flex items-center justify-center ring-2 ring-transparent group-hover:ring-white/70 group-active:scale-95 transition-all" :style="{ backgroundColor: vendeurCouleur(v) }">
+              <UIcon :name="vendeurIcone(v)" class="size-11 text-white" />
+              <span v-if="v.pin" class="absolute -bottom-1 -right-1 size-6 rounded-full bg-stone-900 border border-stone-700 flex items-center justify-center">
+                <UIcon name="i-lucide-lock" class="size-3 text-stone-400" />
+              </span>
+            </div>
+            <span class="text-sm font-medium text-stone-300 group-hover:text-stone-100 truncate w-full text-center transition-colors">{{ v.nom }}</span>
           </button>
         </div>
       </div>
 
-      <!-- Selection du profil vendeur -->
-      <div v-else class="min-h-dvh flex flex-col p-6">
-        <div class="flex-1 flex flex-col items-center justify-center">
-          <h2 class="text-stone-300 text-xl sm:text-2xl font-semibold mb-10">Qui est-ce ?</h2>
-          <p v-if="!vendeursActifs.length" class="text-stone-500 text-sm">Aucun profil. Touchez la roue pour en créer.</p>
-          <div v-else class="flex flex-wrap justify-center gap-6 max-w-3xl">
-            <button v-for="v in vendeursActifs" :key="v.id"
-              class="flex flex-col items-center gap-3 group"
-              @click="setVendeur(v.id)"
-            >
-              <div class="size-24 rounded-2xl flex items-center justify-center ring-2 ring-transparent group-hover:ring-white/70 group-active:scale-95 transition-all" :style="{ backgroundColor: vendeurCouleur(v) }">
-                <UIcon :name="vendeurIcone(v)" class="size-11 text-white" />
-              </div>
-              <span class="text-sm font-medium text-stone-300 group-hover:text-stone-100 truncate max-w-[6.5rem] transition-colors">{{ v.nom }}</span>
-            </button>
+      <!-- Overlay PIN profil (4 chiffres) -->
+      <Transition enter-active-class="transition-opacity duration-200" leave-active-class="transition-opacity duration-150" enter-from-class="opacity-0" leave-to-class="opacity-0">
+        <div v-if="pinVendeur" class="fixed inset-0 z-[80] bg-black/80 flex items-center justify-center px-4" @click.self="pinVendeur = null">
+          <div class="w-full max-w-xs text-center">
+            <div class="size-16 rounded-2xl mx-auto mb-3 flex items-center justify-center" :style="{ backgroundColor: vendeurCouleur(pinVendeur) }">
+              <UIcon :name="vendeurIcone(pinVendeur)" class="size-8 text-white" />
+            </div>
+            <p class="text-stone-200 font-medium mb-1">{{ pinVendeur.nom }}</p>
+            <p class="text-xs text-stone-500 mb-6">Entre ton code PIN</p>
+            <div class="flex justify-center gap-3 mb-4">
+              <input v-for="i in 4" :key="i"
+                :ref="el => { if (el) pin4Refs[i-1] = el as HTMLInputElement }"
+                type="tel" inputmode="numeric" maxlength="1" :value="pin4[i-1]"
+                class="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 bg-stone-900 outline-none transition-colors"
+                :class="pin4Error ? 'border-red-500 text-red-400' : 'border-stone-700 text-stone-200 focus:border-[#AF8F3C]'"
+                @input="onPin4Input(i-1, $event)" @keydown="onPin4Key(i-1, $event)"
+              />
+            </div>
+            <p v-if="pin4Error" class="text-sm text-red-400 mb-3">Code incorrect</p>
+            <button class="text-sm text-stone-500 hover:text-stone-300" @click="pinVendeur = null">Annuler</button>
           </div>
         </div>
-        <!-- Roue parametres : en bas, centree -->
-        <div class="shrink-0 flex justify-center pt-6">
-          <button class="size-12 rounded-full bg-stone-800/70 hover:bg-stone-800 border border-stone-700 flex items-center justify-center text-stone-400 hover:text-stone-200 transition-colors" title="Paramètres" @click="ouvrirGestionVendeurs">
-            <UIcon name="i-lucide-settings" class="size-5" />
-          </button>
-        </div>
-      </div>
+      </Transition>
     </template>
 
     <!-- ==================== CHOIX DU LIEU ==================== -->
     <template v-else-if="!lieuActuel">
-      <!-- Mode gestion (directeur uniquement) -->
-      <div v-if="manageLieux && isDirecteur" class="min-h-dvh flex flex-col p-6">
+      <!-- Bootstrap : aucun lieu et directeur -> creation directe -->
+      <div v-if="!lieuxPrincipaux.length && isDirecteur" class="min-h-dvh flex flex-col p-6">
         <div class="flex-1 w-full max-w-2xl mx-auto">
+          <h2 class="text-center text-lg font-semibold text-stone-300 mb-1">Premier lieu</h2>
+          <p class="text-center text-xs text-stone-500 mb-6">Crée un lieu pour démarrer.</p>
           <ComptoirLieuxManager />
         </div>
         <div class="shrink-0 flex justify-center pt-4">
-          <button class="flex items-center gap-2 px-4 py-2 rounded-full text-sm text-stone-400 hover:text-stone-200 transition-colors" @click="manageLieux = false">
-            <UIcon name="i-lucide-arrow-left" class="size-4" /> Retour
+          <button class="flex items-center gap-2 px-4 py-2 rounded-full text-sm text-stone-400 hover:text-stone-200 transition-colors" @click="setVendeur(null)">
+            <UIcon name="i-lucide-arrow-left" class="size-4" /> Changer de profil
           </button>
         </div>
       </div>
 
-      <!-- Selection du lieu (style tuiles) -->
+      <!-- Selection du lieu (tuiles ; on entre dans un principal pour choisir un sous-lieu) -->
       <div v-else class="min-h-dvh flex flex-col p-6">
         <div class="shrink-0">
-          <button class="size-10 rounded-lg flex items-center justify-center bg-stone-800/70 hover:bg-stone-800 text-stone-400 hover:text-stone-200 transition-colors" title="Changer de profil" @click="setVendeur(null)">
+          <button class="size-10 rounded-lg flex items-center justify-center bg-stone-800/70 hover:bg-stone-800 text-stone-400 hover:text-stone-200 transition-colors" :title="lieuPrincipalOuvert ? 'Retour' : 'Changer de profil'" @click="lieuPrincipalOuvert ? (lieuPrincipalOuvert = null) : setVendeur(null)">
             <UIcon name="i-lucide-arrow-left" class="size-5" />
           </button>
         </div>
         <div class="flex-1 flex flex-col items-center justify-center">
-          <h2 class="text-stone-300 text-xl sm:text-2xl font-semibold mb-10">Quel lieu ?</h2>
-          <p v-if="!lieuxOrdonnes.length" class="text-stone-500 text-sm">{{ isDirecteur ? 'Aucun lieu. Touchez la roue pour en créer.' : 'Aucun lieu disponible. Demande à un directeur.' }}</p>
-          <div v-else class="flex flex-wrap justify-center gap-6 max-w-3xl">
-            <button v-for="l in lieuxOrdonnes" :key="l.id"
-              class="flex flex-col items-center gap-3 group w-28"
-              @click="setLieu(l.id)"
-            >
-              <div class="size-24 rounded-2xl flex items-center justify-center ring-2 ring-transparent group-hover:ring-white/70 group-active:scale-95 transition-all" :style="{ backgroundColor: lieuCouleurAffichee(l) }">
-                <UIcon :name="lieuIconeAffichee(l)" class="size-11 text-white" />
-              </div>
-              <div class="text-center w-full">
-                <span class="block text-sm font-medium text-stone-300 group-hover:text-stone-100 truncate transition-colors">{{ l.nom }}</span>
-                <span v-if="nomParent(l)" class="block text-[11px] text-stone-500 truncate">{{ nomParent(l) }}</span>
-              </div>
-            </button>
-          </div>
-        </div>
-        <!-- Roue parametres : en bas, centree (directeur) -->
-        <div class="shrink-0 flex justify-center pt-6">
-          <button v-if="isDirecteur" class="size-12 rounded-full bg-stone-800/70 hover:bg-stone-800 border border-stone-700 flex items-center justify-center text-stone-400 hover:text-stone-200 transition-colors" title="Paramètres" @click="manageLieux = true">
-            <UIcon name="i-lucide-settings" class="size-5" />
-          </button>
+          <!-- Niveau 1 : lieux principaux -->
+          <template v-if="!lieuPrincipalOuvert">
+            <h2 class="text-stone-300 text-xl sm:text-2xl font-semibold mb-10">Quel lieu ?</h2>
+            <p v-if="!lieuxPrincipaux.length" class="text-stone-500 text-sm">Aucun lieu disponible. Demande à un directeur.</p>
+            <div v-else class="flex flex-wrap justify-center gap-6 max-w-3xl">
+              <button v-for="p in lieuxPrincipaux" :key="p.id"
+                class="flex flex-col items-center gap-3 group w-28"
+                @click="choisirLieuPrincipal(p)"
+              >
+                <div class="relative size-24 rounded-2xl flex items-center justify-center ring-2 ring-transparent group-hover:ring-white/70 group-active:scale-95 transition-all" :style="{ backgroundColor: lieuCouleurAffichee(p) }">
+                  <UIcon :name="lieuIconeAffichee(p)" class="size-11 text-white" />
+                  <span v-if="locauxDe(p.id).length" class="absolute -bottom-1 -right-1 size-6 rounded-full bg-stone-900 border border-stone-700 flex items-center justify-center text-[10px] font-bold text-stone-300">{{ locauxDe(p.id).length }}</span>
+                </div>
+                <span class="text-sm font-medium text-stone-300 group-hover:text-stone-100 truncate w-full text-center transition-colors">{{ p.nom }}</span>
+              </button>
+            </div>
+          </template>
+          <!-- Niveau 2 : sous-lieux -->
+          <template v-else>
+            <h2 class="text-stone-300 text-xl sm:text-2xl font-semibold mb-1">{{ lieuPrincipalObj?.nom }}</h2>
+            <p class="text-xs text-stone-500 mb-10">Choisis un sous-lieu</p>
+            <div class="flex flex-wrap justify-center gap-6 max-w-3xl">
+              <button v-for="loc in locauxDe(lieuPrincipalOuvert)" :key="loc.id"
+                class="flex flex-col items-center gap-3 group w-28"
+                @click="setLieu(loc.id)"
+              >
+                <div class="size-24 rounded-2xl flex items-center justify-center ring-2 ring-transparent group-hover:ring-white/70 group-active:scale-95 transition-all" :style="{ backgroundColor: lieuCouleurAffichee(loc) }">
+                  <UIcon :name="lieuIconeAffichee(loc)" class="size-11 text-white" />
+                </div>
+                <span class="text-sm font-medium text-stone-300 group-hover:text-stone-100 truncate w-full text-center transition-colors">{{ loc.nom }}</span>
+              </button>
+            </div>
+          </template>
         </div>
       </div>
     </template>
@@ -1143,6 +1183,9 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
 
       <!-- ==================== LIEUX ==================== -->
       <ComptoirLieuxManager v-else-if="view === 'lieux'" class="p-4 max-w-2xl mx-auto" />
+
+      <!-- ==================== PROFILS ==================== -->
+      <ComptoirVendeursManager v-else-if="view === 'vendeurs'" class="p-4 max-w-2xl mx-auto" />
 
           </main>
         </div>

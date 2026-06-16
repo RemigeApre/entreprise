@@ -112,12 +112,12 @@ export function useComptoir() {
   const isDirecteur = computed(() => vendeurActuelObj.value?.role === 'directeur')
 
   // --- CRUD vendeurs ---
-  async function createVendeur(data: { nom: string; role?: string; icone?: string; couleur?: string }) {
+  async function createVendeur(data: { nom: string; role?: string; icone?: string; couleur?: string; pin?: string | null }) {
     return await $directus.request(createItem('vendeurs', {
       actif: true, role: 'employe', icone: 'i-lucide-user', couleur: '#AF8F3C', ...data
     }))
   }
-  async function updateVendeur(id: number, data: { nom?: string; actif?: boolean; role?: string; icone?: string; couleur?: string }) {
+  async function updateVendeur(id: number, data: { nom?: string; actif?: boolean; role?: string; icone?: string; couleur?: string; pin?: string | null }) {
     return await $directus.request(updateItem('vendeurs', id as any, data))
   }
   async function removeVendeur(id: number) {

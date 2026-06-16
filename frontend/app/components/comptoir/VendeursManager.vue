@@ -6,13 +6,13 @@ const { vendeurs, loadData, createVendeur, updateVendeur, removeVendeur } = useC
 
 const formOpen = ref(false)
 const editingId = ref<number | null>(null)
-const form = reactive({ nom: '', actif: true, role: 'employe' as string, icone: 'i-lucide-user', couleur: '#AF8F3C' })
+const form = reactive({ nom: '', actif: true, role: 'employe' as string, icone: 'i-lucide-user', couleur: '#AF8F3C', pin: '' })
 const saving = ref(false)
 const error = ref('')
 
 function openCreate() {
   editingId.value = null
-  Object.assign(form, { nom: '', actif: true, role: 'employe', icone: 'i-lucide-user', couleur: '#AF8F3C' })
+  Object.assign(form, { nom: '', actif: true, role: 'employe', icone: 'i-lucide-user', couleur: '#AF8F3C', pin: '' })
   error.value = ''
   formOpen.value = true
 }
@@ -20,7 +20,7 @@ function openEdit(v: Vendeur) {
   editingId.value = v.id
   Object.assign(form, {
     nom: v.nom, actif: v.actif !== false, role: v.role || 'employe',
-    icone: vendeurIcone(v), couleur: vendeurCouleur(v)
+    icone: vendeurIcone(v), couleur: vendeurCouleur(v), pin: v.pin || ''
   })
   error.value = ''
   formOpen.value = true
@@ -28,10 +28,11 @@ function openEdit(v: Vendeur) {
 
 async function save() {
   if (!form.nom.trim()) { error.value = 'Le nom est requis'; return }
+  if (form.pin && !/^\d{4}$/.test(form.pin)) { error.value = 'Le PIN doit faire 4 chiffres'; return }
   saving.value = true
   error.value = ''
   try {
-    const data = { nom: form.nom.trim(), role: form.role, icone: form.icone, couleur: form.couleur }
+    const data = { nom: form.nom.trim(), role: form.role, icone: form.icone, couleur: form.couleur, pin: form.pin || null }
     if (editingId.value) await updateVendeur(editingId.value, { ...data, actif: form.actif })
     else await createVendeur(data)
     await loadData()
@@ -116,6 +117,15 @@ async function remove(v: Vendeur) {
           >{{ r.label }}</button>
         </div>
         <p class="text-[11px] text-stone-600 mt-1.5">Seul un directeur peut gérer les lieux et les profils.</p>
+      </div>
+
+      <!-- Code PIN -->
+      <div>
+        <label class="text-xs text-stone-500 mb-1.5 block">Code PIN <span class="text-stone-600">(4 chiffres, optionnel)</span></label>
+        <input v-model="form.pin" inputmode="numeric" maxlength="4" placeholder="••••"
+          class="w-28 px-3 py-2 rounded-lg bg-stone-900 border border-stone-700 text-base text-center tracking-[0.5em] text-stone-200 placeholder-stone-600 outline-none focus:border-[#AF8F3C]"
+          @input="form.pin = form.pin.replace(/\D/g, '').slice(0, 4)"
+        />
       </div>
 
       <label v-if="editingId" class="flex items-center gap-2 text-sm text-stone-300 cursor-pointer">

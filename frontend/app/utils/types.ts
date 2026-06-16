@@ -502,6 +502,7 @@ export interface Vendeur {
   role: 'directeur' | 'employe' | 'stagiaire' | 'autre'
   icone: string | null
   couleur: string | null
+  pin: string | null
 }
 
 export interface Produit {
