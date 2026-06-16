@@ -66,13 +66,17 @@ function choisirLieuPrincipal(p: { id: number }) {
   else setLieu(p.id)
 }
 
-// Navbar principale : gestion (lieux + profils) reservee au directeur
+// Droits de gestion : directeur, OU tant qu'aucun directeur n'existe (echappatoire bootstrap)
+const aucunDirecteur = computed(() => !vendeurs.value.some(v => v.role === 'directeur'))
+const peutGerer = computed(() => isDirecteur.value || aucunDirecteur.value)
+
+// Navbar principale : gestion (lieux + profils) reservee aux gestionnaires
 const navItems = computed(() => {
   const items: { key: string; label: string; icon: string }[] = [
     { key: 'vente', label: 'Vente', icon: 'i-lucide-shopping-cart' },
     { key: 'inventaire', label: 'Inventaire', icon: 'i-lucide-clipboard-list' }
   ]
-  if (isDirecteur.value) {
+  if (peutGerer.value) {
     items.push({ key: 'lieux', label: 'Lieux', icon: 'i-lucide-map-pin' })
     items.push({ key: 'vendeurs', label: 'Profils', icon: 'i-lucide-users' })
   }
@@ -742,7 +746,7 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
         <div class="flex-1 w-full max-w-2xl mx-auto">
           <h2 class="text-center text-lg font-semibold text-stone-300 mb-1">Premier profil</h2>
           <p class="text-center text-xs text-stone-500 mb-6">Crée un profil directeur pour démarrer.</p>
-          <ComptoirVendeursManager />
+          <ComptoirVendeursManager default-role="directeur" />
         </div>
       </div>
 
@@ -793,8 +797,8 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
 
     <!-- ==================== CHOIX DU LIEU ==================== -->
     <template v-else-if="!lieuActuel">
-      <!-- Bootstrap : aucun lieu et directeur -> creation directe -->
-      <div v-if="!lieuxPrincipaux.length && isDirecteur" class="min-h-dvh flex flex-col p-6">
+      <!-- Bootstrap : aucun lieu et droit de gestion -> creation directe -->
+      <div v-if="!lieuxPrincipaux.length && peutGerer" class="min-h-dvh flex flex-col p-6">
         <div class="flex-1 w-full max-w-2xl mx-auto">
           <h2 class="text-center text-lg font-semibold text-stone-300 mb-1">Premier lieu</h2>
           <p class="text-center text-xs text-stone-500 mb-6">Crée un lieu pour démarrer.</p>

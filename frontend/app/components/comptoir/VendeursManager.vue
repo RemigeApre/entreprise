@@ -2,6 +2,8 @@
 import type { Vendeur } from '~/utils/types'
 import { VENDEUR_ROLES, vendeurRoleLabel, VENDEUR_ICONES, VENDEUR_COULEURS, vendeurIcone, vendeurCouleur } from '~/utils/comptoir'
 
+const props = withDefaults(defineProps<{ defaultRole?: string }>(), { defaultRole: 'employe' })
+
 const { vendeurs, loadData, createVendeur, updateVendeur, removeVendeur } = useComptoir()
 
 const formOpen = ref(false)
@@ -12,7 +14,7 @@ const error = ref('')
 
 function openCreate() {
   editingId.value = null
-  Object.assign(form, { nom: '', actif: true, role: 'employe', icone: 'i-lucide-user', couleur: '#AF8F3C', pin: '' })
+  Object.assign(form, { nom: '', actif: true, role: props.defaultRole, icone: 'i-lucide-user', couleur: '#AF8F3C', pin: '' })
   error.value = ''
   formOpen.value = true
 }
