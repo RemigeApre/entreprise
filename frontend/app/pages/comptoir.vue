@@ -121,6 +121,30 @@ const view = ref<'vente' | 'inventaire' | 'historique' | 'lieux' | 'vendeurs'>('
 const produitsAvecEditions = computed(() => getProduitsWithEditions())
 const filterType = ref<string>('all')
 
+// Sous-page reellement affichee : retombe sur "vente" si une page de gestion
+// est memorisee alors que le profil n'a pas les droits.
+const viewEffectif = computed(() => {
+  if ((view.value === 'lieux' || view.value === 'vendeurs') && !peutGerer.value) return 'vente'
+  return view.value
+})
+
+// --- Persistance de l'etat UI (sous-page, navbar, filtre) ---
+const UI_KEY = '_comptoir_ui'
+function persistUi() {
+  if (!import.meta.client) return
+  localStorage.setItem(UI_KEY, JSON.stringify({ view: view.value, navOpen: navOpen.value, filterType: filterType.value }))
+}
+function restoreUi() {
+  if (!import.meta.client) return
+  try {
+    const s = JSON.parse(localStorage.getItem(UI_KEY) || '{}')
+    if (s.view) view.value = s.view
+    if (typeof s.navOpen === 'boolean') navOpen.value = s.navOpen
+    if (s.filterType) filterType.value = s.filterType
+  } catch { /* ignore */ }
+}
+watch([view, navOpen, filterType], persistUi)
+
 const produitsFiltered = computed(() => {
   const all = produitsAvecEditions.value.filter(p => p.a_stock !== false)
   if (filterType.value === 'all') return all
@@ -699,6 +723,7 @@ async function handleSetInventaire(produitId: number, quantite: number, editionI
 
 // --- Init ---
 onMounted(() => {
+  restoreUi()
   loadHistoriqueGlobal()
   loadJourData()
   if (loadSession()) { loadData(); startConnectivityCheck() }
@@ -904,7 +929,7 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
             <div class="w-60 h-full flex flex-col p-3">
               <button v-for="item in navItems" :key="item.key"
                 class="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm font-medium transition-colors"
-                :class="view === item.key ? 'bg-[#AF8F3C]/15 text-[#AF8F3C]' : 'text-stone-400 hover:bg-stone-800'"
+                :class="viewEffectif === item.key ? 'bg-[#AF8F3C]/15 text-[#AF8F3C]' : 'text-stone-400 hover:bg-stone-800'"
                 @click="view = item.key as any"
               >
                 <UIcon :name="item.icon" class="size-5" /> {{ item.label }}
@@ -933,7 +958,7 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
       </div>
 
       <!-- ==================== VENTE ==================== -->
-      <div v-else-if="view === 'vente'" class="flex flex-col lg:flex-row h-full">
+      <div v-else-if="viewEffectif === 'vente'" class="flex flex-col lg:flex-row h-full">
         <!-- Produits grid -->
         <div class="flex-1 overflow-y-auto p-3">
           <!-- Mode selector + type filter -->
@@ -1066,7 +1091,7 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
       </div>
 
       <!-- ==================== INVENTAIRE ==================== -->
-      <div v-else-if="view === 'inventaire'" class="p-4 max-w-2xl mx-auto">
+      <div v-else-if="viewEffectif === 'inventaire'" class="p-4 max-w-2xl mx-auto">
         <h2 class="text-lg font-semibold text-stone-300 mb-4">Inventaire - {{ lieuActuelNom }}</h2>
         <div class="space-y-2">
           <div v-for="p in produitsAvecEditions.filter(p => p.a_stock !== false)" :key="p.id">
@@ -1091,7 +1116,7 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
       </div>
 
       <!-- ==================== HISTORIQUE ==================== -->
-      <div v-else-if="view === 'historique'" class="p-4 max-w-2xl mx-auto">
+      <div v-else-if="viewEffectif === 'historique'" class="p-4 max-w-2xl mx-auto">
         <!-- Bouton recap -->
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-lg font-semibold text-stone-300">Historique du jour</h2>
@@ -1186,10 +1211,10 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
       </div>
 
       <!-- ==================== LIEUX ==================== -->
-      <ComptoirLieuxManager v-else-if="view === 'lieux'" class="p-4 max-w-2xl mx-auto" />
+      <ComptoirLieuxManager v-else-if="viewEffectif === 'lieux'" class="p-4 max-w-2xl mx-auto" />
 
       <!-- ==================== PROFILS ==================== -->
-      <ComptoirVendeursManager v-else-if="view === 'vendeurs'" class="p-4 max-w-2xl mx-auto" />
+      <ComptoirVendeursManager v-else-if="viewEffectif === 'vendeurs'" class="p-4 max-w-2xl mx-auto" />
 
           </main>
         </div>
