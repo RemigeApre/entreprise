@@ -35,8 +35,9 @@ export function lieuParentId(l: unknown): number | null {
 // ── Roles vendeurs ──
 export const VENDEUR_ROLES = [
   { value: 'directeur', label: 'Directeur' },
+  { value: 'responsable', label: 'Responsable' },
   { value: 'employe', label: 'Employé' },
-  { value: 'stagiaire', label: 'Stagiaire' }
+  { value: 'general', label: 'Profil général' }
 ] as const
 
 export function vendeurRoleLabel(r?: string): string {

@@ -499,7 +499,7 @@ export interface Vendeur {
   id: number
   nom: string
   actif: boolean
-  role: 'directeur' | 'employe' | 'stagiaire' | 'autre'
+  role: 'directeur' | 'responsable' | 'employe' | 'general'
   icone: string | null
   couleur: string | null
   pin: string | null

@@ -28,8 +28,15 @@ function openEdit(v: Vendeur) {
   formOpen.value = true
 }
 
+// Profil general : jamais de PIN
+watch(() => form.role, r => { if (r === 'general') form.pin = '' })
+
 async function save() {
   if (!form.nom.trim()) { error.value = 'Le nom est requis'; return }
+  if (form.role === 'directeur') {
+    const autre = vendeurs.value.find(v => v.role === 'directeur' && v.id !== editingId.value)
+    if (autre) { error.value = `Il existe déjà un directeur (${autre.nom}). Un seul est autorisé.`; return }
+  }
   if (form.pin && !/^\d{4}$/.test(form.pin)) { error.value = 'Le PIN doit faire 4 chiffres'; return }
   saving.value = true
   error.value = ''
@@ -111,7 +118,7 @@ async function remove(v: Vendeur) {
       <!-- Role -->
       <div>
         <label class="text-xs text-stone-500 mb-2 block">Rôle</label>
-        <div class="grid grid-cols-3 gap-2">
+        <div class="grid grid-cols-2 gap-2">
           <button v-for="r in VENDEUR_ROLES" :key="r.value" type="button"
             class="py-2 rounded-lg text-sm font-medium transition-colors"
             :class="form.role === r.value ? 'bg-[#AF8F3C]/15 text-[#AF8F3C] ring-1 ring-[#AF8F3C]/40' : 'bg-stone-900 text-stone-400 hover:bg-stone-700'"
@@ -121,8 +128,8 @@ async function remove(v: Vendeur) {
         <p class="text-[11px] text-stone-600 mt-1.5">Seul un directeur peut gérer les lieux et les profils.</p>
       </div>
 
-      <!-- Code PIN -->
-      <div>
+      <!-- Code PIN (pas pour les profils generaux) -->
+      <div v-if="form.role !== 'general'">
         <label class="text-xs text-stone-500 mb-1.5 block">Code PIN <span class="text-stone-600">(4 chiffres, optionnel)</span></label>
         <input v-model="form.pin" inputmode="numeric" maxlength="4" placeholder="••••"
           class="w-28 px-3 py-2 rounded-lg bg-stone-900 border border-stone-700 text-base text-center tracking-[0.5em] text-stone-200 placeholder-stone-600 outline-none focus:border-[#AF8F3C]"
