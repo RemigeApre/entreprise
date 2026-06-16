@@ -929,6 +929,9 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
             <button v-if="peutGerer" class="size-9 rounded-lg flex items-center justify-center transition-colors" :class="view === 'parametres' ? 'bg-[#AF8F3C]/20 text-[#AF8F3C]' : 'bg-stone-800 hover:bg-stone-700 text-stone-400'" title="Paramètres (lieux & profils)" @click="view = view === 'parametres' ? 'vente' : 'parametres'">
               <UIcon name="i-lucide-settings" class="size-5" />
             </button>
+            <button class="size-9 rounded-lg flex items-center justify-center bg-stone-800 hover:bg-stone-700 text-stone-400 hover:text-stone-200 transition-colors" title="Déconnexion" @click="logout()">
+              <UIcon name="i-lucide-log-out" class="size-5" />
+            </button>
             <button class="flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-lg bg-stone-800 hover:bg-stone-700" title="Changer de profil" @click="setVendeur(null)">
               <span class="size-6 rounded-md flex items-center justify-center shrink-0" :style="{ backgroundColor: vendeurCouleur(vendeurActuelObj) }">
                 <UIcon :name="vendeurIcone(vendeurActuelObj)" class="size-3.5 text-white" />
@@ -969,12 +972,6 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
               <button class="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm font-medium text-red-400 hover:bg-stone-800 transition-colors" @click="openPerteModal">
                 <UIcon name="i-lucide-alert-triangle" class="size-5" /> Enregistrer une perte
               </button>
-
-              <div class="mt-auto pt-3 border-t border-stone-800">
-                <button class="flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm text-red-400 hover:bg-stone-800" @click="logout()">
-                  <UIcon name="i-lucide-log-out" class="size-5" /> Deconnexion
-                </button>
-              </div>
             </div>
           </aside>
 
