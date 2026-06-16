@@ -66,23 +66,20 @@ function choisirLieuPrincipal(p: { id: number }) {
   else setLieu(p.id)
 }
 
-// Droits de gestion : directeur, OU tant qu'aucun directeur n'existe (echappatoire bootstrap)
+// Droits de gestion : directeur ou responsable, OU tant qu'aucun directeur n'existe (bootstrap)
+const isResponsable = computed(() => vendeurActuelObj.value?.role === 'responsable')
 const aucunDirecteur = computed(() => !vendeurs.value.some(v => v.role === 'directeur'))
-const peutGerer = computed(() => isDirecteur.value || aucunDirecteur.value)
+const peutGerer = computed(() => isDirecteur.value || isResponsable.value || aucunDirecteur.value)
 
-// Navbar principale : gestion (lieux + profils) reservee aux gestionnaires
-const navItems = computed(() => {
-  const items: { key: string; label: string; icon: string }[] = [
-    { key: 'vente', label: 'Vente', icon: 'i-lucide-shopping-cart' },
-    { key: 'inventaire', label: 'Inventaire', icon: 'i-lucide-clipboard-list' }
-  ]
-  if (peutGerer.value) {
-    items.push({ key: 'lieux', label: 'Lieux', icon: 'i-lucide-map-pin' })
-    items.push({ key: 'vendeurs', label: 'Profils', icon: 'i-lucide-users' })
-  }
-  items.push({ key: 'historique', label: 'Historique du jour', icon: 'i-lucide-clock' })
-  return items
-})
+// Navbar principale (la gestion lieux/profils est dans la roue du header)
+const navItems = computed(() => [
+  { key: 'vente', label: 'Vente', icon: 'i-lucide-shopping-cart' },
+  { key: 'inventaire', label: 'Inventaire', icon: 'i-lucide-clipboard-list' },
+  { key: 'historique', label: 'Historique du jour', icon: 'i-lucide-clock' }
+])
+
+// Onglet actif dans la page Parametres
+const settingsTab = ref<'lieux' | 'vendeurs'>('lieux')
 
 // --- PIN Screen ---
 const pinDigits = ref<string[]>(['', '', '', '', '', ''])
@@ -116,23 +113,24 @@ watch(() => pinDigits.value.join(''), v => { if (v.length === 6) submitPin() })
 
 // --- Main interface ---
 const navOpen = ref(false)
-const view = ref<'vente' | 'inventaire' | 'historique' | 'lieux' | 'vendeurs'>('vente')
+const view = ref<'vente' | 'inventaire' | 'historique' | 'parametres'>('vente')
 
 const produitsAvecEditions = computed(() => getProduitsWithEditions())
 const filterType = ref<string>('all')
 
-// Sous-page reellement affichee : retombe sur "vente" si une page de gestion
-// est memorisee alors que le profil n'a pas les droits.
+// Sous-page reellement affichee : Parametres reserve aux gestionnaires ;
+// toute valeur inconnue (anciennes 'lieux'/'vendeurs') retombe sur "vente".
 const viewEffectif = computed(() => {
-  if ((view.value === 'lieux' || view.value === 'vendeurs') && !peutGerer.value) return 'vente'
-  return view.value
+  if (view.value === 'parametres') return peutGerer.value ? 'parametres' : 'vente'
+  if (view.value === 'inventaire' || view.value === 'historique') return view.value
+  return 'vente'
 })
 
-// --- Persistance de l'etat UI (sous-page, navbar, filtre) ---
+// --- Persistance de l'etat UI (sous-page, navbar, filtre, onglet parametres) ---
 const UI_KEY = '_comptoir_ui'
 function persistUi() {
   if (!import.meta.client) return
-  localStorage.setItem(UI_KEY, JSON.stringify({ view: view.value, navOpen: navOpen.value, filterType: filterType.value }))
+  localStorage.setItem(UI_KEY, JSON.stringify({ view: view.value, navOpen: navOpen.value, filterType: filterType.value, settingsTab: settingsTab.value }))
 }
 function restoreUi() {
   if (!import.meta.client) return
@@ -141,9 +139,10 @@ function restoreUi() {
     if (s.view) view.value = s.view
     if (typeof s.navOpen === 'boolean') navOpen.value = s.navOpen
     if (s.filterType) filterType.value = s.filterType
+    if (s.settingsTab) settingsTab.value = s.settingsTab
   } catch { /* ignore */ }
 }
-watch([view, navOpen, filterType], persistUi)
+watch([view, navOpen, filterType, settingsTab], persistUi)
 
 const produitsFiltered = computed(() => {
   const all = produitsAvecEditions.value.filter(p => p.a_stock !== false)
@@ -898,8 +897,11 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
 
           <div class="flex-1" />
 
-          <!-- Droite : profil + lieu + statut -->
+          <!-- Droite : parametres + profil + lieu + statut -->
           <div class="flex items-center gap-2">
+            <button v-if="peutGerer" class="size-9 rounded-lg flex items-center justify-center transition-colors" :class="view === 'parametres' ? 'bg-[#AF8F3C]/20 text-[#AF8F3C]' : 'bg-stone-800 hover:bg-stone-700 text-stone-400'" title="Paramètres (lieux & profils)" @click="view = view === 'parametres' ? 'vente' : 'parametres'">
+              <UIcon name="i-lucide-settings" class="size-5" />
+            </button>
             <button class="flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-lg bg-stone-800 hover:bg-stone-700" title="Changer de profil" @click="setVendeur(null)">
               <span class="size-6 rounded-md flex items-center justify-center shrink-0" :style="{ backgroundColor: vendeurCouleur(vendeurActuelObj) }">
                 <UIcon :name="vendeurIcone(vendeurActuelObj)" class="size-3.5 text-white" />
@@ -1210,11 +1212,21 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
         </div>
       </div>
 
-      <!-- ==================== LIEUX ==================== -->
-      <ComptoirLieuxManager v-else-if="viewEffectif === 'lieux'" class="p-4 max-w-2xl mx-auto" />
-
-      <!-- ==================== PROFILS ==================== -->
-      <ComptoirVendeursManager v-else-if="viewEffectif === 'vendeurs'" class="p-4 max-w-2xl mx-auto" />
+      <!-- ==================== PARAMETRES (lieux / profils) ==================== -->
+      <div v-else-if="viewEffectif === 'parametres'" class="p-4 max-w-2xl mx-auto">
+        <div class="flex justify-center mb-5">
+          <div class="inline-flex rounded-xl bg-stone-800 p-1">
+            <button class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors" :class="settingsTab === 'lieux' ? 'bg-[#AF8F3C] text-white' : 'text-stone-400 hover:text-stone-200'" @click="settingsTab = 'lieux'">
+              <UIcon name="i-lucide-map-pin" class="size-4" /> Lieux
+            </button>
+            <button class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors" :class="settingsTab === 'vendeurs' ? 'bg-[#AF8F3C] text-white' : 'text-stone-400 hover:text-stone-200'" @click="settingsTab = 'vendeurs'">
+              <UIcon name="i-lucide-users" class="size-4" /> Profils
+            </button>
+          </div>
+        </div>
+        <ComptoirLieuxManager v-if="settingsTab === 'lieux'" />
+        <ComptoirVendeursManager v-else />
+      </div>
 
           </main>
         </div>
