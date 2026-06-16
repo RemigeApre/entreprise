@@ -71,11 +71,14 @@ const isResponsable = computed(() => vendeurActuelObj.value?.role === 'responsab
 const aucunDirecteur = computed(() => !vendeurs.value.some(v => v.role === 'directeur'))
 const peutGerer = computed(() => isDirecteur.value || isResponsable.value || aucunDirecteur.value)
 
-// Sous-onglets du header (Historique a son propre bouton icone ; gestion via la roue)
-const tabs = [
-  { key: 'vente', label: 'Vente', icon: 'i-lucide-shopping-cart' },
-  { key: 'inventaire', label: 'Inventaire', icon: 'i-lucide-clipboard-list' },
-  { key: 'pertes', label: 'Pertes', icon: 'i-lucide-alert-triangle' }
+// Sous-onglets du header : principaux (texte) + secondaires (icone)
+const mainTabs = [
+  { key: 'vente', label: 'Vente' },
+  { key: 'inventaire', label: 'Inventaire' }
+] as const
+const iconTabs = [
+  { key: 'pertes', label: 'Pertes', icon: 'i-lucide-alert-triangle' },
+  { key: 'historique', label: 'Historique du jour', icon: 'i-lucide-clock' }
 ] as const
 
 // Onglet actif dans la page Parametres
@@ -909,20 +912,20 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
       <div v-else class="flex flex-col h-dvh">
         <!-- ===== Header : onglets a gauche, actions a droite ===== -->
         <header class="shrink-0 h-14 flex items-center gap-2 px-3 bg-[#222] border-b border-stone-800">
-          <!-- Gauche : sous-onglets -->
-          <nav class="flex items-center gap-1 rounded-xl bg-stone-900/60 p-1">
-            <button v-for="t in tabs" :key="t.key"
+          <!-- Gauche : onglets (fond transparent, actif dore) -->
+          <nav class="flex items-center gap-1">
+            <button v-for="t in mainTabs" :key="t.key"
               class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors"
-              :class="viewEffectif === t.key ? 'bg-[#AF8F3C] text-white' : 'text-stone-400 hover:text-stone-200'"
+              :class="viewEffectif === t.key ? 'bg-[#AF8F3C] text-white' : 'text-stone-400 hover:text-stone-200 hover:bg-stone-800/60'"
               @click="view = t.key"
             >{{ t.label }}</button>
-            <button
+            <button v-for="t in iconTabs" :key="t.key"
               class="size-9 rounded-lg flex items-center justify-center transition-colors"
-              :class="viewEffectif === 'historique' ? 'bg-[#AF8F3C] text-white' : 'text-stone-400 hover:text-stone-200'"
-              title="Historique du jour"
-              @click="view = 'historique'"
+              :class="viewEffectif === t.key ? 'bg-[#AF8F3C] text-white' : 'text-stone-400 hover:text-stone-200 hover:bg-stone-800/60'"
+              :title="t.label"
+              @click="view = t.key"
             >
-              <UIcon name="i-lucide-clock" class="size-4" />
+              <UIcon :name="t.icon" class="size-4" />
             </button>
           </nav>
 
