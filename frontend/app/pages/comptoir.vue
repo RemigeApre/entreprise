@@ -10,6 +10,7 @@ const {
   authenticated, lieuActuel, vendeurActuel, online, queue, loading,
   lieux, stocks, vendeurs, isDirecteur, vendeurActuelObj,
   loadSession, authenticate, logout, setLieu, setVendeur,
+  getComptoirPin, setComptoirPin,
   loadData, getProduitsWithEditions, getStockForLieu,
   enqueue, syncQueue, startConnectivityCheck
 } = useComptoir()
@@ -82,7 +83,31 @@ const iconTabs = [
 ] as const
 
 // Onglet actif dans la page Parametres
-const settingsTab = ref<'lieux' | 'vendeurs'>('lieux')
+const settingsTab = ref<'lieux' | 'vendeurs' | 'securite'>('lieux')
+// Onglet effectif : "securite" reserve au directeur
+const settingsTabEffectif = computed(() => (settingsTab.value === 'securite' && !isDirecteur.value) ? 'lieux' : settingsTab.value)
+
+// --- PIN du comptoir (changement par le directeur dans Parametres) ---
+const comptoirPin = ref('')
+const comptoirPinSaving = ref(false)
+const comptoirPinMsg = ref('')
+async function chargerComptoirPin() {
+  try { comptoirPin.value = await getComptoirPin() } catch { /* ignore */ }
+}
+async function sauverComptoirPin() {
+  if (!/^\d{6}$/.test(comptoirPin.value)) { comptoirPinMsg.value = 'Le PIN doit faire 6 chiffres'; return }
+  comptoirPinSaving.value = true
+  comptoirPinMsg.value = ''
+  try {
+    await setComptoirPin(comptoirPin.value)
+    comptoirPinMsg.value = 'PIN mis à jour ✓'
+  } catch {
+    comptoirPinMsg.value = 'Erreur lors de l\'enregistrement'
+  } finally {
+    comptoirPinSaving.value = false
+  }
+}
+watch(settingsTabEffectif, t => { if (t === 'securite') { comptoirPinMsg.value = ''; chargerComptoirPin() } })
 
 // --- PIN Screen ---
 const pinDigits = ref<string[]>(['', '', '', '', '', ''])
@@ -896,18 +921,36 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
         </header>
         <div class="shrink-0 flex justify-center py-3 border-b border-stone-800/60">
           <div class="inline-flex rounded-xl bg-stone-800 p-1">
-            <button class="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-colors" :class="settingsTab === 'lieux' ? 'bg-[#AF8F3C] text-white' : 'text-stone-400 hover:text-stone-200'" @click="settingsTab = 'lieux'">
+            <button class="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-colors" :class="settingsTabEffectif === 'lieux' ? 'bg-[#AF8F3C] text-white' : 'text-stone-400 hover:text-stone-200'" @click="settingsTab = 'lieux'">
               <UIcon name="i-lucide-map-pin" class="size-4" /> Lieux
             </button>
-            <button class="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-colors" :class="settingsTab === 'vendeurs' ? 'bg-[#AF8F3C] text-white' : 'text-stone-400 hover:text-stone-200'" @click="settingsTab = 'vendeurs'">
+            <button class="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-colors" :class="settingsTabEffectif === 'vendeurs' ? 'bg-[#AF8F3C] text-white' : 'text-stone-400 hover:text-stone-200'" @click="settingsTab = 'vendeurs'">
               <UIcon name="i-lucide-users" class="size-4" /> Profils
+            </button>
+            <button v-if="isDirecteur" class="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-colors" :class="settingsTabEffectif === 'securite' ? 'bg-[#AF8F3C] text-white' : 'text-stone-400 hover:text-stone-200'" @click="settingsTab = 'securite'">
+              <UIcon name="i-lucide-lock" class="size-4" /> Sécurité
             </button>
           </div>
         </div>
         <div class="flex-1 overflow-y-auto p-4">
           <div class="max-w-2xl mx-auto">
-            <ComptoirLieuxManager v-if="settingsTab === 'lieux'" />
-            <ComptoirVendeursManager v-else />
+            <ComptoirLieuxManager v-if="settingsTabEffectif === 'lieux'" />
+            <ComptoirVendeursManager v-else-if="settingsTabEffectif === 'vendeurs'" />
+            <!-- Securite : PIN du comptoir (directeur) -->
+            <div v-else class="max-w-sm mx-auto">
+              <p class="text-sm font-semibold text-stone-200 mb-1">Code PIN du Comptoir</p>
+              <p class="text-xs text-stone-500 mb-4">6 chiffres, demandés à l'ouverture du Comptoir sur l'appareil.</p>
+              <input v-model="comptoirPin" inputmode="numeric" maxlength="6" placeholder="••••••"
+                class="w-40 px-3 py-2 rounded-lg bg-stone-900 border border-stone-700 text-lg text-center tracking-[0.4em] text-stone-200 placeholder-stone-600 outline-none focus:border-[#AF8F3C]"
+                @input="comptoirPin = comptoirPin.replace(/\D/g, '').slice(0, 6)"
+              />
+              <p v-if="comptoirPinMsg" class="text-xs mt-2" :class="comptoirPinMsg.includes('✓') ? 'text-emerald-400' : 'text-red-400'">{{ comptoirPinMsg }}</p>
+              <div class="mt-4">
+                <button class="px-5 py-2.5 rounded-xl text-sm font-bold bg-[#AF8F3C] text-white active:scale-[0.98] transition-all disabled:opacity-50" :disabled="comptoirPinSaving" @click="sauverComptoirPin">
+                  {{ comptoirPinSaving ? 'Enregistrement...' : 'Enregistrer le PIN' }}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

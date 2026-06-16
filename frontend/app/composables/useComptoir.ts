@@ -1,4 +1,4 @@
-import { readItems, createItem, updateItem, deleteItem } from '@directus/sdk'
+import { readItems, createItem, updateItem, deleteItem, readSingleton, updateSingleton } from '@directus/sdk'
 import type { Produit, ProduitEdition, LieuStockage, StockLieu, Vendeur } from '~/utils/types'
 
 const STORAGE_KEY = '_comptoir'
@@ -122,6 +122,15 @@ export function useComptoir() {
   }
   async function removeVendeur(id: number) {
     await $directus.request(deleteItem('vendeurs', id as any))
+  }
+
+  // --- PIN du comptoir (singleton comptoir_settings) ---
+  async function getComptoirPin(): Promise<string> {
+    const s = await $directus.request(readSingleton('comptoir_settings')) as { pin_code?: string }
+    return s?.pin_code || ''
+  }
+  async function setComptoirPin(pin: string) {
+    return await $directus.request(updateSingleton('comptoir_settings', { pin_code: pin }))
   }
 
   // --- Data loading ---
@@ -311,6 +320,7 @@ export function useComptoir() {
     vendeurActuelObj, isDirecteur,
     loadSession, authenticate, logout, setLieu, setVendeur,
     createVendeur, updateVendeur, removeVendeur,
+    getComptoirPin, setComptoirPin,
     loadData, getProduitsWithEditions, getStockForLieu,
     enqueue, syncQueue, startConnectivityCheck
   }

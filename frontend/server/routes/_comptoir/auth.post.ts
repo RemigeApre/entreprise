@@ -7,33 +7,16 @@ export default defineEventHandler(async (event) => {
   }
 
   const directusUrl = process.env.NUXT_DIRECTUS_URL || 'http://directus:8055'
-  const adminEmail = process.env.ADMIN_EMAIL || ''
-  const adminPassword = process.env.ADMIN_PASSWORD || ''
+  // Token statique du compte "Comptoir" (permissions limitees). Jamais le token admin.
+  const comptoirToken = process.env.COMPTOIR_TOKEN || ''
 
-  if (!adminEmail || !adminPassword) {
-    throw createError({ statusCode: 500, message: 'Configuration admin manquante' })
+  if (!comptoirToken) {
+    throw createError({ statusCode: 500, message: 'Comptoir non configure (COMPTOIR_TOKEN manquant)' })
   }
 
-  // Authenticate as admin to Directus
-  const loginRes = await globalThis.fetch(`${directusUrl}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: adminEmail, password: adminPassword })
-  }).catch(() => null)
-
-  if (!loginRes || !loginRes.ok) {
-    throw createError({ statusCode: 500, message: 'Erreur authentification serveur' })
-  }
-
-  const loginData = await loginRes.json()
-  const adminToken = loginData?.data?.access_token
-  if (!adminToken) {
-    throw createError({ statusCode: 500, message: 'Token admin invalide' })
-  }
-
-  // Get PIN from comptoir_settings
+  // Lecture du PIN via le token comptoir (lecture seule sur comptoir_settings).
   const settingsRes = await globalThis.fetch(`${directusUrl}/items/comptoir_settings?limit=1`, {
-    headers: { Authorization: `Bearer ${adminToken}` }
+    headers: { Authorization: `Bearer ${comptoirToken}` }
   }).catch(() => null)
 
   if (!settingsRes || !settingsRes.ok) {
@@ -42,7 +25,7 @@ export default defineEventHandler(async (event) => {
 
   const settingsData = await settingsRes.json()
   const settings = settingsData?.data
-  // comptoir_settings is a singleton, data can be an object or array
+  // comptoir_settings est un singleton : data peut etre objet ou tableau
   const settingsObj = Array.isArray(settings) ? settings[0] : settings
   const storedPin = settingsObj?.pin_code
 
@@ -54,8 +37,9 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, message: 'PIN incorrect' })
   }
 
+  // On renvoie le token scope (et non admin) au client.
   return {
-    token: adminToken,
+    token: comptoirToken,
     lieu_defaut: settingsObj?.lieu_defaut || null
   }
 })
