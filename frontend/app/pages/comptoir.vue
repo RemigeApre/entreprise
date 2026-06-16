@@ -882,7 +882,34 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
 
     <!-- ==================== MAIN INTERFACE ==================== -->
     <template v-else>
-      <div class="flex flex-col h-dvh">
+      <!-- Page Parametres : plein ecran, sans header ni navbar -->
+      <div v-if="viewEffectif === 'parametres'" class="min-h-dvh flex flex-col">
+        <header class="relative shrink-0 h-14 flex items-center px-3 bg-[#222] border-b border-stone-800">
+          <button class="size-10 rounded-lg flex items-center justify-center bg-stone-800 hover:bg-stone-700 text-stone-400 hover:text-stone-200 transition-colors" title="Quitter les paramètres" @click="view = 'vente'">
+            <UIcon name="i-lucide-arrow-left" class="size-5" />
+          </button>
+          <span class="absolute left-1/2 -translate-x-1/2 text-sm font-semibold uppercase tracking-[0.2em] text-white">Paramètres</span>
+        </header>
+        <div class="shrink-0 flex justify-center py-3 border-b border-stone-800/60">
+          <div class="inline-flex rounded-xl bg-stone-800 p-1">
+            <button class="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-colors" :class="settingsTab === 'lieux' ? 'bg-[#AF8F3C] text-white' : 'text-stone-400 hover:text-stone-200'" @click="settingsTab = 'lieux'">
+              <UIcon name="i-lucide-map-pin" class="size-4" /> Lieux
+            </button>
+            <button class="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-colors" :class="settingsTab === 'vendeurs' ? 'bg-[#AF8F3C] text-white' : 'text-stone-400 hover:text-stone-200'" @click="settingsTab = 'vendeurs'">
+              <UIcon name="i-lucide-users" class="size-4" /> Profils
+            </button>
+          </div>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4">
+          <div class="max-w-2xl mx-auto">
+            <ComptoirLieuxManager v-if="settingsTab === 'lieux'" />
+            <ComptoirVendeursManager v-else />
+          </div>
+        </div>
+      </div>
+
+      <!-- Interface caisse -->
+      <div v-else class="flex flex-col h-dvh">
         <!-- ===== Header fixe ===== -->
         <header class="relative shrink-0 h-14 flex items-center px-3 bg-[#222] border-b border-stone-800">
           <!-- Gauche : toggle navbar -->
@@ -1210,22 +1237,6 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- ==================== PARAMETRES (lieux / profils) ==================== -->
-      <div v-else-if="viewEffectif === 'parametres'" class="p-4 max-w-2xl mx-auto">
-        <div class="flex justify-center mb-5">
-          <div class="inline-flex rounded-xl bg-stone-800 p-1">
-            <button class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors" :class="settingsTab === 'lieux' ? 'bg-[#AF8F3C] text-white' : 'text-stone-400 hover:text-stone-200'" @click="settingsTab = 'lieux'">
-              <UIcon name="i-lucide-map-pin" class="size-4" /> Lieux
-            </button>
-            <button class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors" :class="settingsTab === 'vendeurs' ? 'bg-[#AF8F3C] text-white' : 'text-stone-400 hover:text-stone-200'" @click="settingsTab = 'vendeurs'">
-              <UIcon name="i-lucide-users" class="size-4" /> Profils
-            </button>
-          </div>
-        </div>
-        <ComptoirLieuxManager v-if="settingsTab === 'lieux'" />
-        <ComptoirVendeursManager v-else />
       </div>
 
           </main>
