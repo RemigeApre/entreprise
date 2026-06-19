@@ -278,9 +278,6 @@ function handleEditionSelect(p: Produit, e: ProduitEdition) {
   showEditionPicker.value = false
 }
 
-// --- Mode ajout (vente, cadeau) ---
-const addMode = ref<LigneType>('vente')
-
 // --- Perte independante ---
 const showPerteModal = ref(false)
 const perteSearch = ref('')
@@ -493,7 +490,6 @@ async function confirmerEncaissement() {
     clientLabel.value = ''
     remiseGlobalePourcent.value = 0
     showPayment.value = false
-    addMode.value = 'vente'
   } catch {
     // Fallback: enqueue
   } finally {
@@ -975,10 +971,14 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
 
       <!-- Interface caisse -->
       <div v-else class="flex flex-col h-dvh">
-        <!-- ===== Header : onglets a gauche, actions a droite ===== -->
-        <header class="shrink-0 h-14 flex items-center gap-2 px-3 bg-[#222] border-b border-stone-800">
+        <!-- ===== Header : onglets a gauche, titre centre, actions a droite ===== -->
+        <header class="shrink-0 h-14 flex items-center gap-2 px-3 bg-[#222] border-b border-stone-800 relative">
+          <!-- Titre centre (absolu pour ne rien decaler) -->
+          <span class="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span class="text-lg tracking-[0.25em] text-stone-400 font-semibold" style="font-variant: small-caps;">comptoir</span>
+          </span>
           <!-- Gauche : onglets (fond transparent, actif dore) -->
-          <nav class="flex items-center gap-1">
+          <nav class="flex items-center gap-1 relative z-10">
             <button v-for="t in mainTabs" :key="t.key"
               class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors"
               :class="viewEffectif === t.key ? 'bg-[#AF8F3C] text-white' : 'text-stone-400 hover:text-stone-200 hover:bg-stone-800/60'"
@@ -997,7 +997,7 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
           <div class="flex-1" />
 
           <!-- Droite : parametres + profil + lieu + statut + deconnexion -->
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 relative z-10">
             <!-- Identite : profil (icone seule, unique) + lieu (avec nom) -->
             <button class="p-1 rounded-lg bg-stone-800 hover:bg-stone-700 transition-colors" :title="`Profil : ${vendeurActuelNom}`" @click="setVendeur(null)">
               <span class="size-7 rounded-md flex items-center justify-center" :style="{ backgroundColor: vendeurCouleur(vendeurActuelObj) }">
@@ -1044,22 +1044,15 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
       <div v-else-if="viewEffectif === 'vente'" class="flex flex-col lg:flex-row h-full">
         <!-- Produits grid -->
         <div class="flex-1 overflow-y-auto p-3">
-          <!-- Mode selector + type filter -->
+          <!-- Type filter -->
           <div class="flex items-center gap-2 mb-3">
-            <div class="flex rounded-lg overflow-hidden border border-stone-700">
-              <button v-for="m in (['vente', 'cadeau'] as LigneType[])" :key="m"
-                class="px-3 py-1.5 text-xs font-semibold transition-colors"
-                :class="addMode === m ? TYPE_COLORS[m].bg + ' ' + TYPE_COLORS[m].text : 'bg-stone-800 text-stone-500'"
-                @click="addMode = m"
-              >{{ TYPE_COLORS[m].label }}</button>
-            </div>
-            <div class="flex-1" />
-            <div class="flex gap-1 overflow-x-auto scrollbar-none">
-              <button class="shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors" :class="filterType === 'all' ? 'bg-[#AF8F3C] text-white' : 'bg-stone-800 text-stone-400'" @click="filterType = 'all'">Tout</button>
-              <button v-for="(config, key) in PRODUIT_TYPES" :key="key" class="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors" :class="filterType === key ? 'bg-[#AF8F3C] text-white' : 'bg-stone-800 text-stone-400'" @click="filterType = key">
-                <UIcon :name="config.icon" class="size-3" /> {{ config.label }}
-              </button>
-            </div>
+            <select
+              v-model="filterType"
+              class="px-3 py-1.5 rounded-lg bg-stone-800 border border-stone-700 text-sm text-stone-200 outline-none focus:border-[#AF8F3C] cursor-pointer"
+            >
+              <option value="all">Tout</option>
+              <option v-for="(config, key) in PRODUIT_TYPES" :key="key" :value="key">{{ config.label }}</option>
+            </select>
           </div>
 
           <!-- Product cards -->
@@ -1073,9 +1066,8 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
               <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                 <button
                   v-for="p in group.produits" :key="p.id"
-                  class="flex flex-col items-start p-3 rounded-xl border active:scale-[0.97] transition-all text-left min-h-[80px]"
-                  :class="addMode === 'vente' ? 'bg-stone-800/80 border-stone-700/50 hover:border-[#AF8F3C]/40' : 'bg-emerald-950/30 border-emerald-900/40 hover:border-emerald-700/60'"
-                  @click="handleProductTap(p, addMode)"
+                  class="flex flex-col items-start p-3 rounded-xl border active:scale-[0.97] transition-all text-left min-h-[80px] bg-stone-800/80 border-stone-700/50 hover:border-[#AF8F3C]/40"
+                  @click="handleProductTap(p, 'vente')"
                 >
                   <div class="flex items-center gap-1.5 mb-1">
                     <UIcon :name="group.icon" class="size-3.5 text-stone-500 shrink-0" />
@@ -1083,8 +1075,7 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
                   </div>
                   <p v-if="p.sous_categorie" class="text-[10px] text-stone-500">{{ p.sous_categorie }}</p>
                   <div class="mt-auto flex items-center justify-between w-full pt-1">
-                    <span v-if="addMode === 'vente'" class="text-sm font-bold text-[#AF8F3C] tabular-nums">{{ formatMoney(p.editions.length ? p.editions[0].prix_vente : p.prix_vente) }} &euro;</span>
-                    <span v-else class="text-xs text-emerald-400">{{ TYPE_COLORS[addMode].label }}</span>
+                    <span class="text-sm font-bold text-[#AF8F3C] tabular-nums">{{ formatMoney(p.editions.length ? p.editions[0].prix_vente : p.prix_vente) }} &euro;</span>
                     <span v-if="lieuActuel" class="text-[10px] text-stone-500 tabular-nums">
                       {{ p.editions.length ? p.editions.reduce((s: number, e: ProduitEdition) => s + getStockForLieu(Number(p.id), lieuActuel!, Number(e.id)), 0) : getStockForLieu(Number(p.id), lieuActuel!) }} dispo
                     </span>
@@ -1096,9 +1087,8 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
           <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
             <button
               v-for="p in produitsFiltered" :key="p.id"
-              class="flex flex-col items-start p-3 rounded-xl border active:scale-[0.97] transition-all text-left min-h-[80px]"
-              :class="addMode === 'vente' ? 'bg-stone-800/80 border-stone-700/50 hover:border-[#AF8F3C]/40' : 'bg-emerald-950/30 border-emerald-900/40 hover:border-emerald-700/60'"
-              @click="handleProductTap(p, addMode)"
+              class="flex flex-col items-start p-3 rounded-xl border active:scale-[0.97] transition-all text-left min-h-[80px] bg-stone-800/80 border-stone-700/50 hover:border-[#AF8F3C]/40"
+              @click="handleProductTap(p, 'vente')"
             >
               <div class="flex items-center gap-1.5 mb-1">
                 <UIcon :name="PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.icon || 'i-lucide-tag'" class="size-3.5 text-stone-500 shrink-0" />
@@ -1106,8 +1096,7 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
               </div>
               <p v-if="p.sous_categorie" class="text-[10px] text-stone-500">{{ p.sous_categorie }}</p>
               <div class="mt-auto flex items-center justify-between w-full pt-1">
-                <span v-if="addMode === 'vente'" class="text-sm font-bold text-[#AF8F3C] tabular-nums">{{ formatMoney(p.editions.length ? p.editions[0].prix_vente : p.prix_vente) }} &euro;</span>
-                <span v-else class="text-xs text-emerald-400">{{ TYPE_COLORS[addMode].label }}</span>
+                <span class="text-sm font-bold text-[#AF8F3C] tabular-nums">{{ formatMoney(p.editions.length ? p.editions[0].prix_vente : p.prix_vente) }} &euro;</span>
                 <span v-if="lieuActuel" class="text-[10px] text-stone-500 tabular-nums">
                   {{ p.editions.length ? p.editions.reduce((s: number, e: ProduitEdition) => s + getStockForLieu(Number(p.id), lieuActuel!, Number(e.id)), 0) : getStockForLieu(Number(p.id), lieuActuel!) }} dispo
                 </span>
