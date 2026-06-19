@@ -193,13 +193,21 @@ const produitsFiltered = computed(() => {
 
 const produitsGrouped = computed(() => {
   if (filterType.value !== 'all') return null
-  const groups: { key: string; label: string; icon: string; produits: typeof produitsFiltered.value }[] = []
+  const groups: { key: string; label: string; icon: string; color: string; produits: typeof produitsFiltered.value }[] = []
   for (const [key, config] of Object.entries(PRODUIT_TYPES)) {
     const items = produitsFiltered.value.filter(p => p.type_produit === key)
-    if (items.length) groups.push({ key, label: config.label, icon: config.icon, produits: items })
+    if (items.length) groups.push({ key, label: config.label, icon: config.icon, color: config.color, produits: items })
   }
   return groups
 })
+
+// Scroll horizontal par categorie
+const scrollRefs = ref<Record<string, HTMLElement | null>>({})
+function scrollCategory(key: string, dir: 'left' | 'right') {
+  const el = scrollRefs.value[key]
+  if (!el) return
+  el.scrollBy({ left: dir === 'right' ? 240 : -240, behavior: 'smooth' })
+}
 
 const lieuActuelObj = computed(() => lieux.value.find(l => l.id === lieuActuel.value) || null)
 const lieuActuelNom = computed(() => lieuActuelObj.value?.nom || 'Aucun lieu')
@@ -1046,36 +1054,53 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
         <div class="flex-1 overflow-y-auto p-3">
           <!-- Type filter -->
           <div class="flex items-center gap-2 mb-3">
-            <select
-              v-model="filterType"
-              class="px-3 py-1.5 rounded-lg bg-stone-800 border border-stone-700 text-sm text-stone-200 outline-none focus:border-[#AF8F3C] cursor-pointer"
-            >
-              <option value="all">Tout</option>
-              <option v-for="(config, key) in PRODUIT_TYPES" :key="key" :value="key">{{ config.label }}</option>
-            </select>
+            <div class="relative">
+              <select
+                v-model="filterType"
+                class="appearance-none pl-3 pr-8 py-1.5 rounded-lg bg-stone-800 border border-stone-700 text-sm font-medium text-stone-200 outline-none focus:border-[#AF8F3C] cursor-pointer"
+              >
+                <option value="all">Toutes les catégories</option>
+                <option v-for="(config, key) in PRODUIT_TYPES" :key="key" :value="key">{{ config.label }}</option>
+              </select>
+              <UIcon name="i-lucide-chevrons-up-down" class="size-3.5 text-stone-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+            <span v-if="filterType !== 'all'" class="size-2.5 rounded-full shrink-0" :style="{ backgroundColor: PRODUIT_TYPES[filterType as keyof typeof PRODUIT_TYPES]?.color }" />
           </div>
 
-          <!-- Product cards -->
+          <!-- Product cards — mode "Tout" : sections par categorie, scroll horizontal -->
           <template v-if="produitsGrouped">
-            <div v-for="group in produitsGrouped" :key="group.key" class="mb-4">
+            <div v-for="group in produitsGrouped" :key="group.key" class="mb-5">
+              <!-- En-tete categorie -->
               <div class="flex items-center gap-2 mb-2 px-1">
-                <UIcon :name="group.icon" class="size-4 text-stone-500" />
-                <h3 class="text-xs font-semibold text-stone-500 uppercase tracking-wider">{{ group.label }}</h3>
+                <span class="size-2 rounded-full shrink-0" :style="{ backgroundColor: group.color }" />
+                <UIcon :name="group.icon" class="size-4 shrink-0" :style="{ color: group.color }" />
+                <h3 class="text-xs font-semibold uppercase tracking-wider" :style="{ color: group.color }">{{ group.label }}</h3>
                 <div class="flex-1 border-t border-stone-800" />
+                <!-- Fleches de scroll si >4 produits -->
+                <template v-if="group.produits.length > 4">
+                  <button class="size-7 rounded-lg bg-stone-800 hover:bg-stone-700 flex items-center justify-center text-stone-400 hover:text-stone-200 transition-colors" @click="scrollCategory(group.key, 'left')">
+                    <UIcon name="i-lucide-chevron-left" class="size-4" />
+                  </button>
+                  <button class="size-7 rounded-lg bg-stone-800 hover:bg-stone-700 flex items-center justify-center text-stone-400 hover:text-stone-200 transition-colors" @click="scrollCategory(group.key, 'right')">
+                    <UIcon name="i-lucide-chevron-right" class="size-4" />
+                  </button>
+                </template>
               </div>
-              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              <!-- Scroll horizontal -->
+              <div :ref="el => { if (el) scrollRefs[group.key] = el as HTMLElement }" class="flex gap-2 overflow-x-auto scrollbar-none pb-1">
                 <button
                   v-for="p in group.produits" :key="p.id"
-                  class="flex flex-col items-start p-3 rounded-xl border active:scale-[0.97] transition-all text-left min-h-[80px] bg-stone-800/80 border-stone-700/50 hover:border-[#AF8F3C]/40"
+                  class="flex flex-col items-start p-3 rounded-xl border active:scale-[0.97] transition-all text-left min-h-[80px] w-44 shrink-0 bg-stone-800/80 hover:brightness-110"
+                  :style="{ borderColor: group.color + '30' }"
                   @click="handleProductTap(p, 'vente')"
                 >
                   <div class="flex items-center gap-1.5 mb-1">
-                    <UIcon :name="group.icon" class="size-3.5 text-stone-500 shrink-0" />
-                    <p class="text-sm font-semibold text-stone-200 leading-tight">{{ p.nom }}</p>
+                    <UIcon :name="group.icon" class="size-3.5 shrink-0" :style="{ color: group.color }" />
+                    <p class="text-sm font-semibold text-stone-200 leading-tight truncate">{{ p.nom }}</p>
                   </div>
                   <p v-if="p.sous_categorie" class="text-[10px] text-stone-500">{{ p.sous_categorie }}</p>
                   <div class="mt-auto flex items-center justify-between w-full pt-1">
-                    <span class="text-sm font-bold text-[#AF8F3C] tabular-nums">{{ formatMoney(p.editions.length ? p.editions[0].prix_vente : p.prix_vente) }} &euro;</span>
+                    <span class="text-sm font-bold tabular-nums" :style="{ color: group.color }">{{ formatMoney(p.editions.length ? p.editions[0].prix_vente : p.prix_vente) }} &euro;</span>
                     <span v-if="lieuActuel" class="text-[10px] text-stone-500 tabular-nums">
                       {{ p.editions.length ? p.editions.reduce((s: number, e: ProduitEdition) => s + getStockForLieu(Number(p.id), lieuActuel!, Number(e.id)), 0) : getStockForLieu(Number(p.id), lieuActuel!) }} dispo
                     </span>
@@ -1084,19 +1109,21 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
               </div>
             </div>
           </template>
+          <!-- Mode filtre : grille classique -->
           <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
             <button
               v-for="p in produitsFiltered" :key="p.id"
-              class="flex flex-col items-start p-3 rounded-xl border active:scale-[0.97] transition-all text-left min-h-[80px] bg-stone-800/80 border-stone-700/50 hover:border-[#AF8F3C]/40"
+              class="flex flex-col items-start p-3 rounded-xl border active:scale-[0.97] transition-all text-left min-h-[80px] bg-stone-800/80 hover:brightness-110"
+              :style="{ borderColor: (PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.color || '#6b7280') + '30' }"
               @click="handleProductTap(p, 'vente')"
             >
               <div class="flex items-center gap-1.5 mb-1">
-                <UIcon :name="PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.icon || 'i-lucide-tag'" class="size-3.5 text-stone-500 shrink-0" />
+                <UIcon :name="PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.icon || 'i-lucide-tag'" class="size-3.5 shrink-0" :style="{ color: PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.color }" />
                 <p class="text-sm font-semibold text-stone-200 leading-tight">{{ p.nom }}</p>
               </div>
               <p v-if="p.sous_categorie" class="text-[10px] text-stone-500">{{ p.sous_categorie }}</p>
               <div class="mt-auto flex items-center justify-between w-full pt-1">
-                <span class="text-sm font-bold text-[#AF8F3C] tabular-nums">{{ formatMoney(p.editions.length ? p.editions[0].prix_vente : p.prix_vente) }} &euro;</span>
+                <span class="text-sm font-bold tabular-nums" :style="{ color: PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.color }">{{ formatMoney(p.editions.length ? p.editions[0].prix_vente : p.prix_vente) }} &euro;</span>
                 <span v-if="lieuActuel" class="text-[10px] text-stone-500 tabular-nums">
                   {{ p.editions.length ? p.editions.reduce((s: number, e: ProduitEdition) => s + getStockForLieu(Number(p.id), lieuActuel!, Number(e.id)), 0) : getStockForLieu(Number(p.id), lieuActuel!) }} dispo
                 </span>

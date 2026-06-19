@@ -378,11 +378,11 @@ export const MATERIEL_ETATS = {
 } as const
 
 export const PRODUIT_TYPES = {
-  livre: { label: 'Livre', prefix: 'LV', icon: 'i-lucide-book-open' },
-  derive: { label: 'Produit derive', prefix: 'PD', icon: 'i-lucide-package' },
-  artisanat: { label: 'Artisanat', prefix: 'AR', icon: 'i-lucide-hand' },
-  service: { label: 'Service web', prefix: 'SV', icon: 'i-lucide-globe' },
-  autre: { label: 'Autre', prefix: 'PR', icon: 'i-lucide-tag' }
+  livre: { label: 'Livre', prefix: 'LV', icon: 'i-lucide-book-open', color: '#3b82f6' },
+  derive: { label: 'Produit derive', prefix: 'PD', icon: 'i-lucide-package', color: '#22c55e' },
+  artisanat: { label: 'Artisanat', prefix: 'AR', icon: 'i-lucide-hand', color: '#f59e0b' },
+  service: { label: 'Service web', prefix: 'SV', icon: 'i-lucide-globe', color: '#8b5cf6' },
+  autre: { label: 'Autre', prefix: 'PR', icon: 'i-lucide-tag', color: '#6b7280' }
 } as const
 
 export const ACHAT_TYPES = {
