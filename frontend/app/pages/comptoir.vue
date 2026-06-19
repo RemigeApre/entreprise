@@ -1109,9 +1109,9 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
                   :style="{ borderColor: group.color + '25' }"
                   @click="handleProductTap(p, 'vente')"
                 >
-                  <!-- Bandeau vertical couleur + nom categorie -->
-                  <div class="w-5 shrink-0 flex items-center justify-center" :style="{ backgroundColor: group.color + '20' }">
-                    <span class="text-[8px] font-bold uppercase tracking-widest whitespace-nowrap" :style="{ color: group.color, writingMode: 'vertical-rl', transform: 'rotate(180deg)' }">{{ group.label }}</span>
+                  <!-- Bandeau vertical couleur + icone categorie -->
+                  <div class="w-6 shrink-0 flex flex-col items-center justify-center gap-1" :style="{ backgroundColor: group.color + '15' }">
+                    <UIcon :name="group.icon" class="size-3.5" :style="{ color: group.color }" />
                   </div>
                   <!-- Contenu carte -->
                   <div class="flex-1 flex flex-col p-2.5 min-h-[80px]">
@@ -1136,9 +1136,9 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
               :style="{ borderColor: (PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.color || '#6b7280') + '25' }"
               @click="handleProductTap(p, 'vente')"
             >
-              <!-- Bandeau vertical couleur + nom categorie -->
-              <div class="w-5 shrink-0 flex items-center justify-center" :style="{ backgroundColor: (PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.color || '#6b7280') + '20' }">
-                <span class="text-[8px] font-bold uppercase tracking-widest whitespace-nowrap" :style="{ color: PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.color, writingMode: 'vertical-rl', transform: 'rotate(180deg)' }">{{ PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.label }}</span>
+              <!-- Bandeau vertical couleur + icone categorie -->
+              <div class="w-6 shrink-0 flex flex-col items-center justify-center gap-1" :style="{ backgroundColor: (PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.color || '#6b7280') + '15' }">
+                <UIcon :name="PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.icon || 'i-lucide-tag'" class="size-3.5" :style="{ color: PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.color }" />
               </div>
               <!-- Contenu carte -->
               <div class="flex-1 flex flex-col p-2.5">
@@ -1152,6 +1152,15 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
                 </div>
               </div>
             </button>
+          </div>
+
+          <!-- Legende des categories -->
+          <div class="flex flex-wrap items-center gap-3 mt-4 pt-3 border-t border-stone-800/50 px-1">
+            <span class="text-[10px] text-stone-600 uppercase tracking-wider">Catégories</span>
+            <span v-for="(config, key) in PRODUIT_TYPES" :key="key" class="flex items-center gap-1.5">
+              <UIcon :name="config.icon" class="size-3" :style="{ color: config.color }" />
+              <span class="text-[10px] text-stone-500">{{ config.label }}</span>
+            </span>
           </div>
         </div>
 
