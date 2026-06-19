@@ -212,6 +212,28 @@ function scrollCategory(key: string, dir: 'left' | 'right') {
 const lieuActuelObj = computed(() => lieux.value.find(l => l.id === lieuActuel.value) || null)
 const lieuActuelNom = computed(() => lieuActuelObj.value?.nom || 'Aucun lieu')
 
+// Lieux "reserve" = lieux de stockage sous le meme parent que le lieu actuel
+const lieuxReserve = computed(() => {
+  if (!lieuActuelObj.value) return []
+  const parentId = lieuParentId(lieuActuelObj.value)
+  if (parentId === null) return lieux.value.filter(l => l.statut === 'stockage' && l.id !== lieuActuel.value)
+  return lieux.value.filter(l => l.statut === 'stockage' && l.id !== lieuActuel.value && lieuParentId(l) === parentId)
+})
+
+function getStockIciEtReserve(p: Produit & { editions: ProduitEdition[] }): { ici: number; reserve: number } {
+  if (!lieuActuel.value) return { ici: 0, reserve: 0 }
+  const ici = p.editions.length
+    ? p.editions.reduce((s: number, e: ProduitEdition) => s + getStockForLieu(Number(p.id), lieuActuel.value!, Number(e.id)), 0)
+    : getStockForLieu(Number(p.id), lieuActuel.value!)
+  let reserve = 0
+  for (const lr of lieuxReserve.value) {
+    reserve += p.editions.length
+      ? p.editions.reduce((s: number, e: ProduitEdition) => s + getStockForLieu(Number(p.id), lr.id, Number(e.id)), 0)
+      : getStockForLieu(Number(p.id), lr.id)
+  }
+  return { ici, reserve }
+}
+
 // --- Panier ---
 type LigneType = 'vente' | 'perte' | 'cadeau'
 
@@ -1067,43 +1089,40 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
             <span v-if="filterType !== 'all'" class="size-2.5 rounded-full shrink-0" :style="{ backgroundColor: PRODUIT_TYPES[filterType as keyof typeof PRODUIT_TYPES]?.color }" />
           </div>
 
-          <!-- Product cards — mode "Tout" : sections par categorie, scroll horizontal -->
+          <!-- Product cards — mode "Tout" : scroll horizontal par categorie -->
           <template v-if="produitsGrouped">
-            <div v-for="group in produitsGrouped" :key="group.key" class="mb-5">
-              <!-- En-tete categorie -->
-              <div class="flex items-center gap-2 mb-2 px-1">
-                <span class="size-2 rounded-full shrink-0" :style="{ backgroundColor: group.color }" />
-                <UIcon :name="group.icon" class="size-4 shrink-0" :style="{ color: group.color }" />
-                <h3 class="text-xs font-semibold uppercase tracking-wider" :style="{ color: group.color }">{{ group.label }}</h3>
-                <div class="flex-1 border-t border-stone-800" />
-                <!-- Fleches de scroll si >4 produits -->
-                <template v-if="group.produits.length > 4">
-                  <button class="size-7 rounded-lg bg-stone-800 hover:bg-stone-700 flex items-center justify-center text-stone-400 hover:text-stone-200 transition-colors" @click="scrollCategory(group.key, 'left')">
-                    <UIcon name="i-lucide-chevron-left" class="size-4" />
-                  </button>
-                  <button class="size-7 rounded-lg bg-stone-800 hover:bg-stone-700 flex items-center justify-center text-stone-400 hover:text-stone-200 transition-colors" @click="scrollCategory(group.key, 'right')">
-                    <UIcon name="i-lucide-chevron-right" class="size-4" />
-                  </button>
-                </template>
+            <div v-for="group in produitsGrouped" :key="group.key" class="mb-4">
+              <!-- Fleches de navigation alignees a droite -->
+              <div v-if="group.produits.length > 4" class="flex justify-end gap-1 mb-1.5 pr-1">
+                <button class="size-6 rounded-md bg-stone-800 hover:bg-stone-700 flex items-center justify-center text-stone-400 hover:text-stone-200 transition-colors" @click="scrollCategory(group.key, 'left')">
+                  <UIcon name="i-lucide-chevron-left" class="size-3.5" />
+                </button>
+                <button class="size-6 rounded-md bg-stone-800 hover:bg-stone-700 flex items-center justify-center text-stone-400 hover:text-stone-200 transition-colors" @click="scrollCategory(group.key, 'right')">
+                  <UIcon name="i-lucide-chevron-right" class="size-3.5" />
+                </button>
               </div>
               <!-- Scroll horizontal -->
               <div :ref="el => { if (el) scrollRefs[group.key] = el as HTMLElement }" class="flex gap-2 overflow-x-auto scrollbar-none pb-1">
                 <button
                   v-for="p in group.produits" :key="p.id"
-                  class="flex flex-col items-start p-3 rounded-xl border active:scale-[0.97] transition-all text-left min-h-[80px] w-44 shrink-0 bg-stone-800/80 hover:brightness-110"
-                  :style="{ borderColor: group.color + '30' }"
+                  class="flex rounded-xl overflow-hidden border active:scale-[0.97] transition-all text-left w-48 shrink-0 bg-stone-800/80 hover:brightness-110"
+                  :style="{ borderColor: group.color + '25' }"
                   @click="handleProductTap(p, 'vente')"
                 >
-                  <div class="flex items-center gap-1.5 mb-1">
-                    <UIcon :name="group.icon" class="size-3.5 shrink-0" :style="{ color: group.color }" />
-                    <p class="text-sm font-semibold text-stone-200 leading-tight truncate">{{ p.nom }}</p>
+                  <!-- Bandeau vertical couleur + nom categorie -->
+                  <div class="w-5 shrink-0 flex items-center justify-center" :style="{ backgroundColor: group.color + '20' }">
+                    <span class="text-[8px] font-bold uppercase tracking-widest whitespace-nowrap" :style="{ color: group.color, writingMode: 'vertical-rl', transform: 'rotate(180deg)' }">{{ group.label }}</span>
                   </div>
-                  <p v-if="p.sous_categorie" class="text-[10px] text-stone-500">{{ p.sous_categorie }}</p>
-                  <div class="mt-auto flex items-center justify-between w-full pt-1">
-                    <span class="text-sm font-bold tabular-nums" :style="{ color: group.color }">{{ formatMoney(p.editions.length ? p.editions[0].prix_vente : p.prix_vente) }} &euro;</span>
-                    <span v-if="lieuActuel" class="text-[10px] text-stone-500 tabular-nums">
-                      {{ p.editions.length ? p.editions.reduce((s: number, e: ProduitEdition) => s + getStockForLieu(Number(p.id), lieuActuel!, Number(e.id)), 0) : getStockForLieu(Number(p.id), lieuActuel!) }} dispo
-                    </span>
+                  <!-- Contenu carte -->
+                  <div class="flex-1 flex flex-col p-2.5 min-h-[80px]">
+                    <p class="text-sm font-semibold text-stone-200 leading-tight">{{ p.nom }}</p>
+                    <p v-if="p.auteur" class="text-[10px] text-stone-400 mt-0.5">{{ p.auteur }}</p>
+                    <div class="mt-auto flex items-center justify-between w-full pt-1.5">
+                      <span class="text-sm font-bold tabular-nums" :style="{ color: group.color }">{{ formatMoney(p.editions.length ? p.editions[0].prix_vente : p.prix_vente) }} &euro;</span>
+                      <span v-if="lieuActuel" class="text-[10px] tabular-nums" :class="getStockIciEtReserve(p).ici > 0 ? 'text-stone-400' : 'text-red-400'">
+                        {{ getStockIciEtReserve(p).ici }}<span v-if="getStockIciEtReserve(p).reserve" class="text-stone-600">[{{ getStockIciEtReserve(p).reserve }}]</span>
+                      </span>
+                    </div>
                   </div>
                 </button>
               </div>
@@ -1113,20 +1132,24 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
           <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
             <button
               v-for="p in produitsFiltered" :key="p.id"
-              class="flex flex-col items-start p-3 rounded-xl border active:scale-[0.97] transition-all text-left min-h-[80px] bg-stone-800/80 hover:brightness-110"
-              :style="{ borderColor: (PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.color || '#6b7280') + '30' }"
+              class="flex rounded-xl overflow-hidden border active:scale-[0.97] transition-all text-left min-h-[80px] bg-stone-800/80 hover:brightness-110"
+              :style="{ borderColor: (PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.color || '#6b7280') + '25' }"
               @click="handleProductTap(p, 'vente')"
             >
-              <div class="flex items-center gap-1.5 mb-1">
-                <UIcon :name="PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.icon || 'i-lucide-tag'" class="size-3.5 shrink-0" :style="{ color: PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.color }" />
-                <p class="text-sm font-semibold text-stone-200 leading-tight">{{ p.nom }}</p>
+              <!-- Bandeau vertical couleur + nom categorie -->
+              <div class="w-5 shrink-0 flex items-center justify-center" :style="{ backgroundColor: (PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.color || '#6b7280') + '20' }">
+                <span class="text-[8px] font-bold uppercase tracking-widest whitespace-nowrap" :style="{ color: PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.color, writingMode: 'vertical-rl', transform: 'rotate(180deg)' }">{{ PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.label }}</span>
               </div>
-              <p v-if="p.sous_categorie" class="text-[10px] text-stone-500">{{ p.sous_categorie }}</p>
-              <div class="mt-auto flex items-center justify-between w-full pt-1">
-                <span class="text-sm font-bold tabular-nums" :style="{ color: PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.color }">{{ formatMoney(p.editions.length ? p.editions[0].prix_vente : p.prix_vente) }} &euro;</span>
-                <span v-if="lieuActuel" class="text-[10px] text-stone-500 tabular-nums">
-                  {{ p.editions.length ? p.editions.reduce((s: number, e: ProduitEdition) => s + getStockForLieu(Number(p.id), lieuActuel!, Number(e.id)), 0) : getStockForLieu(Number(p.id), lieuActuel!) }} dispo
-                </span>
+              <!-- Contenu carte -->
+              <div class="flex-1 flex flex-col p-2.5">
+                <p class="text-sm font-semibold text-stone-200 leading-tight">{{ p.nom }}</p>
+                <p v-if="p.auteur" class="text-[10px] text-stone-400 mt-0.5">{{ p.auteur }}</p>
+                <div class="mt-auto flex items-center justify-between w-full pt-1.5">
+                  <span class="text-sm font-bold tabular-nums" :style="{ color: PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.color }">{{ formatMoney(p.editions.length ? p.editions[0].prix_vente : p.prix_vente) }} &euro;</span>
+                  <span v-if="lieuActuel" class="text-[10px] tabular-nums" :class="getStockIciEtReserve(p).ici > 0 ? 'text-stone-400' : 'text-red-400'">
+                    {{ getStockIciEtReserve(p).ici }}<span v-if="getStockIciEtReserve(p).reserve" class="text-stone-600">[{{ getStockIciEtReserve(p).reserve }}]</span>
+                  </span>
+                </div>
               </div>
             </button>
           </div>
