@@ -193,10 +193,10 @@ const produitsFiltered = computed(() => {
 
 const produitsGrouped = computed(() => {
   if (filterType.value !== 'all') return null
-  const groups: { key: string; label: string; icon: string; color: string; produits: typeof produitsFiltered.value }[] = []
+  const groups: { key: string; label: string; icon: string; color: string; bg: string; produits: typeof produitsFiltered.value }[] = []
   for (const [key, config] of Object.entries(PRODUIT_TYPES)) {
     const items = produitsFiltered.value.filter(p => p.type_produit === key)
-    if (items.length) groups.push({ key, label: config.label, icon: config.icon, color: config.color, produits: items })
+    if (items.length) groups.push({ key, label: config.label, icon: config.icon, color: config.color, bg: config.bg, produits: items })
   }
   return groups
 })
@@ -1072,55 +1072,60 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
 
       <!-- ==================== VENTE ==================== -->
       <div v-else-if="viewEffectif === 'vente'" class="flex flex-col lg:flex-row h-full">
-        <!-- Produits grid -->
+        <!-- Produits -->
         <div class="flex-1 overflow-y-auto p-3">
-          <!-- Type filter -->
-          <div class="flex items-center gap-2 mb-3">
+          <!-- Filtre categorie -->
+          <div class="flex items-center gap-3 mb-4">
             <div class="relative">
               <select
                 v-model="filterType"
-                class="appearance-none pl-3 pr-8 py-1.5 rounded-lg bg-stone-800 border border-stone-700 text-sm font-medium text-stone-200 outline-none focus:border-[#AF8F3C] cursor-pointer"
+                class="appearance-none pl-3 pr-8 py-2 rounded-lg bg-[#2a2520] border-2 border-[#AF8F3C]/40 text-sm font-semibold text-[#EDE5D0] outline-none focus:border-[#AF8F3C] cursor-pointer"
               >
                 <option value="all">Toutes les catégories</option>
                 <option v-for="(config, key) in PRODUIT_TYPES" :key="key" :value="key">{{ config.label }}</option>
               </select>
-              <UIcon name="i-lucide-chevrons-up-down" class="size-3.5 text-stone-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <UIcon name="i-lucide-chevrons-up-down" class="size-3.5 text-[#AF8F3C] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
-            <span v-if="filterType !== 'all'" class="size-2.5 rounded-full shrink-0" :style="{ backgroundColor: PRODUIT_TYPES[filterType as keyof typeof PRODUIT_TYPES]?.color }" />
+            <!-- Legende inline -->
+            <div class="hidden sm:flex items-center gap-3 ml-auto">
+              <span v-for="(config, key) in PRODUIT_TYPES" :key="key" class="flex items-center gap-1.5">
+                <span class="size-3 rounded-sm" :style="{ backgroundColor: config.bg, border: '1px solid ' + config.color }" />
+                <span class="text-xs font-medium text-[#EDE5D0]/70">{{ config.label }}</span>
+              </span>
+            </div>
           </div>
 
-          <!-- Product cards — mode "Tout" : scroll horizontal par categorie -->
+          <!-- Mode "Tout" : scroll horizontal par categorie -->
           <template v-if="produitsGrouped">
-            <div v-for="group in produitsGrouped" :key="group.key" class="mb-4">
-              <!-- Fleches de navigation alignees a droite -->
+            <div v-for="group in produitsGrouped" :key="group.key" class="mb-5">
+              <!-- Fleches de navigation -->
               <div v-if="group.produits.length > 4" class="flex justify-end gap-1 mb-1.5 pr-1">
-                <button class="size-6 rounded-md bg-stone-800 hover:bg-stone-700 flex items-center justify-center text-stone-400 hover:text-stone-200 transition-colors" @click="scrollCategory(group.key, 'left')">
-                  <UIcon name="i-lucide-chevron-left" class="size-3.5" />
+                <button class="size-7 rounded-lg flex items-center justify-center transition-colors hover:opacity-80 active:scale-95" :style="{ backgroundColor: group.bg, color: group.color }" @click="scrollCategory(group.key, 'left')">
+                  <UIcon name="i-lucide-chevron-left" class="size-4" />
                 </button>
-                <button class="size-6 rounded-md bg-stone-800 hover:bg-stone-700 flex items-center justify-center text-stone-400 hover:text-stone-200 transition-colors" @click="scrollCategory(group.key, 'right')">
-                  <UIcon name="i-lucide-chevron-right" class="size-3.5" />
+                <button class="size-7 rounded-lg flex items-center justify-center transition-colors hover:opacity-80 active:scale-95" :style="{ backgroundColor: group.bg, color: group.color }" @click="scrollCategory(group.key, 'right')">
+                  <UIcon name="i-lucide-chevron-right" class="size-4" />
                 </button>
               </div>
-              <!-- Scroll horizontal -->
-              <div :ref="el => { if (el) scrollRefs[group.key] = el as HTMLElement }" class="flex gap-2 overflow-x-auto scrollbar-none pb-1">
+              <div :ref="el => { if (el) scrollRefs[group.key] = el as HTMLElement }" class="flex gap-2.5 overflow-x-auto scrollbar-none pb-1">
                 <button
                   v-for="p in group.produits" :key="p.id"
-                  class="flex rounded-xl overflow-hidden border active:scale-[0.97] transition-all text-left w-48 shrink-0 bg-stone-800/80 hover:brightness-110"
-                  :style="{ borderColor: group.color + '25' }"
+                  class="flex rounded-xl overflow-hidden active:scale-[0.97] transition-all text-left w-52 shrink-0 hover:brightness-125"
+                  :style="{ backgroundColor: group.bg, border: '2px solid ' + group.color + '50' }"
                   @click="handleProductTap(p, 'vente')"
                 >
-                  <!-- Bandeau vertical couleur + icone categorie -->
-                  <div class="w-6 shrink-0 flex flex-col items-center justify-center gap-1" :style="{ backgroundColor: group.color + '15' }">
-                    <UIcon :name="group.icon" class="size-3.5" :style="{ color: group.color }" />
+                  <!-- Bandeau vertical -->
+                  <div class="w-7 shrink-0 flex items-center justify-center" :style="{ backgroundColor: group.color }">
+                    <UIcon :name="group.icon" class="size-4 text-white" />
                   </div>
-                  <!-- Contenu carte -->
-                  <div class="flex-1 flex flex-col p-2.5 min-h-[80px]">
-                    <p class="text-sm font-semibold text-stone-200 leading-tight">{{ p.nom }}</p>
-                    <p v-if="p.auteur" class="text-[10px] text-stone-400 mt-0.5">{{ p.auteur }}</p>
-                    <div class="mt-auto flex items-center justify-between w-full pt-1.5">
-                      <span class="text-sm font-bold tabular-nums" :style="{ color: group.color }">{{ formatMoney(p.editions.length ? p.editions[0].prix_vente : p.prix_vente) }} &euro;</span>
-                      <span v-if="lieuActuel" class="text-[10px] tabular-nums" :class="getStockIciEtReserve(p).ici > 0 ? 'text-stone-400' : 'text-red-400'">
-                        {{ getStockIciEtReserve(p).ici }}<span v-if="getStockIciEtReserve(p).reserve" class="text-stone-600">[{{ getStockIciEtReserve(p).reserve }}]</span>
+                  <!-- Contenu -->
+                  <div class="flex-1 flex flex-col p-3 min-h-[90px]">
+                    <p class="text-sm font-bold text-white leading-tight">{{ p.nom }}</p>
+                    <p v-if="p.auteur" class="text-xs text-white/60 mt-0.5">{{ p.auteur }}</p>
+                    <div class="mt-auto flex items-center justify-between w-full pt-2">
+                      <span class="text-base font-extrabold tabular-nums text-white">{{ formatMoney(p.editions.length ? p.editions[0].prix_vente : p.prix_vente) }} &euro;</span>
+                      <span v-if="lieuActuel" class="text-xs font-bold tabular-nums" :class="getStockIciEtReserve(p).ici > 0 ? 'text-white/80' : 'text-red-400'">
+                        {{ getStockIciEtReserve(p).ici }}<span v-if="getStockIciEtReserve(p).reserve" class="text-white/40 font-normal">[{{ getStockIciEtReserve(p).reserve }}]</span>
                       </span>
                     </div>
                   </div>
@@ -1128,92 +1133,81 @@ const TYPE_COLORS: Record<LigneType, { bg: string; text: string; label: string }
               </div>
             </div>
           </template>
-          <!-- Mode filtre : grille classique -->
-          <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+          <!-- Mode filtre : grille -->
+          <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
             <button
               v-for="p in produitsFiltered" :key="p.id"
-              class="flex rounded-xl overflow-hidden border active:scale-[0.97] transition-all text-left min-h-[80px] bg-stone-800/80 hover:brightness-110"
-              :style="{ borderColor: (PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.color || '#6b7280') + '25' }"
+              class="flex rounded-xl overflow-hidden active:scale-[0.97] transition-all text-left min-h-[90px] hover:brightness-125"
+              :style="{ backgroundColor: PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.bg || '#2e2820', border: '2px solid ' + (PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.color || '#c4a882') + '50' }"
               @click="handleProductTap(p, 'vente')"
             >
-              <!-- Bandeau vertical couleur + icone categorie -->
-              <div class="w-6 shrink-0 flex flex-col items-center justify-center gap-1" :style="{ backgroundColor: (PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.color || '#6b7280') + '15' }">
-                <UIcon :name="PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.icon || 'i-lucide-tag'" class="size-3.5" :style="{ color: PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.color }" />
+              <div class="w-7 shrink-0 flex items-center justify-center" :style="{ backgroundColor: PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.color }">
+                <UIcon :name="PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.icon || 'i-lucide-tag'" class="size-4 text-white" />
               </div>
-              <!-- Contenu carte -->
-              <div class="flex-1 flex flex-col p-2.5">
-                <p class="text-sm font-semibold text-stone-200 leading-tight">{{ p.nom }}</p>
-                <p v-if="p.auteur" class="text-[10px] text-stone-400 mt-0.5">{{ p.auteur }}</p>
-                <div class="mt-auto flex items-center justify-between w-full pt-1.5">
-                  <span class="text-sm font-bold tabular-nums" :style="{ color: PRODUIT_TYPES[p.type_produit as keyof typeof PRODUIT_TYPES]?.color }">{{ formatMoney(p.editions.length ? p.editions[0].prix_vente : p.prix_vente) }} &euro;</span>
-                  <span v-if="lieuActuel" class="text-[10px] tabular-nums" :class="getStockIciEtReserve(p).ici > 0 ? 'text-stone-400' : 'text-red-400'">
-                    {{ getStockIciEtReserve(p).ici }}<span v-if="getStockIciEtReserve(p).reserve" class="text-stone-600">[{{ getStockIciEtReserve(p).reserve }}]</span>
+              <div class="flex-1 flex flex-col p-3">
+                <p class="text-sm font-bold text-white leading-tight">{{ p.nom }}</p>
+                <p v-if="p.auteur" class="text-xs text-white/60 mt-0.5">{{ p.auteur }}</p>
+                <div class="mt-auto flex items-center justify-between w-full pt-2">
+                  <span class="text-base font-extrabold tabular-nums text-white">{{ formatMoney(p.editions.length ? p.editions[0].prix_vente : p.prix_vente) }} &euro;</span>
+                  <span v-if="lieuActuel" class="text-xs font-bold tabular-nums" :class="getStockIciEtReserve(p).ici > 0 ? 'text-white/80' : 'text-red-400'">
+                    {{ getStockIciEtReserve(p).ici }}<span v-if="getStockIciEtReserve(p).reserve" class="text-white/40 font-normal">[{{ getStockIciEtReserve(p).reserve }}]</span>
                   </span>
                 </div>
               </div>
             </button>
           </div>
-
-          <!-- Legende des categories -->
-          <div class="flex flex-wrap items-center gap-3 mt-4 pt-3 border-t border-stone-800/50 px-1">
-            <span class="text-[10px] text-stone-600 uppercase tracking-wider">Catégories</span>
-            <span v-for="(config, key) in PRODUIT_TYPES" :key="key" class="flex items-center gap-1.5">
-              <UIcon :name="config.icon" class="size-3" :style="{ color: config.color }" />
-              <span class="text-[10px] text-stone-500">{{ config.label }}</span>
-            </span>
-          </div>
         </div>
 
-        <!-- Panier -->
-        <div class="w-full lg:w-96 shrink-0 bg-[#222] border-t lg:border-t-0 lg:border-l border-stone-800 flex flex-col max-h-[50vh] lg:max-h-none">
-          <div class="px-4 py-3 border-b border-stone-800">
-            <h2 class="text-sm font-semibold text-stone-400 uppercase tracking-wider">Panier</h2>
+        <!-- ===== Panier ===== -->
+        <div class="w-full lg:w-96 shrink-0 bg-[#252015] border-t-2 lg:border-t-0 lg:border-l-2 border-[#AF8F3C]/30 flex flex-col max-h-[50vh] lg:max-h-none">
+          <div class="px-4 py-3 border-b border-[#AF8F3C]/20">
+            <h2 class="text-sm font-bold text-[#AF8F3C] uppercase tracking-widest">Panier</h2>
           </div>
 
           <div class="flex-1 overflow-y-auto px-4 py-2 space-y-2">
-            <p v-if="!panier.length" class="text-sm text-stone-600 text-center py-8">Vide</p>
-            <div v-for="l in panier" :key="l.id" class="flex items-center gap-2 p-2 rounded-lg" :class="TYPE_COLORS[l.ligneType].bg">
+            <p v-if="!panier.length" class="text-sm text-[#EDE5D0]/30 text-center py-8">Panier vide</p>
+            <div v-for="l in panier" :key="l.id" class="flex items-center gap-2 p-2.5 rounded-lg bg-[#2a2520] border border-[#AF8F3C]/15">
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-1.5">
-                  <p class="text-sm text-stone-200 truncate">{{ l.produit.nom }}</p>
+                  <p class="text-sm font-semibold text-[#EDE5D0] truncate">{{ l.produit.nom }}</p>
                   <span v-if="l.ligneType !== 'vente'" class="text-[9px] font-bold px-1.5 py-0.5 rounded" :class="TYPE_COLORS[l.ligneType].text + ' ' + TYPE_COLORS[l.ligneType].bg">{{ TYPE_COLORS[l.ligneType].label }}</span>
                 </div>
-                <p v-if="l.edition" class="text-[10px] text-stone-500">{{ l.edition.nom_edition }}</p>
+                <p v-if="l.edition" class="text-[11px] text-[#EDE5D0]/50">{{ l.edition.nom_edition }}</p>
               </div>
               <div class="flex items-center gap-1">
-                <button type="button" class="size-7 rounded bg-stone-700 flex items-center justify-center text-stone-400" @click="l.quantite > 1 ? l.quantite-- : retirerDuPanier(l.id)">
-                  <UIcon :name="l.quantite === 1 ? 'i-lucide-trash-2' : 'i-lucide-minus'" class="size-3" />
+                <button type="button" class="size-7 rounded-lg bg-[#AF8F3C]/20 flex items-center justify-center text-[#AF8F3C] hover:bg-[#AF8F3C]/30 transition-colors" @click="l.quantite > 1 ? l.quantite-- : retirerDuPanier(l.id)">
+                  <UIcon :name="l.quantite === 1 ? 'i-lucide-trash-2' : 'i-lucide-minus'" class="size-3.5" />
                 </button>
-                <span class="text-sm font-bold tabular-nums w-6 text-center">{{ l.quantite }}</span>
-                <button type="button" class="size-7 rounded bg-stone-700 flex items-center justify-center text-stone-400" @click="l.quantite++">
-                  <UIcon name="i-lucide-plus" class="size-3" />
+                <span class="text-sm font-bold tabular-nums w-6 text-center text-white">{{ l.quantite }}</span>
+                <button type="button" class="size-7 rounded-lg bg-[#AF8F3C]/20 flex items-center justify-center text-[#AF8F3C] hover:bg-[#AF8F3C]/30 transition-colors" @click="l.quantite++">
+                  <UIcon name="i-lucide-plus" class="size-3.5" />
                 </button>
               </div>
-              <span v-if="l.ligneType === 'vente'" class="text-sm font-bold text-[#AF8F3C] tabular-nums w-16 text-right">{{ formatMoney(ligneTotal(l)) }}</span>
+              <span v-if="l.ligneType === 'vente'" class="text-sm font-bold text-white tabular-nums w-16 text-right">{{ formatMoney(ligneTotal(l)) }}</span>
               <span v-else class="text-xs w-16 text-right" :class="TYPE_COLORS[l.ligneType].text">0 &euro;</span>
             </div>
           </div>
 
           <!-- Bottom -->
-          <div class="px-4 py-3 border-t border-stone-800 space-y-3">
-            <input v-model="clientLabel" placeholder="Client (optionnel)" class="w-full px-3 py-2 rounded-lg bg-stone-800 border border-stone-700 text-sm text-stone-200 placeholder-stone-600 outline-none focus:border-[#AF8F3C]" />
+          <div class="px-4 py-3 border-t-2 border-[#AF8F3C]/20 space-y-3">
+            <input v-model="clientLabel" placeholder="Client (optionnel)" class="w-full px-3 py-2 rounded-lg bg-[#2a2520] border border-[#AF8F3C]/20 text-sm text-[#EDE5D0] placeholder-[#AF8F3C]/30 outline-none focus:border-[#AF8F3C]" />
 
             <div v-if="panier.some(l => l.ligneType === 'vente')" class="flex items-center justify-between">
-              <span class="text-xs text-stone-500">Remise globale</span>
+              <span class="text-xs font-medium text-[#EDE5D0]/60">Remise globale</span>
               <div class="flex items-center gap-1">
-                <input v-model.number="remiseGlobalePourcent" type="number" min="0" max="100" placeholder="0" class="w-14 px-2 py-1 rounded bg-stone-800 border border-stone-700 text-sm text-center text-stone-200 outline-none focus:border-[#AF8F3C]" />
-                <span class="text-xs text-stone-500">%</span>
+                <input v-model.number="remiseGlobalePourcent" type="number" min="0" max="100" placeholder="0" class="w-14 px-2 py-1 rounded-lg bg-[#2a2520] border border-[#AF8F3C]/20 text-sm text-center text-[#EDE5D0] outline-none focus:border-[#AF8F3C]" />
+                <span class="text-xs font-medium text-[#EDE5D0]/60">%</span>
               </div>
             </div>
 
-            <div class="flex items-center justify-between text-lg font-bold">
-              <span class="text-stone-400">Total</span>
-              <span class="text-[#AF8F3C] tabular-nums">{{ formatMoney(totalFinal) }} &euro;</span>
+            <div class="flex items-center justify-between text-lg font-extrabold">
+              <span class="text-[#EDE5D0]">Total</span>
+              <span class="text-[#AF8F3C] tabular-nums text-xl">{{ formatMoney(totalFinal) }} &euro;</span>
             </div>
 
             <button
-              class="w-full py-3.5 rounded-xl text-base font-bold transition-all"
-              :class="panier.length ? 'bg-[#AF8F3C] text-white active:scale-[0.98]' : 'bg-stone-800 text-stone-600 cursor-not-allowed'"
+              class="w-full py-3.5 rounded-xl text-base font-extrabold uppercase tracking-wider transition-all"
+              :class="panier.length ? 'bg-[#AF8F3C] text-[#1a1a1a] active:scale-[0.98] hover:bg-[#c9a84e]' : 'bg-[#2a2520] text-[#EDE5D0]/20 cursor-not-allowed'"
               :disabled="!panier.length"
               @click="openPayment"
             >Encaisser</button>
